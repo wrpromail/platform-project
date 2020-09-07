@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: starter
+  annotations:
+    apiAuth: |-
+      [ {
+        "authMethod" : "password",
+        "scopes" : [ "" ],
+        "mappings" : {
+          "path" : "/act/hello/index2",
+          "method" : [ "GET" ]
+        },
+        "loginRequired" : true,
+        "enterpriseFunction" : "EnterpriseProject",
+        "enterpriseAction" : "Update",
+        "skipCsrf" : false
+      }, {
+        "authMethod" : "none",
+        "scopes" : [ "" ],
+        "mappings" : {
+          "path" : "/act/hello/index",
+          "method" : [ "GET" ]
+        },
+        "loginRequired" : false,
+        "skipCsrf" : true
+      }, {
+        "authMethod" : "none",
+        "scopes" : [ "project" ],
+        "mappings" : {
+          "path" : "/act/hello/index3",
+          "method" : [ "GET" ]
+        },
+        "loginRequired" : true,
+        "projectFunction" : "ProjectCI",
+        "projectAction" : "Update",
+        "deployTokenScopes" : [ "project_tweet_rw" ],
+        "skipCsrf" : false
+      } ]
+    apiRoute: |-
+      [ {
+        "path" : "/act/hello/**"
+      } ]
+spec:
+  selector:
+    matchLabels:
+      app: starter
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: starter
+    spec:
+      initContainers:
+      - name: pod-dependency
+        image: ylonkar/pod-dependency-init-container:1.0.2
+        env:
+        - name: POD_LABELS
+          value: app=redis,app=mariadb,app=ssdb,app=influxdb,app=etcd,app=rabbitmq
+      containers:
+      - name: starter
+        image: ${CODING_IMAGE:-codingcorp-docker.pkg.coding.net/platform/platform-release/starter:master}
+        ports:
+        - containerPort: 8080
+        - containerPort: 5005
+        - containerPort: 20153
+        - containerPort: 20150
+        readinessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 30
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        envFrom:
+        - configMapRef:
+            name: starter-config
+      imagePullSecrets:
+      - name: codingcorp-registry-cred

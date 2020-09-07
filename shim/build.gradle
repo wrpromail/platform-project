@@ -1,0 +1,6 @@
+dependencies {
+    compile "net.coding.common:json:${commonVersion}"
+
+    compile "org.springframework:spring-context:4.3.9.RELEASE"
+}
+

@@ -1,0 +1,42 @@
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+
+dependencies {
+    compile project(':shim')
+
+    //common
+    compile "net.coding.common:rpc:${commonVersion}"
+
+    //proto
+    compile "net.coding.proto:project:43219edbd9551ac6f3e401813ec3c90bc5899402"
+
+    compile "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+}
+
+// Maven Publish
+publishing {
+    repositories {
+        maven {
+            // change to point to your repo, e.g. http://my.org/repo
+            url "https://codingcorp-maven.pkg.coding.net/repository/registry/maven-releases/"
+            credentials {
+                username = System.getenv('REGISTRY_USER') != null ? System.getenv('REGISTRY_USER') : 'dt_uQFZxOtEdV'
+                password = System.getenv('REGISTRY_PASSWORD') != null ? System.getenv('REGISTRY_PASSWORD') : 'nDZT7n47irtOEkOSj5ps2hhocFwcaP'
+            }
+        }
+    }
+    publications {
+        maven(MavenPublication) {
+            def result = System.getenv('VERSION')
+            if (result == null) {
+                result = versioning.info.commit
+            }
+            project.setVersion(String.valueOf(result).trim())
+            groupId = 'net.coding.client'
+            version = project.version
+            artifactId = rootProject.name
+            from components.java
+            artifact sourcesJar
+        }
+    }
+}

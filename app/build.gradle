@@ -1,0 +1,83 @@
+apply plugin: 'org.springframework.boot'
+apply plugin: 'com.bmuschko.docker-remote-api'
+
+dependencies {
+    compile project(':lib')
+
+    //common
+    compile "net.coding.common:rpc:${commonVersion}"
+    compile "net.coding.common:tracing:${commonVersion}"
+    compile "net.coding.common:server:${commonVersion}"
+
+    //proto
+    compile "net.coding.proto:starter:20200725.1"
+
+    compile "net.coding.proto:project:43219edbd9551ac6f3e401813ec3c90bc5899402"
+
+    compile "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+}
+
+bootRun {
+    // support -Dxxxx on the commandline
+    systemProperties = System.properties
+
+    dependsOn pathingJar
+    doFirst {
+        classpath = files("$buildDir/classes/main", "$buildDir/resources/main", pathingJar.archivePath)
+    }
+}
+
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.Dockerfile
+
+docker {
+    def dockerHost = System.getenv('DOCKER_HOST')
+    def dockerCertPath = System.getenv('DOCKER_CERT_PATH')
+    url = (dockerHost == null) ? 'unix:///var/run/docker.sock' : dockerHost.replace('tcp', 'http')
+    if (System.getenv('DOCKER_TLS_VERIFY') == "1" && dockerCertPath != null) {
+        certPath = new File(dockerCertPath)
+    }
+    registryCredentials {
+        url = System.getenv('REGISTRY_URL') != null ? System.getenv('REGISTRY_URL') : 'codingcorp-docker.pkg.coding.net'
+        username = System.getenv('REGISTRY_USER') != null ? System.getenv('REGISTRY_USER') : 'dt_uQFZxOtEdV'
+        password = System.getenv('REGISTRY_PASSWORD') != null ? System.getenv('REGISTRY_PASSWORD') : 'nDZT7n47irtOEkOSj5ps2hhocFwcaP'
+    }
+}
+
+task createYamlTask(group: 'kubernetes', type: Exec) {
+    dependsOn bootRepackage
+    def path = System.getProperty("user.dir");
+    path = path.substring(0, path.lastIndexOf("/"))
+    commandLine "java", "-jar", jar.getArchivePath(), rootProject.name, path + "/deploy"
+}
+
+task createDockerfile(type: Dockerfile) {
+    from baseDockerImage
+    runCommand 'mkdir /app'
+    workingDir '/app'
+    copyFile "${project.name}.jar", '/app'
+    volume '/data'
+    defaultCommand '/bin/bash', '-cx', "java $defaultJavaOption" +
+            " \${ENABLE_DEBUG:+'-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005'}" +
+            " \${ENABLE_URANDOM:+'-Djava.security.egd=file:/dev/./urandom'}" +
+            " \$JAVA_OPTS -jar /app/${project.name}.jar"
+}
+
+task copyDockerResource(type: Copy, dependsOn: buildNeeded) {
+    from new File(project.buildDir, "/libs/${project.name}.jar")
+    into new File(project.buildDir, "/docker")
+}
+
+task buildDockerImage(type: DockerBuildImage) {
+    dependsOn createDockerfile
+    dependsOn copyDockerResource
+    inputDir = createDockerfile.destFile.parentFile
+    pull = true
+    tags = [
+            "${project.name.toLowerCase()}:${versioning.info.commit}".toString(),
+            "${project.name.toLowerCase()}:latest".toString()
+    ]
+    doLast {
+        delete inputDir
+    }
+}

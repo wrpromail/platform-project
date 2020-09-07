@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: starter-config
+data:
+  needed_coding.http.maxThreads: ''
+  needed_coding.http.idleTimeout: ''
+  needed_coding.http.forbidPage: ''
+  needed_coding.http.notFoundPage: ''
+  needed_coding.http.errorPage: ''
+  needed_eventbus.appName: ''
+  needed_redis.host: ''
+  needed_redis.sentinels: ''
+  needed_redis.master_name: ''
+  needed_redis.password: ''
+  grpc.client.callDeadlineAfter: '3000'
+  grpc.enabled: 'true'
+  grpc.host: etcd
+  grpc.port: '20153'
+  grpc.callDeadlineAfter: '10000'
+  coding.mode.http: dev
+  coding.http.port: '8080'
+  coding.http.shutdownWaitTime: '30'
+  coding.http.maxFormContentSize: '2097152'
+  eventbus.requeueLimit: '6'
+  eventbus.dropNotMatchEvent: 'true'
+  eventbus.rabbitWebPort: '0'
+  jdbc.slave.host: mariadb
+  jdbc.slave.database: coding
+  jdbc.slave.username: coding
+  jdbc.slave.password: coding123
+  jdbc.slave.showSql: 'false'
+  jdbc.host: mariadb
+  jdbc.database: coding
+  jdbc.username: coding
+  jdbc.password: coding123
+  jdbc.leak_detection_threshold: '0'
+  jdbc.showSql: 'false'
+  etcd.machines: http://etcd:2379
+  etcd.discoveryPath: /git-servers
+  etcd.ttl: '5'
+  etcd.interval: '3'
+  amqp.url: amqp://guest:guest@rabbitmq:5672/
+  amqp.concurrency: '3'
+  amqp.maxConcurrency: '10'
+  redis.port: '6379'
+  redis.is_cluster: 'false'
+  redis.timeout: '2000'
+  redis.database: '0'
+  redis.jedisPoolConfig: redis.clients.jedis.JedisPoolConfig@6d4b1c02
+  redis.maxActive: '256'
