@@ -10,8 +10,7 @@ import org.springframework.context.annotation.Import;
         Config.class,
 })
 @Import({
-        net.coding.shim.project.Config.class,
-        net.coding.common.eventbus.Config.class,
-        net.coding.common.dbclient.Config.class,
+
+
 })
 public class Config {}

@@ -4,6 +4,7 @@ import net.coding.common.server.BaseConfig;
 import net.coding.common.server.BaseServer;
 
 import org.lognet.springboot.grpc.autoconfigure.GRpcAutoConfiguration;
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
@@ -20,6 +21,7 @@ import org.springframework.context.annotation.Import;
         net.coding.common.rpc.Config.class
 })
 @ImportAutoConfiguration({GRpcAutoConfiguration.class})
+@MapperScan("net.coding.lib.project")
 public class Application {
 
     public static void main(String[] args) {

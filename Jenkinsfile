@@ -8,7 +8,7 @@ pipeline {
             }
         }
 
-        stage("build:platform:starter") {
+        stage("build:platform:project") {
             steps {
                 sh "./build.sh"
             }

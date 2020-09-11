@@ -4,5 +4,4 @@ include 'app'
 
 include 'lib'
 include 'client'
-include 'shim'
 

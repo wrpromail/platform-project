@@ -1,14 +1,14 @@
 dependencies {
-    compile project(':shim')
 
     //common
     compile "net.coding.common:annotation:${commonVersion}"
-    compile "net.coding.common:eventbus:${commonVersion}"
-    compile "net.coding.common:db:${commonVersion}"
-    compile "net.coding.common:db-client:${commonVersion}"
+
 
     //client 假设 starter 服务用到了 permission 服务
     compile "net.coding.grpc.client:permission:20200722.1"
+    compile group: 'org.redisson', name: 'redisson', version: '3.13.4'
+
+
 
     testCompile "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
 }

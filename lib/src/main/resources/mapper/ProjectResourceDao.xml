@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.coding.lib.project.dao.ProjectResourceDao">
+  <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ProjectResource">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="project_id" jdbcType="INTEGER" property="projectId" />
+    <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt" />
+    <result column="target_type" jdbcType="VARCHAR" property="targetType" />
+    <result column="target_id" jdbcType="INTEGER" property="targetId" />
+    <result column="code" jdbcType="INTEGER" property="code" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
+    <result column="created_by" jdbcType="INTEGER" property="createdBy" />
+    <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
+    <result column="updated_by" jdbcType="INTEGER" property="updatedBy" />
+    <result column="deleted_by" jdbcType="INTEGER" property="deletedBy" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, project_id, deleted_at, target_type, target_id, code, title, created_at, created_by, 
+    updated_at, updated_by, deleted_by
+  </sql>
+
+  <select id="selectById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM project_resources
+    WHERE id = #{id,jdbcType=INTEGER}
+  </select>
+
+  <delete id="delete" parameterType="java.lang.Integer">
+    delete from project_resources
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="net.coding.lib.project.entity.ProjectResource" useGeneratedKeys="true">
+    INSERT INTO project_resources
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="projectId != null">
+        project_id,
+      </if>
+      <if test="deletedAt != null">
+        deleted_at,
+      </if>
+      <if test="targetType != null">
+        target_type,
+      </if>
+      <if test="targetId != null">
+        target_id,
+      </if>
+      <if test="code != null">
+        code,
+      </if>
+      <if test="title != null">
+        title,
+      </if>
+      <if test="createdAt != null">
+        created_at,
+      </if>
+      <if test="createdBy != null">
+        created_by,
+      </if>
+      <if test="updatedAt != null">
+        updated_at,
+      </if>
+      <if test="updatedBy != null">
+        updated_by,
+      </if>
+      <if test="deletedBy != null">
+        deleted_by,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="projectId != null">
+        #{projectId,jdbcType=INTEGER},
+      </if>
+      <if test="deletedAt != null">
+        #{deletedAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="targetType != null">
+        #{targetType,jdbcType=VARCHAR},
+      </if>
+      <if test="targetId != null">
+        #{targetId,jdbcType=INTEGER},
+      </if>
+      <if test="code != null">
+        #{code,jdbcType=INTEGER},
+      </if>
+      <if test="title != null">
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="createdAt != null">
+        #{createdAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createdBy != null">
+        #{createdBy,jdbcType=INTEGER},
+      </if>
+      <if test="updatedAt != null">
+        #{updatedAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedBy != null">
+        #{updatedBy,jdbcType=INTEGER},
+      </if>
+      <if test="deletedBy != null">
+        #{deletedBy,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+
+  <update id="update" parameterType="net.coding.lib.project.entity.ProjectResource">
+    UPDATE project_resources
+    <set>
+      <if test="projectId != null">
+        project_id = #{projectId,jdbcType=INTEGER},
+      </if>
+      <if test="deletedAt != null">
+        deleted_at = #{deletedAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="targetType != null">
+        target_type = #{targetType,jdbcType=VARCHAR},
+      </if>
+      <if test="targetId != null">
+        target_id = #{targetId,jdbcType=INTEGER},
+      </if>
+      <if test="code != null">
+        code = #{code,jdbcType=INTEGER},
+      </if>
+      <if test="title != null">
+        title = #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="createdAt != null">
+        created_at = #{createdAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createdBy != null">
+        created_by = #{createdBy,jdbcType=INTEGER},
+      </if>
+      <if test="updatedAt != null">
+        updated_at = #{updatedAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedBy != null">
+        updated_by = #{updatedBy,jdbcType=INTEGER},
+      </if>
+      <if test="deletedBy != null">
+        deleted_by = #{deletedBy,jdbcType=INTEGER},
+      </if>
+    </set>
+    WHERE id = #{id,jdbcType=INTEGER}
+  </update>
+
+  <select id="findList" parameterType="map" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM project_resources
+    <where>
+      <if test="projectId != null">
+        AND project_id = #{projectId}
+      </if>
+      <if test="targetType != null">
+        AND target_type = #{targetType}
+      </if>
+      <if test="targetId != null">
+        AND target_id = #{targetId}
+      </if>
+      <if test="code != null">
+        AND `code` = #{code}
+      </if>
+      <if test="codes != null and codes.size() > 0">
+        AND `code` IN
+        <foreach item = "item" index = "index" collection = "codes" open = "(" close = ")" separator=",">
+          #{item}
+        </foreach>
+      </if>
+    </where>
+  </select>
+
+  <select id="findByProjectIdAndTypeAndTarget" parameterType="map" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM project_resources
+    <where>
+      <if test="projectId != null">
+        AND project_id = #{projectId}
+      </if>
+      <if test="targetType != null">
+        AND target_type = #{targetType}
+      </if>
+      <if test="targetId != null">
+        AND target_id = #{targetId}
+      </if>
+    </where>
+  </select>
+</mapper>

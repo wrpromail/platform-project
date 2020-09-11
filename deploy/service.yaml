@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: starter
+  name: project
 spec:
   selector:
-    app: starter
+    app: project
   type: ClusterIP
   ports:
   - name: http

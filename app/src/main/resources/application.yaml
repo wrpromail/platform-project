@@ -4,7 +4,7 @@ coding:
 
 
 etcd:
-  machines: http://etcd:2380
+  machines: http://9.135.93.238:2379
   discovery_path: /git-servers
 
 
@@ -13,17 +13,9 @@ grpc:
   enableReflection: true
 
 jdbc:
-  host: mariadb
-  database: coding
+  host: jdbc:mysql://9.135.93.238:3306/coding
   username: coding
   password: coding123
-
-amqp:
-  url: amqp://guest:guest@rabbitmq:5672/
-
-
-eventbus:
-  appName: project
 
 
 logging:

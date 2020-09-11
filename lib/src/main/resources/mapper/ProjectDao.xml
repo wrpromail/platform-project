@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.coding.lib.project.dao.ProjectDao">
+  <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.Project">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="owner_id" jdbcType="INTEGER" property="ownerId" />
+    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
+    <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
+    <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt" />
+    <result column="status" jdbcType="TINYINT" property="status" />
+    <result column="recommended" jdbcType="TINYINT" property="recommended" />
+    <result column="depot_shared" jdbcType="TINYINT" property="depotShared" />
+    <result column="type" jdbcType="BOOLEAN" property="type" />
+    <result column="max_member" jdbcType="SMALLINT" property="maxMember" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="name_pinyin" jdbcType="VARCHAR" property="namePinyin" />
+    <result column="display_name" jdbcType="VARCHAR" property="displayName" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+    <result column="icon" jdbcType="VARCHAR" property="icon" />
+    <result column="plan" jdbcType="TINYINT" property="plan" />
+    <result column="team_owner_id" jdbcType="INTEGER" property="teamOwnerId" />
+    <result column="user_owner_id" jdbcType="INTEGER" property="userOwnerId" />
+    <result column="start_date" jdbcType="DATE" property="startDate" />
+    <result column="end_date" jdbcType="DATE" property="endDate" />
+    <result column="project_file_quota" jdbcType="INTEGER" property="projectFileQuota" />
+    <result column="invisible" jdbcType="TINYINT" property="invisible" />
+    <result column="label" jdbcType="VARCHAR" property="label" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, owner_id, created_at, updated_at, deleted_at, `status`, recommended, depot_shared, 
+    `type`, max_member, `name`, name_pinyin, display_name, description, icon, `plan`, 
+    team_owner_id, user_owner_id, start_date, end_date, project_file_quota, invisible, 
+    `label`
+  </sql>
+
+  <select id="getById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM projects
+    WHERE id = #{id,jdbcType=INTEGER}
+  </select>
+
+</mapper>
