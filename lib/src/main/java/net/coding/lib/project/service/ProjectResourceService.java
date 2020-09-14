@@ -8,6 +8,7 @@ import net.coding.lib.project.dao.ProjectResourceSequenceDao;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectResource;
 import net.coding.lib.project.entity.ProjectResourceSequence;
+import net.coding.lib.project.enums.NotSearchTargetTypeEnum;
 import net.coding.lib.project.utils.DateUtil;
 
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,9 +46,8 @@ public class ProjectResourceService {
         int code = projectResourceSequenceService.generateProjectResourceCode(record.getProjectId());
         record.setCode(code);
         record.setCreatedAt(DateUtil.getCurrentDate());
-        record.setUpdatedBy(record.getCreatedBy());
-        record.setUpdatedAt(DateUtil.getCurrentDate());
         record.setUpdatedAt(record.getCreatedAt());
+        record.setUpdatedBy(record.getCreatedBy());
         record.setDeletedBy(0);
         projectResourcesDao.insert(record);
         return record;
@@ -108,5 +109,48 @@ public class ProjectResourceService {
         parameters.put("projectId", projectId);
         parameters.put("codes", codes);
         return projectResourcesDao.findList(parameters);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Integer generateCodes(Integer projectId, Integer codeAmount) {
+        return projectResourceSequenceService.generateProjectResourceCodes(projectId, codeAmount);
+    }
+
+    public ProjectResource relateProjectResource(ProjectResource record) {
+        ProjectResource projectResource = findByProjectIdAndCode(record.getProjectId(), record.getCode());
+        if (Objects.nonNull(projectResource)) {
+            return projectResource;
+        }
+        record.setCreatedAt(DateUtil.getCurrentDate());
+        record.setUpdatedBy(record.getCreatedBy());
+        record.setUpdatedAt(record.getCreatedAt());
+        record.setDeletedBy(0);
+        projectResourcesDao.insert(record);
+        return record;
+    }
+
+    public ProjectResource findByProjectIdAndCode(Integer projectId, Integer code) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("projectId", projectId);
+        parameters.put("code", code);
+        //排除不需要搜索的目标类型
+        parameters.put("targetTypes", NotSearchTargetTypeEnum.getTargetTypes());
+        return projectResourcesDao.findByProjectIdAndCode(parameters);
+    }
+
+    public int batchRelateResource(List<ProjectResource> projectResourceList) {
+        return projectResourcesDao.batchInsert(projectResourceList);
+    }
+
+    public int countByProjectIdAndCodes(Integer projectId, List<Integer> codeList) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("projectId", projectId);
+        parameters.put("codes", codeList);
+        return projectResourcesDao.countByProjectIdAndCodes(parameters);
+    }
+
+    public String getResourceLink(Integer projectResourceId) {
+
+        return "";
     }
 }

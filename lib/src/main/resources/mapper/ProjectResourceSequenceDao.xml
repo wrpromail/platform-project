@@ -16,6 +16,7 @@
     <include refid="Base_Column_List" />
     FROM project_resource_sequences
     WHERE id = #{id,jdbcType=INTEGER}
+    LIMIT 1
   </select>
 
   <select id="getByProjectId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
@@ -23,6 +24,7 @@
     <include refid="Base_Column_List" />
     FROM project_resource_sequences
     WHERE project_id = #{projectId,jdbcType=INTEGER}
+    LIMIT 1
   </select>
 
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="net.coding.lib.project.entity.ProjectResourceSequence" useGeneratedKeys="true">
@@ -45,8 +47,12 @@
     </trim>
   </insert>
 
-  <update id="update" parameterType="java.lang.Integer">
+  <update id="generateProjectResourceCode" parameterType="java.lang.Integer">
     UPDATE project_resource_sequences SET `code` = `code` + 1  WHERE project_id = #{projectId} AND @new_code := `code` + 1
+  </update>
+
+  <update id="generateProjectResourceCodes" parameterType="map">
+    UPDATE project_resource_sequences SET `code` = `code` + #{codeAmount}  WHERE project_id = #{projectId} AND @new_code := `code` + #{codeAmount}
   </update>
 
   <select id="getCode" parameterType="java.lang.Integer" resultType="java.lang.Integer">

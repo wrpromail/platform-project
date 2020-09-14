@@ -39,6 +39,7 @@
     <include refid="Base_Column_List" />
     FROM projects
     WHERE id = #{id,jdbcType=INTEGER}
+    LIMIT 1
   </select>
 
 </mapper>

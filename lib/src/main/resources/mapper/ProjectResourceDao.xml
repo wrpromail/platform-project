@@ -28,6 +28,25 @@
     WHERE id = #{id,jdbcType=INTEGER}
   </select>
 
+  <insert id="batchInsert" parameterType="list">
+    INSERT INTO project_resources(project_id, target_type, target_id, code, title, created_at, created_by, updated_at, updated_by, deleted_by)
+    VALUES
+    <foreach collection="list" item="projectResource" separator=",">
+      (
+        #{projectResource.projectId},
+        #{projectResource.targetType},
+        #{projectResource.targetId},
+        #{projectResource.code},
+        #{projectResource.title},
+        #{projectResource.createdAt},
+        #{projectResource.createdBy},
+        #{projectResource.updatedAt},
+        #{projectResource.updatedBy},
+        #{projectResource.deletedBy}
+      )
+    </foreach>
+  </insert>
+
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="net.coding.lib.project.entity.ProjectResource" useGeneratedKeys="true">
     INSERT INTO project_resources
     <trim prefix="(" suffix=")" suffixOverrides=",">
@@ -68,9 +87,6 @@
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="projectId != null">
         #{projectId,jdbcType=INTEGER},
-      </if>
-      <if test="deletedAt != null">
-        #{deletedAt,jdbcType=TIMESTAMP},
       </if>
       <if test="targetType != null">
         #{targetType,jdbcType=VARCHAR},
@@ -207,6 +223,45 @@
       </if>
       <if test="targetId != null">
         AND target_id = #{targetId}
+      </if>
+    </where>
+    LIMIT 1
+  </select>
+
+  <select id="findByProjectIdAndCode" parameterType="map" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM project_resources
+    <where>
+      <if test="projectId != null">
+        AND project_id = #{projectId}
+      </if>
+      <if test="code != null">
+        AND `code` = #{code}
+      </if>
+      <if test="targetTypes != null and targetTypes.size() > 0">
+        AND target_type NOT IN
+        <foreach item = "item" index = "index" collection = "targetTypes" open = "(" close = ")" separator=",">
+          #{item}
+        </foreach>
+      </if>
+    </where>
+    LIMIT 1
+  </select>
+
+  <select id="countByProjectIdAndCodes" parameterType="map" resultType="java.lang.Integer">
+    SELECT
+        COUNT(id) AS counts
+    FROM project_resources
+    <where>
+      <if test="projectId != null">
+        AND project_id = #{projectId}
+      </if>
+      <if test="codes != null and codes.size() > 0">
+        AND `code` IN
+        <foreach item = "item" index = "index" collection = "codes" open = "(" close = ")" separator=",">
+          #{item}
+        </foreach>
       </if>
     </where>
   </select>

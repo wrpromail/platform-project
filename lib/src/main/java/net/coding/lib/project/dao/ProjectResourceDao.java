@@ -14,8 +14,6 @@ public interface ProjectResourceDao {
 
     int insert(ProjectResource record);
 
-    int delete(@Param("id") Integer id);
-
     int update(ProjectResource record);
 
     ProjectResource selectById(@Param("id") Integer id);
@@ -26,4 +24,9 @@ public interface ProjectResourceDao {
 
     int batchDelete(Map<String, Object> parameter);
 
+    ProjectResource findByProjectIdAndCode(Map<String, Object> parameter);
+
+    int batchInsert(List<ProjectResource> list);
+
+    int countByProjectIdAndCodes(Map<String, Object> parameter);
 }
