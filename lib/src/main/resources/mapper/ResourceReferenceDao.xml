@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.coding.lib.project.dao.ResourceReferenceDao">
+  <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ResourceReference">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="self_id" jdbcType="INTEGER" property="selfId" />
+    <result column="self_project_id" jdbcType="INTEGER" property="selfProjectId" />
+    <result column="self_iid" jdbcType="INTEGER" property="selfIid" />
+    <result column="self_type" jdbcType="VARCHAR" property="selfType" />
+    <result column="target_id" jdbcType="INTEGER" property="targetId" />
+    <result column="target_project_id" jdbcType="INTEGER" property="targetProjectId" />
+    <result column="target_iid" jdbcType="INTEGER" property="targetIid" />
+    <result column="target_type" jdbcType="VARCHAR" property="targetType" />
+    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
+    <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
+    <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, self_id, self_project_id, self_iid, self_type, target_id, target_project_id, 
+    target_iid, target_type, created_at, updated_at, deleted_at
+  </sql>
+
+  <select id="findList" parameterType="map" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM resource_references
+    <where>
+      <if test="targetType != null">
+        AND target_type = #{targetType}
+      </if>
+      <if test="targetIds != null and targetIds.size() > 0">
+        AND target_id IN
+        <foreach item = "item" index = "index" collection = "targetIds" open = "(" close = ")" separator=",">
+          #{item}
+        </foreach>
+      </if>
+      <if test="selfType != null">
+        AND self_type = #{selfType}
+      </if>
+      <if test="selfIds != null and selfIds.size() > 0">
+        AND self_id IN
+        <foreach item = "item" index = "index" collection = "selfIds" open = "(" close = ")" separator=",">
+          #{item}
+        </foreach>
+      </if>
+    </where>
+  </select>
+
+  <update id="batchDelete" parameterType="map">
+    update resource_references
+    <set>
+      <if test="deletedAt != null">
+        deleted_at = #{deletedAt,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <where>
+      <if test="targetType != null">
+        AND target_type = #{targetType}
+      </if>
+      <if test="targetIds != null and targetIds.size() > 0">
+        AND target_id IN
+        <foreach item = "item" index = "index" collection = "targetIds" open = "(" close = ")" separator=",">
+          #{item}
+        </foreach>
+      </if>
+      <if test="selfType != null">
+        AND self_type = #{selfType}
+      </if>
+      <if test="selfIds != null and selfIds.size() > 0">
+        AND self_id IN
+        <foreach item = "item" index = "index" collection = "selfIds" open = "(" close = ")" separator=",">
+          #{item}
+        </foreach>
+      </if>
+    </where>
+  </update>
+</mapper>

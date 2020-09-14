@@ -31,17 +31,8 @@ public class ProjectResourceService {
     @Resource
     private ProjectResourceSequenceService projectResourceSequenceService;
 
-    public ProjectResource getById(Integer id) {
-        return null;
-    }
-
-    public void updateById(ProjectResource projectResource) {
-
-    }
-
-    public void deleteById(ProjectResource projectResource) {
-
-    }
+    @Resource
+    private ResourceReferenceService resourceReferenceService;
 
     @Transactional(rollbackFor = Exception.class)
     public ProjectResource addProjectResource(ProjectResource record) {
@@ -73,16 +64,27 @@ public class ProjectResourceService {
         return projectResource;
     }
 
-    public ProjectResource deleteProjectResource(ProjectResource record) {
-        ProjectResource projectResource = findByProjectIdAndTypeAndTarget(record.getProjectId(),
-                record.getTargetId(), record.getTargetType());
-        if (Objects.nonNull(projectResource)) {
-            projectResource.setTitle(null == record.getTitle() ? "" : record.getTitle());
-            projectResource.setUpdatedAt(DateUtil.getCurrentDate());
-            projectResource.setUpdatedBy(record.getUpdatedBy());
-            projectResourcesDao.update(projectResource);
-        }
-        return projectResource;
+    @Transactional
+    public void deleteProjectResource(Integer projectId, String targetType, List<Integer> targetIdList, Integer userId) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("projectId", projectId);
+        parameters.put("targetType", targetType);
+        parameters.put("targetIds", targetIdList);
+        parameters.put("deletedAt", DateUtil.getCurrentDate());
+        parameters.put("deleteBy", userId);
+        projectResourcesDao.batchDelete(parameters);
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("targetType", targetType);
+        map.put("targetIds", targetIdList);
+        map.put("deletedAt", DateUtil.getCurrentDate());
+        resourceReferenceService.batchDelete(map);
+
+        Map<String, Object> selfMap = new HashMap<>();
+        selfMap.put("selfType", targetType);
+        selfMap.put("selfIds", targetIdList);
+        selfMap.put("deletedAt", DateUtil.getCurrentDate());
+        resourceReferenceService.batchDelete(selfMap);
     }
 
     public PageInfo<ProjectResource> findProjectResourceList(Integer projectId, Integer page, Integer pageSize) {

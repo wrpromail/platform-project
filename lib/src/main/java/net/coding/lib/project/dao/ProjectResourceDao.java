@@ -24,4 +24,6 @@ public interface ProjectResourceDao {
 
     ProjectResource findByProjectIdAndTypeAndTarget(Map<String, Object> parameter);
 
+    int batchDelete(Map<String, Object> parameter);
+
 }

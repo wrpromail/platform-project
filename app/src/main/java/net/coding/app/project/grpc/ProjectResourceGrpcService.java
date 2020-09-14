@@ -39,12 +39,12 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
         log.info("addProjectResource() grpc service receive: {}", request != null ? request.toString() : "");
         try {
             if(request.getProjectId() <= 0 || request.getTargetId() <= 0 || StringUtils.isEmpty(request.getTargetType()) || request.getUserId() <= 0) {
-                ProjectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "addProjectResource parameters error", null, response);
+                projectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "addProjectResource parameters error", null, response);
                 return;
             }
             Project project = projectService.getById(request.getProjectId());
             if (Objects.isNull(project)) {
-                ProjectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "project not exists", null, response);
+                projectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "project not exists", null, response);
                 return;
             }
             ProjectResource record = new ProjectResource();
@@ -54,10 +54,10 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
             record.setTargetType(request.getTargetType());
             record.setCreatedBy(request.getUserId());
             ProjectResource resource = projectResourceService.addProjectResource(record);
-            ProjectResourceResponse(CodeProto.Code.SUCCESS, "add success", getProjectResource(resource), response);
+            projectResourceResponse(CodeProto.Code.SUCCESS, "add success", getProjectResource(resource), response);
         } catch (Exception ex) {
             log.error("addProjectResource() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
-            ProjectResourceResponse(CodeProto.Code.UNRECOGNIZED, "addProjectResource server error", null, response);
+            projectResourceResponse(CodeProto.Code.UNRECOGNIZED, "addProjectResource server error", null, response);
         }
     }
 
@@ -67,7 +67,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
         log.info("updateProjectResource() grpc service receive: {}", request != null ? request.toString() : "");
         try {
             if(request.getProjectId() <= 0 || request.getTargetId() <= 0 || StringUtils.isEmpty(request.getTargetType()) || request.getUserId() <= 0) {
-                ProjectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "updateProjectResource parameters error", null, response);
+                projectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "updateProjectResource parameters error", null, response);
                 return;
             }
             ProjectResource record = new ProjectResource();
@@ -78,10 +78,10 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
             record.setUpdatedBy(request.getUserId());
             record.setCode(request.getCode());
             ProjectResource resource = projectResourceService.updateProjectResource(record);
-            ProjectResourceResponse(CodeProto.Code.SUCCESS, "update success", getProjectResource(resource), response);
+            projectResourceResponse(CodeProto.Code.SUCCESS, "update success", getProjectResource(resource), response);
         } catch (Exception ex) {
             log.error("updateProjectResource() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
-            ProjectResourceResponse(CodeProto.Code.UNRECOGNIZED, "updateProjectResource server error", null, response);
+            projectResourceResponse(CodeProto.Code.UNRECOGNIZED, "updateProjectResource server error", null, response);
         }
     }
 
@@ -89,17 +89,16 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
     public void deleteProjectResource(ProjectResourceProto.DeleteProjectResourceRequest request,
                                       StreamObserver<ProjectResourceProto.ProjectResourceCommonResponse> response) {
         log.info("deleteProjectResource() grpc service receive: {}", request != null ? request.toString() : "");
-        if(request.getProjectId() <= 0 || StringUtils.isEmpty(request.getTargetType()) || request.getTargetIdList().size() <= 0) {
-            ProjectResourceProto.ProjectResourceCommonResponse build = ProjectResourceProto.ProjectResourceCommonResponse.newBuilder()
-                    .setCode(CodeProto.Code.INVALID_PARAMETER)
-                    .setMessage("parameters project error")
-                    .build();
-            response.onNext(build);
-            response.onCompleted();
-            return;
+        try {
+            if (request.getProjectId() <= 0 || StringUtils.isEmpty(request.getTargetType()) || request.getTargetIdList().size() <= 0 || request.getUserId() <= 0) {
+                projectResourceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "parameters project error", response);
+                return;
+            }
+            projectResourceService.deleteProjectResource(request.getProjectId(), request.getTargetType(), request.getTargetIdList(), request.getUserId());
+            projectResourceCommonResponse(CodeProto.Code.SUCCESS, "delete success", response);
+        } catch (Exception ex) {
+            projectResourceCommonResponse(CodeProto.Code.UNRECOGNIZED, "deleteProjectResource server error", response);
         }
-
-        //ProjectResourceResponse(CodeProto.Code.SUCCESS, "delete success", getProjectResource(resource), response);
     }
 
     @Override
@@ -111,8 +110,6 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 ProjectResourceProto.FindProjectResourceResponse build = ProjectResourceProto.FindProjectResourceResponse.newBuilder()
                         .setCode(CodeProto.Code.INVALID_PARAMETER)
                         .setMessage("parameters project error")
-                        .addAllProjectResource(null)
-                        .setPageInfo((PagerProto.PageInfo.Builder) null)
                         .build();
                 response.onNext(build);
                 response.onCompleted();
@@ -147,8 +144,6 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
             ProjectResourceProto.FindProjectResourceResponse build = ProjectResourceProto.FindProjectResourceResponse.newBuilder()
                     .setCode(CodeProto.Code.UNRECOGNIZED)
                     .setMessage("findProjectResourcesList service error")
-                    .addAllProjectResource(null)
-                    .setPageInfo((PagerProto.PageInfo.Builder) null)
                     .build();
             response.onNext(build);
             response.onCompleted();
@@ -164,7 +159,6 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 ProjectResourceProto.BatchProjectResourceResponse build = ProjectResourceProto.BatchProjectResourceResponse.newBuilder()
                         .setCode(CodeProto.Code.INVALID_PARAMETER)
                         .setMessage("batchProjectResourceList parameters error")
-                        .addAllProjectResource(null)
                         .build();
                 response.onNext(build);
                 response.onCompleted();
@@ -183,7 +177,6 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
             ProjectResourceProto.BatchProjectResourceResponse build = ProjectResourceProto.BatchProjectResourceResponse.newBuilder()
                     .setCode(CodeProto.Code.UNRECOGNIZED)
                     .setMessage("batchProjectResourceList service error")
-                    .addAllProjectResource(null)
                     .build();
             response.onNext(build);
             response.onCompleted();
@@ -191,11 +184,39 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
 
     }
 
-    public void ProjectResourceResponse(CodeProto.Code code, String message, ProjectResourceProto.ProjectResource resource, StreamObserver<ProjectResourceProto.ProjectResourceResponse> response) {
+    @Override
+    public void generateCodes(ProjectResourceProto.GenerateRequest request, StreamObserver<ProjectResourceProto.MultiCodeResponse> response) {
+        log.info("generateCodes() grpc service receive: {}", request != null ? request.toString() : "");
+        try {
+            if(request.getProjectId() <= 0 || request.getCodeAmount() <= 0) {
+                ProjectResourceProto.MultiCodeResponse build = ProjectResourceProto.MultiCodeResponse.newBuilder()
+                        .setCode(CodeProto.Code.INVALID_PARAMETER)
+                        .setMessage("parameters error")
+                        .build();
+                response.onNext(build);
+                response.onCompleted();
+                return;
+            }
+
+        } catch (Exception ex) {
+
+        }
+    }
+
+    public void projectResourceResponse(CodeProto.Code code, String message, ProjectResourceProto.ProjectResource resource, StreamObserver<ProjectResourceProto.ProjectResourceResponse> response) {
         ProjectResourceProto.ProjectResourceResponse build = ProjectResourceProto.ProjectResourceResponse.newBuilder()
                 .setCode(code)
                 .setMessage(message)
                 .setProjectResource(resource)
+                .build();
+        response.onNext(build);
+        response.onCompleted();
+    }
+
+    public void projectResourceCommonResponse(CodeProto.Code code, String message, StreamObserver<ProjectResourceProto.ProjectResourceCommonResponse> response) {
+        ProjectResourceProto.ProjectResourceCommonResponse build = ProjectResourceProto.ProjectResourceCommonResponse.newBuilder()
+                .setCode(code)
+                .setMessage(message)
                 .build();
         response.onNext(build);
         response.onCompleted();
