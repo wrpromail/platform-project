@@ -55,6 +55,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
             record.setTargetId(request.getTargetId());
             record.setTargetType(request.getTargetType());
             record.setCreatedBy(request.getUserId());
+            record.setResourceUrl(request.getResourceUrl());
             ProjectResource resource = projectResourceService.addProjectResource(record);
             GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "add success", GrpcUtil.getProjectResource(resource), response);
         } catch (Exception ex) {
@@ -64,7 +65,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
     }
 
     @Override
-    public void updateProjectResource(ProjectResourceProto.UpdateProjectResourceRequest request,
+    public void updateProjectResource(ProjectResourceProto.OperateProjectResourceRequest request,
                                       StreamObserver<ProjectResourceProto.ProjectResourceResponse> response) {
         log.info("updateProjectResource() grpc service receive: {}", request != null ? request.toString() : "");
         try {
@@ -79,6 +80,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
             record.setTargetType(request.getTargetType());
             record.setUpdatedBy(request.getUserId());
             record.setCode(request.getCode());
+            record.setResourceUrl(request.getResourceUrl());
             ProjectResource resource = projectResourceService.updateProjectResource(record);
             GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "update success", GrpcUtil.getProjectResource(resource), response);
         } catch (Exception ex) {
@@ -180,7 +182,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
     }
 
     @Override
-    public void relateResource(ProjectResourceProto.UpdateProjectResourceRequest request, StreamObserver<ProjectResourceProto.ProjectResourceResponse> response) {
+    public void relateResource(ProjectResourceProto.OperateProjectResourceRequest request, StreamObserver<ProjectResourceProto.ProjectResourceResponse> response) {
         log.info("relateResource() grpc service receive: {}", request != null ? request.toString() : "");
         Project project = projectService.getById(request.getProjectId());
         if (Objects.isNull(project)) {
@@ -195,6 +197,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
             record.setTargetType(request.getTargetType());
             record.setCreatedBy(request.getUserId());
             record.setCode(request.getCode());
+            record.setResourceUrl(request.getResourceUrl());
             ProjectResource projectResource = projectResourceService.relateProjectResource(record);
             GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "relateResource success", GrpcUtil.getProjectResource(projectResource), response);
         } catch (Exception ex) {
@@ -207,15 +210,15 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
     public void batchRelateResource(ProjectResourceProto.BatchRelateResourceRequest request,
                                     StreamObserver<ProjectResourceProto.ProjectResourceCommonResponse> response) {
         log.info("batchRelateResource() grpc service receive: {}", request != null ? request.toString() : "");
-        if(Objects.isNull(request.getUpdateProjectResourceRequestList()) || request.getUpdateProjectResourceRequestList().size() <= 0) {
+        if(Objects.isNull(request.getOperateProjectResourceRequestList()) || request.getOperateProjectResourceRequestList().size() <= 0) {
             GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "batchRelateResource param error", response);
             return;
         }
         try {
             List<ProjectResource> projectResourceList = new ArrayList<>();
             List<Integer> codeList = new ArrayList<>();
-            Integer projectId = request.getUpdateProjectResourceRequestList().get(0).getProjectId();
-            request.getUpdateProjectResourceRequestList().stream().forEach(projectResource -> {
+            Integer projectId = request.getOperateProjectResourceRequestList().get(0).getProjectId();
+            request.getOperateProjectResourceRequestList().stream().forEach(projectResource -> {
                 if (!Objects.equals(projectId, projectResource.getProjectId())) {
                     GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "batchRelateResource projectId disaccord", response);
                     return;
@@ -227,6 +230,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 item.setTargetType(projectResource.getTargetType());
                 item.setCreatedBy(projectResource.getUserId());
                 item.setCode(projectResource.getCode());
+                item.setResourceUrl(projectResource.getResourceUrl());
                 item.setCreatedAt(DateUtil.getCurrentDate());
                 item.setUpdatedBy(item.getCreatedBy());
                 item.setUpdatedAt(item.getCreatedAt());
@@ -290,8 +294,12 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 GrpcUtil.getResourceLinkResponse(CodeProto.Code.INVALID_PARAMETER, "getResourceLink parameters error", null, response);
                 return;
             }
-            String url = projectResourceService.getResourceLink(request.getProjectResourceId());
-            GrpcUtil.getResourceLinkResponse(CodeProto.Code.SUCCESS, "getProjectResourceByCode success", url, response);
+            ProjectResource projectResource = projectResourceService.selectById(request.getProjectResourceId());
+            if(Objects.isNull(projectResource)) {
+                GrpcUtil.getResourceLinkResponse(CodeProto.Code.INVALID_PARAMETER, "projectResource not exists", null, response);
+                return;
+            }
+            GrpcUtil.getResourceLinkResponse(CodeProto.Code.SUCCESS, "getProjectResourceByCode success", projectResource.getResourceUrl(), response);
         } catch (Exception ex) {
             log.error("getResourceLink() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.getResourceLinkResponse(CodeProto.Code.UNRECOGNIZED, "getResourceLink service error", null, response);

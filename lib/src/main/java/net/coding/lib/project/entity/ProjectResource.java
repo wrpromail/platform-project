@@ -67,5 +67,10 @@ public class ProjectResource implements Serializable {
      */
     private Integer deletedBy;
 
+    /**
+     * 资源地址
+     */
+    private String ResourceUrl;
+
     private static final long serialVersionUID = 1000000000002L;
 }

@@ -10,6 +10,7 @@ import net.coding.lib.project.entity.ProjectResource;
 import net.coding.lib.project.entity.ProjectResourceSequence;
 import net.coding.lib.project.enums.NotSearchTargetTypeEnum;
 import net.coding.lib.project.utils.DateUtil;
+import net.coding.lib.project.utils.InflectorUtil;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,23 @@ public class ProjectResourceService {
 
     @Resource
     private ResourceReferenceService resourceReferenceService;
+
+    private static final Map<String, String> typeToUrlMap = new HashMap<String, String>() {{
+        put("merge-request-bean", "_buildMergeRequestLink");
+        put("pull-request-bean", "git/pull");
+        put("project-topic", "topic");
+        put("project-file", "_buildProjectFileLink");
+        put("release", "_buildReleaseLink");
+        put("wiki", "wiki");
+        put("defect", "defect");
+        put("mission", "mission");
+        put("requirement", "requirement");
+        put("iteration", "iteration");
+        put("sub-task", "subtask");
+        put("epic", "epic");
+        put("external-link", "_buildExternalLinkUrl");
+        put("testing-plan-case-result", "_buildTestingPlanCaseResultUrl");
+    }};
 
     @Transactional(rollbackFor = Exception.class)
     public ProjectResource addProjectResource(ProjectResource record) {
@@ -149,8 +167,7 @@ public class ProjectResourceService {
         return projectResourcesDao.countByProjectIdAndCodes(parameters);
     }
 
-    public String getResourceLink(Integer projectResourceId) {
-
-        return "";
+    public ProjectResource selectById(Integer projectResourceId) {
+        return projectResourcesDao.selectById(projectResourceId);
     }
 }

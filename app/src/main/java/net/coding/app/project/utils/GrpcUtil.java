@@ -40,6 +40,7 @@ public class GrpcUtil {
                 .setTargetType(resource.getTargetType())
                 .setCode(resource.getCode())
                 .setId(resource.getId())
+                .setUrl(resource.getResourceUrl())
                 .build();
         return projectResource;
     }
@@ -55,6 +56,7 @@ public class GrpcUtil {
                     .setTargetType(resource.getTargetType())
                     .setCode(resource.getCode())
                     .setId(resource.getId())
+                    .setUrl(resource.getResourceUrl())
                     .build();
             result.add(projectResource);
         });
@@ -97,7 +99,7 @@ public class GrpcUtil {
         ProjectResourceProto.MultiCodeResponse build = ProjectResourceProto.MultiCodeResponse.newBuilder()
                 .setCode(code)
                 .setMessage(message)
-                .setData(multiResourceSequence)
+                .setMultiResourceSequence(multiResourceSequence)
                 .build();
         response.onNext(build);
         response.onCompleted();
