@@ -1,5 +1,9 @@
 package net.coding.app.project.http;
 
+import com.github.pagehelper.PageInfo;
+
+import net.coding.app.project.utils.ResponseUtil;
+import net.coding.app.project.utils.ResultModel;
 import net.coding.lib.project.entity.ProjectResource;
 import net.coding.lib.project.service.ProjectResourceSequenceService;
 import net.coding.lib.project.service.ProjectResourceService;
@@ -8,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,22 +29,27 @@ public class ProjectResourcesController {
     private ProjectResourceSequenceService projectResourceSequenceService;
 
     @GetMapping("/findProjectResourcesList")
-    public String findProjectResourcesList(Integer projectId, Integer page, Integer pageSize) {
-//        projectResourceService.findProjectResourceList(7);
-        try {
-            ProjectResource projectResource = new ProjectResource();
-            projectResource.setProjectId(7);
-            projectResource.setTargetType("WikiMenu");
-            projectResource.setTargetId(11);
-            projectResource.setCreatedBy(1);
-            projectResource.setTitle("Test home");
-            projectResourceService.addProjectResource(projectResource);
-            if (projectId == null)
-                return "error";
-        } catch (Exception ex) {
-            System.out.println(ex);
-            return "fail";
+    public ResultModel<String> findProjectResourcesList(Integer projectId, Integer page, Integer pageSize) {
+        if(projectId <= 0) {
+            return ResponseUtil.buildFaildResponse("-1", "param projectId error");
         }
-        return "success";
+        if(page == null || page <= 0) {
+            page = 1;
+        }
+        if(pageSize == null || pageSize <= 0) {
+            pageSize = 20;
+        }
+        PageInfo<ProjectResource> pageInfo = projectResourceService.findProjectResourceList(projectId, page, pageSize);
+        return ResponseUtil.buildSuccessResponseByList(pageInfo.getList());
     }
+
+    @GetMapping("/findProjectResourcesInfo")
+    public ResultModel<String> findProjectResourcesInfo(Integer projectResourceId) {
+        if(projectResourceId == null || projectResourceId <= 0) {
+            return ResponseUtil.buildFaildResponse("-1", "param projectResourceId error");
+        }
+        return ResponseUtil.buildSuccessResponse(projectResourceService.selectById(projectResourceId));
+    }
+
+
 }
