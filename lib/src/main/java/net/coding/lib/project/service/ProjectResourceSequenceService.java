@@ -55,8 +55,7 @@ public class ProjectResourceSequenceService {
         parameters.put("codeAmount", codeAmount);
         int result = projectResourceSequenceDao.generateProjectResourceCodes(parameters);
         if (result > 0) {
-            int code = projectResourceSequenceDao.getCode();
-            return code;
+            return projectResourceSequenceDao.getCode();
         } else {
             throw new RuntimeException("can not get new project resource code!!! maybe project id not found!!!");
         }

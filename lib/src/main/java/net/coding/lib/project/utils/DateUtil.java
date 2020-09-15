@@ -261,14 +261,15 @@ public class DateUtil {
      * 获取当前标准格式的时间
      * @return
      */
-    public static java.sql.Date getCurrentDate() {
+    public static Date getCurrentDate() {
         LocalDateTime now = LocalDateTime.now();
-        return new java.sql.Date(DateUtil.localDateTimeToDate(now).getTime());
+        return DateUtil.localDateTimeToDate(now);
     }
 
     public static void main(String[] args) {
         LocalDateTime now = LocalDateTime.now();
-        System.out.println(localDateTimeToDate(now));
-        System.out.println(getAfterMonths(now, 1));
+        System.out.println(DateUtil.localDateTimeToDate(now));
+        System.out.println(DateUtil.localDateTimeToDate(now).getTime());
+        System.out.println(getCurrentDate());
     }
 }

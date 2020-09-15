@@ -13,13 +13,22 @@ import proto.projectResource.ProjectResourceProto;
 public class GrpcUtil {
 
     public static void projectResourceResponse(CodeProto.Code code, String message, ProjectResourceProto.ProjectResource resource, StreamObserver<ProjectResourceProto.ProjectResourceResponse> response) {
-        ProjectResourceProto.ProjectResourceResponse build = ProjectResourceProto.ProjectResourceResponse.newBuilder()
-                .setCode(code)
-                .setMessage(message)
-                .setProjectResource(resource)
-                .build();
-        response.onNext(build);
-        response.onCompleted();
+        if(CodeProto.Code.SUCCESS.equals(code)) {
+            ProjectResourceProto.ProjectResourceResponse build = ProjectResourceProto.ProjectResourceResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .setProjectResource(resource)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        } else {
+            ProjectResourceProto.ProjectResourceResponse build = ProjectResourceProto.ProjectResourceResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        }
     }
 
     public static void projectResourceCommonResponse(CodeProto.Code code, String message, StreamObserver<ProjectResourceProto.ProjectResourceCommonResponse> response) {
@@ -47,7 +56,7 @@ public class GrpcUtil {
 
     public static List<ProjectResourceProto.ProjectResource> getProjectResourceList(List<ProjectResource> projectResourceList) {
         List<ProjectResourceProto.ProjectResource> result = new ArrayList<>();
-        projectResourceList.stream().forEach(resource -> {
+        projectResourceList.forEach(resource -> {
             ProjectResourceProto.ProjectResource projectResource = ProjectResourceProto.ProjectResource.newBuilder()
                     .setId(resource.getId())
                     .setProjectId(resource.getProjectId())
@@ -73,46 +82,77 @@ public class GrpcUtil {
                     .addAllProjectResource(projectResourceList)
                     .setPageInfo(pageInfo)
                     .build();
+            response.onNext(build);
+            response.onCompleted();
         } else {
             ProjectResourceProto.FindProjectResourceResponse build = ProjectResourceProto.FindProjectResourceResponse.newBuilder()
                     .setCode(code)
                     .setMessage(message)
                     .build();
+            response.onNext(build);
+            response.onCompleted();
         }
     }
 
     public static void batchProjectResourceResponse(CodeProto.Code code, String message,
                                                     List<ProjectResourceProto.ProjectResource> projectResourceList,
                                                     StreamObserver<ProjectResourceProto.BatchProjectResourceResponse> response) {
-        ProjectResourceProto.BatchProjectResourceResponse build = ProjectResourceProto.BatchProjectResourceResponse.newBuilder()
-                .setCode(code)
-                .setMessage(message)
-                .addAllProjectResource(projectResourceList)
-                .build();
-        response.onNext(build);
-        response.onCompleted();
+        if(CodeProto.Code.SUCCESS.equals(code)) {
+            ProjectResourceProto.BatchProjectResourceResponse build = ProjectResourceProto.BatchProjectResourceResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .addAllProjectResource(projectResourceList)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        } else {
+            ProjectResourceProto.BatchProjectResourceResponse build = ProjectResourceProto.BatchProjectResourceResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        }
     }
 
     public static void multiCodeResponse(CodeProto.Code code, String message,
                                          ProjectResourceProto.MultiResourceSequence multiResourceSequence,
                                          StreamObserver<ProjectResourceProto.MultiCodeResponse> response) {
-        ProjectResourceProto.MultiCodeResponse build = ProjectResourceProto.MultiCodeResponse.newBuilder()
-                .setCode(code)
-                .setMessage(message)
-                .setMultiResourceSequence(multiResourceSequence)
-                .build();
-        response.onNext(build);
-        response.onCompleted();
+        if(CodeProto.Code.SUCCESS.equals(code)) {
+            ProjectResourceProto.MultiCodeResponse build = ProjectResourceProto.MultiCodeResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .setMultiResourceSequence(multiResourceSequence)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        } else {
+            ProjectResourceProto.MultiCodeResponse build = ProjectResourceProto.MultiCodeResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        }
     }
 
     public static void getResourceLinkResponse(CodeProto.Code code, String message, String url,
                                                StreamObserver<ProjectResourceProto.GetResourceLinkResponse> response) {
-        ProjectResourceProto.GetResourceLinkResponse build = ProjectResourceProto.GetResourceLinkResponse.newBuilder()
-                .setCode(code)
-                .setMessage(message)
-                .setUrl(url)
-                .build();
-        response.onNext(build);
-        response.onCompleted();
+        if(CodeProto.Code.SUCCESS.equals(code)) {
+            ProjectResourceProto.GetResourceLinkResponse build = ProjectResourceProto.GetResourceLinkResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .setUrl(url)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        } else {
+            ProjectResourceProto.GetResourceLinkResponse build = ProjectResourceProto.GetResourceLinkResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        }
     }
 }

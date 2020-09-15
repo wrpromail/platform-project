@@ -20,4 +20,8 @@ jdbc:
 
 logging:
   level:
-    org.lognet.springboot.grpc: INFO
+    org.lognet.springboot.grpc: info
+
+#mybatis:
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

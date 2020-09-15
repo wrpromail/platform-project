@@ -83,14 +83,14 @@ public class ProjectResourceService {
         return projectResource;
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void deleteProjectResource(Integer projectId, String targetType, List<Integer> targetIdList, Integer userId) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("projectId", projectId);
         parameters.put("targetType", targetType);
         parameters.put("targetIds", targetIdList);
         parameters.put("deletedAt", DateUtil.getCurrentDate());
-        parameters.put("deleteBy", userId);
+        parameters.put("deletedBy", userId);
         projectResourcesDao.batchDelete(parameters);
 
         Map<String, Object> map = new HashMap<>();
@@ -109,7 +109,7 @@ public class ProjectResourceService {
     public PageInfo<ProjectResource> findProjectResourceList(Integer projectId, Integer page, Integer pageSize) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("projectId", projectId);
-        PageInfo<ProjectResource> pageInfo = PageHelper.startPage(1, 3)
+        PageInfo<ProjectResource> pageInfo = PageHelper.startPage(page, pageSize)
                 .doSelectPageInfo(() -> projectResourcesDao.findList(parameters));
         return pageInfo;
     }

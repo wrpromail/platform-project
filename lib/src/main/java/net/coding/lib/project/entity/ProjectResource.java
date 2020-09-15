@@ -1,7 +1,7 @@
 package net.coding.lib.project.entity;
 
 import java.io.Serializable;
-import java.sql.Date;
+import java.util.Date;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

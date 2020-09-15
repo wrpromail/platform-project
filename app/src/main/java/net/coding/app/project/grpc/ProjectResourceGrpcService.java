@@ -132,8 +132,13 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                     .setTotalPage(totalPage)
                     .setTotalRow(totalRow)
                     .build();
-            GrpcUtil.findProjectResourceResponse(CodeProto.Code.SUCCESS, "findProjectResourcesList success",
-                    pageInfo, GrpcUtil.getProjectResourceList(projectResourceList), response);
+            if(projectResourceList.size() > 0) {
+                GrpcUtil.findProjectResourceResponse(CodeProto.Code.SUCCESS, "findProjectResourcesList success",
+                        pageInfo, GrpcUtil.getProjectResourceList(projectResourceList), response);
+            } else {
+                GrpcUtil.findProjectResourceResponse(CodeProto.Code.NOT_FOUND, "findProjectResourcesList result null",
+                        null, null, response);
+            }
         } catch (Exception ex) {
             log.error("findProjectResourcesList() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.findProjectResourceResponse(CodeProto.Code.UNRECOGNIZED, "findProjectResourcesList service error",
@@ -171,7 +176,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
             Integer newCode = projectResourceService.generateCodes(request.getProjectId(), request.getCodeAmount());
             ProjectResourceProto.MultiResourceSequence multiResourceSequence = ProjectResourceProto.MultiResourceSequence.newBuilder()
                     .setProjectId(request.getProjectId())
-                    .setStartCode(newCode - request.getCodeAmount())
+                    .setStartCode(newCode - request.getCodeAmount() + 1)
                     .setEndCode(newCode)
                     .build();
             GrpcUtil.multiCodeResponse(CodeProto.Code.SUCCESS, "generateCodes success", multiResourceSequence, response);
@@ -218,7 +223,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
             List<ProjectResource> projectResourceList = new ArrayList<>();
             List<Integer> codeList = new ArrayList<>();
             Integer projectId = request.getOperateProjectResourceRequestList().get(0).getProjectId();
-            request.getOperateProjectResourceRequestList().stream().forEach(projectResource -> {
+            request.getOperateProjectResourceRequestList().forEach(projectResource -> {
                 if (!Objects.equals(projectId, projectResource.getProjectId())) {
                     GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "batchRelateResource projectId disaccord", response);
                     return;

@@ -12,7 +12,7 @@ import proto.projectResource.ProjectResourceProto;
 import proto.projectResource.ProjectResourceServiceGrpc;
 
 @Slf4j
-public class ProjectResourcesGrpcClient extends EndpointGrpcClient<ProjectResourceServiceGrpc.ProjectResourceServiceBlockingStub> {
+public class ProjectResourceGrpcClient extends EndpointGrpcClient<ProjectResourceServiceGrpc.ProjectResourceServiceBlockingStub> {
 
     @Value("${grpc.client.starter.serviceName:starter}")
     private String serviceName;
@@ -40,17 +40,18 @@ public class ProjectResourcesGrpcClient extends EndpointGrpcClient<ProjectResour
      * @param targetId
      * @param userId
      * @param targetType
-     * @param idempotentKey
+     * @param resourceUrl
      * @return
      */
     public ProjectResourceProto.ProjectResourceResponse addProjectResource(Integer projectId, String title, Integer targetId,
-                                                                           Integer userId, String targetType, String idempotentKey) {
+                                                                           Integer userId, String targetType, String resourceUrl) {
         ProjectResourceProto.AddProjectResourceRequest request = ProjectResourceProto.AddProjectResourceRequest.newBuilder()
                 .setProjectId(projectId)
                 .setTitle(title)
                 .setTargetId(targetId)
                 .setUserId(userId)
                 .setTargetType(targetType)
+                .setResourceUrl(resourceUrl)
                 .build();
         ProjectResourceProto.ProjectResourceResponse response = newStub().addProjectResource(request);
         return response;
@@ -68,14 +69,15 @@ public class ProjectResourcesGrpcClient extends EndpointGrpcClient<ProjectResour
      * @return
      */
     public ProjectResourceProto.ProjectResourceResponse updateProjectResource(Integer projectId, String title, Integer targetId,
-                                                                              Integer userId, String targetType, Integer code) {
-        ProjectResourceProto.UpdateProjectResourceRequest request = ProjectResourceProto.UpdateProjectResourceRequest.newBuilder()
+                                                                              Integer userId, String targetType, Integer code, String resourceUrl) {
+        ProjectResourceProto.OperateProjectResourceRequest request = ProjectResourceProto.OperateProjectResourceRequest.newBuilder()
                 .setProjectId(projectId)
                 .setTitle(title)
                 .setTargetId(targetId)
                 .setUserId(userId)
                 .setTargetType(targetType)
                 .setCode(code)
+                .setResourceUrl(resourceUrl)
                 .build();
         ProjectResourceProto.ProjectResourceResponse response = newStub().updateProjectResource(request);
         return response;
@@ -86,33 +88,19 @@ public class ProjectResourcesGrpcClient extends EndpointGrpcClient<ProjectResour
      * 删除项目资源
      *
      * @param projectId
-     * @param codes
+     * @param targetType
+     * @param targetIds
      * @param userId
      * @return
      */
-    public ProjectResourceProto.ProjectResourceResponse deleteProjectResource(Integer projectId, List<Integer> codes, Integer userId) {
+    public ProjectResourceProto.ProjectResourceCommonResponse deleteProjectResource(Integer projectId, String targetType, List<Integer> targetIds, Integer userId) {
         ProjectResourceProto.DeleteProjectResourceRequest request = ProjectResourceProto.DeleteProjectResourceRequest.newBuilder()
                 .setProjectId(projectId)
-                .addAllCode(codes)
+                .setTargetType(targetType)
+                .addAllTargetId(targetIds)
                 .setUserId(userId)
                 .build();
-        ProjectResourceProto.ProjectResourceResponse response = newStub().deleteProjectResource(request);
-        return response;
-    }
-
-    /**
-     * 根据项目id与资源编号查询项目资源信息
-     *
-     * @param projectId
-     * @param code
-     * @return
-     */
-    public ProjectResourceProto.ProjectResourceResponse getProjectResource(Integer projectId, Integer code) {
-        ProjectResourceProto.GetProjectResourceRequest request = ProjectResourceProto.GetProjectResourceRequest.newBuilder()
-                .setProjectId(projectId)
-                .setCode(code)
-                .build();
-        ProjectResourceProto.ProjectResourceResponse response = newStub().getProjectResource(request);
+        ProjectResourceProto.ProjectResourceCommonResponse response = newStub().deleteProjectResource(request);
         return response;
     }
 
@@ -155,6 +143,22 @@ public class ProjectResourcesGrpcClient extends EndpointGrpcClient<ProjectResour
     }
 
     /**
+     * 根据项目id与资源编号查询项目资源信息
+     *
+     * @param projectId
+     * @param code
+     * @return
+     */
+    public ProjectResourceProto.ProjectResourceResponse GetProjectResourceByCode(Integer projectId, Integer code) {
+        ProjectResourceProto.GetProjectResourceRequest request = ProjectResourceProto.GetProjectResourceRequest.newBuilder()
+                .setProjectId(projectId)
+                .setCode(code)
+                .build();
+        ProjectResourceProto.ProjectResourceResponse response = newStub().getProjectResourceByCode(request);
+        return response;
+    }
+
+    /**
      * 生成一定长度的项目资源
      *
      * @param projectId
@@ -182,14 +186,15 @@ public class ProjectResourcesGrpcClient extends EndpointGrpcClient<ProjectResour
      * @return
      */
     public ProjectResourceProto.ProjectResourceResponse relateResource(Integer projectId, String title, Integer targetId, Integer userId,
-                                                                       String targetType, Integer code) {
-        ProjectResourceProto.UpdateProjectResourceRequest request = ProjectResourceProto.UpdateProjectResourceRequest.newBuilder()
+                                                                       String targetType, Integer code, String resourceUrl) {
+        ProjectResourceProto.OperateProjectResourceRequest request = ProjectResourceProto.OperateProjectResourceRequest.newBuilder()
                 .setProjectId(projectId)
                 .setTitle(title)
                 .setTargetId(targetId)
                 .setUserId(userId)
                 .setTargetType(targetType)
                 .setCode(code)
+                .setResourceUrl(resourceUrl)
                 .build();
         ProjectResourceProto.ProjectResourceResponse response = newStub().relateResource(request);
         return response;
@@ -201,11 +206,11 @@ public class ProjectResourcesGrpcClient extends EndpointGrpcClient<ProjectResour
      * @param lists
      * @return
      */
-    public ProjectResourceProto.BatchRelateProjectResourceResponse batchRelateResource(List<ProjectResourceProto.UpdateProjectResourceRequest> lists) {
+    public ProjectResourceProto.ProjectResourceCommonResponse batchRelateResource(List<ProjectResourceProto.OperateProjectResourceRequest> lists) {
         ProjectResourceProto.BatchRelateResourceRequest request = ProjectResourceProto.BatchRelateResourceRequest.newBuilder()
-                .addAllUpdateProjectResourceRequest(lists)
+                .addAllOperateProjectResourceRequest(lists)
                 .build();
-        ProjectResourceProto.BatchRelateProjectResourceResponse response = newStub().batchRelateResource(request);
+        ProjectResourceProto.ProjectResourceCommonResponse response = newStub().batchRelateResource(request);
         return response;
     }
 

@@ -8,6 +8,8 @@
         <setting name="lazyLoadingEnabled" value="true" />
         <!--开启驼峰命名转换-->
         <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <!--开启日志-->
+        <!--<setting name="logImpl" value="STDOUT_LOGGING"/>-->
     </settings>
 
     <plugins>

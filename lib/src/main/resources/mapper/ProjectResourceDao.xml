@@ -9,6 +9,7 @@
     <result column="target_id" jdbcType="INTEGER" property="targetId" />
     <result column="code" jdbcType="INTEGER" property="code" />
     <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="resource_url" jdbcType="VARCHAR" property="resourceUrl" />
     <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
     <result column="created_by" jdbcType="INTEGER" property="createdBy" />
     <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
@@ -17,7 +18,7 @@
   </resultMap>
 
   <sql id="Base_Column_List">
-    id, project_id, deleted_at, target_type, target_id, code, title, created_at, created_by, 
+    id, project_id, deleted_at, target_type, target_id, code, title, resource_url, created_at, created_by,
     updated_at, updated_by, deleted_by
   </sql>
 
@@ -68,6 +69,9 @@
       <if test="title != null">
         title,
       </if>
+      <if test="resourceUrl != null">
+        resource_url,
+      </if>
       <if test="createdAt != null">
         created_at,
       </if>
@@ -100,6 +104,9 @@
       <if test="title != null">
         #{title,jdbcType=VARCHAR},
       </if>
+      <if test="resourceUrl != null">
+        #{resourceUrl,jdbcType=VARCHAR},
+      </if>
       <if test="createdAt != null">
         #{createdAt,jdbcType=TIMESTAMP},
       </if>
@@ -121,35 +128,17 @@
   <update id="update" parameterType="net.coding.lib.project.entity.ProjectResource">
     UPDATE project_resources
     <set>
-      <if test="projectId != null">
-        project_id = #{projectId,jdbcType=INTEGER},
-      </if>
-      <if test="deletedAt != null">
-        deleted_at = #{deletedAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="targetType != null">
-        target_type = #{targetType,jdbcType=VARCHAR},
-      </if>
-      <if test="targetId != null">
-        target_id = #{targetId,jdbcType=INTEGER},
-      </if>
-      <if test="code != null">
-        code = #{code,jdbcType=INTEGER},
-      </if>
       <if test="title != null">
         title = #{title,jdbcType=VARCHAR},
-      </if>
-      <if test="createdAt != null">
-        created_at = #{createdAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="createdBy != null">
-        created_by = #{createdBy,jdbcType=INTEGER},
       </if>
       <if test="updatedAt != null">
         updated_at = #{updatedAt,jdbcType=TIMESTAMP},
       </if>
       <if test="updatedBy != null">
         updated_by = #{updatedBy,jdbcType=INTEGER},
+      </if>
+      <if test="deletedAt != null">
+        deleted_at = #{deletedAt,jdbcType=TIMESTAMP},
       </if>
       <if test="deletedBy != null">
         deleted_by = #{deletedBy,jdbcType=INTEGER},
@@ -197,9 +186,6 @@
       </if>
       <if test="targetId != null">
         AND target_id = #{targetId}
-      </if>
-      <if test="code != null">
-        AND `code` = #{code}
       </if>
       <if test="codes != null and codes.size() > 0">
         AND `code` IN
