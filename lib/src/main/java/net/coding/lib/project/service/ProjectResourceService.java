@@ -139,6 +139,10 @@ public class ProjectResourceService {
         if (Objects.nonNull(projectResource)) {
             return projectResource;
         }
+        projectResource = findByProjectIdAndTypeAndTarget(record.getProjectId(), record.getTargetId(), record.getTargetType());
+        if (Objects.nonNull(projectResource)) {
+            return projectResource;
+        }
         record.setCreatedAt(DateUtil.getCurrentDate());
         record.setUpdatedBy(record.getCreatedBy());
         record.setUpdatedAt(record.getCreatedAt());
