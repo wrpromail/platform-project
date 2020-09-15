@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,7 +42,13 @@ public class ProjectResourcesController {
             pageSize = 20;
         }
         PageInfo<ProjectResource> pageInfo = projectResourceService.findProjectResourceList(projectId, page, pageSize);
-        return ResponseUtil.buildSuccessResponseByList(pageInfo.getList());
+        Map<String, Object> result = new HashMap<>();
+        result.put("list", pageInfo.getList());
+        result.put("page", page);
+        result.put("pageSize", pageSize);
+        result.put("totalPage", pageInfo.getPages());
+        result.put("totalRow", pageInfo.getTotal());
+        return ResponseUtil.buildSuccessResponse(result);
     }
 
     @GetMapping("/findProjectResourcesInfo")
