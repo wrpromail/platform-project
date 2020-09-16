@@ -14,10 +14,10 @@ import proto.projectResource.ProjectResourceServiceGrpc;
 @Slf4j
 public class ProjectResourceGrpcClient extends EndpointGrpcClient<ProjectResourceServiceGrpc.ProjectResourceServiceBlockingStub> {
 
-    @Value("${grpc.client.starter.serviceName:starter}")
+    @Value("${grpc.client.project.serviceName:project}")
     private String serviceName;
 
-    @Value("${grpc.client.starter.servicePort:20153}")
+    @Value("${grpc.client.project.servicePort:30151}")
     private int servicePort;
 
     @Override

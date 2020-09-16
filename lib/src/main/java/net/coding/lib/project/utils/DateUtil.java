@@ -85,6 +85,12 @@ public class DateUtil {
         return LocalDateTime.parse(dateTimeStr, formatter);
     }
 
+    public static Date strToDate(String dateTimeStr) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(SQL_TIME);
+        LocalDateTime localDateTime = LocalDateTime.parse(dateTimeStr, formatter);
+        return DateUtil.localDateTimeToDate(localDateTime);
+    }
+
     /**
      * 开始日期，补齐" 00:00:00"
      *

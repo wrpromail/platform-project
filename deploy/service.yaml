@@ -8,6 +8,6 @@ spec:
   type: ClusterIP
   ports:
   - name: http
-    port: 8080
+    port: 9003
   - name: grpc
-    port: 20153
+    port: 30151

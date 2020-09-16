@@ -60,4 +60,8 @@ public class ProjectResourceSequenceService {
             throw new RuntimeException("can not get new project resource code!!! maybe project id not found!!!");
         }
     }
+
+    public int addProjectResourceSequence(ProjectResourceSequence projectResourceSequence) {
+        return projectResourceSequenceDao.insert(projectResourceSequence);
+    }
 }

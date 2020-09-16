@@ -174,4 +174,8 @@ public class ProjectResourceService {
     public ProjectResource selectById(Integer projectResourceId) {
         return projectResourcesDao.selectById(projectResourceId);
     }
+
+    public int recoverProjectResource(ProjectResource record) {
+        return projectResourcesDao.update(record);
+    }
 }

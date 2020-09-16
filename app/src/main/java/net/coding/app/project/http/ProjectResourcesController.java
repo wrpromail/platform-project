@@ -30,8 +30,8 @@ public class ProjectResourcesController {
     @Autowired
     private ProjectResourceSequenceService projectResourceSequenceService;
 
-    @GetMapping("/findProjectResourcesList")
-    public ResultModel<String> findProjectResourcesList(Integer projectId, Integer page, Integer pageSize) {
+    @GetMapping("/findProjectResourceList")
+    public ResultModel<String> findProjectResourceList(Integer projectId, Integer page, Integer pageSize) {
         if(projectId <= 0) {
             return ResponseUtil.buildFaildResponse("-1", "param projectId error");
         }
@@ -51,13 +51,22 @@ public class ProjectResourcesController {
         return ResponseUtil.buildSuccessResponse(result);
     }
 
-    @GetMapping("/findProjectResourcesInfo")
-    public ResultModel<String> findProjectResourcesInfo(Integer projectResourceId) {
+    @GetMapping("/findProjectResourceInfo")
+    public ResultModel<String> findProjectResourceInfo(Integer projectResourceId) {
         if(projectResourceId == null || projectResourceId <= 0) {
             return ResponseUtil.buildFaildResponse("-1", "param projectResourceId error");
         }
         return ResponseUtil.buildSuccessResponse(projectResourceService.selectById(projectResourceId));
     }
 
-
+    @GetMapping("/batchProjectResourceList")
+    public ResultModel<String> batchProjectResourceList(Integer projectId, List<Integer> codes) {
+        if(projectId == null || projectId <= 0) {
+            return ResponseUtil.buildFaildResponse("-1", "param projectId error");
+        }
+        if(codes == null || codes.size() <= 0) {
+            return ResponseUtil.buildFaildResponse("-1", "param codes error");
+        }
+        return ResponseUtil.buildSuccessResponse(projectResourceService.batchProjectResourceList(projectId, codes));
+    }
 }

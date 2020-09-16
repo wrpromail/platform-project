@@ -9,11 +9,11 @@ etcd:
 
 
 grpc:
-  port: 30150
+  port: 30151
   enableReflection: true
 
 jdbc:
-  host: jdbc:mysql://9.135.93.238:3306/coding
+  host: jdbc:mysql://9.135.93.238:3306/coding?serverTimezone=Asia/Shanghai&?useUnicode=true&characterEncoding=utf8&useSSL=false
   username: coding
   password: coding123
 

@@ -5,12 +5,15 @@ import com.github.pagehelper.PageInfo;
 import net.coding.app.project.utils.GrpcUtil;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectResource;
+import net.coding.lib.project.entity.ProjectResourceSequence;
+import net.coding.lib.project.service.ProjectResourceSequenceService;
 import net.coding.lib.project.service.ProjectResourceService;
 import net.coding.lib.project.service.ProjectService;
 import net.coding.lib.project.utils.DateUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.lognet.springboot.grpc.GRpcService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +37,9 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
 
     @Resource
     private ProjectResourceService projectResourceService;
+
+    @Resource
+    private ProjectResourceSequenceService projectResourceSequenceService;
 
     @Override
     public void addProjectResource(ProjectResourceProto.AddProjectResourceRequest request,
@@ -308,6 +314,51 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
         } catch (Exception ex) {
             log.error("getResourceLink() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.getResourceLinkResponse(CodeProto.Code.UNRECOGNIZED, "getResourceLink service error", null, response);
+        }
+    }
+
+    @Override
+    public void recoverProjectResource(ProjectResourceProto.RecoverProjectResourceRequest request,
+                                       StreamObserver<ProjectResourceProto.ProjectResourceCommonResponse> response) {
+        log.info("recoverProjectResource() grpc service receive: {}", request != null ? request.toString() : "");
+        try {
+            if (request.getProjectResourceId() <= 0) {
+                GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "recoverProjectResource parameters error", response);
+                return;
+            }
+            ProjectResource projectResource = projectResourceService.selectById(request.getProjectResourceId());
+            if (Objects.isNull(projectResource)) {
+                GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "projectResource not exists", response);
+                return;
+            }
+            ProjectResource record = new ProjectResource();
+            record.setId(request.getProjectResourceId());
+            record.setDeletedAt(DateUtil.strToDate("1970-01-01 00:00:00"));
+            projectResourceService.updateProjectResource(record);
+            GrpcUtil.projectResourceCommonResponse(CodeProto.Code.SUCCESS, "batchRelateResource success", response);
+        } catch (Exception ex) {
+            log.error("recoverProjectResource() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
+            GrpcUtil.projectResourceCommonResponse(CodeProto.Code.UNRECOGNIZED, "batchRelateResource service error", response);
+        }
+    }
+
+    @Override
+    public void addProjectResourceSequence(ProjectResourceProto.AddProjectResourceSequenceRequest request,
+                                           StreamObserver<ProjectResourceProto.ProjectResourceCommonResponse> response) {
+        log.info("addProjectResourceSequence() grpc service receive: {}", request != null ? request.toString() : "");
+        try {
+            if (request.getProjectId() <= 0) {
+                GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "recoverProjectResource parameters error", response);
+                return;
+            }
+            ProjectResourceSequence projectResourceSequence = new ProjectResourceSequence();
+            projectResourceSequence.setProjectId(request.getProjectId());
+            projectResourceSequence.setCode(0);
+            projectResourceSequenceService.addProjectResourceSequence(projectResourceSequence);
+            GrpcUtil.projectResourceCommonResponse(CodeProto.Code.SUCCESS, "batchRelateResource success", response);
+        } catch (Exception ex) {
+            log.error("addProjectResourceSequence() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
+            GrpcUtil.projectResourceCommonResponse(CodeProto.Code.UNRECOGNIZED, "addProjectResourceSequence service error", response);
         }
     }
 }
