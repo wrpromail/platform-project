@@ -41,7 +41,7 @@ public class ProjectResourcesController {
         if(pageSize == null || pageSize <= 0) {
             pageSize = 20;
         }
-        PageInfo<ProjectResource> pageInfo = projectResourceService.findProjectResourceList(projectId, page, pageSize);
+        PageInfo<ProjectResource> pageInfo = projectResourceService.findProjectResourceList(projectId, null, null, page, pageSize);
         Map<String, Object> result = new HashMap<>();
         result.put("list", pageInfo.getList());
         result.put("page", page);

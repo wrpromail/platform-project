@@ -22,6 +22,11 @@ logging:
   level:
     org.lognet.springboot.grpc: info
 
+spring:
+  redis:
+    host: 9.135.93.238
+    port: 6379
+
 #mybatis:
 #  configuration:
 #    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

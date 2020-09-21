@@ -3,6 +3,7 @@ package net.coding.app.project.grpc;
 import com.github.pagehelper.PageInfo;
 
 import net.coding.app.project.utils.GrpcUtil;
+import net.coding.app.project.utils.RedisLockUtil;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectResource;
 import net.coding.lib.project.entity.ProjectResourceSequence;
@@ -14,12 +15,16 @@ import net.coding.lib.project.utils.DateUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.lognet.springboot.grpc.GRpcService;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
@@ -46,32 +51,40 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
     @Resource
     private ProjectResourceServiceHelper projectResourceServiceHelper;
 
+    @Autowired
+    private RedisLockUtil redisLockUtil;
+
     @Override
     public void addProjectResource(ProjectResourceProto.AddProjectResourceRequest request,
                                    StreamObserver<ProjectResourceProto.ProjectResourceResponse> response) {
         log.info("addProjectResource() grpc service receive: {}", request != null ? request.toString() : "");
+        if(request.getProjectId() <= 0 || request.getTargetId() <= 0 || StringUtils.isEmpty(request.getTargetType()) || request.getUserId() <= 0) {
+            GrpcUtil.projectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "addProjectResource parameters error", null, response);
+            return;
+        }
+        String lockKey = "addProjectResource_" + request.getProjectId() + "_" + request.getTargetId() + "_" + request.getTargetType();
         try {
-            if(request.getProjectId() <= 0 || request.getTargetId() <= 0 || StringUtils.isEmpty(request.getTargetType()) || request.getUserId() <= 0) {
-                GrpcUtil.projectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "addProjectResource parameters error", null, response);
-                return;
+            if(redisLockUtil.tryLock(lockKey, TimeUnit.MILLISECONDS, 1000, 2000)) {
+                Project project = projectService.getById(request.getProjectId());
+                if (Objects.isNull(project)) {
+                    GrpcUtil.projectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "addProjectResource project not exists", null, response);
+                    return;
+                }
+                ProjectResource record = new ProjectResource();
+                record.setProjectId(request.getProjectId());
+                record.setTitle(request.getTitle());
+                record.setTargetId(request.getTargetId());
+                record.setTargetType(request.getTargetType());
+                record.setCreatedBy(request.getUserId());
+                record.setResourceUrl(request.getResourceUrl());
+                ProjectResource resource = projectResourceServiceHelper.addProjectResource(record);
+                GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "add success", GrpcUtil.getProjectResource(resource), response);
             }
-            Project project = projectService.getById(request.getProjectId());
-            if (Objects.isNull(project)) {
-                GrpcUtil.projectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "addProjectResource project not exists", null, response);
-                return;
-            }
-            ProjectResource record = new ProjectResource();
-            record.setProjectId(request.getProjectId());
-            record.setTitle(request.getTitle());
-            record.setTargetId(request.getTargetId());
-            record.setTargetType(request.getTargetType());
-            record.setCreatedBy(request.getUserId());
-            record.setResourceUrl(request.getResourceUrl());
-            ProjectResource resource = projectResourceServiceHelper.addProjectResource(record);
-            GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "add success", GrpcUtil.getProjectResource(resource), response);
         } catch (Exception ex) {
             log.error("addProjectResource() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.projectResourceResponse(CodeProto.Code.UNRECOGNIZED, "addProjectResource server error", null, response);
+        } finally {
+            redisLockUtil.unlock(lockKey);
         }
     }
 
@@ -379,24 +392,29 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
     public void addProjectResourceSequence(ProjectResourceProto.AddProjectResourceSequenceRequest request,
                                            StreamObserver<ProjectResourceProto.ProjectResourceCommonResponse> response) {
         log.info("addProjectResourceSequence() grpc service receive: {}", request != null ? request.toString() : "");
+        if (request.getProjectId() <= 0) {
+            GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "recoverProjectResource parameters error", response);
+            return;
+        }
+        String lockKey = "addProjectResourceSequence_" + request.getProjectId();
         try {
-            if (request.getProjectId() <= 0) {
-                GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "recoverProjectResource parameters error", response);
-                return;
+            if(redisLockUtil.tryLock(lockKey, TimeUnit.MILLISECONDS, 1000, 2000)) {
+                ProjectResourceSequence item = projectResourceSequenceService.getByProjectId(request.getProjectId());
+                if (Objects.nonNull(item)) {
+                    GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "addProjectResourceSequence projectId has exists", response);
+                    return;
+                }
+                ProjectResourceSequence projectResourceSequence = new ProjectResourceSequence();
+                projectResourceSequence.setProjectId(request.getProjectId());
+                projectResourceSequence.setCode(0);
+                projectResourceSequenceService.addProjectResourceSequence(projectResourceSequence);
+                GrpcUtil.projectResourceCommonResponse(CodeProto.Code.SUCCESS, "batchRelateResource success", response);
             }
-            ProjectResourceSequence item = projectResourceSequenceService.getByProjectId(request.getProjectId());
-            if(Objects.nonNull(item)) {
-                GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "addProjectResourceSequence projectId has exists", response);
-                return;
-            }
-            ProjectResourceSequence projectResourceSequence = new ProjectResourceSequence();
-            projectResourceSequence.setProjectId(request.getProjectId());
-            projectResourceSequence.setCode(0);
-            projectResourceSequenceService.addProjectResourceSequence(projectResourceSequence);
-            GrpcUtil.projectResourceCommonResponse(CodeProto.Code.SUCCESS, "batchRelateResource success", response);
         } catch (Exception ex) {
             log.error("addProjectResourceSequence() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.projectResourceCommonResponse(CodeProto.Code.UNRECOGNIZED, "addProjectResourceSequence service error", response);
+        } finally {
+            redisLockUtil.unlock(lockKey);
         }
     }
 
