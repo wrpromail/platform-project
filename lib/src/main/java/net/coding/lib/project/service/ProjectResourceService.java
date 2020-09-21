@@ -4,20 +4,13 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 
 import net.coding.lib.project.dao.ProjectResourceDao;
-import net.coding.lib.project.dao.ProjectResourceSequenceDao;
-import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectResource;
-import net.coding.lib.project.entity.ProjectResourceSequence;
 import net.coding.lib.project.enums.NotSearchTargetTypeEnum;
 import net.coding.lib.project.utils.DateUtil;
-import net.coding.lib.project.utils.InflectorUtil;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.sql.Date;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,12 +23,6 @@ public class ProjectResourceService {
 
     @Resource
     private ProjectResourceDao projectResourcesDao;
-
-    @Resource
-    private ProjectResourceSequenceService projectResourceSequenceService;
-
-    @Resource
-    private ResourceReferenceService resourceReferenceService;
 
     private static final Map<String, String> typeToUrlMap = new HashMap<String, String>() {{
         put("merge-request-bean", "_buildMergeRequestLink");
@@ -54,95 +41,73 @@ public class ProjectResourceService {
         put("testing-plan-case-result", "_buildTestingPlanCaseResultUrl");
     }};
 
-    @Transactional(rollbackFor = Exception.class)
-    public ProjectResource addProjectResource(ProjectResource record) {
-        ProjectResource projectResource = findByProjectIdAndTypeAndTarget(record.getProjectId(),
-                record.getTargetId(), record.getTargetType());
-        if (Objects.nonNull(projectResource)) {
-            return projectResource;
-        }
-        int code = projectResourceSequenceService.generateProjectResourceCode(record.getProjectId());
-        record.setCode(code);
-        record.setCreatedAt(DateUtil.getCurrentDate());
-        record.setUpdatedAt(record.getCreatedAt());
-        record.setUpdatedBy(record.getCreatedBy());
-        record.setDeletedBy(0);
-        projectResourcesDao.insert(record);
-        return record;
-    }
-
     public ProjectResource updateProjectResource(ProjectResource record) {
-        ProjectResource projectResource = findByProjectIdAndTypeAndTarget(record.getProjectId(),
+        ProjectResource projectResource = getByProjectIdAndTypeAndTarget(record.getProjectId(),
                 record.getTargetId(), record.getTargetType());
         if (Objects.nonNull(projectResource)) {
             projectResource.setTitle(null == record.getTitle() ? "" : record.getTitle());
             projectResource.setUpdatedAt(DateUtil.getCurrentDate());
             projectResource.setUpdatedBy(record.getUpdatedBy());
-            projectResourcesDao.update(projectResource);
+            update(projectResource);
         }
         return projectResource;
     }
 
-    @Transactional(rollbackFor = Exception.class)
-    public void deleteProjectResource(Integer projectId, String targetType, List<Integer> targetIdList, Integer userId) {
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("projectId", projectId);
-        parameters.put("targetType", targetType);
-        parameters.put("targetIds", targetIdList);
-        parameters.put("deletedAt", DateUtil.getCurrentDate());
-        parameters.put("deletedBy", userId);
-        projectResourcesDao.batchDelete(parameters);
-
-        Map<String, Object> map = new HashMap<>();
-        map.put("targetType", targetType);
-        map.put("targetIds", targetIdList);
-        map.put("deletedAt", DateUtil.getCurrentDate());
-        resourceReferenceService.batchDelete(map);
-
-        Map<String, Object> selfMap = new HashMap<>();
-        selfMap.put("selfType", targetType);
-        selfMap.put("selfIds", targetIdList);
-        selfMap.put("deletedAt", DateUtil.getCurrentDate());
-        resourceReferenceService.batchDelete(selfMap);
+    public int insert(ProjectResource record) {
+        return projectResourcesDao.insert(record);
     }
 
-    public PageInfo<ProjectResource> findProjectResourceList(Integer projectId, Integer page, Integer pageSize) {
+    public int update(ProjectResource projectResource) {
+        return projectResourcesDao.update(projectResource);
+    }
+
+    public int batchDelete(Map<String, Object> parameters) {
+        return projectResourcesDao.batchDelete(parameters);
+    }
+
+    public PageInfo<ProjectResource> findProjectResourceList(Integer projectId, String keyword, List<String> targetTypes, Integer page, Integer pageSize) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("projectId", projectId);
+        if(StringUtils.isNotEmpty(keyword)) {
+            parameters.put("keyword", "%" + keyword + "%");
+        }
+        if(Objects.nonNull(targetTypes) && targetTypes.size() > 0) {
+            parameters.put("targetTypes", targetTypes);
+        }
+        //排除不需要搜索的目标类型
+        parameters.put("notTargetTypes", NotSearchTargetTypeEnum.getTargetTypes());
+        parameters.put("deletedAt", "1970-01-01 00:00:00");
         PageInfo<ProjectResource> pageInfo = PageHelper.startPage(page, pageSize)
                 .doSelectPageInfo(() -> projectResourcesDao.findList(parameters));
         return pageInfo;
     }
 
-    public ProjectResource findByProjectIdAndTypeAndTarget(Integer projectId, Integer targetId, String targetType) {
+    public ProjectResource getByProjectIdAndTypeAndTarget(Integer projectId, Integer targetId, String targetType) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("projectId", projectId);
         parameters.put("targetId", targetId);
         parameters.put("targetType", targetType);
-        return projectResourcesDao.findByProjectIdAndTypeAndTarget(parameters);
+        return projectResourcesDao.getByProjectIdAndTypeAndTarget(parameters);
+    }
+
+    public List<ProjectResource> batchListByProjectAndTypeAndTargets(Integer projectId, List<Integer> targetIds, String targetType) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("projectId", projectId);
+        parameters.put("targetType", targetType);
+        parameters.put("targetIds", targetIds);
+        parameters.put("deletedAt", "1970-01-01 00:00:00");
+        return projectResourcesDao.findList(parameters);
     }
 
     public List<ProjectResource> batchProjectResourceList(Integer projectId, List<Integer> codes) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("projectId", projectId);
         parameters.put("codes", codes);
+        parameters.put("deletedAt", "1970-01-01 00:00:00");
         return projectResourcesDao.findList(parameters);
     }
 
-    @Transactional(rollbackFor = Exception.class)
-    public Integer generateCodes(Integer projectId, Integer codeAmount) {
-        return projectResourceSequenceService.generateProjectResourceCodes(projectId, codeAmount);
-    }
-
     public ProjectResource relateProjectResource(ProjectResource record) {
-        ProjectResource projectResource = findByProjectIdAndCode(record.getProjectId(), record.getCode());
-        if (Objects.nonNull(projectResource)) {
-            return projectResource;
-        }
-        projectResource = findByProjectIdAndTypeAndTarget(record.getProjectId(), record.getTargetId(), record.getTargetType());
-        if (Objects.nonNull(projectResource)) {
-            return projectResource;
-        }
         record.setCreatedAt(DateUtil.getCurrentDate());
         record.setUpdatedBy(record.getCreatedBy());
         record.setUpdatedAt(record.getCreatedAt());
@@ -175,7 +140,11 @@ public class ProjectResourceService {
         return projectResourcesDao.selectById(projectResourceId);
     }
 
-    public int recoverProjectResource(ProjectResource record) {
-        return projectResourcesDao.update(record);
+    public List<ProjectResource> batchListByTypeAndTargets(String targetType, List<Integer> targetIds) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("targetType", targetType);
+        parameters.put("targetIds", targetIds);
+        parameters.put("deletedAt", "1970-01-01 00:00:00");
+        return projectResourcesDao.findList(parameters);
     }
 }

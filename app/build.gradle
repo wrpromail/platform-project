@@ -10,7 +10,7 @@ dependencies {
     compile "net.coding.common:server:${commonVersion}"
 
     //proto
-    compile "net.coding.proto:project:b1c111fc712cfb7272812ea21ce0e7ad074bcebd"
+    compile "net.coding.proto:project:0cf1bcc522806cdf7cd87c90903263429adc3f15"
 
     compile "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
 }

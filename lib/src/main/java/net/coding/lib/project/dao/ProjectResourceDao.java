@@ -20,7 +20,7 @@ public interface ProjectResourceDao {
 
     List<ProjectResource> findList(Map<String, Object> parameter);
 
-    ProjectResource findByProjectIdAndTypeAndTarget(Map<String, Object> parameter);
+    ProjectResource getByProjectIdAndTypeAndTarget(Map<String, Object> parameter);
 
     int batchDelete(Map<String, Object> parameter);
 

@@ -52,11 +52,15 @@
   </update>
 
   <update id="generateProjectResourceCodes" parameterType="map">
-    UPDATE project_resource_sequences SET `code` = `code` + #{codeAmount}  WHERE project_id = #{projectId} AND @new_code := `code` + #{codeAmount}
+    UPDATE project_resource_sequences SET `code` = `code` + #{codeAmount}  WHERE project_id = #{projectId} AND @new_codes := `code` + #{codeAmount}
   </update>
 
   <select id="getCode" parameterType="java.lang.Integer" resultType="java.lang.Integer">
     SELECT @new_code;
+  </select>
+
+  <select id="getCodes" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+    SELECT @new_codes;
   </select>
 
 </mapper>

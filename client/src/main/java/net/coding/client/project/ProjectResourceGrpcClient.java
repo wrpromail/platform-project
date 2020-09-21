@@ -223,13 +223,13 @@ public class ProjectResourceGrpcClient extends EndpointGrpcClient<ProjectResourc
      * @param targetId
      * @return
      */
-    public ProjectResourceProto.ProjectResourceResponse getProjectResourceByTypeAndTarget(Integer projectId, String targetType, Integer targetId) {
-        ProjectResourceProto.TypeAndTargetRequest request = ProjectResourceProto.TypeAndTargetRequest.newBuilder()
+    public ProjectResourceProto.ProjectResourceResponse getByProjectAndTypeAndTarget(Integer projectId, String targetType, Integer targetId) {
+        ProjectResourceProto.ProjectAndTypeAndTargetRequest request = ProjectResourceProto.ProjectAndTypeAndTargetRequest.newBuilder()
                 .setProjectId(projectId)
                 .setTargetType(targetType)
                 .setTargetId(targetId)
                 .build();
-        ProjectResourceProto.ProjectResourceResponse response = newStub().getProjectResourceByTypeAndTarget(request);
+        ProjectResourceProto.ProjectResourceResponse response = newStub().getByProjectAndTypeAndTarget(request);
         return response;
     }
 

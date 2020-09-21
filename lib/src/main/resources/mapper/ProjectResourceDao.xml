@@ -193,10 +193,35 @@
           #{item}
         </foreach>
       </if>
+      <if test="targetIds != null">
+        AND target_id IN
+        <foreach item = "item" index = "index" collection = "targetIds" open = "(" close = ")" separator=",">
+          #{item}
+        </foreach>
+      </if>
+      <if test="notTargetTypes != null and notTargetTypes.size() > 0">
+        AND target_type NOT IN
+        <foreach item = "item" index = "index" collection = "notTargetTypes" open = "(" close = ")" separator=",">
+          #{item}
+        </foreach>
+      </if>
+      <if test="targetTypes != null and targetTypes.size() > 0">
+        AND target_type IN
+        <foreach item = "item" index = "index" collection = "targetTypes" open = "(" close = ")" separator=",">
+          #{item}
+        </foreach>
+      </if>
+      <if test="keyword != null">
+        AND (code LIKE #{keyword} OR title LIKE #{keyword})
+      </if>
+      <if test="deletedAt != null">
+        AND deleted_at = #{deletedAt}
+      </if>
     </where>
+    ORDER BY `code` DESC
   </select>
 
-  <select id="findByProjectIdAndTypeAndTarget" parameterType="map" resultMap="BaseResultMap">
+  <select id="getByProjectIdAndTypeAndTarget" parameterType="map" resultMap="BaseResultMap">
     SELECT
     <include refid="Base_Column_List" />
     FROM project_resources
@@ -250,5 +275,6 @@
         </foreach>
       </if>
     </where>
+    ORDER BY id DESC
   </select>
 </mapper>

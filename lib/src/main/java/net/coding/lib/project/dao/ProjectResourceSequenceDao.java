@@ -20,5 +20,7 @@ public interface ProjectResourceSequenceDao {
 
     int getCode();
 
+    int getCodes();
+
     ProjectResourceSequence getByProjectId(@Param("projectId") Integer projectId);
 }
