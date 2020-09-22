@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
  */
 @RestController
 @Slf4j
-@RequestMapping("/heartbeat")
 public class HeartbeatController {
 
     @GetMapping("/ping")
