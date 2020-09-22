@@ -45,8 +45,9 @@ export -f docker
 
 function build_java() {
     module="$1"
+    echo "module: ${module}"
     resource_dir="${cur_dir}/$(echo ${module} | sed 's#:#/#g')/src/main/resources"
-
+    echo "resource_dir: ${resource_dir}"
     if [ -d "${resource_dir}" ] \
         && [ -f "${resource_dir}/application.properties.example" ]; then
         cp "${resource_dir}/application.properties.example" "${resource_dir}/application.properties"
@@ -68,9 +69,8 @@ function build_java() {
 }
 
 function push_image() {
-    local module="$1"
+    local module="platform-project"
     local version=`git rev-parse HEAD`
-
     local image="${module}:${version}"
 
     if [ -z "$CODING_REGISTRY_USER" ]
@@ -89,6 +89,41 @@ function push_image() {
     fi
 
     docker rmi ${image} || true
+    tagging_image
+}
+
+function tagging_image() {
+    local app_name="platform-project"
+    local version=`git rev-parse HEAD`
+    local datetime=`date +"%Y%m%d"`
+
+    if [[ -n "${TO}" ]]; then
+        echo "begin tagging date image..."
+
+        local registry_from="${IMAGE_BUILD_PREFIX}/${app_name}:${version}"
+        local registry_to="${IMAGE_RELEASE_PREFIX}/${app_name}:${datetime}.${TO}"
+
+        echo "tagging ${registry_from} to ${registry_to}"
+        docker pull ${registry_from}
+        docker tag ${registry_from} ${registry_to}
+        docker push ${registry_to}
+
+        docker rmi ${registry_from} ${registry_to} || true
+    fi
+
+    if [[  -n "${MASTER}" ]]; then
+        echo "begin tagging master image..."
+
+        local registry_from="${IMAGE_BUILD_PREFIX}/${app_name}:${version}"
+        local registry_master="${IMAGE_RELEASE_PREFIX}/${app_name}:master"
+
+        echo "tagging ${registry_from} to ${registry_master}"
+        docker pull ${registry_from}
+        docker tag ${registry_from} ${registry_master}
+        docker push ${registry_master}
+
+        docker rmi ${registry_from} ${registry_master} || true
+    fi
 }
 
 function project_name() {
@@ -100,9 +135,9 @@ if ! grep -q ${CODING_REGISTRY_URL} ~/.docker/config.json; then
     echo ${CODING_REGISTRY_PASS} | docker login -u ${CODING_REGISTRY_USER} --password-stdin ${CODING_REGISTRY_URL} || echo "[ERROR] Login $CODING_REGISTRY_URL failed"
 fi
 
-build_java "$(project_name)"
+build_java app
 
 if [ "$1" = "--push" ]; then
     status "pushing docker image to ${REGISTRY_URL}..."
-    push_image "$(project_name)"
+    push_image
 fi

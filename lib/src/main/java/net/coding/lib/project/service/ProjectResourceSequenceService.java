@@ -3,14 +3,9 @@ package net.coding.lib.project.service;
 import net.coding.lib.project.dao.ProjectResourceSequenceDao;
 import net.coding.lib.project.entity.ProjectResourceSequence;
 
-import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
