@@ -97,13 +97,11 @@ function tagging_image() {
     local version=`git rev-parse HEAD`
     local datetime=`date +"%Y%m%d"`
 
-    echo "begin tagging_image ${VERSION_TAG}"
-
-    if [[ -n "${VERSION_TAG}" ]]; then
+    if [[ -n "${TO}" ]]; then
         echo "begin tagging date image..."
 
         local registry_from="${IMAGE_BUILD_PREFIX}/${app_name}:${version}"
-        local registry_to="${IMAGE_RELEASE_PREFIX}/${app_name}:${VERSION_TAG}"
+        local registry_to="${IMAGE_RELEASE_PREFIX}/${app_name}:${datetime}.${TO}"
 
         echo "tagging ${registry_from} to ${registry_to}"
         docker pull ${registry_from}
