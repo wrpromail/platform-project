@@ -4,7 +4,7 @@ apply plugin: 'maven-publish'
 dependencies {
 
     //common
-    compile "net.coding.common:rpc:${commonVersion}"
+    compile "net.coding.common:rpc-client:20200922.1"
 
     //proto
     compile "net.coding.proto:project:0cf1bcc522806cdf7cd87c90903263429adc3f15"

@@ -6,8 +6,7 @@ dependencies {
     compile project(':lib')
 
     //common
-    compile "net.coding.common:rpc:${commonVersion}"
-    compile "net.coding.common:tracing:${commonVersion}"
+    compile "net.coding.common:rpc-server:20200922.1"
     compile "net.coding.common:server:${commonVersion}"
 
     //proto
