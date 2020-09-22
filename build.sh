@@ -17,6 +17,9 @@ CODING_REGISTRY_REPO="${CODING_REGISTRY_REPO:-platform/platform-release}"
 CODING_REGISTRY_USER="${CODING_REGISTRY_USER:-dt_uQFZxOtEdV}"
 CODING_REGISTRY_PASS="${CODING_REGISTRY_PASS:-nDZT7n47irtOEkOSj5ps2hhocFwcaP}"
 
+IMAGE_BUILD_PREFIX="${IMAGE_BUILD_PREFIX:-codingcorp-docker.pkg.coding.net/registry/build}"
+IMAGE_RELEASE_PREFIX="${IMAGE_RELEASE_PREFIX:-codingcorp-docker.pkg.coding.net/registry/release}"
+
 function status() {
     echo -e "\033[35m >>>   $*\033[0;39m"
 }
@@ -105,8 +108,11 @@ function tagging_image() {
 
         echo "tagging ${registry_from} to ${registry_to}"
         docker pull ${registry_from}
+        echo "pull ${registry_from}"
         docker tag ${registry_from} ${registry_to}
+        echo "tag ${registry_from} to ${registry_to}"
         docker push ${registry_to}
+        echo "push ${registry_to}"
 
         docker rmi ${registry_from} ${registry_to} || true
     fi
