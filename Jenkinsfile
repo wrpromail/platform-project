@@ -8,7 +8,7 @@ pipeline {
     }
     stage("build:platform:project") {
       steps {
-        sh "./build.sh"
+        sh "./build.sh --push"
       }
     }
     stage("push:k8s-resources") {

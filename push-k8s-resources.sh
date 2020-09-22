@@ -11,7 +11,7 @@
 
 username=${AUTO_DEPLOY_USER}
 password=${AUTO_DEPLOY_PASS}
-version=${VERSION}
+version=${VERSION_TAG}
 servicename=${SERVICE_NAME}
 
 if [ "$version" = "" ];then

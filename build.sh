@@ -44,7 +44,7 @@ function docker() {
 export -f docker
 
 function build_java() {
-    module="$1"
+    local module="app"
     echo "module: ${module}"
     resource_dir="${cur_dir}/$(echo ${module} | sed 's#:#/#g')/src/main/resources"
     echo "resource_dir: ${resource_dir}"
@@ -137,7 +137,7 @@ if ! grep -q ${CODING_REGISTRY_URL} ~/.docker/config.json; then
     echo ${CODING_REGISTRY_PASS} | docker login -u ${CODING_REGISTRY_USER} --password-stdin ${CODING_REGISTRY_URL} || echo "[ERROR] Login $CODING_REGISTRY_URL failed"
 fi
 
-build_java app
+build_java
 
 if [ "$1" = "--push" ]; then
     status "pushing docker image to ${REGISTRY_URL}..."
