@@ -89,13 +89,15 @@ function push_image() {
     fi
 
     docker rmi ${image} || true
-    tagging_image
+    tagging_image $1
 }
 
 function tagging_image() {
     local app_name="platform-project"
     local version=`git rev-parse HEAD`
     local datetime=`date +"%Y%m%d"`
+
+    echo "begin tagging_image ${VERSION_TAG}"
 
     if [[ -n "${VERSION_TAG}" ]]; then
         echo "begin tagging date image..."
