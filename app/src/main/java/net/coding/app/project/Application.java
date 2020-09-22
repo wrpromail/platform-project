@@ -17,7 +17,8 @@ import org.springframework.context.annotation.Import;
 })
 @Import({
         BaseConfig.class,
-        net.coding.common.rpc.Config.class
+        net.coding.common.rpc.Config.class,
+        net.coding.lib.project.Config.class
 })
 @ImportAutoConfiguration({GRpcAutoConfiguration.class})
 @MapperScan("net.coding.lib.project")

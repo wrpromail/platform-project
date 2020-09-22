@@ -4,4 +4,10 @@ dependencies {
     compile 'org.redisson:redisson:3.13.4'
 }
 
-
+sourceSets {
+    main {
+        resources {
+            srcDirs = ['src/main/resources', 'src/main/webapp']
+        }
+    }
+}
