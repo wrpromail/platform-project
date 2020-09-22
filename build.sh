@@ -89,7 +89,7 @@ function push_image() {
     fi
 
     docker rmi ${image} || true
-    tagging_image $1
+    tagging_image
 }
 
 function tagging_image() {

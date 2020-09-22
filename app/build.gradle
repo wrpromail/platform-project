@@ -73,8 +73,8 @@ task buildDockerImage(type: DockerBuildImage) {
     inputDir = createDockerfile.destFile.parentFile
     pull = true
     tags = [
-            "${project.name.toLowerCase()}:${versioning.info.commit}".toString(),
-            "${project.name.toLowerCase()}:latest".toString()
+            "platform-project:${versioning.info.commit}".toString(),
+            "platform-project:latest".toString()
     ]
     doLast {
         delete inputDir
