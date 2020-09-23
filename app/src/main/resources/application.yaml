@@ -13,10 +13,9 @@ grpc:
   enableReflection: true
 
 jdbc:
-  host: jdbc:mysql://${JDBC_HOST:9.135.93.238}:3306/${JDBC_DATABASE:coding}?serverTimezone=Asia/Shanghai&?useUnicode=true&characterEncoding=utf8&useSSL=false
+  host: ${JDBC_HOST:jdbc:mysql://9.135.93.238:3306/coding}
   username: ${JDBC_USERNAME:coding}
   password: ${JDBC_PASSWORD:coding123}
-
 
 logging:
   level:
