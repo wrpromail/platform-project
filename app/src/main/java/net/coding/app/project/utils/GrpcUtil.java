@@ -42,7 +42,7 @@ public class GrpcUtil {
 
     public static ProjectResourceProto.ProjectResource getProjectResource(ProjectResource resource) {
         ProjectResourceProto.ProjectResource projectResource = ProjectResourceProto.ProjectResource.newBuilder()
-                .setId(resource.getId())
+                .setId(resource.getId() != null ? resource.getId() : 0)
                 .setProjectId(resource.getProjectId())
                 .setTitle(resource.getTitle())
                 .setTargetId(resource.getTargetId())

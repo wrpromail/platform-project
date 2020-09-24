@@ -78,7 +78,11 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 record.setCreatedBy(request.getUserId());
                 record.setResourceUrl(request.getResourceUrl());
                 ProjectResource resource = projectResourceServiceHelper.addProjectResource(record);
-                GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "add success", GrpcUtil.getProjectResource(resource), response);
+                if(Objects.nonNull(resource.getId()) && resource.getId().compareTo(0) > 0) {
+                    GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "add success", GrpcUtil.getProjectResource(resource), response);
+                } else {
+                    GrpcUtil.projectResourceResponse(CodeProto.Code.UNRECOGNIZED, "addProjectResource add error", null, response);
+                }
             }
         } catch (Exception ex) {
             log.error("addProjectResource() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
@@ -181,8 +185,12 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 return;
             }
             List<ProjectResource> projectResourceList = projectResourceService.batchProjectResourceList(request.getProjectId(), request.getCodeList());
-            GrpcUtil.batchProjectResourceResponse(CodeProto.Code.SUCCESS, "batchProjectResourceList success",
-                    GrpcUtil.getProjectResourceList(projectResourceList), response);
+            if(Objects.nonNull(projectResourceList) && projectResourceList.size() > 0) {
+                GrpcUtil.batchProjectResourceResponse(CodeProto.Code.SUCCESS, "batchProjectResourceList success",
+                        GrpcUtil.getProjectResourceList(projectResourceList), response);
+            } else {
+                GrpcUtil.batchProjectResourceResponse(CodeProto.Code.NOT_FOUND, "batchProjectResourceList not found", null, response);
+            }
         } catch (Exception ex) {
             log.error("batchProjectResourceList() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.batchProjectResourceResponse(CodeProto.Code.UNRECOGNIZED, "batchProjectResourceList service error", null, response);
@@ -244,7 +252,11 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 record.setCode(request.getCode());
                 record.setResourceUrl(request.getResourceUrl());
                 ProjectResource result = projectResourceService.relateProjectResource(record);
-                GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "relateResource success", GrpcUtil.getProjectResource(result), response);
+                if(Objects.nonNull(result)) {
+                    GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "relateResource success", GrpcUtil.getProjectResource(result), response);
+                } else {
+                    GrpcUtil.projectResourceResponse(CodeProto.Code.NOT_FOUND, "relateResource faild", null, response);
+                }
             } catch (Exception ex) {
                 log.error("relateResource() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
                 GrpcUtil.projectResourceResponse(CodeProto.Code.UNRECOGNIZED, "relateResource service error", null, response);
@@ -318,7 +330,11 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 return;
             }
             ProjectResource resource = projectResourceService.getByProjectIdAndTypeAndTarget(request.getProjectId(), request.getTargetId(), request.getTargetType());
-            GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "getByProjectAndTypeAndTarget success", GrpcUtil.getProjectResource(resource), response);
+            if(Objects.nonNull(resource)) {
+                GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "getByProjectAndTypeAndTarget success", GrpcUtil.getProjectResource(resource), response);
+            } else {
+                GrpcUtil.projectResourceResponse(CodeProto.Code.NOT_FOUND, "getByProjectAndTypeAndTarget not found", null, response);
+            }
         } catch (Exception ex) {
             log.error("getByProjectAndTypeAndTarget() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.projectResourceResponse(CodeProto.Code.UNRECOGNIZED, "getByProjectAndTypeAndTarget service error", null, response);
@@ -335,7 +351,11 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 return;
             }
             ProjectResource resource = projectResourceService.findByProjectIdAndCode(request.getProjectId(), request.getCode());
-            GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "getProjectResourceByCode success", GrpcUtil.getProjectResource(resource), response);
+            if(Objects.nonNull(resource)) {
+                GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "getProjectResourceByCode success", GrpcUtil.getProjectResource(resource), response);
+            } else {
+                GrpcUtil.projectResourceResponse(CodeProto.Code.NOT_FOUND, "getProjectResourceByCode not found", null, response);
+            }
         } catch (Exception ex) {
             log.error("getProjectResourceByCode() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.projectResourceResponse(CodeProto.Code.UNRECOGNIZED, "getProjectResourceByCode service error", null, response);
@@ -450,8 +470,13 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 return;
             }
             List<ProjectResource> projectResourceList = projectResourceService.batchListByProjectAndTypeAndTargets(request.getProjectId(), request.getTargetIdList(), request.getTargetType());
-            GrpcUtil.batchProjectResourceResponse(CodeProto.Code.SUCCESS, "batchListByProjectAndTypeAndTargets success",
-                    GrpcUtil.getProjectResourceList(projectResourceList), response);
+            if(Objects.nonNull(projectResourceList) && projectResourceList.size() > 0) {
+                GrpcUtil.batchProjectResourceResponse(CodeProto.Code.SUCCESS, "batchListByProjectAndTypeAndTargets success",
+                        GrpcUtil.getProjectResourceList(projectResourceList), response);
+            } else {
+                GrpcUtil.batchProjectResourceResponse(CodeProto.Code.NOT_FOUND,
+                        "batchListByProjectAndTypeAndTargets not found", null, response);
+            }
         } catch (Exception ex) {
             log.error("batchListByProjectAndTypeAndTargets() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.batchProjectResourceResponse(CodeProto.Code.UNRECOGNIZED,
@@ -470,8 +495,13 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 return;
             }
             List<ProjectResource> projectResourceList = projectResourceService.batchListByTypeAndTargets(request.getTargetType(), request.getTargetIdList());
-            GrpcUtil.batchProjectResourceResponse(CodeProto.Code.SUCCESS, "batchListByTypeAndTargets success",
-                    GrpcUtil.getProjectResourceList(projectResourceList), response);
+            if(Objects.nonNull(projectResourceList) && projectResourceList.size() > 0) {
+                GrpcUtil.batchProjectResourceResponse(CodeProto.Code.SUCCESS, "batchListByTypeAndTargets success",
+                        GrpcUtil.getProjectResourceList(projectResourceList), response);
+            } else {
+                GrpcUtil.batchProjectResourceResponse(CodeProto.Code.NOT_FOUND,
+                        "batchListByTypeAndTargets not found", null, response);
+            }
         } catch (Exception ex) {
             log.error("batchListByTypeAndTargets() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.batchProjectResourceResponse(CodeProto.Code.UNRECOGNIZED,
