@@ -1,15 +1,13 @@
-package net.coding.app.project.grpc.client;
+package net.coding.client.project;
 
 import net.coding.common.rpc.client.EndpointGrpcClient;
+import net.coding.e.proto.ProjectResourceProto;
+import net.coding.e.proto.ProjectResourceServiceGrpc;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
-import proto.common.CodeProto;
-
-import net.coding.e.proto.ProjectResourceProto;
-import net.coding.e.proto.ProjectResourceServiceGrpc;
 
 @Slf4j
 @Component

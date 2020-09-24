@@ -4,6 +4,7 @@ apply plugin: 'net.nemerosa.versioning'
 
 dependencies {
     compile project(':lib')
+    compile project(':client')
 
     //common
     compile "net.coding.common:rpc-server:20200922.1"

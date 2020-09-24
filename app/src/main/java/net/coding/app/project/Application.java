@@ -8,6 +8,7 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * created by wang007 on 2020/7/26
@@ -22,6 +23,7 @@ import org.springframework.context.annotation.Import;
 })
 @ImportAutoConfiguration({GRpcAutoConfiguration.class})
 @MapperScan("net.coding.lib.project")
+@EnableScheduling
 public class Application {
 
     public static void main(String[] args) {
