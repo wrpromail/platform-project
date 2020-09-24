@@ -4,6 +4,7 @@ import com.github.pagehelper.PageInfo;
 
 import net.coding.app.project.utils.ResponseUtil;
 import net.coding.app.project.utils.ResultModel;
+import net.coding.common.annotation.ProtectedAPI;
 import net.coding.lib.project.entity.ProjectResource;
 import net.coding.lib.project.service.ProjectResourceSequenceService;
 import net.coding.lib.project.service.ProjectResourceService;
@@ -22,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Slf4j
+@ProtectedAPI
 @RequestMapping("/api/project/resources")
 public class ProjectResourcesController {
 

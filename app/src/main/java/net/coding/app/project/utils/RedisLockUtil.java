@@ -43,8 +43,12 @@ public class RedisLockUtil {
     }
 
     public void unlock(String lockKey) {
-        RLock lock = redissonClient.getLock(lockKey);
-        lock.unlock();
+        try {
+            RLock lock = redissonClient.getLock(lockKey);
+            lock.unlock();
+        } catch (Exception ex) {
+
+        }
     }
 
     public void unlock(RLock lock) {

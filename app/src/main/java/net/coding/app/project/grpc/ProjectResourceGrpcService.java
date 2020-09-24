@@ -85,11 +85,11 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 } else {
                     GrpcUtil.projectResourceResponse(CodeProto.Code.UNRECOGNIZED, "addProjectResource add error", null, response);
                 }
+                redisLockUtil.unlock(lockKey);
             }
         } catch (Exception ex) {
             log.error("addProjectResource() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.projectResourceResponse(CodeProto.Code.UNRECOGNIZED, "addProjectResource server error", null, response);
-        } finally {
             redisLockUtil.unlock(lockKey);
         }
     }
@@ -443,11 +443,11 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 log.info("addProjectResourceSequence() projectResourceSequence={}", projectResourceSequence.toString());
                 projectResourceSequenceService.addProjectResourceSequence(projectResourceSequence);
                 GrpcUtil.projectResourceCommonResponse(CodeProto.Code.SUCCESS, "batchRelateResource success", response);
+                redisLockUtil.unlock(lockKey);
             }
         } catch (Exception ex) {
             log.error("addProjectResourceSequence() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.projectResourceCommonResponse(CodeProto.Code.UNRECOGNIZED, "addProjectResourceSequence service error", response);
-        } finally {
             redisLockUtil.unlock(lockKey);
         }
     }
