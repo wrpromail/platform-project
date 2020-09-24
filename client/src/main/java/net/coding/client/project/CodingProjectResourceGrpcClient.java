@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class CodingProjectResourceGrpcClient extends EndpointGrpcClient<ProjectResourceServiceGrpc.ProjectResourceServiceBlockingStub> {
 
-    @Value("${grpc.client.coding.serviceName:e-coding}")
+    @Value("${grpc.client.coding.serviceName:coding}")
     private String serviceName;
 
     @Value("${grpc.client.coding.servicePort:20153}")
