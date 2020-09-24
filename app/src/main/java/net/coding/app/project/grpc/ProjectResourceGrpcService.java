@@ -15,8 +15,6 @@ import net.coding.lib.project.utils.DateUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.lognet.springboot.grpc.GRpcService;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -523,6 +521,28 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
             log.error("batchListByTypeAndTargets() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.batchProjectResourceResponse(CodeProto.Code.UNRECOGNIZED,
                     "batchListByTypeAndTargets service error", null, response);
+        }
+    }
+
+    @Override
+    public void getProjectResourceWithDeleted(ProjectResourceProto.GetProjectResourceRequest request,
+                                              StreamObserver<ProjectResourceProto.ProjectResourceResponse> response) {
+        log.info("getProjectResourceWithDeleted() grpc service receive: {}", request != null ? request.toString() : "");
+        try {
+            if (request.getProjectId() <= 0 || request.getCode() <= 0) {
+                GrpcUtil.projectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "getProjectResourceByCode parameters error", null, response);
+                return;
+            }
+            ProjectResource resource = projectResourceService.getProjectResourceWithDeleted(request.getProjectId(), request.getCode());
+            if(Objects.nonNull(resource)) {
+                log.info("getProjectResourceWithDeleted() resource={}", resource.toString());
+                GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "getProjectResourceWithDeleted success", GrpcUtil.getProjectResource(resource), response);
+            } else {
+                GrpcUtil.projectResourceResponse(CodeProto.Code.NOT_FOUND, "getProjectResourceWithDeleted not found", null, response);
+            }
+        } catch (Exception ex) {
+            log.error("getProjectResourceWithDeleted() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
+            GrpcUtil.projectResourceResponse(CodeProto.Code.UNRECOGNIZED, "getProjectResourceWithDeleted service error", null, response);
         }
     }
 

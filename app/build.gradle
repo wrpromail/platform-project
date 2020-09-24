@@ -8,9 +8,10 @@ dependencies {
     //common
     compile "net.coding.common:rpc-server:20200922.1"
     compile "net.coding.common:server:${commonVersion}"
+    compile "net.coding.common:rpc-client:20200922.1"
 
     //proto
-    compile "net.coding.proto:project:0cf1bcc522806cdf7cd87c90903263429adc3f15"
+    compile "net.coding.proto:project:c154e0037d3bf0247727900e0e25f12e0fd77203"
 
     compile "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
 }

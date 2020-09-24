@@ -29,4 +29,6 @@ public interface ProjectResourceDao {
     int batchInsert(List<ProjectResource> list);
 
     int countByProjectIdAndCodes(Map<String, Object> parameter);
+
+    ProjectResource getProjectResourceWithDeleted(Map<String, Object> parameter);
 }

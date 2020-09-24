@@ -235,6 +235,9 @@
       <if test="targetId != null">
         AND target_id = #{targetId}
       </if>
+      <if test="deletedAt != null">
+        AND deleted_at = #{deletedAt}
+      </if>
     </where>
     LIMIT 1
   </select>
@@ -256,6 +259,9 @@
           #{item}
         </foreach>
       </if>
+      <if test="deletedAt != null">
+        AND deleted_at = #{deletedAt}
+      </if>
     </where>
     LIMIT 1
   </select>
@@ -276,5 +282,29 @@
       </if>
     </where>
     ORDER BY id DESC
+  </select>
+
+  <select id="getProjectResourceWithDeleted" parameterType="map" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM project_resources
+    <where>
+      <if test="projectId != null">
+        AND project_id = #{projectId}
+      </if>
+      <if test="code != null">
+        AND `code` = #{code}
+      </if>
+      <if test="targetTypes != null and targetTypes.size() > 0">
+        AND target_type NOT IN
+        <foreach item = "item" index = "index" collection = "targetTypes" open = "(" close = ")" separator=",">
+          #{item}
+        </foreach>
+      </if>
+      <if test="deletedAt != null">
+        AND deleted_at != #{deletedAt}
+      </if>
+    </where>
+    LIMIT 1
   </select>
 </mapper>
