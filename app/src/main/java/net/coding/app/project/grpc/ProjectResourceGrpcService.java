@@ -58,7 +58,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
     public void addProjectResource(ProjectResourceProto.AddProjectResourceRequest request,
                                    StreamObserver<ProjectResourceProto.ProjectResourceResponse> response) {
         log.info("addProjectResource() grpc service receive: {}", request != null ? request.toString() : "");
-        if(request.getProjectId() <= 0 || request.getTargetId() <= 0 || StringUtils.isEmpty(request.getTargetType()) || request.getUserId() <= 0) {
+        if(request.getProjectId() <= 0 || request.getTargetId() <= 0 || StringUtils.isEmpty(request.getTargetType())) {
             GrpcUtil.projectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "addProjectResource parameters error", null, response);
             return;
         }
@@ -99,7 +99,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                                       StreamObserver<ProjectResourceProto.ProjectResourceResponse> response) {
         log.info("updateProjectResource() grpc service receive: {}", request != null ? request.toString() : "");
         try {
-            if(request.getProjectId() <= 0 || request.getTargetId() <= 0 || StringUtils.isEmpty(request.getTargetType()) || request.getUserId() <= 0) {
+            if(request.getProjectId() <= 0 || request.getTargetId() <= 0 || StringUtils.isEmpty(request.getTargetType())) {
                 GrpcUtil.projectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "updateProjectResource parameters error", null, response);
                 return;
             }
@@ -126,7 +126,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                                       StreamObserver<ProjectResourceProto.ProjectResourceCommonResponse> response) {
         log.info("deleteProjectResource() grpc service receive: {}", request != null ? request.toString() : "");
         try {
-            if (request.getProjectId() <= 0 || StringUtils.isEmpty(request.getTargetType()) || request.getTargetIdList().size() <= 0 || request.getUserId() <= 0) {
+            if (request.getProjectId() <= 0 || StringUtils.isEmpty(request.getTargetType()) || request.getTargetIdList().size() <= 0) {
                 GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "parameters project error", response);
                 return;
             }
