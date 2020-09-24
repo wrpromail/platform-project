@@ -19,7 +19,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Import({
         BaseConfig.class,
         net.coding.common.rpc.server.Config.class,
-        net.coding.lib.project.Config.class
+        net.coding.lib.project.Config.class,
+        net.coding.client.project.Config.class
 })
 @ImportAutoConfiguration({GRpcAutoConfiguration.class})
 @MapperScan("net.coding.lib.project")

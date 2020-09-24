@@ -3,6 +3,7 @@ package net.coding.client.project;
 import net.coding.common.rpc.client.EndpointGrpcClient;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -12,6 +13,7 @@ import proto.projectResource.ProjectResourceProto;
 import proto.projectResource.ProjectResourceServiceGrpc;
 
 @Slf4j
+@Component
 public class ProjectResourceGrpcClient extends EndpointGrpcClient<ProjectResourceServiceGrpc.ProjectResourceServiceBlockingStub> {
 
     @Value("${grpc.client.project.serviceName:project}")
