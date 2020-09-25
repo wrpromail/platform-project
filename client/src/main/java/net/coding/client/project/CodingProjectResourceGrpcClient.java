@@ -5,6 +5,7 @@ import net.coding.e.proto.ProjectResourceProto;
 import net.coding.e.proto.ProjectResourceServiceGrpc;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class CodingProjectResourceGrpcClient extends EndpointGrpcClient<ProjectResourceServiceGrpc.ProjectResourceServiceBlockingStub> {
 
-    @Value("${grpc.client.coding.serviceName:coding}")
+    @Value("${grpc.client.coding.serviceName:9.135.93.238}")
     private String serviceName;
 
     @Value("${grpc.client.coding.servicePort:20153}")

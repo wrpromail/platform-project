@@ -70,7 +70,7 @@ public class ProjectResource implements Serializable {
     /**
      * 资源地址
      */
-    private String ResourceUrl;
+    private String resourceUrl;
 
     private static final long serialVersionUID = 1000000000002L;
 }

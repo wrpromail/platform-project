@@ -143,6 +143,9 @@
       <if test="deletedBy != null">
         deleted_by = #{deletedBy,jdbcType=INTEGER},
       </if>
+      <if test="resourceUrl != null">
+        resource_url = #{resourceUrl,jdbcType=INTEGER},
+      </if>
     </set>
     WHERE id = #{id,jdbcType=INTEGER}
   </update>
@@ -306,5 +309,29 @@
       </if>
     </where>
     LIMIT 1
+  </select>
+
+  <select id="findFixResourceList" parameterType="map" resultType="java.lang.Integer">
+    SELECT
+        id
+    FROM
+        project_resources
+    <where>
+      <if test="id != null">
+        AND id > #{id}
+      </if>
+    </where>
+    Order by id ASC
+    LIMIT 1000;
+  </select>
+
+  <select id="getBeginFixId" resultType="java.lang.Integer">
+    SELECT
+    id
+    FROM
+    project_resources
+    WHERE resource_url = ""
+    Order by id ASC
+    LIMIT 1;
   </select>
 </mapper>

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class RedisLockUtil {
+public class RedissonLockUtil {
 
     @Autowired
     private RedissonClient redissonClient;

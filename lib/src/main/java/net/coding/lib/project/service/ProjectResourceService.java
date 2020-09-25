@@ -159,4 +159,14 @@ public class ProjectResourceService {
         parameters.put("deletedAt", "1970-01-01 00:00:00");
         return projectResourcesDao.getProjectResourceWithDeleted(parameters);
     }
+
+    public List<Integer> findFixResourceList(Integer id) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("id", id);
+        return projectResourcesDao.findFixResourceList(parameters);
+    }
+
+    public Integer getBeginFixId() {
+        return projectResourcesDao.getBeginFixId();
+    }
 }

@@ -15,6 +15,9 @@ dependencies {
     compile "net.coding.proto:project:c154e0037d3bf0247727900e0e25f12e0fd77203"
 
     compile "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+
+    compile "org.springframework.boot:spring-boot-starter-data-redis:${springBootVersion}"
+    compile "redis.clients:jedis:2.9.0"
 }
 
 tasks.withType(ProcessResources) {

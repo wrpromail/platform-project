@@ -25,6 +25,12 @@ spring:
   redis:
     host: ${REDIS_HOST:9.135.93.238}
     port: ${REDIS_PORT:6379}
+    timeout: 3600
+    database: 0
+    pool:
+      max-wait: 3600
+      max-idle: 1
+      min-idle: 1
 
 #mybatis:
 #  configuration:

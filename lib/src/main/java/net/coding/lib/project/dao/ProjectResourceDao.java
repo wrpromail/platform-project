@@ -31,4 +31,8 @@ public interface ProjectResourceDao {
     int countByProjectIdAndCodes(Map<String, Object> parameter);
 
     ProjectResource getProjectResourceWithDeleted(Map<String, Object> parameter);
+
+    List<Integer> findFixResourceList(Map<String, Object> parameter);
+
+    Integer getBeginFixId();
 }
