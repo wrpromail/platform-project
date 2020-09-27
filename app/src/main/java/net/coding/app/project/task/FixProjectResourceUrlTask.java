@@ -12,8 +12,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Resource;
@@ -33,7 +39,7 @@ public class FixProjectResourceUrlTask {
     @Resource
     private RedisUtil redisUtil;
 
-    @Scheduled(cron = "0 0 1 * * ?")  //每天1点执行
+    @Scheduled(cron = "0 0/2 * * * ?")  //每天1点执行
     public void fixUrl(){
         log.info("FixProjectResourceUrlTask beginTime={}", System.currentTimeMillis());
         try {
@@ -46,27 +52,35 @@ public class FixProjectResourceUrlTask {
                 id = projectResourceService.getBeginFixId() - 1;
                 redisUtil.set(key, id);
             }
+            ThreadPoolExecutor executor = new ThreadPoolExecutor(2, 8, 2000,
+                    TimeUnit.MILLISECONDS, new LinkedBlockingDeque<>(32));
             while (taskFlag) {
                 log.info("FixProjectResourceUrlTask beginFindFixResourceListTime={}", System.currentTimeMillis());
                 List<Integer> projectResourceIdList = projectResourceService.findFixResourceList(id);
                 if (CollectionUtils.isEmpty(projectResourceIdList)) {
                     taskFlag = false;
                 } else {
-                    Integer tmpId = id;
-                    for (Integer value : projectResourceIdList) {
-                        String url = codingProjectResourceGrpcClient.getResourceLink(value);
-                        if (!StringUtils.isEmpty(url)) {
-                            ProjectResource projectResource = new ProjectResource();
-                            projectResource.setId(value);
-                            projectResource.setResourceUrl(url);
-                            projectResourceService.update(projectResource);
+                    final CountDownLatch latch = new CountDownLatch(projectResourceIdList.size());
+                    executor.execute(() -> {
+                        for (Integer value : projectResourceIdList) {
+                            String url = codingProjectResourceGrpcClient.getResourceLink(value);
+                            log.info("FixProjectResourceUrlTask value={}, url={}", value, url);
+                            if (!StringUtils.isEmpty(url)) {
+                                ProjectResource projectResource = new ProjectResource();
+                                projectResource.setId(value);
+                                projectResource.setResourceUrl(url);
+                                log.info("FixProjectResourceUrlTask projectResource={}", projectResource.toString());
+                                projectResourceService.update(projectResource);
+                            }
+                            latch.countDown();
                         }
-                        if (value.compareTo(tmpId) > 0) {
-                            tmpId = value;
-                        }
+                    });
+                    try {
+                        latch.await();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
-                    Thread.sleep(1000);
-                    id = tmpId;
+                    id = Collections.max(projectResourceIdList);
                     redisUtil.set(key, id);
                 }
                 log.info("FixProjectResourceUrlTask endFixResourceUrlTime={}", System.currentTimeMillis());
