@@ -39,14 +39,14 @@ public class FixProjectResourceUrlTask {
     @Resource
     private RedisUtil redisUtil;
 
-    @Scheduled(cron = "0 0/2 * * * ?")  //每天1点执行
-    public void fixUrl(){
+    @Scheduled(cron = "0 0 1 * * ?")  //每天1点执行
+    public void fixUrl() {
         log.info("FixProjectResourceUrlTask beginTime={}", System.currentTimeMillis());
         try {
             boolean taskFlag = true;
             String key = "FixProjectResourceUrlTaskId";
             Integer id = 0;
-            if(redisUtil.exists(key)) {
+            if (redisUtil.exists(key)) {
                 id = Integer.valueOf(redisUtil.get(key));
             } else {
                 id = projectResourceService.getBeginFixId() - 1;
