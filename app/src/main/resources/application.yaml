@@ -1,6 +1,6 @@
 coding:
   http:
-    port: ${CODING_HTTP_PORT:9003}
+    port: ${CODING_HTTP_PORT:8080}
 
 
 etcd:
