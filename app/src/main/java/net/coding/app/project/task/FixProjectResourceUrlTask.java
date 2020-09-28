@@ -39,7 +39,7 @@ public class FixProjectResourceUrlTask {
     @Resource
     private RedisUtil redisUtil;
 
-    @Scheduled(cron = "0 0 1 * * ?")  //每天1点执行
+    @Scheduled(cron = "0 0 10 * * ?")  //每天1点执行
     public void fixUrl() {
         log.info("FixProjectResourceUrlTask beginTime={}", System.currentTimeMillis());
         try {
