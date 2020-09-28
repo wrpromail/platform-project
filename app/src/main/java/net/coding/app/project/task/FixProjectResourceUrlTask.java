@@ -39,7 +39,7 @@ public class FixProjectResourceUrlTask {
     @Resource
     private RedisUtil redisUtil;
 
-    @Scheduled(cron = "0 0 10 * * ?")  //每天1点执行
+    @Scheduled(cron = "0 0 1 * * ?")  //每天1点执行
     public void fixUrl() {
         log.info("FixProjectResourceUrlTask beginTime={}", System.currentTimeMillis());
         try {
@@ -55,11 +55,12 @@ public class FixProjectResourceUrlTask {
             ThreadPoolExecutor executor = new ThreadPoolExecutor(2, 8, 2000,
                     TimeUnit.MILLISECONDS, new LinkedBlockingDeque<>(32));
             while (taskFlag) {
-                log.info("FixProjectResourceUrlTask beginFindFixResourceListTime={}", System.currentTimeMillis());
+                log.info("FixProjectResourceUrlTask id={}, beginFindFixResourceListTime={}", id, System.currentTimeMillis());
                 List<Integer> projectResourceIdList = projectResourceService.findFixResourceList(id);
                 if (CollectionUtils.isEmpty(projectResourceIdList)) {
                     taskFlag = false;
                 } else {
+                    log.info("FixProjectResourceUrlTask projectResourceIdList.size()={}", projectResourceIdList.size());
                     final CountDownLatch latch = new CountDownLatch(projectResourceIdList.size());
                     executor.execute(() -> {
                         for (Integer value : projectResourceIdList) {

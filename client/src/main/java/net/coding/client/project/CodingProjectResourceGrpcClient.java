@@ -37,12 +37,16 @@ public class CodingProjectResourceGrpcClient extends EndpointGrpcClient<ProjectR
      * @return
      */
     public String getResourceLink(Integer projectResourceId) {
-        ProjectResourceProto.GetResourceLinkRequest request = ProjectResourceProto.GetResourceLinkRequest.newBuilder()
-                .setProjectResourceId(projectResourceId)
-                .build();
-        ProjectResourceProto.GetResourceLinkResponse response = newStub().getResourceLink(request);
-        if(0 == response.getCode()) {
-            return response.getUrl();
+        try {
+            ProjectResourceProto.GetResourceLinkRequest request = ProjectResourceProto.GetResourceLinkRequest.newBuilder()
+                    .setProjectResourceId(projectResourceId)
+                    .build();
+            ProjectResourceProto.GetResourceLinkResponse response = newStub().getResourceLink(request);
+            if (0 == response.getCode()) {
+                return response.getUrl();
+            }
+        } catch (Exception ex) {
+            log.error("CodingProjectResourceGrpcClient->getResourceLink() projectResourceId={}, ex={}", projectResourceId, ex);
         }
         return "";
     }
