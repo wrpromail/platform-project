@@ -52,10 +52,10 @@ public class FixProjectResourceUrlTask {
                 id = projectResourceService.getBeginFixId() - 1;
                 redisUtil.set(key, id);
             }
-            ThreadPoolExecutor executor = new ThreadPoolExecutor(2, 8, 2000,
+            ThreadPoolExecutor executor = new ThreadPoolExecutor(2, 8, 5000,
                     TimeUnit.MILLISECONDS, new LinkedBlockingDeque<>(32));
             while (taskFlag) {
-                log.info("FixProjectResourceUrlTask id={}, beginFindFixResourceListTime={}", id, System.currentTimeMillis());
+                log.info("FixProjectResourceUrlTask id={}", id);
                 List<Integer> projectResourceIdList = projectResourceService.findFixResourceList(id);
                 if (CollectionUtils.isEmpty(projectResourceIdList)) {
                     taskFlag = false;
@@ -70,7 +70,6 @@ public class FixProjectResourceUrlTask {
                                 ProjectResource projectResource = new ProjectResource();
                                 projectResource.setId(value);
                                 projectResource.setResourceUrl(url);
-                                log.info("FixProjectResourceUrlTask projectResource={}", projectResource.toString());
                                 projectResourceService.update(projectResource);
                             }
                             latch.countDown();
@@ -84,10 +83,9 @@ public class FixProjectResourceUrlTask {
                     id = Collections.max(projectResourceIdList);
                     redisUtil.set(key, id);
                 }
-                log.info("FixProjectResourceUrlTask endFixResourceUrlTime={}", System.currentTimeMillis());
             }
         } catch (Exception ex) {
-            log.error("FixProjectResourceUrlTask fixUrl exception={}", ex);
+            log.error("FixProjectResourceUrlTask exception={}", ex);
         } finally {
             log.info("FixProjectResourceUrlTask endTime={}", System.currentTimeMillis());
         }
