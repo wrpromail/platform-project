@@ -327,10 +327,11 @@
 
   <select id="getBeginFixId" resultType="java.lang.Integer">
     SELECT
-    id
+        id
     FROM
-    project_resources
-    WHERE resource_url = ""
+        project_resources
+    WHERE
+        resource_url = ""
     Order by id ASC
     LIMIT 1;
   </select>
