@@ -6,13 +6,11 @@ import net.coding.app.project.utils.ResponseUtil;
 import net.coding.app.project.utils.ResultModel;
 import net.coding.common.annotation.ProtectedAPI;
 import net.coding.lib.project.entity.ProjectResource;
-import net.coding.lib.project.service.ProjectResourceSequenceService;
 import net.coding.lib.project.service.ProjectResourceService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
@@ -29,9 +27,6 @@ public class ProjectResourcesController {
 
     @Autowired
     private ProjectResourceService projectResourceService;
-
-    @Autowired
-    private ProjectResourceSequenceService projectResourceSequenceService;
 
     @GetMapping("/findProjectResourceList")
     public ResultModel<String> findProjectResourceList(Integer projectId, Integer page, Integer pageSize) {

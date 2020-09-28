@@ -29,7 +29,7 @@ subprojects {
         grpcVersion = '1.22.0'
         quartzSchedulerVersion = '2.2.2'
 
-        commonVersion = '20200805.1'
+        commonVersion = '20200928.1'
 
         baseDockerImage = System.getenv('BASE_IMAGE') != null ? System.getenv('BASE_IMAGE') : 'codingcorp-docker.pkg.coding.net/registry/release/ubuntu'
         defaultJavaOption = '-server -Djava.awt.headless=true -XX:-OmitStackTraceInFastThrow'
