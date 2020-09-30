@@ -29,6 +29,11 @@ spring:
       max-idle: 1
       min-idle: 1
 
+
+gprc:
+  client:
+    coding:
+      serviceName: ${CODING_CLIENT_HOST:-coding}
 #mybatis:
 #  configuration:
 #    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
