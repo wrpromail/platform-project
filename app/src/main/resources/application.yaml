@@ -41,6 +41,6 @@ xxl:
       appname: platform-project
       port: 9981
       ip:
-      logpath:
+      logpath: ${LOG_PATH-/Users/guangboliu/data/xxl-job/jobhandler}
       logretentiondays: 7
     accessToken: a3434ff20d1cdf6c4aa9547c841b311d
