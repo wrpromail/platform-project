@@ -3,7 +3,6 @@ package net.coding.app.project.utils;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
@@ -11,14 +10,10 @@ public class IpUtil {
 
     public static String getLocalAddress() {
         try {
-            // Traversal Network interface to get the first non-loopback and non-private address
             Enumeration<NetworkInterface> enumeration = NetworkInterface.getNetworkInterfaces();
-            //ipv4 地址集
             ArrayList<String> ipv4Result = new ArrayList<String>();
-            //ipv6 地址集
             ArrayList<String> ipv6Result = new ArrayList<String>();
 
-            //遍历网卡
             while (enumeration.hasMoreElements()) {
                 final NetworkInterface networkInterface = enumeration.nextElement();
                 final Enumeration<InetAddress> en = networkInterface.getInetAddresses();
@@ -47,7 +42,6 @@ public class IpUtil {
             } else if (!ipv6Result.isEmpty()) {
                 return ipv6Result.get(0);
             }
-            //If failed to find,fall back to localhost
             final InetAddress localHost = InetAddress.getLocalHost();
             return normalizeHostAddress(localHost);
         } catch (Exception e) {
@@ -64,9 +58,4 @@ public class IpUtil {
             return localHost.getHostAddress();
         }
     }
-
-    public static void main(String[] args) {
-        System.out.println(getLocalAddress());
-    }
-
 }
