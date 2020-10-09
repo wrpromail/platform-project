@@ -12,10 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TestJobHandler {
 
-    @XxlJob("demoJobHandler")
-    public ReturnT<String> demoJobHandler(String param) throws Exception {
-        //XxlJobLogger.log("param["+ param +"] invalid.");
-        System.out.println("-------######-------" + System.currentTimeMillis());
-        return ReturnT.SUCCESS;
-    }
+//    @XxlJob("demoJobHandler")
+//    public ReturnT<String> demoJobHandler(String param) throws Exception {
+//        System.out.println("-------######-------" + System.currentTimeMillis());
+//        return ReturnT.SUCCESS;
+//    }
 }
