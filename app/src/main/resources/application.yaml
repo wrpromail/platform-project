@@ -5,13 +5,15 @@ coding:
 grpc:
   port: ${RPC_SERVER_PORT:20153}
   enableReflection: true
+  client:
+    coding:
+      serviceName: ${CODING_SERVICE_NAME:coidng}
+      servicePort: ${CODING_SERVICE_PORT:20153}
 
 jdbc:
   host: ${JDBC_HOST:jdbc:mysql://9.135.93.238:3306/coding}
   username: ${JDBC_USERNAME:coding}
   password: ${JDBC_PASSWORD:coding123}
-
-
 
 logging:
   level:
