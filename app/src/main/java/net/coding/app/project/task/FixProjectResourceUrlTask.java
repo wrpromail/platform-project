@@ -1,5 +1,8 @@
 package net.coding.app.project.task;
 
+import com.xxl.job.core.biz.model.ReturnT;
+import com.xxl.job.core.handler.annotation.XxlJob;
+
 import net.coding.app.project.utils.RedisUtil;
 import net.coding.app.project.utils.RedissonLockUtil;
 import net.coding.client.project.CodingProjectResourceGrpcClient;
@@ -38,8 +41,10 @@ public class FixProjectResourceUrlTask {
     @Resource
     private RedissonLockUtil redissonLockUtil;
 
-    @Scheduled(cron = "0 0 15 * * ?")  //每天1点执行
-    public void fixUrl() {
+//    @Scheduled(cron = "0 0 15 * * ?")  //每天1点执行
+//    public void fixUrl() {
+    @XxlJob("fixUrlJobHandler")
+    public ReturnT<String> fixUrlJobHandler(String param) throws Exception {
         log.info("FixProjectResourceUrlTask beginTime={}", System.currentTimeMillis());
         String lockKey = "fixProjectResourceUrlTaskFixUrl";
         try {
@@ -90,8 +95,10 @@ public class FixProjectResourceUrlTask {
         } catch (Exception ex) {
             log.error("FixProjectResourceUrlTask exception={}", ex);
             redissonLockUtil.unlock(lockKey);
+            return ReturnT.FAIL;
         } finally {
             log.info("FixProjectResourceUrlTask endTime={}", System.currentTimeMillis());
         }
+        return ReturnT.SUCCESS;
     }
 }

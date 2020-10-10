@@ -30,26 +30,18 @@ public class XxlJobConfig {
     @Value("${xxl.job.accessToken}")
     private String accessToken;
 
-    @Value("${xxl.job.executor.logpath}")
-    private String logPath;
-
-    @Value("${xxl.job.executor.logretentiondays}")
-    private int logRetentionDays;
-
-//    @Bean
-//    public XxlJobSpringExecutor xxlJobExecutor() {
-//        XxlJobSpringExecutor xxlJobSpringExecutor = new XxlJobSpringExecutor();
-//        xxlJobSpringExecutor.setAdminAddresses(adminAddresses);
-//        xxlJobSpringExecutor.setAppname(appName);
-//        if(StringUtils.isEmpty(ip)) {
-//            ip = IpUtil.getLocalAddress();
-//        }
-//        xxlJobSpringExecutor.setIp(ip);
-//        xxlJobSpringExecutor.setPort(port);
-//        xxlJobSpringExecutor.setAccessToken(accessToken);
-//        xxlJobSpringExecutor.setLogPath(logPath);
-//        xxlJobSpringExecutor.setLogRetentionDays(logRetentionDays);
-//        return xxlJobSpringExecutor;
-//    }
+    @Bean
+    public XxlJobSpringExecutor xxlJobExecutor() {
+        XxlJobSpringExecutor xxlJobSpringExecutor = new XxlJobSpringExecutor();
+        xxlJobSpringExecutor.setAdminAddresses(adminAddresses);
+        xxlJobSpringExecutor.setAppname(appName);
+        if(StringUtils.isEmpty(ip)) {
+            ip = IpUtil.getLocalAddress();
+        }
+        xxlJobSpringExecutor.setIp(ip);
+        xxlJobSpringExecutor.setPort(port);
+        xxlJobSpringExecutor.setAccessToken(accessToken);
+        return xxlJobSpringExecutor;
+    }
 
 }

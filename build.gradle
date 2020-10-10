@@ -79,7 +79,8 @@ subprojects {
         compile 'org.springframework.boot:spring-boot-starter-jdbc:1.4.7.RELEASE'
         compile group: 'com.github.pagehelper', name: 'pagehelper', version: '5.0.2'
         compile group: 'org.mybatis.spring.boot', name: 'mybatis-spring-boot-starter', version: '1.3.5'
-        compile 'com.xuxueli:xxl-job-core:2.2.0'
+        //compile 'com.xuxueli:xxl-job-core:2.2.0'
+        compile 'net.coding.common:xxl-job-core:e01c66853848503130f8bdcb207317077147a8ac'
     }
 
     // Set build directory to a common location
