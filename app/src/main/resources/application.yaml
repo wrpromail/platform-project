@@ -5,7 +5,7 @@ coding:
 sentry:
   enable: true
   appname: platform-project
-  dsn: http://2579a9f6b53e4bc5b46199c2066c8493:6ef2ec6a73374e2fa8aa5eb6939784f3@127.0.0.1:9000/3
+  dsn: ${SENTRY_DSN:-http://2579a9f6b53e4bc5b46199c2066c8493:6ef2ec6a73374e2fa8aa5eb6939784f3@127.0.0.1:9000/3}
 
 grpc:
   port: ${RPC_SERVER_PORT:20153}
