@@ -9,7 +9,6 @@ import net.coding.client.project.CodingProjectResourceGrpcClient;
 import net.coding.lib.project.entity.ProjectResource;
 import net.coding.lib.project.service.ProjectResourceService;
 
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -25,9 +24,9 @@ import javax.annotation.Resource;
 
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Component
-public class FixProjectResourceUrlTask {
+@Slf4j
+public class FixProjectResourceJobHandler {
 
     @Resource
     private CodingProjectResourceGrpcClient codingProjectResourceGrpcClient;
@@ -41,8 +40,8 @@ public class FixProjectResourceUrlTask {
     @Resource
     private RedissonLockUtil redissonLockUtil;
 
-    @Scheduled(cron = "0 0 1 * * ?")  //每天1点执行
-    public void fixUrl() {
+    @XxlJob("fixUrlJobHandler")
+    public ReturnT<String> fixUrlJobHandler(String param) throws Exception {
         log.info("FixProjectResourceUrlTask beginTime={}", System.currentTimeMillis());
         String lockKey = "fixProjectResourceUrlTaskFixUrl";
         try {
@@ -93,8 +92,10 @@ public class FixProjectResourceUrlTask {
         } catch (Exception ex) {
             log.error("FixProjectResourceUrlTask exception={}", ex);
             redissonLockUtil.unlock(lockKey);
+            return ReturnT.FAIL;
         } finally {
             log.info("FixProjectResourceUrlTask endTime={}", System.currentTimeMillis());
         }
+        return ReturnT.SUCCESS;
     }
 }
