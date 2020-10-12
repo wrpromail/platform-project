@@ -267,15 +267,31 @@ public class DateUtil {
      * 获取当前标准格式的时间
      * @return
      */
+    public static Integer getCurrentHour() {
+        LocalDateTime now = LocalDateTime.now();
+        String hour = dateTimeToStr(now, SQL_TIME).substring(11,13);
+        return Integer.valueOf(hour);
+    }
+
+    /**
+     * 获取当前标准格式的时间
+     * @return
+     */
     public static Date getCurrentDate() {
         LocalDateTime now = LocalDateTime.now();
         return DateUtil.localDateTimeToDate(now);
     }
 
-    public static void main(String[] args) {
-        LocalDateTime now = LocalDateTime.now();
-        System.out.println(DateUtil.localDateTimeToDate(now));
-        System.out.println(DateUtil.localDateTimeToDate(now).getTime());
-        System.out.println(getCurrentDate());
-    }
+//    public static void main(String[] args) {
+//        System.out.println("--------####-----------");
+//        if(DateUtil.getCurrentHour().compareTo(9) >= 0) {
+//            System.out.println(11111111);
+//        } else {
+//            System.out.println(2222222);
+//        }
+//        LocalDateTime now = LocalDateTime.now();
+//        System.out.println(DateUtil.localDateTimeToDate(now));
+//        System.out.println(DateUtil.localDateTimeToDate(now).getTime());
+//        System.out.println(getCurrentDate());
+//    }
 }

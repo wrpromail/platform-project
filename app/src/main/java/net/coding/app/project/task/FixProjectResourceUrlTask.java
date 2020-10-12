@@ -8,6 +8,7 @@ import net.coding.app.project.utils.RedissonLockUtil;
 import net.coding.client.project.CodingProjectResourceGrpcClient;
 import net.coding.lib.project.entity.ProjectResource;
 import net.coding.lib.project.service.ProjectResourceService;
+import net.coding.lib.project.utils.DateUtil;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -61,7 +62,7 @@ public class FixProjectResourceUrlTask {
                 while (taskFlag) {
                     log.info("FixProjectResourceUrlTask id={}", id);
                     List<Integer> projectResourceIdList = projectResourceService.findFixResourceList(id);
-                    if (CollectionUtils.isEmpty(projectResourceIdList)) {
+                    if (CollectionUtils.isEmpty(projectResourceIdList) || DateUtil.getCurrentHour().compareTo(9) >= 0) {
                         taskFlag = false;
                     } else {
                         log.info("FixProjectResourceUrlTask projectResourceIdList.size()={}", projectResourceIdList.size());
