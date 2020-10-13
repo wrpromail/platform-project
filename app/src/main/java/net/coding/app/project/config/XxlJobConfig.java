@@ -30,18 +30,18 @@ public class XxlJobConfig {
     @Value("${xxl.job.accessToken}")
     private String accessToken;
 
-    @Bean
-    public XxlJobSpringExecutor xxlJobExecutor() {
-        XxlJobSpringExecutor xxlJobSpringExecutor = new XxlJobSpringExecutor();
-        xxlJobSpringExecutor.setAdminAddresses(adminAddresses);
-        xxlJobSpringExecutor.setAppname(appName);
-        if(StringUtils.isEmpty(ip)) {
-            ip = IpUtil.getLocalAddress();
-        }
-        xxlJobSpringExecutor.setIp(ip);
-        xxlJobSpringExecutor.setPort(port);
-        xxlJobSpringExecutor.setAccessToken(accessToken);
-        return xxlJobSpringExecutor;
-    }
+//    @Bean
+//    public XxlJobSpringExecutor xxlJobExecutor() {
+//        XxlJobSpringExecutor xxlJobSpringExecutor = new XxlJobSpringExecutor();
+//        xxlJobSpringExecutor.setAdminAddresses(adminAddresses);
+//        xxlJobSpringExecutor.setAppname(appName);
+//        if(StringUtils.isEmpty(ip)) {
+//            ip = IpUtil.getLocalAddress();
+//        }
+//        xxlJobSpringExecutor.setIp(ip);
+//        xxlJobSpringExecutor.setPort(port);
+//        xxlJobSpringExecutor.setAccessToken(accessToken);
+//        return xxlJobSpringExecutor;
+//    }
 
 }
