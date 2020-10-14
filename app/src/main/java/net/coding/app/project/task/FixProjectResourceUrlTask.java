@@ -42,7 +42,7 @@ public class FixProjectResourceUrlTask {
     @Resource
     private RedissonLockUtil redissonLockUtil;
 
-    @Scheduled(cron = "0 30 11 * * ?")  //每天1点执行
+    @Scheduled(cron = "0 30 14 * * ?")  //每天1点执行
     public void fixUrl() {
         log.info("FixProjectResourceUrlTask beginTime={}", System.currentTimeMillis());
         String lockKey = "fixProjectResourceUrlTaskFixUrl";
@@ -62,7 +62,8 @@ public class FixProjectResourceUrlTask {
                 while (taskFlag) {
                     log.info("FixProjectResourceUrlTask id={}", id);
                     List<Integer> projectResourceIdList = projectResourceService.findFixResourceList(id);
-                    if (CollectionUtils.isEmpty(projectResourceIdList) || DateUtil.getCurrentHour().compareTo(9) >= 0) {
+                    //if (CollectionUtils.isEmpty(projectResourceIdList) || DateUtil.getCurrentHour().compareTo(9) >= 0) {
+                    if (CollectionUtils.isEmpty(projectResourceIdList)) {
                         taskFlag = false;
                     } else {
                         log.info("FixProjectResourceUrlTask projectResourceIdList.size()={}", projectResourceIdList.size());
