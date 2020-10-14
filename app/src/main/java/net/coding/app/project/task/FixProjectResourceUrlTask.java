@@ -42,14 +42,14 @@ public class FixProjectResourceUrlTask {
     @Resource
     private RedissonLockUtil redissonLockUtil;
 
-    @Scheduled(cron = "0 0 18 * * ?")  //每天1点执行
+    @Scheduled(cron = "0 0 20 * * ?")  //每天1点执行
     public void fixUrl() {
         log.info("FixProjectResourceUrlTask beginTime={}", System.currentTimeMillis());
-        String lockKey = "fixProjectResourceUrlTaskFixUrl";
+        String lockKey = "fixProjectResourceUrlTaskForFixUrl";
         try {
             if(redissonLockUtil.tryLock(lockKey, TimeUnit.SECONDS, 3, 36000)) {
                 boolean taskFlag = true;
-                String key = "FixProjectResourceIdValue";
+                String key = "FixProjectResourceIdValueForUrl";
                 Integer id = 0;
                 if (redisUtil.exists(key)) {
                     id = Integer.valueOf(redisUtil.get(key));
