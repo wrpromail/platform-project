@@ -42,61 +42,62 @@ public class FixProjectResourceUrlTask {
     @Resource
     private RedissonLockUtil redissonLockUtil;
 
-    @Scheduled(cron = "0 30 10 * * ?")  //每天1点执行
+    @Scheduled(cron = "0 0/2 * * * ?")  //每天1点执行
     public void fixUrl() {
         log.info("FixProjectResourceUrlTask beginTime={}", System.currentTimeMillis());
         String lockKey = "fixProjectResourceUrlTaskForFixUrl";
         try {
-            if(redissonLockUtil.tryLock(lockKey, TimeUnit.SECONDS, 3, 36000)) {
-                log.info("FixProjectResourceUrlTask get lock success");
-                boolean taskFlag = true;
-                String key = "FixProjectResourceIdValueForResourceUrl";
-                Integer id = 0;
-                if (redisUtil.exists(key)) {
-                    id = Integer.valueOf(redisUtil.get(key));
+            if(!redissonLockUtil.tryLock(lockKey, TimeUnit.SECONDS, 3, 36000)) {
+                return;
+            }
+            log.info("FixProjectResourceUrlTask get lock success");
+            boolean taskFlag = true;
+            String key = "FixProjectResourceIdValueForResourceUrl";
+            Integer id = 0;
+            if (redisUtil.exists(key)) {
+                id = Integer.valueOf(redisUtil.get(key));
+            } else {
+                id = projectResourceService.getBeginFixId() - 1;
+                redisUtil.set(key, id);
+            }
+            ThreadPoolExecutor executor = new ThreadPoolExecutor(2, 8, 5000,
+                    TimeUnit.MILLISECONDS, new LinkedBlockingDeque<>(32));
+            while (taskFlag) {
+                log.info("FixProjectResourceUrlTask id={}", id);
+                List<Integer> projectResourceIdList = projectResourceService.findFixResourceList(id);
+                //if (CollectionUtils.isEmpty(projectResourceIdList) || DateUtil.getCurrentHour().compareTo(9) >= 0) {
+                if (CollectionUtils.isEmpty(projectResourceIdList)) {
+                    taskFlag = false;
                 } else {
-                    id = projectResourceService.getBeginFixId() - 1;
+                    log.info("FixProjectResourceUrlTask projectResourceIdList.size()={}", projectResourceIdList.size());
+                    final CountDownLatch latch = new CountDownLatch(projectResourceIdList.size());
+                    executor.execute(() -> {
+                        for (Integer value : projectResourceIdList) {
+                            String url = codingProjectResourceGrpcClient.getResourceLink(value);
+                            log.info("FixProjectResourceUrlTask value={}, url={}", value, url);
+                            if (!StringUtils.isEmpty(url)) {
+                                try {
+                                    ProjectResource projectResource = new ProjectResource();
+                                    projectResource.setId(value);
+                                    projectResource.setResourceUrl(url);
+                                    projectResourceService.update(projectResource);
+                                } catch (Exception ex) {
+                                    log.error("FixProjectResourceUrlTask update exception={}", ex);
+                                }
+                            }
+                            latch.countDown();
+                        }
+                    });
+                    try {
+                        latch.await();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    id = Collections.max(projectResourceIdList);
                     redisUtil.set(key, id);
                 }
-                ThreadPoolExecutor executor = new ThreadPoolExecutor(2, 8, 5000,
-                        TimeUnit.MILLISECONDS, new LinkedBlockingDeque<>(32));
-                while (taskFlag) {
-                    log.info("FixProjectResourceUrlTask id={}", id);
-                    List<Integer> projectResourceIdList = projectResourceService.findFixResourceList(id);
-                    //if (CollectionUtils.isEmpty(projectResourceIdList) || DateUtil.getCurrentHour().compareTo(9) >= 0) {
-                    if (CollectionUtils.isEmpty(projectResourceIdList)) {
-                        taskFlag = false;
-                    } else {
-                        log.info("FixProjectResourceUrlTask projectResourceIdList.size()={}", projectResourceIdList.size());
-                        final CountDownLatch latch = new CountDownLatch(projectResourceIdList.size());
-                        executor.execute(() -> {
-                            for (Integer value : projectResourceIdList) {
-                                String url = codingProjectResourceGrpcClient.getResourceLink(value);
-                                log.info("FixProjectResourceUrlTask value={}, url={}", value, url);
-                                if (!StringUtils.isEmpty(url)) {
-                                    try {
-                                        ProjectResource projectResource = new ProjectResource();
-                                        projectResource.setId(value);
-                                        projectResource.setResourceUrl(url);
-                                        projectResourceService.update(projectResource);
-                                    } catch (Exception ex) {
-                                        log.error("FixProjectResourceUrlTask update exception={}", ex);
-                                    }
-                                }
-                                latch.countDown();
-                            }
-                        });
-                        try {
-                            latch.await();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        id = Collections.max(projectResourceIdList);
-                        redisUtil.set(key, id);
-                    }
-                }
-                redissonLockUtil.unlock(lockKey);
             }
+            redissonLockUtil.unlock(lockKey);
         } catch (Exception ex) {
             log.error("FixProjectResourceUrlTask exception={}", ex);
             redissonLockUtil.unlock(lockKey);
