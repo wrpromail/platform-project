@@ -50,7 +50,7 @@ public class FixProjectResourceUrlTask {
             if(redissonLockUtil.tryLock(lockKey, TimeUnit.SECONDS, 3, 36000)) {
                 log.info("FixProjectResourceUrlTask get lock success");
                 boolean taskFlag = true;
-                String key = "FixProjectResourceIdValueForUrl";
+                String key = "FixProjectResourceIdValueForResourceUrl";
                 Integer id = 0;
                 if (redisUtil.exists(key)) {
                     id = Integer.valueOf(redisUtil.get(key));
