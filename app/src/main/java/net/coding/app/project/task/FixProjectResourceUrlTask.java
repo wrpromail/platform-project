@@ -42,7 +42,7 @@ public class FixProjectResourceUrlTask {
     @Resource
     private RedissonLockUtil redissonLockUtil;
 
-    @Scheduled(cron = "0 0 22 * * ?")  //每天1点执行
+    @Scheduled(cron = "0 30 10 * * ?")  //每天1点执行
     public void fixUrl() {
         log.info("FixProjectResourceUrlTask beginTime={}", System.currentTimeMillis());
         String lockKey = "fixProjectResourceUrlTaskForFixUrl";
@@ -74,10 +74,14 @@ public class FixProjectResourceUrlTask {
                                 String url = codingProjectResourceGrpcClient.getResourceLink(value);
                                 log.info("FixProjectResourceUrlTask value={}, url={}", value, url);
                                 if (!StringUtils.isEmpty(url)) {
-                                    ProjectResource projectResource = new ProjectResource();
-                                    projectResource.setId(value);
-                                    projectResource.setResourceUrl(url);
-                                    projectResourceService.update(projectResource);
+                                    try {
+                                        ProjectResource projectResource = new ProjectResource();
+                                        projectResource.setId(value);
+                                        projectResource.setResourceUrl(url);
+                                        projectResourceService.update(projectResource);
+                                    } catch (Exception ex) {
+                                        log.error("FixProjectResourceUrlTask update exception={}", ex);
+                                    }
                                 }
                                 latch.countDown();
                             }
