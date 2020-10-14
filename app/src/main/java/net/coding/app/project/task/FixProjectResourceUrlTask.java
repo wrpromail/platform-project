@@ -42,7 +42,7 @@ public class FixProjectResourceUrlTask {
     @Resource
     private RedissonLockUtil redissonLockUtil;
 
-    @Scheduled(cron = "0 0 20 * * ?")  //每天1点执行
+    @Scheduled(cron = "0 0 22 * * ?")  //每天1点执行
     public void fixUrl() {
         log.info("FixProjectResourceUrlTask beginTime={}", System.currentTimeMillis());
         String lockKey = "fixProjectResourceUrlTaskForFixUrl";
