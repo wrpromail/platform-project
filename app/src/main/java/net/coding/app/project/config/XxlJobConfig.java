@@ -15,20 +15,20 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class XxlJobConfig {
 
-    @Value("${xxl.job.admin.addresses}")
-    private String adminAddresses;
-
-    @Value("${xxl.job.executor.appname}")
-    private String appName;
-
-    @Value("${xxl.job.executor.ip}")
-    private String ip;
-
-    @Value("${xxl.job.executor.port}")
-    private int port;
-
-    @Value("${xxl.job.accessToken}")
-    private String accessToken;
+//    @Value("${xxl.job.admin.addresses}")
+//    private String adminAddresses;
+//
+//    @Value("${xxl.job.executor.appname}")
+//    private String appName;
+//
+//    @Value("${xxl.job.executor.ip}")
+//    private String ip;
+//
+//    @Value("${xxl.job.executor.port}")
+//    private int port;
+//
+//    @Value("${xxl.job.accessToken}")
+//    private String accessToken;
 
 //    @Bean
 //    public XxlJobSpringExecutor xxlJobExecutor() {
