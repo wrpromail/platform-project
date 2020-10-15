@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 public class IndexController {
     @GetMapping("/")
     public String findProjectResourcesList() {
-        log.error("sentry error rrrrrrrr!!!!");
         return "success";
     }
 }

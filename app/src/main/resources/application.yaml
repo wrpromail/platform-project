@@ -44,6 +44,10 @@ gprc:
 log4j:
   rootLogger=console
 
+#mybatis:
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
 #xxl:
 #  job:
 #    admin:

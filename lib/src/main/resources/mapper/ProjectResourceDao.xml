@@ -306,7 +306,7 @@
         </foreach>
       </if>
       <if test="deletedAt != null">
-        AND deleted_at != #{deletedAt}
+        AND deleted_at = #{deletedAt}
       </if>
     </where>
     LIMIT 1
