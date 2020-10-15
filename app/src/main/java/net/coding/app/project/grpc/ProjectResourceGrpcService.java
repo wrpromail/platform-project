@@ -4,6 +4,7 @@ import com.github.pagehelper.PageInfo;
 
 import net.coding.app.project.utils.GrpcUtil;
 import net.coding.app.project.utils.RedissonLockUtil;
+import net.coding.client.project.CodingProjectResourceGrpcClient;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectResource;
 import net.coding.lib.project.entity.ProjectResourceSequence;
@@ -52,6 +53,9 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
 
     @Autowired
     private RedissonLockUtil redissonLockUtil;
+
+    @Autowired
+    private CodingProjectResourceGrpcClient codingProjectResourceGrpcClient;
 
     @Override
     public void addProjectResource(ProjectResourceProto.AddProjectResourceRequest request,
@@ -381,13 +385,20 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 GrpcUtil.getResourceLinkResponse(CodeProto.Code.INVALID_PARAMETER, "getResourceLink parameters error", null, response);
                 return;
             }
-            ProjectResource projectResource = projectResourceService.selectById(request.getProjectResourceId());
-            if(Objects.isNull(projectResource)) {
+            String url = codingProjectResourceGrpcClient.getResourceLink(request.getProjectResourceId());
+            if(StringUtils.isEmpty(url)) {
                 GrpcUtil.getResourceLinkResponse(CodeProto.Code.INVALID_PARAMETER, "projectResource not exists", null, response);
                 return;
             }
-            log.info("getProjectResourceByCode() projectResource={}", projectResource.toString());
-            GrpcUtil.getResourceLinkResponse(CodeProto.Code.SUCCESS, "getProjectResourceByCode success", projectResource.getResourceUrl(), response);
+            log.info("getProjectResourceByCode() url={}", url);
+            GrpcUtil.getResourceLinkResponse(CodeProto.Code.SUCCESS, "getProjectResourceByCode success", url, response);
+//            ProjectResource projectResource = projectResourceService.selectById(request.getProjectResourceId());
+//            if(Objects.isNull(projectResource)) {
+//                GrpcUtil.getResourceLinkResponse(CodeProto.Code.INVALID_PARAMETER, "projectResource not exists", null, response);
+//                return;
+//            }
+//            log.info("getProjectResourceByCode() projectResource={}", projectResource.toString());
+//            GrpcUtil.getResourceLinkResponse(CodeProto.Code.SUCCESS, "getProjectResourceByCode success", projectResource.getResourceUrl(), response);
         } catch (Exception ex) {
             log.error("getResourceLink() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.getResourceLinkResponse(CodeProto.Code.UNRECOGNIZED, "getResourceLink service error", null, response);
