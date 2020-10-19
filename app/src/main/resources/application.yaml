@@ -57,3 +57,8 @@ log4j:
 #      port: 9981
 #      ip:
 #    accessToken: a3434ff20d1cdf6c4aa9547c841b311d
+
+
+management.endpoints.web.exposure.include: '*'
+management.endpoint.health.show-details: always
+management.metrics.tags.application: ${spring.application.name}
