@@ -104,7 +104,7 @@ function tagging_image() {
         echo "begin tagging date image..."
 
         local registry_from="${IMAGE_BUILD_PREFIX}/${app_name}:${version}"
-        local registry_from="${IMAGE_BUILD_PREFIX}/${app_name}:${VERSION_TAG}"
+        local registry_to="${IMAGE_BUILD_PREFIX}/${app_name}:${VERSION_TAG}"
 #        local registry_to="${IMAGE_RELEASE_PREFIX}/${app_name}:${VERSION_TAG}"
 
         echo "tagging ${registry_from} to ${registry_to}"
