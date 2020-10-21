@@ -124,8 +124,12 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
             record.setResourceUrl(request.getResourceUrl());
             log.info("updateProjectResource() record= {}", record.toString());
             ProjectResource resource = projectResourceService.updateProjectResource(record);
-            log.info("updateProjectResource() resource= {}", record.toString());
-            GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "update success", GrpcUtil.getProjectResource(resource), response);
+            if(Objects.nonNull(resource)) {
+                log.info("updateProjectResource() resource= {}", resource.toString());
+                GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "update success", GrpcUtil.getProjectResource(resource), response);
+            } else {
+                GrpcUtil.projectResourceResponse(CodeProto.Code.UNRECOGNIZED, "updateProjectResource server error", null, response);
+            }
         } catch (Exception ex) {
             log.error("updateProjectResource() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
             MetricsProvider.requestFailedTotal.labels(module, service, "updateProjectResource").inc();

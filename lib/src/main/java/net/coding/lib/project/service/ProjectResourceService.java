@@ -87,7 +87,7 @@ public class ProjectResourceService {
         parameters.put("projectId", projectId);
         parameters.put("targetId", targetId);
         parameters.put("targetType", targetType);
-        parameters.put("deletedAt", "1970-01-01 00:00:00");
+        //parameters.put("deletedAt", "1970-01-01 00:00:00");
         return projectResourcesDao.getByProjectIdAndTypeAndTarget(parameters);
     }
 
