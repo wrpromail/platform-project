@@ -1,5 +1,25 @@
 dependencies {
+    compile project(':common')
+
     compile 'org.redisson:redisson:3.13.4'
+
+    compile "net.coding.proto:platform:20201020.3"
+
+    compile "net.coding.common:rpc-client:20200922.1"
+
+    compile ("net.coding.grpc.client:activity:20201014.2") {
+        exclude(group: "net.coding.common")
+    }
+
+    compile "net.coding.proto:notification:20201030.2"
+
+    compile ('net.coding.grpc.client:platform-template:7496ad1be58d7adde48fa3fc6daedb47f82df083') {
+        exclude(group: "net.coding.common")
+    }
+
+    compile 'net.coding.proto:storage:20201027.1'
+    compile "net.coding.proto:project:20201030.2"
+
 }
 
 sourceSets {

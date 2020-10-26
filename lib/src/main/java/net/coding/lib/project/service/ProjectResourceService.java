@@ -156,7 +156,7 @@ public class ProjectResourceService {
         parameters.put("code", code);
         //排除不需要搜索的目标类型
         parameters.put("targetTypes", NotSearchTargetTypeEnum.getTargetTypes());
-        parameters.put("deletedAt", "1970-01-01 00:00:00");
+        //parameters.put("deletedAt", "1970-01-01 00:00:00");
         return projectResourcesDao.getProjectResourceWithDeleted(parameters);
     }
 

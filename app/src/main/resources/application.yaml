@@ -2,6 +2,15 @@ coding:
   http:
     port: ${CODING_HTTP_PORT:8080}
 
+eventbus:
+  appName: platform-project
+
+i18n:
+  baseName: platform-project,ui
+
+amqp:
+  url: ${AMQP_URL:amqp://guest:guest@127.0.0.1:5672/}
+
 sentry:
   enable: true
   appname: ${SENTRY_APPNAME:platform-project}
@@ -35,11 +44,6 @@ spring:
       max-wait: 3600
       max-idle: 1
       min-idle: 1
-
-gprc:
-  client:
-    coding:
-      serviceName: ${CODING_CLIENT_HOST:-coding}
 
 log4j:
   rootLogger=console

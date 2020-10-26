@@ -17,6 +17,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class ResourceReference implements Serializable {
+
+    private static final long serialVersionUID = 1000000000004L;
+
     private Integer id;
 
     private Integer selfId;
@@ -40,6 +43,4 @@ public class ResourceReference implements Serializable {
     private Date updatedAt;
 
     private Date deletedAt;
-
-    private static final long serialVersionUID = 1000000000004L;
 }

@@ -3,10 +3,10 @@ package net.coding.app.project.task;
 import com.xxl.job.core.biz.model.ReturnT;
 import com.xxl.job.core.handler.annotation.XxlJob;
 
-import net.coding.app.project.utils.RedisUtil;
+import net.coding.lib.project.utils.RedisUtil;
 import net.coding.app.project.utils.RedissonLockUtil;
-import net.coding.client.project.CodingProjectResourceGrpcClient;
 import net.coding.lib.project.entity.ProjectResource;
+import net.coding.lib.project.grpc.client.CodingProjectResourceGrpcClient;
 import net.coding.lib.project.service.ProjectResourceService;
 import net.coding.lib.project.utils.DateUtil;
 
