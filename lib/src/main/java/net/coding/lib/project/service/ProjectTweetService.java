@@ -12,6 +12,7 @@ import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.helper.ProjectServiceHelper;
 import net.coding.lib.project.utils.DateUtil;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -21,7 +22,6 @@ import java.util.Objects;
 
 import javax.annotation.Resource;
 
-import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NOT_EXIST;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_TWEET_FAST;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_TWEET_REPEAT;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.TWEET_NOT_EXISTS;
@@ -38,7 +38,7 @@ public class ProjectTweetService {
     @Resource
     private ProjectServiceHelper projectServiceHelper;
 
-    public ProjectTweet insert(String content, boolean doCheck, Project project) throws CoreException {
+    public ProjectTweet insert(String content, String slateRaw, boolean doCheck, Project project) throws CoreException {
         String raw = content;
         Integer userId = 0;
         Integer teamId = 0;
@@ -68,6 +68,9 @@ public class ProjectTweetService {
         record.setCreatedAt(DateUtil.getCurrentDate());
         record.setUpdatedAt(DateUtil.getCurrentDate());
         record.setComments(0);
+        if (StringUtils.isNoneEmpty(slateRaw)) {
+            record.setSlateRaw(slateRaw);
+        }
         projectTweetDao.insert(record);
         if(record.getId() <= 0) {
             return null;
@@ -91,7 +94,7 @@ public class ProjectTweetService {
         return projectTweetDao.getLastTweetInTenMinutes(param);
     }
 
-    public ProjectTweet update(Integer id, String raw, Project project) throws CoreException {
+    public ProjectTweet update(Integer id, String raw, String slateRaw, Project project) throws CoreException {
         ProjectTweet tweet = projectTweetDao.getById(id);
         if (tweet == null) {
             throw CoreException.of(TWEET_NOT_EXISTS);
@@ -108,6 +111,9 @@ public class ProjectTweetService {
         String content = projectServiceHelper.updateAndCheckContent(raw, project, teamId);
         tweet.setRaw(raw);
         tweet.setContent(content);
+        if (StringUtils.isNoneEmpty(slateRaw)) {
+            tweet.setSlateRaw(slateRaw);
+        }
         tweet.setUpdatedAt(DateUtil.getCurrentDate());
         Integer flag = projectTweetDao.update(tweet);
         if(flag <= 0) {

@@ -7,13 +7,14 @@
     <result column="project_id" jdbcType="INTEGER" property="projectId" />
     <result column="content" jdbcType="VARCHAR" property="content" />
     <result column="raw" jdbcType="VARCHAR" property="raw" />
+    <result column="slat_raw" jdbcType="VARCHAR" property="slateRaw" />
     <result column="comments" jdbcType="INTEGER" property="comments" />
     <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
     <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
     <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt" />
   </resultMap>
   <sql id="Base_Column_List">
-    id, owner_id, project_id, content, `raw`, comments, created_at, updated_at, deleted_at
+    id, owner_id, project_id, content, `raw`, `slat_raw`, comments, created_at, updated_at, deleted_at
   </sql>
   <select id="getById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
     select 
@@ -36,6 +37,9 @@
       </if>
       <if test="raw != null">
         `raw`,
+      </if>
+      <if test="slateRaw != null">
+        `slat_raw`,
       </if>
       <if test="comments != null">
         comments,
@@ -62,6 +66,9 @@
       </if>
       <if test="raw != null">
         #{raw,jdbcType=VARCHAR},
+      </if>
+      <if test="slateRaw != null">
+        #{slateRaw,jdbcType=VARCHAR},
       </if>
       <if test="comments != null">
         #{comments,jdbcType=INTEGER},
@@ -92,6 +99,9 @@
       </if>
       <if test="raw != null">
         `raw` = #{raw,jdbcType=VARCHAR},
+      </if>
+      <if test="slateRaw != null">
+        `slat_raw` = #{slateRaw,jdbcType=VARCHAR},
       </if>
       <if test="comments != null">
         comments = #{comments,jdbcType=INTEGER},

@@ -15,12 +15,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
-import net.coding.common.annotation.EnterpriseApiProtector;
 import net.coding.common.annotation.ProjectApiProtector;
 import net.coding.common.annotation.ProtectedAPI;
 import net.coding.common.annotation.enums.Action;
@@ -83,7 +81,7 @@ public class ProjectTweetController {
             throw CoreException.of(PROJECT_NOT_EXIST);
         }
         String projectPath = projectGrpcClient.getProjectPath(project.getId());
-        ProjectTweet projectTweet = projectTweetService.insert(form.getContent(), true, project);
+        ProjectTweet projectTweet = projectTweetService.insert(form.getContent(), form.getSlateRaw(),true, project);
         if (projectTweet == null) {
             return Result.failed();
         } else {
@@ -99,13 +97,15 @@ public class ProjectTweetController {
     public Result updateProjectTweet(
             @PathVariable("projectId") Integer projectId,
             @PathVariable("id") Integer id,
-            @RequestParam("raw") String raw) throws CoreException {
+            @RequestParam("raw") String raw,
+            @RequestParam(value = "slateRaw",required = false,defaultValue = "") String slateRaw
+            ) throws CoreException {
         Project project = projectService.getById(projectId);
         if (project == null) {
             throw CoreException.of(PROJECT_NOT_EXIST);
         }
         String projectPath = projectGrpcClient.getProjectPath(project.getId());
-        ProjectTweet projectTweet = projectTweetService.update(id, raw, project);
+        ProjectTweet projectTweet = projectTweetService.update(id, raw, slateRaw, project);
         if (projectTweet == null) {
             return Result.failed();
         } else {
