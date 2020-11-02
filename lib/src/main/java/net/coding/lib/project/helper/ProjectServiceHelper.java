@@ -4,6 +4,7 @@ package net.coding.lib.project.helper;
 import com.google.common.eventbus.AsyncEventBus;
 
 import net.coding.common.base.bean.setting.AtSetting;
+import net.coding.common.base.event.ActivityEvent;
 import net.coding.common.base.gson.JSON;
 import net.coding.common.util.TextUtils;
 import net.coding.e.proto.ActivitiesProto;
@@ -323,7 +324,20 @@ public class ProjectServiceHelper {
         // task: https://coding.net/u/wzw/p/coding/task/74923
     }
 
-    public void postProjectTweetCreateActivity(Project project, ProjectTweet tweet, Integer userId, ActivityEnums activityEnums) {
+    public void postProjectTweetCreateActivity(Project project, ProjectTweet tweet, Integer userId, ActivityEnums activityEnums, Short action) {
+
+        Map<String, String> mapInfo = new HashMap<>(1 << 2);
+        mapInfo.put("raw", tweet.getRaw());
+        mapInfo.put("content", tweet.getContent());
+        // 站内通知
+        asyncEventBus.post(ActivityEvent.builder()
+                .creatorId(userId)
+                .type(ProjectTweet.class)
+                .targetId(tweet.getId())
+                .projectId(tweet.getProjectId())
+                .action(action)
+                .content(JSON.toJson(mapInfo))
+                .build());
 
         Map<String, String> map = new HashMap<>(1 << 2);
         map.put("content", tweet.getContent());

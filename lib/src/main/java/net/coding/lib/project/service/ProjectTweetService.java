@@ -77,7 +77,7 @@ public class ProjectTweetService {
         // 通知被 @ 的人
         projectServiceHelper.notifyAtMembers(userId, content, record, project, false);
         // 记录项目冒泡／公告创建动态
-        projectServiceHelper.postProjectTweetCreateActivity(project, record, userId, ActivityEnums.ACTION_TWEET_CREATE);
+        projectServiceHelper.postProjectTweetCreateActivity(project, record, userId, ActivityEnums.ACTION_TWEET_CREATE, ProjectTweet.ACTION_CREATE);
         return record;
     }
 
@@ -118,7 +118,7 @@ public class ProjectTweetService {
         // 通知被 @ 的人
         projectServiceHelper.notifyAtMembers(userId, content, tweet, project, false);
         // 记录项目冒泡／公告创建动态
-        projectServiceHelper.postProjectTweetCreateActivity(project, tweet, userId, ActivityEnums.ACTION_TWEET_UPDATE);
+        projectServiceHelper.postProjectTweetCreateActivity(project, tweet, userId, ActivityEnums.ACTION_TWEET_UPDATE, ProjectTweet.ACTION_UPDATE);
         return tweet;
     }
 
@@ -134,7 +134,7 @@ public class ProjectTweetService {
         projectTweet.setDeletedAt(DateUtil.getCurrentDate());
         projectTweet.setId(id);
         Integer result = projectTweetDao.update(projectTweet);
-        projectServiceHelper.postProjectTweetCreateActivity(project, tweet, userId, ActivityEnums.ACTION_TWEET_DELETE);
+        projectServiceHelper.postProjectTweetCreateActivity(project, tweet, userId, ActivityEnums.ACTION_TWEET_DELETE, ProjectTweet.ACTION_DELETE);
         return result;
     }
 
