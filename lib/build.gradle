@@ -13,7 +13,7 @@ dependencies {
 
     compile "net.coding.proto:notification:20201030.2"
 
-    compile ('net.coding.grpc.client:platform-template:7496ad1be58d7adde48fa3fc6daedb47f82df083') {
+    compile ('net.coding.grpc.client:platform-template:20201102.1') {
         exclude(group: "net.coding.common")
     }
 
