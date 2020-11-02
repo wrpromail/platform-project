@@ -4,6 +4,7 @@ import net.coding.lib.project.entity.ProjectResource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import io.grpc.stub.StreamObserver;
 import proto.common.CodeProto;
@@ -65,7 +66,7 @@ public class GrpcUtil {
                     .setTargetType(resource.getTargetType())
                     .setCode(resource.getCode())
                     .setId(resource.getId())
-                    .setUrl(resource.getResourceUrl())
+                    .setUrl(Objects.nonNull(resource.getResourceUrl()) ? resource.getResourceUrl() : "")
                     .build();
             result.add(projectResource);
         });
