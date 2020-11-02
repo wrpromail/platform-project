@@ -13,6 +13,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class ProjectResource implements Serializable {
+
+    private static final long serialVersionUID = 1000000000002L;
+
     /**
      * 编号
      */
@@ -71,6 +74,4 @@ public class ProjectResource implements Serializable {
      * 资源地址
      */
     private String resourceUrl;
-
-    private static final long serialVersionUID = 1000000000002L;
 }

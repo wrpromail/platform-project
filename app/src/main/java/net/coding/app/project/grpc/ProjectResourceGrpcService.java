@@ -5,10 +5,10 @@ import com.github.pagehelper.PageInfo;
 import net.coding.app.project.metric.MetricsProvider;
 import net.coding.app.project.utils.GrpcUtil;
 import net.coding.app.project.utils.RedissonLockUtil;
-import net.coding.client.project.CodingProjectResourceGrpcClient;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectResource;
 import net.coding.lib.project.entity.ProjectResourceSequence;
+import net.coding.lib.project.grpc.client.CodingProjectResourceGrpcClient;
 import net.coding.lib.project.helper.ProjectResourceServiceHelper;
 import net.coding.lib.project.service.ProjectResourceSequenceService;
 import net.coding.lib.project.service.ProjectResourceService;
@@ -55,7 +55,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
     @Autowired
     private RedissonLockUtil redissonLockUtil;
 
-    @Autowired
+    @Resource
     private CodingProjectResourceGrpcClient codingProjectResourceGrpcClient;
 
     private final String module = "platform-project";

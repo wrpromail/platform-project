@@ -1,5 +1,9 @@
 package net.coding.lib.project.utils;
 
+import net.coding.lib.project.entity.ProjectMember;
+
+import java.sql.Timestamp;
+import java.text.MessageFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -9,8 +13,13 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DateUtil {
     //数据库格式的日期
@@ -282,16 +291,12 @@ public class DateUtil {
         return DateUtil.localDateTimeToDate(now);
     }
 
-//    public static void main(String[] args) {
-//        System.out.println("--------####-----------");
-//        if(DateUtil.getCurrentHour().compareTo(9) >= 0) {
-//            System.out.println(11111111);
-//        } else {
-//            System.out.println(2222222);
-//        }
-//        LocalDateTime now = LocalDateTime.now();
-//        System.out.println(DateUtil.localDateTimeToDate(now));
-//        System.out.println(DateUtil.localDateTimeToDate(now).getTime());
-//        System.out.println(getCurrentDate());
-//    }
+    public static Timestamp dateToTimestamp(Date date) {
+        return new Timestamp(date.getTime());
+    }
+
+    public static void main(String[] args) {
+        String messageFormat ="lexical error at position {0}, encountered {1}, expected {2}";
+        System.out.println(MessageFormat.format(messageFormat, new Date(), 100, 456));
+    }
 }

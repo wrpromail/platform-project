@@ -1,4 +1,4 @@
-package net.coding.app.project.utils;
+package net.coding.lib.project.utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

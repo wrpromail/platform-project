@@ -12,6 +12,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class ProjectResourceSequence implements Serializable {
+
+    private static final long serialVersionUID = 1000000000003L;
+
     private Integer id;
 
     private Integer projectId;
@@ -20,5 +23,5 @@ public class ProjectResourceSequence implements Serializable {
 
     private Integer oldCode;
 
-    private static final long serialVersionUID = 1000000000003L;
+
 }

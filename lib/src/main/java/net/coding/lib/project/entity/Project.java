@@ -13,6 +13,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class Project implements Serializable {
+
+    private static final long serialVersionUID = 1000000000001L;
+
     /**
      * 编号
      */
@@ -41,14 +44,14 @@ public class Project implements Serializable {
     /**
      * 项目状态
      */
-    private Byte status;
+    private Integer status;
 
-    private Byte recommended;
+    private Integer recommended;
 
     /**
      * 是否公开仓库源代码
      */
-    private Byte depotShared;
+    private Integer depotShared;
 
     private Boolean type;
 
@@ -112,12 +115,10 @@ public class Project implements Serializable {
     /**
      * 是否隐藏  TCB为1
      */
-    private Byte invisible;
+    private Integer invisible;
 
     /**
      * 标签  TCB
      */
     private String label;
-
-    private static final long serialVersionUID = 1000000000001L;
 }

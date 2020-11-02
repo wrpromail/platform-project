@@ -1,6 +1,7 @@
 package net.coding.lib.project.helper;
 
 import net.coding.lib.project.entity.ProjectResource;
+import net.coding.lib.project.service.ProjectResourceLinkService;
 import net.coding.lib.project.service.ProjectResourceSequenceService;
 import net.coding.lib.project.service.ProjectResourceService;
 import net.coding.lib.project.service.ProjectService;
@@ -32,6 +33,9 @@ public class ProjectResourceServiceHelper {
     @Resource
     private ResourceReferenceService resourceReferenceService;
 
+    @Resource
+    private ProjectResourceLinkService projectResourceLinkService;
+
     @Transactional(rollbackFor = Exception.class)
     public ProjectResource addProjectResource(ProjectResource record) {
         ProjectResource projectResource = projectResourceService.getByProjectIdAndTypeAndTarget(record.getProjectId(),
@@ -40,6 +44,7 @@ public class ProjectResourceServiceHelper {
             return projectResource;
         }
         int code = projectResourceSequenceService.generateProjectResourceCode(record.getProjectId());
+        record.setResourceUrl(projectResourceLinkService.formLink(code, record.getTargetType(), record.getResourceUrl()));
         record.setCode(code);
         record.setCreatedAt(DateUtil.getCurrentDate());
         record.setUpdatedAt(record.getCreatedAt());

@@ -1,16 +1,11 @@
 package net.coding.app.project.task;
 
-import com.xxl.job.core.biz.model.ReturnT;
-import com.xxl.job.core.handler.annotation.XxlJob;
-
-import net.coding.app.project.utils.RedisUtil;
+import net.coding.lib.project.utils.RedisUtil;
 import net.coding.app.project.utils.RedissonLockUtil;
-import net.coding.client.project.CodingProjectResourceGrpcClient;
 import net.coding.lib.project.entity.ProjectResource;
+import net.coding.lib.project.grpc.client.CodingProjectResourceGrpcClient;
 import net.coding.lib.project.service.ProjectResourceService;
-import net.coding.lib.project.utils.DateUtil;
 
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -42,7 +37,7 @@ public class FixProjectResourceUrlTask {
     @Resource
     private RedissonLockUtil redissonLockUtil;
 
-    @Scheduled(cron = "0 30 11 * * ?")  //每天1点执行
+    //@Scheduled(cron = "0 30 11 * * ?")  //每天1点执行
     public void fixUrl() {
         log.info("FixProjectResourceUrlTask beginTime={}", System.currentTimeMillis());
         String lockKey = "fixProjectResourceUrlTaskForFixUrl";

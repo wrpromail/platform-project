@@ -42,4 +42,22 @@
     LIMIT 1
   </select>
 
+  <select id="getByNameAndTeamId" parameterType="map" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM projects
+    <where>
+      <if test="projectName != null">
+        AND `name` = #{projectName}
+      </if>
+      <if test="teamOwnerId != null">
+        AND team_owner_id = #{teamOwnerId}
+      </if>
+      <if test="deletedAt != null">
+        AND deleted_at = #{deletedAt}
+      </if>
+    </where>
+    LIMIT 1
+  </select>
+
 </mapper>

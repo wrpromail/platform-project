@@ -1,18 +1,17 @@
-package net.coding.client.project;
+package net.coding.lib.project.grpc.client;
 
 import net.coding.common.rpc.client.EndpointGrpcClient;
+import net.coding.e.proto.CodingProjectResourceServiceGrpc;
 import net.coding.e.proto.ProjectResourceProto;
-import net.coding.e.proto.ProjectResourceServiceGrpc;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Component
-public class CodingProjectResourceGrpcClient extends EndpointGrpcClient<ProjectResourceServiceGrpc.ProjectResourceServiceBlockingStub> {
+@Slf4j
+public class CodingProjectResourceGrpcClient extends EndpointGrpcClient<CodingProjectResourceServiceGrpc.CodingProjectResourceServiceBlockingStub> {
 
     @Value("${grpc.client.coding.serviceName:e-coding}")
     private String serviceName;
@@ -50,4 +49,5 @@ public class CodingProjectResourceGrpcClient extends EndpointGrpcClient<ProjectR
         }
         return "";
     }
+
 }

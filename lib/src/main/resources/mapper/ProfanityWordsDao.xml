@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.coding.lib.project.dao.ProfanityWordDao">
+  <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ProfanityWord">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
+    <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt" />
+    <result column="word" jdbcType="VARCHAR" property="word" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, created_at, deleted_at, word
+  </sql>
+  <select id="findAll" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from profanity_words
+    where deleted_at = '1970-01-01 00:00:00'
+  </select>
+</mapper>

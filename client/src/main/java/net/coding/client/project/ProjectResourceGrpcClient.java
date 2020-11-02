@@ -16,10 +16,10 @@ import proto.projectResource.ProjectResourceServiceGrpc;
 @Component
 public class ProjectResourceGrpcClient extends EndpointGrpcClient<ProjectResourceServiceGrpc.ProjectResourceServiceBlockingStub> {
 
-    @Value("${grpc.client.project.serviceName:project}")
+    @Value("${grpc.client.project.serviceName:platform-project}")
     private String serviceName;
 
-    @Value("${grpc.client.project.servicePort:30151}")
+    @Value("${grpc.client.project.servicePort:20153}")
     private int servicePort;
 
     @Override
