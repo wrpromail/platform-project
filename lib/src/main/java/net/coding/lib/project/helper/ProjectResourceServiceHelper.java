@@ -37,19 +37,19 @@ public class ProjectResourceServiceHelper {
     private ProjectResourceLinkService projectResourceLinkService;
 
     @Transactional(rollbackFor = Exception.class)
-    public ProjectResource addProjectResource(ProjectResource record) {
+    public ProjectResource addProjectResource(ProjectResource record, String projectPath) {
         ProjectResource projectResource = projectResourceService.getByProjectIdAndTypeAndTarget(record.getProjectId(),
                 record.getTargetId(), record.getTargetType());
         if (Objects.nonNull(projectResource)) {
             return projectResource;
         }
         int code = projectResourceSequenceService.generateProjectResourceCode(record.getProjectId());
-        record.setResourceUrl(projectResourceLinkService.formLink(code, record.getTargetType(), record.getResourceUrl()));
         record.setCode(code);
         record.setCreatedAt(DateUtil.getCurrentDate());
         record.setUpdatedAt(record.getCreatedAt());
         record.setUpdatedBy(record.getCreatedBy());
         record.setDeletedBy(0);
+        record.setResourceUrl(projectResourceLinkService.getResourceLink(record, projectPath));
         projectResourceService.insert(record);
         return record;
     }

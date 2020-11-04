@@ -25,7 +25,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
         net.coding.common.rabbitmq.Config.class,
         net.coding.grpc.client.activity.Config.class,
         net.coding.grpc.client.template.Config.class,
-        net.coding.common.i18n.Config.class
+        net.coding.common.i18n.Config.class,
+        net.coding.grpc.client.depot.Config.class
 })
 @ImportAutoConfiguration({GRpcAutoConfiguration.class})
 @MapperScan("net.coding.lib.project")

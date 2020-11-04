@@ -3,27 +3,55 @@ package net.coding.lib.project.service;
 import com.google.common.base.Strings;
 
 import net.coding.common.vendor.Inflector;
+import net.coding.e.proto.FileProto;
+import net.coding.e.proto.IssueProto;
+import net.coding.grpc.client.depot.DepotGrpcClient;
+import net.coding.lib.project.entity.ExternalLink;
+import net.coding.lib.project.entity.MergeRequest;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectResource;
+import net.coding.lib.project.entity.Release;
+import net.coding.lib.project.grpc.client.FileServiceGrpcClient;
+import net.coding.lib.project.grpc.client.IssueServiceGrpcClient;
+import net.coding.proto.depot.DepotProto;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.Resource;
+
 @Service
-@Scope("prototype")
 public class ProjectResourceLinkService {
+
+    @Resource
+    private IssueServiceGrpcClient issueServiceGrpcClient;
+
+    @Autowired
+    private ExternalLinkService externalLinkService;
+
+    @Autowired
+    private MergeRequestService mergeRequestService;
+
+    @Autowired
+    private DepotGrpcClient depotGrpcClient;
+
+    @Autowired
+    private ReleaseService releaseService;
+
+    @Autowired
+    private FileServiceGrpcClient fileServiceGrpcClient;
 
     public static final Pattern PATTERN = Pattern.compile("^#([0-9]+)|(?:[^0-9a-zA-Z_])#([0-9]+)");
     public static final Pattern HTML_ENTITY_PATTERN = Pattern.compile("&#.+;", Pattern.DOTALL);
@@ -146,30 +174,127 @@ public class ProjectResourceLinkService {
         return content;
     }
 
-    public String formLink(Integer code, String type, String url) {
-        type = Inflector.underscore(type).replace('_', '-');
+    private String buildMergeRequestLink(ProjectResource projectResource, String projectPath) {
+        MergeRequest mergeRequest = mergeRequestService.getById(projectResource.getTargetId());
+        if (Objects.isNull(mergeRequest)) {
+            return "#";
+        }
+        DepotProto.GetDepotByIdResponse response = depotGrpcClient.getDepotById(mergeRequest.getDepotId());
+        if(Objects.isNull(response.getDepot())) {
+            return "#";
+        }
+        String depotName = response.getDepot().getName();
+        return projectPath + "/d/" + depotName + "/git/merge/" + projectResource.getCode();
+    }
+
+    private String buildProjectFileLink(ProjectResource projectResource, String projectPath) {
+        FileProto.ProjectFile projectFile = fileServiceGrpcClient.getProjectFile(projectResource.getTargetId());
+        if (null == projectFile) {
+            return "#";
+        }
+        FileProto.File file = fileServiceGrpcClient.getById(projectFile.getFileId());
+        Integer fileParentId = file.getParentId();
+        Integer fileId = file.getId();
+        return projectPath + "/attachment/" + fileParentId + "/preview/" + fileId;
+    }
+
+    private String buildReleaseLink(ProjectResource projectResource, String projectPath) {
+        Release release = releaseService.getById(projectResource.getTargetId());
+        if(Objects.isNull(release) || release.getTagName().startsWith("release/")) {
+            return "#";
+        }
+        DepotProto.GetDepotByIdResponse response = depotGrpcClient.getDepotById(release.getDepotId());
+        if(Objects.isNull(response.getDepot())) {
+            return "#";
+        }
+        String releaseTagName = release.getTagName();
+        String depotName = response.getDepot().getName();
+        return projectPath + "/d/" + depotName + "/git/releases/" + releaseTagName;
+    }
+
+    private String buildExternalLinkUrl(ProjectResource projectResource) {
+        ExternalLink link = externalLinkService.getById(projectResource.getTargetId());
+        if (Objects.isNull(link)) {
+            return "#";
+        }
+        return link.getLink();
+    }
+
+    private String buildDefectLink(ProjectResource projectResource, String projectPath) {
+        IssueProto.IssueResponse issue = issueServiceGrpcClient.getIssueById(projectResource.getTargetId(), projectResource.getProjectId(), false);
+        if (Objects.isNull(issue.getData()) || 0 != issue.getCode()) {
+            return "#";
+        }
+        return projectPath + "/bug-tracking/issues/" + projectResource.getCode() + "/detail";
+    }
+
+    private String buildRequirementLink(ProjectResource projectResource, String projectPath) {
+        IssueProto.IssueResponse issue = issueServiceGrpcClient.getIssueById(projectResource.getTargetId(), projectResource.getProjectId(), false);
+        if (Objects.isNull(issue.getData()) || 0 != issue.getCode()) {
+            return "#";
+        }
+        return projectPath + "/requirements/issues/" + projectResource.getCode() + "/detail";
+    }
+
+    private String buildMissionLink(ProjectResource projectResource, String projectPath) {
+        IssueProto.IssueResponse issue = issueServiceGrpcClient.getIssueById(projectResource.getTargetId(), projectResource.getProjectId(), false);
+        if (Objects.isNull(issue.getData()) || 0 != issue.getCode()) {
+            return "#";
+        }
+        return projectPath + "/assignments/issues/" + projectResource.getCode() + "/detail";
+    }
+
+    private String buildSubTaskLink(ProjectResource projectResource, String projectPath) {
+        IssueProto.IssueResponse issue = issueServiceGrpcClient.getIssueById(projectResource.getTargetId(), projectResource.getProjectId(), false);
+        if (Objects.isNull(issue.getData()) || 0 != issue.getCode()) {
+            return "#";
+        }
+        return projectPath + "/subtasks/issues/" + projectResource.getCode() + "/detail";
+    }
+
+    private String buildEpicLink(ProjectResource projectResource, String projectPath) {
+        IssueProto.IssueResponse issue = issueServiceGrpcClient.getIssueById(projectResource.getTargetId(), projectResource.getProjectId(), false);
+        if (Objects.isNull(issue.getData()) || 0 != issue.getCode()) {
+            return "#";
+        }
+        return projectPath + "/epics/issues/" + projectResource.getCode() + "/detail";
+    }
+
+    private String buildIterationLink(ProjectResource projectResource, String projectPath) {
+        return projectPath + "/iterations/" + projectResource.getCode();
+    }
+
+    public String getResourceLink(ProjectResource projectResource, String projectPath) {
+        String type = Inflector.underscore(projectResource.getTargetType()).replace('_', '-');
         String urlType = typeToUrlMap.get(type);
         if (null != urlType) {
-            if ("_buildMergeRequestLink".equals(urlType) || "iteration".equals(urlType) || useCodeTypeSet.contains(type)) {
-                if("#".equals(url)) {
-                    return url;
-                } else {
-                    return url.substring(0, url.length() - 4) + code.toString();
-                }
-            } else if ("_buildProjectFileLink".equals(urlType) || "_buildReleaseLink".equals(urlType) || "_buildExternalLinkUrl".equals(urlType)) {
-                return url;
-            } else if ("defect".equals(urlType) || "requirement".equals(urlType) || "mission".equals(urlType)
-                    || "subtask".equals(urlType) || "epic".equals(urlType)) {
-                if("#".equals(url)) {
-                    return url;
-                } else {
-                    return url.substring(0, url.length() - 11) + code.toString() + "/detail";
-                }
+            if ("_buildMergeRequestLink".equals(urlType)) {
+                return buildMergeRequestLink(projectResource, projectPath);
+            } else if ("_buildProjectFileLink".equals(urlType)) {
+                return buildProjectFileLink(projectResource, projectPath);
+            } else if ("_buildReleaseLink".equals(urlType)) {
+                return buildReleaseLink(projectResource, projectPath);
+            } else if ("_buildExternalLinkUrl".equals(urlType)) {
+                return buildExternalLinkUrl(projectResource);
+            } else if (useCodeTypeSet.contains(type)) {
+                return projectPath + "/" + urlType + "/" + projectResource.getCode();
+            } else if ("defect".equals(urlType)) {
+                return buildDefectLink(projectResource, projectPath);
+            } else if ("requirement".equals(urlType)) {
+                return buildRequirementLink(projectResource, projectPath);
+            } else if ("mission".equals(urlType)) {
+                return buildMissionLink(projectResource, projectPath);
+            } else if ("subtask".equals(urlType)) {
+                return buildSubTaskLink(projectResource, projectPath);
+            } else if ("epic".equals(urlType)) {
+                return buildEpicLink(projectResource, projectPath);
+            } else if ("iteration".equals(urlType)) {
+                return buildIterationLink(projectResource, projectPath);
             } else {
-                return url;
+                return projectPath + "/" + urlType + "/" + projectResource.getTargetId();
             }
         } else {
-            return url;
+            return projectPath + "/" + type + "/" + projectResource.getTargetId();
         }
     }
 }

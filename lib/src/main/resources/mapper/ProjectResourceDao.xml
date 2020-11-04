@@ -22,7 +22,7 @@
     updated_at, updated_by, deleted_by
   </sql>
 
-  <select id="selectById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+  <select id="getById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
     SELECT
     <include refid="Base_Column_List" />
     FROM project_resources
@@ -246,7 +246,7 @@
     LIMIT 1
   </select>
 
-  <select id="findByProjectIdAndCode" parameterType="map" resultMap="BaseResultMap">
+  <select id="getByProjectIdAndCode" parameterType="map" resultMap="BaseResultMap">
     SELECT
     <include refid="Base_Column_List" />
     FROM project_resources
