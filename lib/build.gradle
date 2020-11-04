@@ -7,7 +7,7 @@ dependencies {
 
     compile "net.coding.common:rpc-client:20200922.1"
 
-    compile ("net.coding.grpc.client:activity:20201014.2") {
+    compile ("net.coding.grpc.client:activity:20201102.2") {
         exclude(group: "net.coding.common")
     }
 

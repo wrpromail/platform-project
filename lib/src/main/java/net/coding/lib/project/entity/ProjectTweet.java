@@ -11,6 +11,11 @@ import lombok.Data;
 @Data
 public class ProjectTweet implements Serializable {
     private static final long serialVersionUID = 1000000000005L;
+
+    public static final Short ACTION_CREATE = 1;
+    public static final Short ACTION_UPDATE = 2;
+    public static final Short ACTION_DELETE = 3;
+
     private Integer id;
 
     private Integer ownerId;
