@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import javax.validation.Valid;
 
 import net.coding.common.annotation.EnterpriseApiProtector;
+import net.coding.common.annotation.ProjectApiProtector;
 import net.coding.common.annotation.ProtectedAPI;
 import net.coding.common.annotation.enums.Action;
 import net.coding.common.annotation.enums.Function;
@@ -68,9 +69,9 @@ public class ProjectTweetController {
 
     @ApiOperation(value = "创建公告", notes = "原api:/api/project/{project_id}/tweet post")
     @ProtectedAPI
-    @EnterpriseApiProtector(function = Function.ProjectNotice, action = Action.Create)
+    @ProjectApiProtector(function = Function.ProjectNotice, action = Action.Create)
     @RequestMapping(value = "", method = POST)
-    public Result createProjectTweet(
+    public Result createProjectTweet (
             @PathVariable("projectId") Integer projectId,
             @Valid CreateTweetForm form,
             Errors errors) throws CoreException {
@@ -93,7 +94,7 @@ public class ProjectTweetController {
 
     @ApiOperation(value = "编辑公告", notes = "原api:/api/project/{project_id}/tweet/{tweet_id} put")
     @ProtectedAPI
-    @EnterpriseApiProtector(function = Function.ProjectNotice, action = Action.Update)
+    @ProjectApiProtector(function = Function.ProjectNotice, action = Action.Update)
     @RequestMapping(value = "{id}", method = PUT)
     public Result updateProjectTweet(
             @PathVariable("projectId") Integer projectId,
@@ -195,7 +196,7 @@ public class ProjectTweetController {
 
     @ApiOperation(value = "删除公告", notes = "原api:/api/project/{project_id}/tweet/{tweet_id} delete")
     @ProtectedAPI
-    @EnterpriseApiProtector(function = Function.ProjectNotice, action = Action.Update)
+    @ProjectApiProtector(function = Function.ProjectNotice, action = Action.Update)
     @RequestMapping(value = "{id}", method = DELETE)
     public Result deleteProjectTweet(
             @PathVariable("projectId") Integer projectId,
