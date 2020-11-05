@@ -20,6 +20,13 @@ dependencies {
     compile 'net.coding.proto:storage:20201027.1'
     compile "net.coding.proto:project:20201030.2"
 
+    compile "net.coding.proto:issue:20201102.2"
+
+    compile ("net.coding.grpc.client:depot:20200916.2") {
+        exclude(group: "net.coding.common")
+    }
+
+    compile 'net.coding.proto:file:92bccd5b47843df4a0832d592b791d1b7b453cdf'
 }
 
 sourceSets {

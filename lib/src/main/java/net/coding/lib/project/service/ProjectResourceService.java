@@ -117,14 +117,14 @@ public class ProjectResourceService {
         return record;
     }
 
-    public ProjectResource findByProjectIdAndCode(Integer projectId, Integer code) {
+    public ProjectResource getByProjectIdAndCode(Integer projectId, Integer code) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("projectId", projectId);
         parameters.put("code", code);
         //排除不需要搜索的目标类型
         parameters.put("targetTypes", NotSearchTargetTypeEnum.getTargetTypes());
         parameters.put("deletedAt", "1970-01-01 00:00:00");
-        return projectResourcesDao.findByProjectIdAndCode(parameters);
+        return projectResourcesDao.getByProjectIdAndCode(parameters);
     }
 
     public int batchRelateResource(List<ProjectResource> projectResourceList) {
@@ -138,8 +138,8 @@ public class ProjectResourceService {
         return projectResourcesDao.countByProjectIdAndCodes(parameters);
     }
 
-    public ProjectResource selectById(Integer projectResourceId) {
-        return projectResourcesDao.selectById(projectResourceId);
+    public ProjectResource getById(Integer projectResourceId) {
+        return projectResourcesDao.getById(projectResourceId);
     }
 
     public List<ProjectResource> batchListByTypeAndTargets(String targetType, List<Integer> targetIds) {
