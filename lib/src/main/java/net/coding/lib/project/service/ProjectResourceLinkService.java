@@ -5,7 +5,7 @@ import com.google.common.base.Strings;
 import net.coding.common.vendor.Inflector;
 import net.coding.e.proto.FileProto;
 import net.coding.e.proto.IssueProto;
-import net.coding.grpc.client.depot.DepotGrpcClient;
+import net.coding.lib.project.entity.Depot;
 import net.coding.lib.project.entity.ExternalLink;
 import net.coding.lib.project.entity.MergeRequest;
 import net.coding.lib.project.entity.Project;
@@ -45,13 +45,13 @@ public class ProjectResourceLinkService {
     private MergeRequestService mergeRequestService;
 
     @Autowired
-    private DepotGrpcClient depotGrpcClient;
-
-    @Autowired
     private ReleaseService releaseService;
 
     @Autowired
     private FileServiceGrpcClient fileServiceGrpcClient;
+
+    @Autowired
+    private DepotService depotService;
 
     public static final Pattern PATTERN = Pattern.compile("^#([0-9]+)|(?:[^0-9a-zA-Z_])#([0-9]+)");
     public static final Pattern HTML_ENTITY_PATTERN = Pattern.compile("&#.+;", Pattern.DOTALL);
@@ -179,20 +179,23 @@ public class ProjectResourceLinkService {
         if (Objects.isNull(mergeRequest)) {
             return "#";
         }
-        DepotProto.GetDepotByIdResponse response = depotGrpcClient.getDepotById(mergeRequest.getDepotId());
-        if(Objects.isNull(response.getDepot())) {
+        Depot depot = depotService.getById(mergeRequest.getDepotId());
+        if(Objects.isNull(depot)) {
             return "#";
         }
-        String depotName = response.getDepot().getName();
+        String depotName = depot.getName();
         return projectPath + "/d/" + depotName + "/git/merge/" + projectResource.getCode();
     }
 
     private String buildProjectFileLink(ProjectResource projectResource, String projectPath) {
-        FileProto.ProjectFile projectFile = fileServiceGrpcClient.getProjectFile(projectResource.getTargetId());
+        FileProto.ProjectFile projectFile = fileServiceGrpcClient.getProjectFile(projectResource.getProjectId(), projectResource.getTargetId());
         if (null == projectFile) {
             return "#";
         }
         FileProto.File file = fileServiceGrpcClient.getById(projectFile.getFileId());
+        if(null == file) {
+            return "#";
+        }
         Integer fileParentId = file.getParentId();
         Integer fileId = file.getId();
         return projectPath + "/attachment/" + fileParentId + "/preview/" + fileId;
@@ -203,12 +206,12 @@ public class ProjectResourceLinkService {
         if(Objects.isNull(release) || release.getTagName().startsWith("release/")) {
             return "#";
         }
-        DepotProto.GetDepotByIdResponse response = depotGrpcClient.getDepotById(release.getDepotId());
-        if(Objects.isNull(response.getDepot())) {
+        Depot depot = depotService.getById(release.getDepotId());
+        if(Objects.isNull(depot)) {
             return "#";
         }
         String releaseTagName = release.getTagName();
-        String depotName = response.getDepot().getName();
+        String depotName = depot.getName();
         return projectPath + "/d/" + depotName + "/git/releases/" + releaseTagName;
     }
 

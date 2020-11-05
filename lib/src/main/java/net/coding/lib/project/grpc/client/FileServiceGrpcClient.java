@@ -29,8 +29,9 @@ public class FileServiceGrpcClient extends EndpointGrpcClient<FileServiceGrpc.Fi
         return serviceName;
     }
 
-    public FileProto.ProjectFile getProjectFile(Integer projectId) {
+    public FileProto.ProjectFile getProjectFile(Integer projectId, Integer fileId) {
         FileProto.GetProjectFileRequest request = FileProto.GetProjectFileRequest.newBuilder()
+                .setFileId(fileId)
                 .setProjectId(projectId)
                 .build();
         FileProto.GetProjectFileResponse response = newStub().getProjectFile(request);
