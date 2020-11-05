@@ -30,14 +30,12 @@ public class IssueServiceGrpcClient extends EndpointGrpcClient<IssueServiceGrpc.
     }
 
     public IssueProto.IssueResponse getIssueById(Integer issueId, Integer projectId, boolean withDeleted) {
-        log.info("IssueServiceGrpcClient.getIssueById() issueId={}, projectId={}, withDeleted={}", issueId, projectId, withDeleted);
         IssueProto.IssueRequest request = IssueProto.IssueRequest.newBuilder()
                 .setIssueId(issueId)
                 .setProjectId(projectId)
                 .setWithDeleted(withDeleted)
                 .build();
         IssueProto.IssueResponse response = newStub().getIssueById(request);
-        log.info("IssueServiceGrpcClient.getIssueById() response={}", response.toString());
         return response;
     }
 }

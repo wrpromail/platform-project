@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.coding.lib.project.dao.DepotDao">
+  <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.Depot">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="project_id" jdbcType="INTEGER" property="projectId" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+    <result column="is_default" jdbcType="BOOLEAN" property="isDefault" />
+    <result column="parent_id" jdbcType="INTEGER" property="parentId" />
+    <result column="root_id" jdbcType="INTEGER" property="rootId" />
+    <result column="origin_url" jdbcType="VARCHAR" property="originUrl" />
+    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
+    <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt" />
+    <result column="rpc_server" jdbcType="VARCHAR" property="rpcServer" />
+    <result column="status" jdbcType="TINYINT" property="status" />
+    <result column="origin_vcs" jdbcType="VARCHAR" property="originVcs" />
+    <result column="quota" jdbcType="INTEGER" property="quota" />
+    <result column="code_insight_max_value" jdbcType="INTEGER" property="codeInsightMaxValue" />
+    <result column="languages" jdbcType="VARCHAR" property="languages" />
+    <result column="languaged_at" jdbcType="TIMESTAMP" property="languagedAt" />
+    <result column="location" jdbcType="VARCHAR" property="location" />
+    <result column="worker" jdbcType="VARCHAR" property="worker" />
+    <result column="size" jdbcType="INTEGER" property="size" />
+    <result column="pages_branch" jdbcType="VARCHAR" property="pagesBranch" />
+    <result column="svn_enabled" jdbcType="BOOLEAN" property="svnEnabled" />
+    <result column="flow_type" jdbcType="TINYINT" property="flowType" />
+    <result column="vcs_type" jdbcType="VARCHAR" property="vcsType" />
+    <result column="shared" jdbcType="TINYINT" property="shared" />
+    <result column="is_svn_http" jdbcType="BOOLEAN" property="isSvnHttp" />
+    <result column="dev_flow_id" jdbcType="INTEGER" property="devFlowId" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, project_id, `name`, description, is_default, parent_id, root_id, origin_url, 
+    created_at, deleted_at, rpc_server, `status`, origin_vcs, quota, code_insight_max_value, 
+    languages, languaged_at, `location`, worker, `size`, pages_branch, svn_enabled, flow_type, 
+    vcs_type, shared, is_svn_http, dev_flow_id
+  </sql>
+  <select id="getById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from depots
+    where deleted_at = '1970-01-01 00:00:00' AND id = #{id,jdbcType=INTEGER}
+  </select>
+</mapper>
