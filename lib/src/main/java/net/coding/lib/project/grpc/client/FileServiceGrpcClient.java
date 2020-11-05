@@ -30,7 +30,7 @@ public class FileServiceGrpcClient extends EndpointGrpcClient<FileServiceGrpc.Fi
     }
 
     public FileProto.ProjectFile getProjectFile(Integer projectId, Integer fileId) {
-        log.info("FileServiceGrpcClient.getProjectFile() projectId={}", projectId);
+        log.info("FileServiceGrpcClient.getProjectFile() projectId={}，fileId={}", projectId, fileId);
         FileProto.GetProjectFileRequest request = FileProto.GetProjectFileRequest.newBuilder()
                 .setFileId(fileId)
                 .setProjectId(projectId)
