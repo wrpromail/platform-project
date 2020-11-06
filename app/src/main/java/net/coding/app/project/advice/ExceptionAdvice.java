@@ -2,6 +2,7 @@ package net.coding.app.project.advice;
 
 import net.coding.common.i18n.utils.LocaleMessageSourceUtil;
 import net.coding.lib.project.exception.AppException;
+import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.exception.ExceptionMessage;
 
 import org.springframework.http.ResponseEntity;
@@ -85,6 +86,27 @@ public class ExceptionAdvice {
                 Optional.ofNullable(exception.getArguments()).orElse(new Object[0]),
                 NETWORK_CONNECTION_ERROR
         );
+        if (message == null) {
+            return ResponseEntity.ok().body(defaultMessage());
+        }
+        return ResponseEntity.ok().body(
+                ExceptionMessage.of(
+                        String.valueOf(exception.getCode()),
+                        exception.getKey(),
+                        message
+                )
+        );
+    }
+
+    @ExceptionHandler(CoreException.class)
+    @ResponseBody
+    public ResponseEntity<ExceptionMessage> handleError(CoreException exception) {
+        if (log.isDebugEnabled()) {
+            log.error("Exception advice handle app exception", exception);
+        } else {
+            log.warn("Exception advice handle app exception, code = {}, msg = {}", exception.getCode(), exception.getKey());
+        }
+        String message = exception.getMsg();
         if (message == null) {
             return ResponseEntity.ok().body(defaultMessage());
         }
