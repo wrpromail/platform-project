@@ -9,4 +9,9 @@ public class ResourceUtil {
         String text = LocaleMessageSourceUtil.getMessageByBaseName("ui", key);
         return (text != null) ? MessageFormat.format(text, args) : null;
     }
+
+    public static String error(String key, Object... args) {
+        String text = LocaleMessageSourceUtil.getMessageByBaseName("platform-project", key);
+        return (text != null) ? MessageFormat.format(text, args) : null;
+    }
 }

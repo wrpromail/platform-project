@@ -332,7 +332,7 @@ public class ProjectServiceHelper {
         // 站内通知
         asyncEventBus.post(ActivityEvent.builder()
                 .creatorId(userId)
-                .type(ProjectTweet.class)
+                .type(net.coding.common.base.bean.ProjectTweet.class)
                 .targetId(tweet.getId())
                 .projectId(tweet.getProjectId())
                 .action(action)

@@ -1,5 +1,7 @@
 package net.coding.lib.project.grpc.client;
 
+import com.google.gson.Gson;
+
 import net.coding.common.rpc.client.EndpointGrpcClient;
 import net.coding.e.proto.FileProto;
 import net.coding.e.proto.FileServiceGrpc;
@@ -29,27 +31,14 @@ public class FileServiceGrpcClient extends EndpointGrpcClient<FileServiceGrpc.Fi
         return serviceName;
     }
 
-    public FileProto.ProjectFile getProjectFile(Integer projectId, Integer fileId) {
-        log.info("FileServiceGrpcClient.getProjectFile() projectId={}，fileId={}", projectId, fileId);
-        FileProto.GetProjectFileRequest request = FileProto.GetProjectFileRequest.newBuilder()
-                .setFileId(fileId)
+    public FileProto.File getProjectFileById(Integer projectId, Integer id) {
+        log.info("FileServiceGrpcClient.getProjectFileById() projectId={}, id={}", projectId, id);
+        FileProto.GetProjectFileByIdRequest request = FileProto.GetProjectFileByIdRequest.newBuilder()
                 .setProjectId(projectId)
+                .setId(id)
                 .build();
-        FileProto.GetProjectFileResponse response = newStub().getProjectFile(request);
-        log.info("FileServiceGrpcClient.getProjectFile() response={}", response.toString());
-        if(response.getCode() == 0) {
-            return response.getProjectFile();
-        }
-        return null;
-    }
-
-    public FileProto.File getById(Integer fileId) {
-        log.info("FileServiceGrpcClient.getProjectFile() fileId={}", fileId);
-        FileProto.GetFileByIdRequest request = FileProto.GetFileByIdRequest.newBuilder()
-                .setId(fileId)
-                .build();
-        FileProto.GetFileByIdResponse response = newStub().getById(request);
-        log.info("FileServiceGrpcClient.getProjectFile() file={}", response.toString());
+        FileProto.GetProjectFileByIdResponse response = newStub().getProjectFileById(request);
+        log.info("FileServiceGrpcClient.getProjectFileById() response={}", response.toString());
         if(response.getCode() == 0) {
             return response.getFile();
         }

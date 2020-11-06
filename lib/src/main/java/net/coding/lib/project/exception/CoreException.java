@@ -7,6 +7,7 @@ import net.coding.common.util.AllowOriginUtil;
 import net.coding.common.util.QcloudUtils;
 import net.coding.common.util.ResourceUtils;
 import net.coding.common.util.Result;
+import net.coding.lib.project.utils.ResourceUtil;
 
 import org.springframework.beans.InvalidPropertyException;
 import org.springframework.beans.TypeMismatchException;
@@ -441,7 +442,8 @@ public class CoreException extends Exception {
     }
 
     public static String getErrorText(String key, Object... args) {
-        String text = ResourceUtils.getString("error", key);
+        //String text = ResourceUtils.getString("error", key);
+        String text = ResourceUtil.error(key, args);
         text = QcloudUtils.officialDocument(text);
         if (args == null || args.length == 0) return text;
         return (text != null) ? MessageFormat.format(text, args) : null;
@@ -476,7 +478,7 @@ public class CoreException extends Exception {
         return new CoreException(
                 exceptionType.getErrorCode(),
                 exceptionType.getResourceKey(),
-                ResourceUtils.error(exceptionType.getResourceKey(), exceptionType.getArgs()),
+                getErrorText(exceptionType.getResourceKey(), exceptionType.getArgs()),
                 data
         );
     }
