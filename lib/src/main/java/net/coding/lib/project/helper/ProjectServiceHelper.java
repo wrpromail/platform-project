@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import lombok.extern.slf4j.Slf4j;
 import proto.notification.NotificationProto;
 import proto.platform.user.UserProto;
 
@@ -60,6 +61,7 @@ import static net.coding.lib.project.exception.CoreException.ExceptionType.CONTE
 import static net.coding.lib.project.exception.CoreException.ExceptionType.TWEET_IMAGE_LIMIT_N;
 
 @Component
+@Slf4j
 public class ProjectServiceHelper {
 
     public static final Pattern AT_REG = Pattern.compile("(@([^@\\s<>()（）：:，,。…~!！？?'‘\"]+))(.{0}|\\s)");
@@ -324,33 +326,37 @@ public class ProjectServiceHelper {
         // task: https://coding.net/u/wzw/p/coding/task/74923
     }
 
-    public void postProjectTweetCreateActivity(Project project, ProjectTweet tweet, Integer userId, ActivityEnums activityEnums, Short action) {
+    public void postProjectTweetCreateActivity(Project project, ProjectTweet tweet, Integer userId, ActivityEnums activityEnums, Short action, String actionStr) {
+        try {
+            Map<String, String> mapInfo = new HashMap<>(1 << 2);
+            mapInfo.put("raw", tweet.getRaw());
+            mapInfo.put("content", tweet.getContent());
+            // 站内通知
+            asyncEventBus.post(ActivityEvent.builder()
+                    .creatorId(userId)
+                    .type(net.coding.common.base.bean.ProjectTweet.class)
+                    .targetId(tweet.getId())
+                    .projectId(tweet.getProjectId())
+                    .action(action)
+                    .content(JSON.toJson(mapInfo))
+                    .build());
 
-        Map<String, String> mapInfo = new HashMap<>(1 << 2);
-        mapInfo.put("raw", tweet.getRaw());
-        mapInfo.put("content", tweet.getContent());
-        // 站内通知
-        asyncEventBus.post(ActivityEvent.builder()
-                .creatorId(userId)
-                .type(net.coding.common.base.bean.ProjectTweet.class)
-                .targetId(tweet.getId())
-                .projectId(tweet.getProjectId())
-                .action(action)
-                .content(JSON.toJson(mapInfo))
-                .build());
-
-        Map<String, String> map = new HashMap<>(1 << 2);
-        map.put("content", tweet.getContent());
-        map.put("target_type", ProjectTweet.class.getSimpleName());
-        map.put("notice_id", tweet.getId().toString());
-        ActivitiesProto.SendActivitiesRequest request = ActivitiesProto.SendActivitiesRequest.newBuilder()
-                .setProjectId(project.getId())
-                .setOwnerId(userId)
-                .setTargetId(tweet.getId())
-                .setTargetType(ProjectTweet.class.getSimpleName())
-                .setContent(JSON.toJson(map))
-                .setAction(activityEnums.getAction())
-                .build();
-        activityGrpcClient.sendActivity(request);
+            Map<String, String> map = new HashMap<>(1 << 2);
+            map.put("content", tweet.getContent());
+            map.put("target_type", ProjectTweet.class.getSimpleName());
+            map.put("notice_id", tweet.getId().toString());
+            map.put("action", actionStr);
+            ActivitiesProto.SendActivitiesRequest request = ActivitiesProto.SendActivitiesRequest.newBuilder()
+                    .setProjectId(project.getId())
+                    .setOwnerId(userId)
+                    .setTargetId(tweet.getId())
+                    .setTargetType(ProjectTweet.class.getSimpleName())
+                    .setContent(JSON.toJson(map))
+                    .setAction(activityEnums.getAction())
+                    .build();
+            activityGrpcClient.sendActivity(request);
+        } catch (Exception ex) {
+            log.error("发送动态失败！ex={}", ex);
+        }
     }
 }
