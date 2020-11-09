@@ -26,6 +26,7 @@ import net.coding.lib.project.service.ProjectMemberService;
 import net.coding.lib.project.service.ProjectPreferenceService;
 import net.coding.lib.project.service.ProjectResourceLinkService;
 import net.coding.lib.project.service.download.DownloadImageService;
+import net.coding.lib.project.utils.DateUtil;
 import net.coding.lib.project.utils.ResourceUtil;
 import net.coding.lib.project.utils.TextUtil;
 
@@ -343,7 +344,6 @@ public class ProjectServiceHelper {
 
             Map<String, String> map = new HashMap<>(1 << 2);
             map.put("content", tweet.getContent());
-            map.put("target_type", ProjectTweet.class.getSimpleName());
             map.put("notice_id", tweet.getId().toString());
             map.put("action", actionStr);
             ActivitiesProto.SendActivitiesRequest request = ActivitiesProto.SendActivitiesRequest.newBuilder()
@@ -353,6 +353,7 @@ public class ProjectServiceHelper {
                     .setTargetType(ProjectTweet.class.getSimpleName())
                     .setContent(JSON.toJson(map))
                     .setAction(activityEnums.getAction())
+                    .setCreatedAt(DateUtil.getCurrentDate().getTime())
                     .build();
             activityGrpcClient.sendActivity(request);
         } catch (Exception ex) {
