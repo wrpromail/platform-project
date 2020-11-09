@@ -342,9 +342,9 @@ public class ProjectServiceHelper {
                     .content(JSON.toJson(mapInfo))
                     .build());
 
-            Map<String, String> map = new HashMap<>(1 << 2);
+            Map map = new HashMap<>(1 << 2);
             map.put("content", tweet.getContent());
-            map.put("notice_id", tweet.getId().toString());
+            map.put("notice_id", tweet.getId());
             map.put("action", actionStr);
             ActivitiesProto.SendActivitiesRequest request = ActivitiesProto.SendActivitiesRequest.newBuilder()
                     .setProjectId(project.getId())
