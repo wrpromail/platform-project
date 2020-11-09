@@ -188,7 +188,7 @@ public class ProjectResourceLinkService {
     }
 
     private String buildProjectFileLink(ProjectResource projectResource, String projectPath) {
-        FileProto.File file = fileServiceGrpcClient.getProjectFileById(projectResource.getProjectId(), projectResource.getTargetId());
+        FileProto.File file = fileServiceGrpcClient.getProjectFileByIdWithDel(projectResource.getProjectId(), projectResource.getTargetId());
         if (null == file) {
             return "#";
         }
