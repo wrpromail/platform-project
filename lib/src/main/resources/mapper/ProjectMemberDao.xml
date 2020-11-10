@@ -107,17 +107,23 @@
       <if test="projectId != null">
         AND project_id = #{projectId}
       </if>
+      <if test="deletedAt != null">
+        AND deleted_at = #{deletedAt}
+      </if>
     </where>
     ORDER BY id DESC
   </select>
 
-  <select id="findListByProjectId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+  <select id="findListByProjectId" parameterType="map" resultMap="BaseResultMap">
     SELECT
     <include refid="Base_Column_List" />
     FROM project_members
     <where>
       <if test="projectId != null">
         AND project_id = #{projectId}
+      </if>
+      <if test="deletedAt != null">
+        AND deleted_at = #{deletedAt}
       </if>
     </where>
     ORDER BY id DESC
@@ -133,6 +139,9 @@
       </if>
       <if test="userId != null">
         AND user_id = #{userId}
+      </if>
+      <if test="deletedAt != null">
+        AND deleted_at = #{deletedAt}
       </if>
     </where>
     Limit 1

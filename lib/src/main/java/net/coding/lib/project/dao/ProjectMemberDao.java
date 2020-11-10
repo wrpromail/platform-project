@@ -19,7 +19,7 @@ public interface ProjectMemberDao {
 
     List<ProjectMember> findList(Map<String, Object> parameter);
 
-    List<ProjectMember> findListByProjectId(@Param("projectId") Integer projectId);
+    List<ProjectMember> findListByProjectId(Map<String, Object> parameter);
 
     ProjectMember getByProjectIdAndUserId(Map<String, Object> parameter);
 }
