@@ -29,17 +29,22 @@ public class ProjectMemberService {
     }
 
     public List<ProjectMember> findList(Map<String, Object> parameter) {
+        parameter.put("deletedAt", "1970-01-01 00:00:00");
         return projectMemberDao.findList(parameter);
     }
 
     public List<ProjectMember> findListByProjectId(Integer projectId) {
-        return projectMemberDao.findListByProjectId(projectId);
+        Map<String, Object> parameter = new HashMap<>();
+        parameter.put("projectId", projectId);
+        parameter.put("deletedAt", "1970-01-01 00:00:00");
+        return projectMemberDao.findListByProjectId(parameter);
     }
 
     public ProjectMember getByProjectIdAndUserId(Integer projectId, Integer userId) {
         Map<String, Object> parameter = new HashMap<>();
         parameter.put("projectId", projectId);
         parameter.put("userId", userId);
+        parameter.put("deletedAt", "1970-01-01 00:00:00");
         return projectMemberDao.getByProjectIdAndUserId(parameter);
     }
 }

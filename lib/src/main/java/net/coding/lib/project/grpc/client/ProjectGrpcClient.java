@@ -57,4 +57,22 @@ public class ProjectGrpcClient extends EndpointGrpcClient<ProjectServiceGrpc.Pro
         }
         return null;
     }
+
+    /**
+     * 获取htmlUrl
+     * @param projectId
+     * @return
+     */
+    public ProjectProto.Project getProjectById(Integer projectId) {
+        try {
+            ProjectProto.GetProjectByIdRequest request = ProjectProto.GetProjectByIdRequest.newBuilder()
+                    .setProjectId(projectId)
+                    .build();
+            ProjectProto.GetProjectResponse response = newStub().getProjectById(request);
+            return response.getData();
+        } catch (Exception ex) {
+            log.error("UserGrpcClient->getHtmlUrl() projectId={}, ex={}", projectId, ex);
+        }
+        return null;
+    }
 }

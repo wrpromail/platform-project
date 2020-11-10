@@ -51,6 +51,7 @@ import javax.annotation.Resource;
 
 import lombok.extern.slf4j.Slf4j;
 import proto.notification.NotificationProto;
+import proto.platform.project.ProjectProto;
 import proto.platform.user.UserProto;
 
 import static java.util.stream.Collectors.toList;
@@ -185,8 +186,9 @@ public class ProjectServiceHelper {
             if (userIds.size() > 0) {
                 String userLink = userGrpcClient.getUserHtmlLinkById(userId);
                 String projectPath = projectGrpcClient.getProjectPath(project.getId());
+                String projectHtmlUrl = projectHtmlLink(project.getId());
                 String message = ResourceUtil.ui("notification_create_project_tweet",
-                        userLink, projectPath, this.getTweetHtmlLink(tweet, project, projectPath));
+                        userLink, projectHtmlUrl, this.getTweetHtmlLink(tweet, project, projectPath));
 
                 // 站内通知
                 asyncEventBus.post(NotificationEvent.builder()
@@ -198,6 +200,17 @@ public class ProjectServiceHelper {
                         .build());
             }
         }
+    }
+
+    public String projectHtmlLink(Integer projectId) {
+        ProjectProto.Project project = projectGrpcClient.getProjectById(projectId);
+        StringBuilder sb = new StringBuilder();
+        sb.append("<a href='");
+        sb.append(project.getHtmlUrl());
+        sb.append("' target='_blank'>");
+        sb.append(StringUtils.isNotBlank(project.getDisplayName()) ? project.getDisplayName() : project.getName());
+        sb.append("</a>");
+        return sb.toString();
     }
 
     /**
@@ -213,8 +226,9 @@ public class ProjectServiceHelper {
             if (userIds.size() > 0) {
                 String userLink = userGrpcClient.getUserHtmlLinkById(userId);
                 String projectPath = projectGrpcClient.getProjectPath(project.getId());
+                String projectHtmlUrl = projectHtmlLink(project.getId());
                 String message = ResourceUtil.ui("notification_update_project_notice",
-                        userLink, projectPath, this.getTweetHtmlLink(tweet, project, projectPath));
+                        userLink, projectHtmlUrl, this.getTweetHtmlLink(tweet, project, projectPath));
 
                 notifiactionGrpcClient.send(NotificationProto.NotificationSendRequest.newBuilder()
                         .addAllUserId(userIds)
