@@ -1,24 +1,41 @@
 package net.coding.lib.project.helper;
 
+import com.google.gson.Gson;
+
+import net.coding.e.proto.FileProto;
+import net.coding.e.proto.wiki.WikiProto;
+import net.coding.lib.project.dto.ProjectResourceDTO;
 import net.coding.lib.project.entity.ProjectResource;
+import net.coding.lib.project.entity.ResourceReference;
+import net.coding.lib.project.enums.ResourceTypeEnum;
+import net.coding.lib.project.grpc.client.FileServiceGrpcClient;
+import net.coding.lib.project.grpc.client.ProjectGrpcClient;
+import net.coding.lib.project.grpc.client.StorageGrpcClient;
+import net.coding.lib.project.grpc.client.WikiGrpcClient;
 import net.coding.lib.project.service.ProjectResourceLinkService;
 import net.coding.lib.project.service.ProjectResourceSequenceService;
 import net.coding.lib.project.service.ProjectResourceService;
-import net.coding.lib.project.service.ProjectService;
+import net.coding.lib.project.service.ResourceReferenceCommentRelationService;
 import net.coding.lib.project.service.ResourceReferenceService;
 import net.coding.lib.project.utils.DateUtil;
 
+import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
 import lombok.extern.slf4j.Slf4j;
+import proto.platform.project.ProjectProto;
 
 @Slf4j
 @Service
@@ -35,6 +52,24 @@ public class ProjectResourceServiceHelper {
 
     @Resource
     private ProjectResourceLinkService projectResourceLinkService;
+
+    @Autowired
+    private WikiGrpcClient wikiGrpcClient;
+
+    @Autowired
+    private ResourceReferenceCommentRelationService resourceReferenceCommentRelationService;
+
+    @Autowired
+    private ProjectGrpcClient projectGrpcClient;
+
+    @Autowired
+    private FileServiceGrpcClient fileServiceGrpcClient;
+
+    @Autowired
+    private StorageGrpcClient storageGrpcClient;
+
+    @Value("${coding-net-public-image:coding-static-bucket-public}")
+    private String bucket;
 
     @Transactional(rollbackFor = Exception.class)
     public ProjectResource addProjectResource(ProjectResource record, String projectPath) {
@@ -82,5 +117,61 @@ public class ProjectResourceServiceHelper {
     @Transactional(rollbackFor = Exception.class)
     public Integer generateCodes(Integer projectId, Integer codeAmount) {
         return projectResourceSequenceService.generateProjectResourceCodes(projectId, codeAmount);
+    }
+
+    public List<ProjectResourceDTO> getResourceReferenceMutually(Integer selfProjectId, Integer selfIid, Integer userId) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("selfProjectId", selfProjectId);
+        map.put("selfIid", selfIid);
+        map.put("userId", userId);
+        Gson gson = new Gson();
+        List<ResourceReference> resourceReferenceList = resourceReferenceService.getResourceReferenceMutually(map)
+                .stream()
+                .filter(record -> {
+                    if(ResourceTypeEnum.Wiki.getType().equals(record.getTargetType())) {
+                        WikiProto.GetWikiByProjectIdAndIidData wiki = wikiGrpcClient.getWikiByProjectIdAndIidWithoutRecycleBin(record.getTargetProjectId(), record.getTargetIid());
+                        if(wiki == null) {
+                            return false;
+                        }
+                        return wikiGrpcClient.wikiCanRead(userId, wiki.getProjectId(), wiki.getId());
+                    } else {
+                        return true;
+                    }
+                })
+                .collect(Collectors.toList());
+        List<ProjectResourceDTO> projectResourceDTOList = new ArrayList<>();
+        resourceReferenceList.forEach(resourceReference -> {
+            if(Objects.nonNull(resourceReference)) {
+                Integer projectId = resourceReference.getTargetProjectId();
+                Integer code = resourceReference.getTargetIid();
+                ProjectResource projectResource = projectResourceService.getProjectResourceWithDeleted(projectId, code);
+                if(Objects.nonNull(projectResource)) {
+                    ProjectProto.Project project = projectGrpcClient.getProjectById(projectResource.getProjectId());
+                    if(Objects.nonNull(project)) {
+                        String link = projectResourceLinkService.getResourceLink(projectResource, project.getProjectPath());
+                        projectResource.setResourceUrl(link);
+                        ProjectResourceDTO projectResourceDTO =new ProjectResourceDTO(projectResource,
+                                project.getName(), project.getDisplayName());
+
+                        if ("ProjectFile".equals(projectResource.getTargetType())) {
+                            FileProto.File file = fileServiceGrpcClient.getProjectFileByIdWithDel(projectId, projectResource.getTargetId());
+                            if(file.getType() == 2 && Objects.nonNull(file.getStorageType())) {
+                                String imagePreviewUrl = storageGrpcClient.getImagePreviewUrl(file.getStorageKey(),
+                                        bucket, 1,150, 150, file.getStorageType());
+                                projectResourceDTO.setImg(imagePreviewUrl);
+                            }
+                        }
+
+                        boolean hasCommentRelated = false;
+                        if(resourceReferenceCommentRelationService.countComment(resourceReference.getId()) > 0) {
+                            hasCommentRelated = true;
+                        }
+                        projectResourceDTO.setHasCommentRelated(hasCommentRelated);
+                        projectResourceDTOList.add(projectResourceDTO);
+                    }
+                }
+            }
+        });
+        return projectResourceDTOList;
     }
 }

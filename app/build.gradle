@@ -4,15 +4,11 @@ apply plugin: 'net.nemerosa.versioning'
 
 dependencies {
     compile project(':lib')
-    compile project(':client')
 
     //common
     compile "net.coding.common:rpc-server:20200922.1"
     compile "net.coding.common:server:${commonVersion}"
     compile "net.coding.common:rpc-client:20200922.1"
-
-    //proto
-    compile "net.coding.proto:project:20201030.2"
 
     compile "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
 

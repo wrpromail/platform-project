@@ -59,4 +59,27 @@ public class StorageGrpcClient extends EndpointGrpcClient<StorageServiceGrpc.Sto
         }
         return response.getUrl();
     }
+
+    public String getImagePreviewUrl(String key, String bucket, Integer type, Integer width, Integer height, String storageType) {
+        try {
+            StorageProto.GetImagePreviewUrlRequest request = StorageProto.GetImagePreviewUrlRequest.newBuilder()
+                    .setKey(key)
+                    .setBucket(StringValue.newBuilder().setValue(bucket).build())
+                    .setType(type)
+                    .setStorageType(StringValue.newBuilder().setValue(storageType).build())
+                    .setWidth(width)
+                    .setHeight(height)
+                    .build();
+            StorageProto.GetImagePreviewUrlResponse response = newStub()
+                    .getImagePreviewUrl(request);
+            CodeProto.Code code = response.getCode();
+            if (code.getNumber() == 4 || code.getNumber() == 3) {
+                throw new Exception(response.getMessage());
+            }
+            return response.getUrl();
+        } catch (Exception ex) {
+            log.error("call getImagePreviewUrl key={}, ex={}", key, ex);
+        }
+        return "";
+    }
 }

@@ -18,7 +18,6 @@ dependencies {
     }
 
     compile 'net.coding.proto:storage:20201027.1'
-    compile "net.coding.proto:project:20201030.2"
 
     compile "net.coding.proto:issue:20201102.2"
 

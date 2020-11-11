@@ -5,16 +5,17 @@ import com.github.pagehelper.PageInfo;
 import net.coding.app.project.metric.MetricsProvider;
 import net.coding.app.project.utils.GrpcUtil;
 import net.coding.app.project.utils.RedissonLockUtil;
+import net.coding.lib.project.dto.ProjectResourceDTO;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectResource;
 import net.coding.lib.project.entity.ProjectResourceSequence;
-import net.coding.lib.project.grpc.client.CodingProjectResourceGrpcClient;
 import net.coding.lib.project.grpc.client.ProjectGrpcClient;
 import net.coding.lib.project.helper.ProjectResourceServiceHelper;
 import net.coding.lib.project.service.ProjectResourceLinkService;
 import net.coding.lib.project.service.ProjectResourceSequenceService;
 import net.coding.lib.project.service.ProjectResourceService;
 import net.coding.lib.project.service.ProjectService;
+import net.coding.lib.project.service.ResourceReferenceService;
 import net.coding.lib.project.utils.DateUtil;
 
 import org.apache.commons.lang3.StringUtils;
@@ -56,9 +57,6 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
 
     @Autowired
     private RedissonLockUtil redissonLockUtil;
-
-    @Resource
-    private CodingProjectResourceGrpcClient codingProjectResourceGrpcClient;
 
     private final String module = "platform-project";
 
@@ -559,7 +557,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 return;
             }
             List<ProjectResource> projectResourceList = projectResourceService.batchListByProjectAndTypeAndTargets(request.getProjectId(), request.getTargetIdList(), request.getTargetType());
-            if(CollectionUtils.isEmpty(projectResourceList)) {
+            if(!CollectionUtils.isEmpty(projectResourceList)) {
                 log.info("batchListByProjectAndTypeAndTargets() projectResourceList={}", projectResourceList.toString());
                 String projectPath = projectGrpcClient.getProjectPath(request.getProjectId());
                 projectResourceList.forEach(projectResource -> {
@@ -591,7 +589,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 return;
             }
             List<ProjectResource> projectResourceList = projectResourceService.batchListByTypeAndTargets(request.getTargetType(), request.getTargetIdList());
-            if(CollectionUtils.isEmpty(projectResourceList)) {
+            if(!CollectionUtils.isEmpty(projectResourceList)) {
                 log.info("batchListByTypeAndTargets() projectResourceList={}", projectResourceList.toString());
                 projectResourceList.forEach(projectResource -> {
                     String projectPath = projectGrpcClient.getProjectPath(projectResource.getProjectId());
@@ -634,6 +632,32 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
             log.error("getProjectResourceWithDeleted() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
             MetricsProvider.requestFailedTotal.labels(module, service, "getProjectResourceWithDeleted").inc();
             GrpcUtil.projectResourceResponse(CodeProto.Code.INTERNAL_ERROR, "getProjectResourceWithDeleted service error", null, response);
+        }
+    }
+
+    @Override
+    public void findProjectResourceMutuallyList(ProjectResourceProto.FindProjectResourceMutuallyRequest request,
+                                                StreamObserver<ProjectResourceProto.FindProjectResourceMutuallyResponse> response) {
+        log.info("findProjectResourceMutuallyList() grpc service receive: {}", request != null ? request.toString() : "");
+        MetricsProvider.requestTotal.labels(module, service, "findProjectResourceMutuallyList").inc();
+        try {
+            if (request.getProjectId() <= 0 || request.getCode() <= 0) {
+                GrpcUtil.FindProjectResourceMutuallyResponse(CodeProto.Code.INVALID_PARAMETER,
+                        "findProjectResourceMutuallyList parameters error", null, response);
+                return;
+            }
+            List<ProjectResourceDTO> result = projectResourceServiceHelper.getResourceReferenceMutually(request.getProjectId(), request.getCode(), request.getUserId());
+            if(!CollectionUtils.isEmpty(result)) {
+                log.info("findProjectResourceMutuallyList() result={}", result.toString());
+                GrpcUtil.FindProjectResourceMutuallyResponse(CodeProto.Code.SUCCESS, "findProjectResourceMutuallyList success", result, response);
+            } else {
+                GrpcUtil.FindProjectResourceMutuallyResponse(CodeProto.Code.NOT_FOUND, "findProjectResourceMutuallyList not found", null, response);
+            }
+        } catch (Exception ex) {
+            log.error("getProjectResourceWithDeleted() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
+            MetricsProvider.requestFailedTotal.labels(module, service, "findProjectResourceMutuallyList").inc();
+            GrpcUtil.FindProjectResourceMutuallyResponse(CodeProto.Code.INVALID_PARAMETER,
+                    "findProjectResourceMutuallyList service error",null, response);
         }
     }
 

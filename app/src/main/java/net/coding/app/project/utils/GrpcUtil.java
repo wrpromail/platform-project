@@ -1,5 +1,6 @@
 package net.coding.app.project.utils;
 
+import net.coding.lib.project.dto.ProjectResourceDTO;
 import net.coding.lib.project.entity.ProjectResource;
 
 import java.util.ArrayList;
@@ -149,6 +150,43 @@ public class GrpcUtil {
             response.onCompleted();
         } else {
             ProjectResourceProto.GetResourceLinkResponse build = ProjectResourceProto.GetResourceLinkResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        }
+    }
+
+    public static void FindProjectResourceMutuallyResponse(CodeProto.Code code, String message,
+                                                   List<ProjectResourceDTO> projectResourceList,
+                                                   StreamObserver<ProjectResourceProto.FindProjectResourceMutuallyResponse> response) {
+        if(CodeProto.Code.SUCCESS.equals(code)) {
+            List<ProjectResourceProto.ProjectResourceDto> list = new ArrayList<>();
+            projectResourceList.forEach(record -> {
+                ProjectResourceProto.ProjectResourceDto dto = ProjectResourceProto.ProjectResourceDto.newBuilder()
+                        .setTargetId(record.getTargetId())
+                        .setTargetProjectName(record.getTargetProjectName())
+                        .setTargetProjectDisplayName(record.getTargetProjectDisplayName())
+                        .setCode(record.getCode())
+                        .setTargetType(record.getTargetType())
+                        .setTargetId(record.getTargetId())
+                        .setTitle(record.getTitle())
+                        .setLink(record.getLink())
+                        .setStatus(record.getStatus())
+                        .setHasCommentRelated(record.getHasCommentRelated())
+                        .build();
+                list.add(dto);
+            });
+            ProjectResourceProto.FindProjectResourceMutuallyResponse build = ProjectResourceProto.FindProjectResourceMutuallyResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .addAllProjectResourceDto(list)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        } else {
+            ProjectResourceProto.FindProjectResourceMutuallyResponse build = ProjectResourceProto.FindProjectResourceMutuallyResponse.newBuilder()
                     .setCode(code)
                     .setMessage(message)
                     .build();
