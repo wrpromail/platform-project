@@ -29,7 +29,7 @@ subprojects {
         grpcVersion = '1.22.0'
         quartzSchedulerVersion = '2.2.2'
 
-        commonVersion = '20200928.1'
+        commonVersion = '20201027.3'
 
         baseDockerImage = System.getenv('BASE_IMAGE') != null ? System.getenv('BASE_IMAGE') : 'codingcorp-docker.pkg.coding.net/registry/release/ubuntu'
         defaultJavaOption = '-server -Djava.awt.headless=true -XX:-OmitStackTraceInFastThrow'
@@ -82,7 +82,7 @@ subprojects {
         compile 'net.coding.common:xxl-job-core:20201012.1'
         compile 'io.sentry:sentry-logback:3.0.0'
 
-        compile 'net.coding.common:base:20200609.3'
+        compile "net.coding.common:base:${commonVersion}"
         compile 'org.jsoup:jsoup:1.11.3'
 
         compile "net.coding.common:util:${commonVersion}"
@@ -90,7 +90,11 @@ subprojects {
         compile "net.coding.common:vendor:${commonVersion}"
         compile "net.coding.common:eventbus:${commonVersion}"
         compile "net.coding.common:i18n:${commonVersion}"
-        compile "net.coding.common:rabbitmq:20201027.1"
+        compile "net.coding.common:rabbitmq:${commonVersion}"
+
+        //proto
+        compile "net.coding.proto:project:resource_test01"
+        compile 'net.coding.proto:wiki:48577f24df724742a812cda3f78c3fdde31b82f2'
     }
 
     // Set build directory to a common location

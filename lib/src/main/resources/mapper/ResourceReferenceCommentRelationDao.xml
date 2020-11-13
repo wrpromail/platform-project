@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.coding.lib.project.dao.ResourceReferenceCommentRelationDao">
+  <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ResourceReferenceCommentRelation">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="project_id" jdbcType="INTEGER" property="projectId" />
+    <result column="resource_reference_id" jdbcType="INTEGER" property="resourceReferenceId" />
+    <result column="resource_type" jdbcType="VARCHAR" property="resourceType" />
+    <result column="cited_source" jdbcType="VARCHAR" property="citedSource" />
+    <result column="comment_id" jdbcType="INTEGER" property="commentId" />
+    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
+    <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
+    <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, project_id, resource_reference_id, resource_type, cited_source, comment_id, created_at, 
+    updated_at, deleted_at
+  </sql>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="net.coding.lib.project.entity.ResourceReferenceCommentRelation" useGeneratedKeys="true">
+    insert into resource_reference_comment_relations
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="projectId != null">
+        project_id,
+      </if>
+      <if test="resourceReferenceId != null">
+        resource_reference_id,
+      </if>
+      <if test="resourceType != null">
+        resource_type,
+      </if>
+      <if test="citedSource != null">
+        cited_source,
+      </if>
+      <if test="commentId != null">
+        comment_id,
+      </if>
+      <if test="createdAt != null">
+        created_at,
+      </if>
+      <if test="updatedAt != null">
+        updated_at,
+      </if>
+      <if test="deletedAt != null">
+        deleted_at,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="projectId != null">
+        #{projectId,jdbcType=INTEGER},
+      </if>
+      <if test="resourceReferenceId != null">
+        #{resourceReferenceId,jdbcType=INTEGER},
+      </if>
+      <if test="resourceType != null">
+        #{resourceType,jdbcType=VARCHAR},
+      </if>
+      <if test="citedSource != null">
+        #{citedSource,jdbcType=VARCHAR},
+      </if>
+      <if test="commentId != null">
+        #{commentId,jdbcType=INTEGER},
+      </if>
+      <if test="createdAt != null">
+        #{createdAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedAt != null">
+        #{updatedAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="deletedAt != null">
+        #{deletedAt,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  
+  <select id="countComment" parameterType="map" resultType="Integer">
+    SELECT
+     COUNT(id)
+    FROM
+      resource_reference_comment_relations
+    <where>
+      <if test="resourceReferenceId != null">
+        and resource_reference_id = #{resourceReferenceId}
+      </if>
+      <if test="deletedAt != null">
+        and deleted_at = #{deletedAt}
+      </if>
+    </where>
+  </select>
+</mapper>

@@ -14,4 +14,8 @@ public interface ResourceReferenceDao {
     List<ResourceReference> findList(Map<String, Object> parameter);
 
     int batchDelete(Map<String, Object> parameter);
+
+    List<ResourceReference> getResourceReferenceMutually(Map<String, Object> parameter);
+
+    ResourceReference getResourceReference(Map<String, Object> parameter);
 }

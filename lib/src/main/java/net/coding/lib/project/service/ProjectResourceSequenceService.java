@@ -17,9 +17,6 @@ public class ProjectResourceSequenceService {
     @Resource
     private ProjectResourceSequenceDao projectResourceSequenceDao;
 
-    @Resource
-    private SqlSessionTemplate sqlSessionTemplate;
-
     public ProjectResourceSequence getByProjectId(Integer projectId) {
         return projectResourceSequenceDao.getByProjectId(projectId);
     }

@@ -2,6 +2,5 @@ rootProject.name = 'platform-project'
 
 include 'app'
 include 'lib'
-include 'client'
 include 'common'
 

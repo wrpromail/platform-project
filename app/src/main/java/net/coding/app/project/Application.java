@@ -20,7 +20,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
         BaseConfig.class,
         net.coding.common.rpc.server.Config.class,
         net.coding.lib.project.Config.class,
-        net.coding.client.project.Config.class,
         net.coding.common.eventbus.Config.class,
         net.coding.common.rabbitmq.Config.class,
         net.coding.grpc.client.activity.Config.class,

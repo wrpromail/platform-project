@@ -23,4 +23,13 @@ public class ResourceReferenceService {
     public int batchDelete(Map<String, Object> parameters) {
         return resourceReferenceDao.batchDelete(parameters);
     }
+
+    public List<ResourceReference> getResourceReferenceMutually(Map<String, Object> parameters) {
+        return resourceReferenceDao.getResourceReferenceMutually(parameters);
+    }
+
+    public ResourceReference getResourceReference(Map<String, Object> parameters) {
+        parameters.put("deletedAt", "1970-01-01 00:00:00");
+        return resourceReferenceDao.getResourceReference(parameters);
+    }
 }

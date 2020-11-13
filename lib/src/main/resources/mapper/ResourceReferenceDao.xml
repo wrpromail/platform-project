@@ -44,6 +44,9 @@
           #{item}
         </foreach>
       </if>
+      <if test="deletedAt != null">
+        AND deleted_at = #{deletedAt}
+      </if>
     </where>
   </select>
 
@@ -75,4 +78,61 @@
       </if>
     </where>
   </update>
+
+  <select id="getResourceReferenceMutually" parameterType="map" resultMap="BaseResultMap">
+    SELECT
+      DISTINCT self_id, self_project_id, self_iid, self_type, target_id, target_project_id, target_iid, target_type
+    FROM
+      resource_references
+    WHERE
+      self_iid = #{selfIid}
+      AND self_project_id = #{selfProjectId}
+      AND deleted_at = '1970-01-01 00:00:00'
+    UNION
+    SELECT
+      target_id AS self_id,
+      target_project_id AS self_project_id,
+      target_iid AS self_iid,
+      target_type AS self_type,
+      self_id AS target_id,
+      self_project_id AS target_project_id,
+      self_iid AS target_iid,
+      self_type AS target_type
+    FROM
+      resource_references
+    WHERE
+      target_iid = #{selfIid}
+      AND target_project_id = #{selfProjectId}
+      AND deleted_at = '1970-01-01 00:00:00'
+    ORDER BY self_iid DESC
+  </select>
+
+  <select id="getResourceReference" parameterType="map" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM resource_references
+    <where>
+      <if test="targetType != null">
+        AND target_type = #{targetType}
+      </if>
+      <if test="targetId != null">
+        AND target_id = #{targetId}
+      </if>
+      <if test="targetIid != null">
+        AND target_iid = #{targetIid}
+      </if>
+      <if test="selfType != null">
+        AND self_type = #{selfType}
+      </if>
+      <if test="selfId != null">
+        AND self_id = #{selfId}
+      </if>
+      <if test="selfIid != null">
+        AND self_iid = #{selfIid}
+      </if>
+      <if test="deletedAt != null">
+        AND deleted_at = #{deletedAt}
+      </if>
+    </where>
+  </select>
 </mapper>
