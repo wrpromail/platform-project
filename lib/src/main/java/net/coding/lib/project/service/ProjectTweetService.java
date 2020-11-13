@@ -65,12 +65,10 @@ public class ProjectTweetService {
         record.setOwnerId(userId);
         record.setContent(content);
         record.setRaw(raw);
+        record.setSlateRaw(StringUtils.defaultIfEmpty(slateRaw, ""));
         record.setCreatedAt(DateUtil.getCurrentDate());
         record.setUpdatedAt(DateUtil.getCurrentDate());
         record.setComments(0);
-        if (StringUtils.isNoneEmpty(slateRaw)) {
-            record.setSlateRaw(slateRaw);
-        }
         projectTweetDao.insert(record);
         if(record.getId() <= 0) {
             return null;
