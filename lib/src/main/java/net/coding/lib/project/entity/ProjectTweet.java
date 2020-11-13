@@ -29,6 +29,12 @@ public class ProjectTweet implements Serializable {
      */
     private String raw;
 
+
+    /**
+     * 新版markdown 源文本
+     */
+    private String slateRaw;
+
     private Integer comments;
 
     private Date createdAt;

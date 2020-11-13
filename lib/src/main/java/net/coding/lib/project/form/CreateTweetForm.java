@@ -1,5 +1,7 @@
 package net.coding.lib.project.form;
 
+import lombok.Data;
+import net.coding.common.base.form.BaseForm;
 import net.coding.common.util.TextUtils;
 
 
@@ -14,9 +16,11 @@ import static net.coding.common.base.validator.ValidationConstants.TWEET_LIMIT_C
 import static net.coding.common.base.validator.ValidationConstants.TWEET_LIMIT_CODE_LENGTH;
 import static net.coding.common.base.validator.ValidationConstants.TWEET_LIMIT_IMAGES;
 
+@Data
 public class CreateTweetForm extends BaseForm {
 
     private String content;
+    private String slateRaw;
 
     @Override
     public boolean supports(Class<?> clazz) {

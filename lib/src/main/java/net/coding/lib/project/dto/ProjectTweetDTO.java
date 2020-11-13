@@ -33,6 +33,7 @@ public class ProjectTweetDTO {
     private String path;
     @QiniuCDNReplace
     private String raw;
+    private String slateRaw;
     private boolean editable;
 
 
@@ -49,6 +50,7 @@ public class ProjectTweetDTO {
         this.comments = tweet.getComments();
         this.comment_list = new ArrayList<>();
         this.raw = withRaw ? tweet.getRaw() : null;
+        this.slateRaw = tweet.getSlateRaw();
         this.editable = StringUtils.isNotBlank(tweet.getRaw());
         if(Objects.isNull(user)) {
             this.path = StringUtils.EMPTY;
