@@ -25,7 +25,6 @@ import net.coding.lib.project.service.ProfanityWordService;
 import net.coding.lib.project.service.ProjectMemberService;
 import net.coding.lib.project.service.ProjectPreferenceService;
 import net.coding.lib.project.service.ProjectResourceLinkService;
-import net.coding.lib.project.service.download.DownloadImageService;
 import net.coding.lib.project.utils.DateUtil;
 import net.coding.lib.project.utils.ResourceUtil;
 import net.coding.lib.project.utils.TextUtil;

@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package proto;
+
+import "code.proto";
+import "pager.proto";
+
+option java_generic_services = true;
+option java_package = "net.coding.proto.platform.project";
+option java_outer_classname = "ProjectSettingProto";
+
+message ProjectSetting {
+  int32 id = 1;
+  string projectId = 2;
+  string code = 3;
+  string value = 4;
+  string description = 5;
+}
+
+message GetSettingByIdRequest {
+  int32 id = 1;
+}
+
+message GetSettingByCodeRequest {
+  int32 projectId = 1;
+  string code = 2;
+}
+
+message GetSettingResponse {
+  int32 code = 1;
+  string message = 2;
+  ProjectSetting projectSetting = 3;
+}
+
+message FindSettingByCodesRequest {
+  int32 projectId = 1;
+  repeated string codes = 2;
+}
+
+message FindSettingListRequest {
+  int32 projectId = 1;
+}
+
+message FindSettingByProjectIdsAndCodeRequest {
+  repeated int32 project_id = 1;
+  string code = 2;
+}
+
+message FindSettingResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated ProjectSetting projectSetting = 3;
+}
+
+message AddSettingRequest {
+  int32 projectId = 1;
+  string code = 2;
+  string value = 3;
+  string description = 4;
+  int32 userId = 5;
+}
+
+message UpdateSettingRequest {
+  int32 id = 1;
+  string code = 2;
+  string value = 3;
+  string description = 4;
+  int32 userId = 5;
+}
+
+message BatchSettingUpdateRequest {
+  repeated UpdateSettingRequest updateRequest = 1;
+}
+
+message DeleteSettingRequest {
+  int32 id = 1;
+  int32 userId = 2;
+}
+
+message ProjectSettingResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  ProjectSetting projectSetting = 3;
+}
+
+message CommonSettingResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+}
+
+service ProjectSettingService {
+  rpc GetById (GetSettingByIdRequest) returns (GetSettingResponse);
+  rpc GetByCode (GetSettingByCodeRequest) returns (GetSettingResponse);
+  rpc FindList (FindSettingListRequest) returns (FindSettingResponse);
+  rpc FindByCodesList (FindSettingByCodesRequest) returns (FindSettingResponse);
+  rpc FindByProjectIdsAndCodeList (FindSettingByProjectIdsAndCodeRequest) returns (FindSettingResponse);
+  rpc Add (AddSettingRequest) returns (ProjectSettingResponse);
+  rpc Update (UpdateSettingRequest) returns (ProjectSettingResponse);
+  rpc BatchUpdate (BatchSettingUpdateRequest) returns (CommonSettingResponse);
+  rpc Delete (DeleteSettingRequest) returns (CommonSettingResponse);
+}

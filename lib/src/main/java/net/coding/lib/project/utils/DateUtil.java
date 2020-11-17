@@ -1,7 +1,5 @@
 package net.coding.lib.project.utils;
 
-import net.coding.lib.project.entity.ProjectMember;
-
 import java.sql.Timestamp;
 import java.text.MessageFormat;
 import java.time.Instant;
@@ -13,13 +11,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class DateUtil {
     //数据库格式的日期
@@ -295,8 +288,17 @@ public class DateUtil {
         return new Timestamp(date.getTime());
     }
 
+    public static String dateToStr(Date date) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(SQL_TIME);
+        Instant instant = date.toInstant();
+        ZoneId zoneId = ZoneId.systemDefault();
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, zoneId);
+        return formatter.format(localDateTime);
+    }
+
     public static void main(String[] args) {
-        String messageFormat ="lexical error at position {0}, encountered {1}, expected {2}";
-        System.out.println(MessageFormat.format(messageFormat, new Date(), 100, 456));
+//        String messageFormat ="lexical error at position {0}, encountered {1}, expected {2}";
+//        System.out.println(MessageFormat.format(messageFormat, new Date(), 100, 456));
+//        System.out.println(dateToStr(new Date()));
     }
 }

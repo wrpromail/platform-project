@@ -1,0 +1,274 @@
+syntax = "proto3";
+
+package proto;
+
+import "code.proto";
+import "pager.proto";
+
+option java_generic_services = true;
+option java_package = "net.coding.proto.platform.project";
+option java_outer_classname = "ResourceReferenceProto";
+
+message ResourceReference {
+  int32 selfId = 1;
+  int32 selfProjectId = 2;
+  int32 selfIid = 3;
+  string selfType = 4;
+  int32 targetId = 5;
+  int32 targetProjectId = 6;
+  int32 targetIid = 7;
+  string targetType = 8;
+  int32 id = 9;
+  int64 createAt = 10;
+  int64 updateAt = 11;
+  string deletedAt = 12;
+}
+
+message SimpleAddResourceReferenceRequest {
+  int32 projectId = 1;
+  int32 selfIid = 2;
+  int32 targetProjectId = 3;
+  int32 targetIid = 4;
+  int32 userId = 5;
+}
+
+message AddResourceReferenceRequest {
+  int32 selfId = 1;
+  int32 selfProjectId = 2;
+  int32 selfIid = 3;
+  string selfType = 4;
+  int32 targetId = 5;
+  int32 targetProjectId = 6;
+  int32 targetIid = 7;
+  string targetType = 8;
+  int32 userId = 9;
+}
+
+message BatchAddResourceReferenceRequest {
+  repeated AddResourceReferenceRequest addResourceReferenceRequest = 1;
+}
+
+message AddResourceReferenceResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  ResourceReference resourceReference = 3;
+}
+
+message UpdateResourceReferenceRequest {
+  int32 selfId = 1;
+  int32 selfProjectId = 2;
+  int32 selfIid = 3;
+  string selfType = 4;
+  int32 targetId = 5;
+  int32 targetProjectId = 6;
+  int32 targetIid = 7;
+  string targetType = 8;
+  int32 id = 9;
+}
+
+message UpdateResourceReferenceResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  ResourceReference resourceReference = 3;
+}
+
+message DeleteResourceReferenceByIdsRequest {
+  repeated int32 id = 1;
+}
+
+message DeleteResourceReferenceByIdRequest {
+  int32 id = 1;
+}
+
+message ResourceReferenceCommonResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+}
+
+message CountByTargetRequest {
+  int32 targetProjectId = 1;
+  int32 targetIid = 2;
+}
+
+message CountBySelfWithTargetDeletedRequest {
+  int32 projectId = 1;
+  int32 code = 2;
+}
+
+message CountResourceReferenceResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  int32 counts = 3;
+}
+
+message FindListByTargetTypeRequest {
+  string targetType = 1;
+  int32 targetId = 2;
+}
+
+message FindListByTargetProjectIdRequest {
+  int32 targetProjectId = 1;
+  int32 targetIid = 2;
+  int32 userId = 3;
+  bool isFilter = 4;
+}
+
+message FindResourceReferenceListResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated ResourceReference resourceReference = 3;
+}
+
+message FindListBySelfTypeRequest {
+  string selfType = 1;
+  int32 selfId = 2;
+}
+
+message FindListBySelfProjectIdRequest {
+  int32 selfProjectId = 1;
+  int32 selfIid = 2;
+}
+
+message FindReferMutuallyListRequest {
+  int32 selfProjectId = 1;
+  int32 selfIid = 2;
+  int32 userId = 3;
+  bool isFilter = 4;
+}
+
+message FindMutuallyListRequest {
+  int32 selfProjectId = 1;
+  int32 selfCode = 2;
+  int32 targetProjectId = 3;
+  int32 targetCode = 4;
+}
+
+message FindBySelfWithDescriptionCitedRelationRequest {
+  string selfType = 1;
+  int32 selfId = 2;
+}
+
+message FindBySelfWithoutDescriptionCitedRelationRequest {
+  string selfType = 1;
+  int32 selfId = 2;
+}
+
+message FindIdsMutuallyRequest {
+  int32 projectId = 1;
+  int32 code = 2;
+}
+
+message FindIdsMutuallyResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated int32 id = 3;
+}
+
+message FindBySelfWithTargetDeletedRequest {
+  int32 projectId = 1;
+  int32 code = 2;
+  int32 userId = 3;
+  bool isFilter = 4;
+}
+
+message FindByProjectIdWithDeletedRequest {
+  int32 projectId = 1;
+}
+
+message FindByProjectIdRequest {
+  int32 projectId = 1;
+}
+
+message GetByProjectIdAndCodeRequest {
+  int32 selfProjectId = 1;
+  int32 selfCode = 2;
+  int32 targetProjectId = 3;
+  int32 targetCode = 4;
+}
+
+message GetByTypeAndIdRequest {
+  string selfType = 1;
+  int32 selfId = 2;
+  string targetType = 3;
+  int32 targetId = 4;
+}
+
+message GetOptionalRequest {
+  int32 selfProjectId = 1;
+  string selfType = 2;
+  int32 selfId = 3;
+  string targetType = 4;
+}
+
+message GetByIdRequest {
+  int32 id = 1;
+  bool withDeleted = 2;
+}
+
+message FindWithDeletedByIdsRequest {
+  repeated int32 id = 1;
+}
+
+message ResourceReferenceResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  ResourceReference resourceReference = 3;
+}
+
+message FindWithDeletedByIdsResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated ResourceReference resourceReference = 3;
+}
+
+message FindlistBySelfAndTargetRequest {
+  int32 projectId = 1;
+  int32 selfAndTargetId = 2;
+}
+
+message FindListByProjectIdWithDeletedRequest {
+  int32 projectId = 1;
+}
+
+message ExistsResourceReferenceRequest {
+  int32 selfProjectId = 1;
+  int32 selfIid = 2;
+  int32 targetProjectId = 3;
+  int32 targetIid = 4;
+}
+
+message ExistsResourceReferenceResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  bool existsFlag = 3;
+}
+
+service ResourceReferenceService {
+  rpc SimpleAddResourceReference (SimpleAddResourceReferenceRequest) returns (ResourceReferenceResponse);
+  rpc AddResourceReference (AddResourceReferenceRequest) returns (ResourceReferenceResponse);
+  rpc BatchAddResourceReference(BatchAddResourceReferenceRequest) returns (ResourceReferenceCommonResponse);
+  rpc UpdateResourceReference (UpdateResourceReferenceRequest) returns (ResourceReferenceResponse);
+  rpc DeleteResourceReferenceByIds (DeleteResourceReferenceByIdsRequest) returns (ResourceReferenceCommonResponse);
+  rpc DeleteResourceReferenceById (DeleteResourceReferenceByIdRequest) returns (ResourceReferenceCommonResponse);
+  rpc CountByTarget(CountByTargetRequest) returns (CountResourceReferenceResponse);
+  rpc CountBySelfWithTargetDeleted(CountBySelfWithTargetDeletedRequest) returns (CountResourceReferenceResponse);
+  rpc FindListByTargetType(FindListByTargetTypeRequest) returns (FindResourceReferenceListResponse);
+  rpc FindListByTargetProjectId(FindListByTargetProjectIdRequest) returns (FindResourceReferenceListResponse);
+  rpc FindListBySelfType(FindListBySelfTypeRequest) returns (FindResourceReferenceListResponse);
+  rpc FindListBySelfProjectId(FindListBySelfProjectIdRequest) returns (FindResourceReferenceListResponse);
+  rpc FindListBySelfAndTarget (FindlistBySelfAndTargetRequest) returns (FindResourceReferenceListResponse);
+  rpc FindReferMutuallyList (FindReferMutuallyListRequest) returns (FindResourceReferenceListResponse);
+  rpc FindMutuallyList (FindMutuallyListRequest) returns (FindResourceReferenceListResponse);
+  rpc FindIdsMutually (FindIdsMutuallyRequest) returns (FindIdsMutuallyResponse);
+  rpc FindBySelfWithDescriptionCitedRelation (FindBySelfWithDescriptionCitedRelationRequest) returns (FindResourceReferenceListResponse);
+  rpc FindBySelfWithoutDescriptionCitedRelation (FindBySelfWithoutDescriptionCitedRelationRequest) returns (FindResourceReferenceListResponse);
+  rpc FindBySelfWithTargetDeleted (FindBySelfWithTargetDeletedRequest) returns (FindResourceReferenceListResponse);
+  rpc FindByProjectIdWithDeleted (FindByProjectIdWithDeletedRequest) returns (FindResourceReferenceListResponse);
+  rpc FindByProjectId (FindByProjectIdRequest) returns (FindResourceReferenceListResponse);
+  rpc GetByProjectIdAndCode (GetByProjectIdAndCodeRequest) returns (ResourceReferenceResponse);
+  rpc GetByTypeAndId (GetByTypeAndIdRequest) returns (ResourceReferenceResponse);
+  rpc GetOptional (GetOptionalRequest) returns (ResourceReferenceResponse);
+  rpc GetById (GetByIdRequest) returns (ResourceReferenceResponse);
+  rpc FindWithDeletedByIds (FindWithDeletedByIdsRequest) returns (FindResourceReferenceListResponse);
+  rpc ExistsResourceReference (ExistsResourceReferenceRequest) returns (ExistsResourceReferenceResponse);
+}
