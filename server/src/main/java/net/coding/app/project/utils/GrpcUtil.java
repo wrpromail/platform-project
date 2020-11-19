@@ -1,7 +1,11 @@
 package net.coding.app.project.utils;
 
 import net.coding.lib.project.dto.ProjectResourceDTO;
+import net.coding.lib.project.entity.ExternalLink;
 import net.coding.lib.project.entity.ProjectResource;
+import net.coding.lib.project.entity.ResourceReference;
+import net.coding.lib.project.utils.DateUtil;
+import net.coding.proto.platform.project.ResourceReferenceProto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -187,6 +191,182 @@ public class GrpcUtil {
             response.onCompleted();
         } else {
             ProjectResourceProto.FindProjectResourceMutuallyResponse build = ProjectResourceProto.FindProjectResourceMutuallyResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        }
+    }
+
+    public static void resourceReferenceResponse(CodeProto.Code code, String message, ResourceReferenceProto.ResourceReference resourceReference,
+                                                 StreamObserver<ResourceReferenceProto.ResourceReferenceResponse> response) {
+        if(CodeProto.Code.SUCCESS.equals(code)) {
+            ResourceReferenceProto.ResourceReferenceResponse build = ResourceReferenceProto.ResourceReferenceResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .setResourceReference(resourceReference)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        } else {
+            ResourceReferenceProto.ResourceReferenceResponse build = ResourceReferenceProto.ResourceReferenceResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        }
+    }
+
+    public static ResourceReferenceProto.ResourceReference getResourceReference(ResourceReference reference) {
+        ResourceReferenceProto.ResourceReference resourceReference = ResourceReferenceProto.ResourceReference.newBuilder()
+                .setSelfId(reference.getSelfId())
+                .setSelfProjectId(reference.getSelfProjectId())
+                .setSelfIid(reference.getSelfIid())
+                .setSelfType(reference.getSelfType())
+                .setTargetId(reference.getTargetId())
+                .setTargetProjectId(reference.getTargetProjectId())
+                .setTargetType(reference.getTargetType())
+                .setId(reference.getId())
+                .setCreateAt(reference.getCreatedAt().getTime())
+                .setUpdateAt(reference.getUpdatedAt().getTime())
+                .setDeletedAt(DateUtil.dateToStr(reference.getDeletedAt()))
+                .build();
+        return resourceReference;
+    }
+
+    public static void resourceReferenceCommonResponse(CodeProto.Code code, String message, StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
+        ResourceReferenceProto.ResourceReferenceCommonResponse build = ResourceReferenceProto.ResourceReferenceCommonResponse.newBuilder()
+                .setCode(code)
+                .setMessage(message)
+                .build();
+        response.onNext(build);
+        response.onCompleted();
+    }
+
+    public static void countByTargetResponse(CodeProto.Code code, String message, Integer counts, StreamObserver<ResourceReferenceProto.CountResourceReferenceResponse> response) {
+        if(CodeProto.Code.SUCCESS.equals(code)) {
+            ResourceReferenceProto.CountResourceReferenceResponse build = ResourceReferenceProto.CountResourceReferenceResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .setCounts(counts)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        } else {
+            ResourceReferenceProto.CountResourceReferenceResponse build = ResourceReferenceProto.CountResourceReferenceResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        }
+    }
+
+    public static List<ResourceReferenceProto.ResourceReference> getResourceReferenceList(List<ResourceReference> references) {
+        List<ResourceReferenceProto.ResourceReference> resourceReferenceList = new ArrayList<>();
+        references.forEach(reference -> {
+            ResourceReferenceProto.ResourceReference resourceReference = ResourceReferenceProto.ResourceReference.newBuilder()
+                    .setSelfId(reference.getSelfId())
+                    .setSelfProjectId(reference.getSelfProjectId())
+                    .setSelfIid(reference.getSelfIid())
+                    .setSelfType(reference.getSelfType())
+                    .setTargetId(reference.getTargetId())
+                    .setTargetProjectId(reference.getTargetProjectId())
+                    .setTargetType(reference.getTargetType())
+                    .setId(reference.getId())
+                    .setCreateAt(reference.getCreatedAt().getTime())
+                    .setUpdateAt(reference.getUpdatedAt().getTime())
+                    .setDeletedAt(DateUtil.dateToStr(reference.getDeletedAt()))
+                    .build();
+            resourceReferenceList.add(resourceReference);
+        });
+        return resourceReferenceList;
+    }
+
+    public static void findResourceReferenceListResponse(CodeProto.Code code, String message,
+                                                         List<ResourceReference> resourceReferenceList,
+                                                         StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
+        if(CodeProto.Code.SUCCESS.equals(code)) {
+            ResourceReferenceProto.FindResourceReferenceListResponse build = ResourceReferenceProto.FindResourceReferenceListResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .addAllResourceReference(getResourceReferenceList(resourceReferenceList))
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        } else {
+            ResourceReferenceProto.FindResourceReferenceListResponse build = ResourceReferenceProto.FindResourceReferenceListResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        }
+    }
+
+    public static void findIdsMutuallyResponse(CodeProto.Code code, String message,
+                                               List<Integer> ids,
+                                               StreamObserver<ResourceReferenceProto.FindIdsMutuallyResponse> response) {
+        if(CodeProto.Code.SUCCESS.equals(code)) {
+            ResourceReferenceProto.FindIdsMutuallyResponse build = ResourceReferenceProto.FindIdsMutuallyResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .addAllId(ids)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        } else {
+            ResourceReferenceProto.FindIdsMutuallyResponse build = ResourceReferenceProto.FindIdsMutuallyResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        }
+    }
+
+    public static void addExternalLinkResponse(CodeProto.Code code, String message, ExternalLink externalLink,
+                                               StreamObserver<ProjectResourceProto.AddExternalLinkResponse> response) {
+        if(CodeProto.Code.SUCCESS.equals(code)) {
+            ProjectResourceProto.ExternalLink data = ProjectResourceProto.ExternalLink.newBuilder()
+                    .setId(externalLink.getId())
+                    .setUserId(externalLink.getCreatorId())
+                    .setTitle(externalLink.getTitle())
+                    .setLink(externalLink.getLink())
+                    .setProjectId(externalLink.getProjectId())
+                    .setIid(externalLink.getIid())
+                    .build();
+            ProjectResourceProto.AddExternalLinkResponse build = ProjectResourceProto.AddExternalLinkResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .setExternalLink(data)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        } else {
+            ProjectResourceProto.AddExternalLinkResponse build = ProjectResourceProto.AddExternalLinkResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        }
+    }
+
+    public static void existsResourceReferenceResponse(CodeProto.Code code, String message, boolean existsFlag,
+                                                       StreamObserver<ResourceReferenceProto.ExistsResourceReferenceResponse> response) {
+        if(CodeProto.Code.SUCCESS.equals(code)) {
+            ResourceReferenceProto.ExistsResourceReferenceResponse build = ResourceReferenceProto.ExistsResourceReferenceResponse.newBuilder()
+                    .setCode(code)
+                    .setExistsFlag(existsFlag)
+                    .setMessage(message)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        } else {
+            ResourceReferenceProto.ExistsResourceReferenceResponse build = ResourceReferenceProto.ExistsResourceReferenceResponse.newBuilder()
                     .setCode(code)
                     .setMessage(message)
                     .build();

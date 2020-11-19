@@ -6,16 +6,17 @@ import net.coding.app.project.metric.MetricsProvider;
 import net.coding.app.project.utils.GrpcUtil;
 import net.coding.app.project.utils.RedissonLockUtil;
 import net.coding.lib.project.dto.ProjectResourceDTO;
+import net.coding.lib.project.entity.ExternalLink;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectResource;
 import net.coding.lib.project.entity.ProjectResourceSequence;
 import net.coding.lib.project.grpc.client.ProjectGrpcClient;
 import net.coding.lib.project.helper.ProjectResourceServiceHelper;
+import net.coding.lib.project.service.ExternalLinkService;
 import net.coding.lib.project.service.ProjectResourceLinkService;
 import net.coding.lib.project.service.ProjectResourceSequenceService;
 import net.coding.lib.project.service.ProjectResourceService;
 import net.coding.lib.project.service.ProjectService;
-import net.coding.lib.project.service.ResourceReferenceService;
 import net.coding.lib.project.utils.DateUtil;
 
 import org.apache.commons.lang3.StringUtils;
@@ -68,6 +69,9 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
     @Autowired
     private ProjectGrpcClient projectGrpcClient;
 
+    @Autowired
+    private ExternalLinkService externalLinkService;
+
     @Override
     public void addProjectResource(ProjectResourceProto.AddProjectResourceRequest request,
                                    StreamObserver<ProjectResourceProto.ProjectResourceResponse> response) {
@@ -103,7 +107,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 redissonLockUtil.unlock(lockKey);
             }
         } catch (Exception ex) {
-            log.error("addProjectResource() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("addProjectResource() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.projectResourceResponse(CodeProto.Code.INTERNAL_ERROR, "addProjectResource server error", null, response);
             MetricsProvider.requestFailedTotal.labels(module, service, "addProjectResource").inc();
             redissonLockUtil.unlock(lockKey);
@@ -138,7 +142,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 GrpcUtil.projectResourceResponse(CodeProto.Code.INTERNAL_ERROR, "updateProjectResource server error", null, response);
             }
         } catch (Exception ex) {
-            log.error("updateProjectResource() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("updateProjectResource() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             MetricsProvider.requestFailedTotal.labels(module, service, "updateProjectResource").inc();
             GrpcUtil.projectResourceResponse(CodeProto.Code.INTERNAL_ERROR, "updateProjectResource server error", null, response);
         }
@@ -157,7 +161,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
             projectResourceServiceHelper.deleteProjectResource(request.getProjectId(), request.getTargetType(), request.getTargetIdList(), request.getUserId());
             GrpcUtil.projectResourceCommonResponse(CodeProto.Code.SUCCESS, "delete success", response);
         } catch (Exception ex) {
-            log.error("deleteProjectResource() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("deleteProjectResource() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             MetricsProvider.requestFailedTotal.labels(module, service, "deleteProjectResource").inc();
             GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "deleteProjectResource server error", response);
         }
@@ -204,7 +208,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                         null, null, response);
             }
         } catch (Exception ex) {
-            log.error("findProjectResourcesList() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("findProjectResourcesList() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             MetricsProvider.requestFailedTotal.labels(module, service, "findProjectResourcesList").inc();
             GrpcUtil.findProjectResourceResponse(CodeProto.Code.INTERNAL_ERROR, "findProjectResourcesList service error",
                     null, null, response);
@@ -234,7 +238,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 GrpcUtil.batchProjectResourceResponse(CodeProto.Code.NOT_FOUND, "batchProjectResourceList not found", null, response);
             }
         } catch (Exception ex) {
-            log.error("batchProjectResourceList() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("batchProjectResourceList() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             MetricsProvider.requestFailedTotal.labels(module, service, "batchProjectResourceList").inc();
             GrpcUtil.batchProjectResourceResponse(CodeProto.Code.INTERNAL_ERROR, "batchProjectResourceList service error", null, response);
         }
@@ -259,7 +263,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                     .build();
             GrpcUtil.multiCodeResponse(CodeProto.Code.SUCCESS, "generateCodes success", multiResourceSequence, response);
         } catch (Exception ex) {
-            log.error("generateCodes() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("generateCodes() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             MetricsProvider.requestFailedTotal.labels(module, service, "generateCodes").inc();
             GrpcUtil.multiCodeResponse(CodeProto.Code.INTERNAL_ERROR, "generateCodes service error", null, response);
         }
@@ -306,7 +310,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                     GrpcUtil.projectResourceResponse(CodeProto.Code.NOT_FOUND, "relateResource faild", null, response);
                 }
             } catch (Exception ex) {
-                log.error("relateResource() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
+                log.error("relateResource() callException request={}, ex={}", request != null ? request.toString() : "", ex);
                 MetricsProvider.requestFailedTotal.labels(module, service, "relateResource").inc();
                 GrpcUtil.projectResourceResponse(CodeProto.Code.INTERNAL_ERROR, "relateResource service error", null, response);
             }
@@ -366,7 +370,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
             projectResourceService.batchRelateResource(projectResourceList);
             GrpcUtil.projectResourceCommonResponse(CodeProto.Code.SUCCESS, "batchRelateResource success", response);
         } catch (Exception ex) {
-            log.error("batchRelateResource() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("batchRelateResource() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             MetricsProvider.requestFailedTotal.labels(module, service, "batchRelateResource").inc();
             GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "batchRelateResource service error", response);
         }
@@ -392,7 +396,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 GrpcUtil.projectResourceResponse(CodeProto.Code.NOT_FOUND, "getByProjectAndTypeAndTarget not found", null, response);
             }
         } catch (Exception ex) {
-            log.error("getByProjectAndTypeAndTarget() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("getByProjectAndTypeAndTarget() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             MetricsProvider.requestFailedTotal.labels(module, service, "getByProjectAndTypeAndTarget").inc();
             GrpcUtil.projectResourceResponse(CodeProto.Code.INTERNAL_ERROR, "getByProjectAndTypeAndTarget service error", null, response);
         }
@@ -418,7 +422,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 GrpcUtil.projectResourceResponse(CodeProto.Code.NOT_FOUND, "getProjectResourceByCode not found", null, response);
             }
         } catch (Exception ex) {
-            log.error("getProjectResourceByCode() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("getProjectResourceByCode() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             MetricsProvider.requestFailedTotal.labels(module, service, "getProjectResourceByCode").inc();
             GrpcUtil.projectResourceResponse(CodeProto.Code.INTERNAL_ERROR, "getProjectResourceByCode service error", null, response);
         }
@@ -452,7 +456,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
             log.info("getProjectResourceByCode() projectResource={}", projectResource.toString());
             GrpcUtil.getResourceLinkResponse(CodeProto.Code.SUCCESS, "getProjectResourceByCode success", url, response);
         } catch (Exception ex) {
-            log.error("getResourceLink() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("getResourceLink() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             MetricsProvider.requestFailedTotal.labels(module, service, "getResourceLink").inc();
             GrpcUtil.getResourceLinkResponse(CodeProto.Code.INTERNAL_ERROR, "getResourceLink service error", null, response);
         }
@@ -480,7 +484,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
             projectResourceService.updateProjectResource(record);
             GrpcUtil.projectResourceCommonResponse(CodeProto.Code.SUCCESS, "recoverProjectResource success", response);
         } catch (Exception ex) {
-            log.error("recoverProjectResource() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("recoverProjectResource() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             MetricsProvider.requestFailedTotal.labels(module, service, "recoverProjectResource").inc();
             GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "recoverProjectResource service error", response);
         }
@@ -512,7 +516,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 redissonLockUtil.unlock(lockKey);
             }
         } catch (Exception ex) {
-            log.error("addProjectResourceSequence() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("addProjectResourceSequence() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             MetricsProvider.requestFailedTotal.labels(module, service, "addProjectResourceSequence").inc();
             GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "addProjectResourceSequence service error", response);
             redissonLockUtil.unlock(lockKey);
@@ -539,7 +543,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
             log.info("getProjectResourceById() projectResource={}", projectResource.toString());
             GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "getProjectResourceById success", GrpcUtil.getProjectResource(projectResource), response);
         } catch (Exception ex) {
-            log.error("getProjectResourceById() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("getProjectResourceById() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             MetricsProvider.requestFailedTotal.labels(module, service, "getProjectResourceById").inc();
             GrpcUtil.projectResourceResponse(CodeProto.Code.INTERNAL_ERROR, "getProjectResourceById service error", null, response);
         }
@@ -570,7 +574,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                         "batchListByProjectAndTypeAndTargets not found", null, response);
             }
         } catch (Exception ex) {
-            log.error("batchListByProjectAndTypeAndTargets() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("batchListByProjectAndTypeAndTargets() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             MetricsProvider.requestFailedTotal.labels(module, service, "batchListByProjectAndTypeAndTargets").inc();
             GrpcUtil.batchProjectResourceResponse(CodeProto.Code.INTERNAL_ERROR,
                     "batchListByProjectAndTypeAndTargets service error", null, response);
@@ -602,7 +606,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                         "batchListByTypeAndTargets not found", null, response);
             }
         } catch (Exception ex) {
-            log.error("batchListByTypeAndTargets() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("batchListByTypeAndTargets() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             MetricsProvider.requestFailedTotal.labels(module, service, "batchListByTypeAndTargets").inc();
             GrpcUtil.batchProjectResourceResponse(CodeProto.Code.INTERNAL_ERROR,
                     "batchListByTypeAndTargets service error", null, response);
@@ -629,7 +633,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 GrpcUtil.projectResourceResponse(CodeProto.Code.NOT_FOUND, "getProjectResourceWithDeleted not found", null, response);
             }
         } catch (Exception ex) {
-            log.error("getProjectResourceWithDeleted() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("getProjectResourceWithDeleted() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             MetricsProvider.requestFailedTotal.labels(module, service, "getProjectResourceWithDeleted").inc();
             GrpcUtil.projectResourceResponse(CodeProto.Code.INTERNAL_ERROR, "getProjectResourceWithDeleted service error", null, response);
         }
@@ -654,11 +658,59 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 GrpcUtil.FindProjectResourceMutuallyResponse(CodeProto.Code.NOT_FOUND, "findProjectResourceMutuallyList not found", null, response);
             }
         } catch (Exception ex) {
-            log.error("getProjectResourceWithDeleted() grpc service request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("getProjectResourceWithDeleted() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             MetricsProvider.requestFailedTotal.labels(module, service, "findProjectResourceMutuallyList").inc();
-            GrpcUtil.FindProjectResourceMutuallyResponse(CodeProto.Code.INVALID_PARAMETER,
+            GrpcUtil.FindProjectResourceMutuallyResponse(CodeProto.Code.INTERNAL_ERROR,
                     "findProjectResourceMutuallyList service error",null, response);
         }
     }
 
+    @Override
+    public void addExternalLink(ProjectResourceProto.AddExternalLinkRequest request,
+                                StreamObserver<ProjectResourceProto.AddExternalLinkResponse> response) {
+        log.info("addExternalLink() grpc service receive: {}", request != null ? request.toString() : "");
+        try {
+            ExternalLink externalLink = externalLinkService.add(request.getUserId(), request.getTitle(), request.getLink());
+            ProjectResource record = new ProjectResource();
+            record.setProjectId(request.getProjectId());
+            record.setTitle(request.getTitle());
+            record.setTargetId(externalLink.getId());
+            record.setTargetType(ExternalLink.class.getSimpleName());
+            record.setCreatedBy(request.getUserId());
+            String projectPath = projectGrpcClient.getProjectPath(record.getProjectId());
+            log.info("addProjectResource() record= {}", record.toString());
+            ProjectResource resource = projectResourceServiceHelper.addProjectResource(record, projectPath);
+            externalLink.setIid(resource.getCode());
+            GrpcUtil.addExternalLinkResponse(CodeProto.Code.SUCCESS, "add success", externalLink, response);
+        } catch (Exception ex) {
+            log.error("addExternalLink() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            GrpcUtil.addExternalLinkResponse(CodeProto.Code.INTERNAL_ERROR,
+                    "findProjectResourceMutuallyList service error",null, response);
+        }
+    }
+
+    @Override
+    public void batchUpdateProjectResource(ProjectResourceProto.BatchUpdateProjectResourceRequest request,
+                                           StreamObserver<ProjectResourceProto.ProjectResourceCommonResponse> response) {
+        log.info("batchUpdateProjectResource() grpc service receive: {}", request != null ? request.toString() : "");
+        MetricsProvider.requestTotal.labels(module, service, "batchUpdateProjectResource").inc();
+        try {
+            if (request.getProjectId() <= 0 || CollectionUtils.isEmpty(request.getTargetIdList())
+                    || StringUtils.isEmpty(request.getCurrentTargetType()) || StringUtils.isEmpty(request.getTargetTargetType())) {
+                GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "parameters project error", response);
+                return;
+            }
+            if (request.getTargetIdList().size() > 1000) {
+                GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "targetIds too long", response);
+                return;
+            }
+            projectResourceService.batchUpdateProjectResource(request.getProjectId(), request.getTargetIdList(),
+                    request.getCurrentTargetType(), request.getTargetTargetType(), request.getUserId());
+            GrpcUtil.projectResourceCommonResponse(CodeProto.Code.SUCCESS, "delete success", response);
+        } catch (Exception ex) {
+            log.error("batchUpdateProjectResource() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            MetricsProvider.requestFailedTotal.labels(module, service, "batchUpdateProjectResource").inc();
+            GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "batchUpdateProjectResource server error", response);
+        }
+    }
 }

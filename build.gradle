@@ -2,76 +2,41 @@ task wrapper(type: Wrapper) {
     gradleVersion = "3.2"
 }
 
+
 buildscript {
     repositories {
         mavenLocal()
         maven {
             url "https://mirrors.cloud.tencent.com/nexus/repository/maven-public/"
         }
-    }
-
-    dependencies {
-        classpath 'io.spring.gradle:dependency-management-plugin:0.6.1.RELEASE'
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.4.7.RELEASE"
-        classpath 'net.nemerosa:versioning:2.6.1'
-        classpath 'com.bmuschko:gradle-docker-plugin:3.2.1'
-        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.1'
-    }
-}
-
-import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
-import com.bmuschko.gradle.docker.tasks.image.Dockerfile
-
-subprojects {
-    ext {
-        springBootVersion = '1.4.7.RELEASE'
-        protobufVersion = '3.3.0'
-        grpcVersion = '1.22.0'
-        quartzSchedulerVersion = '2.2.2'
-
-        commonVersion = '20201027.3'
-
-        baseDockerImage = System.getenv('BASE_IMAGE') != null ? System.getenv('BASE_IMAGE') : 'codingcorp-docker.pkg.coding.net/registry/release/ubuntu'
-        defaultJavaOption = '-server -Djava.awt.headless=true -XX:-OmitStackTraceInFastThrow'
-    }
-
-    // 这里指定的版本主要给 Spring Boot Dependencies (SBD) 使用
-    // 在 SBD 已经指定了版本的第三方库，在各自的 build.gradle 内，在 dependencies 声明依赖时指定版本【没有效果】，必须同时在这里指定也对应版本
-    // 已经被 SBD 规定版本的第三方库请参考 https://github.com/spring-projects/spring-boot/blob/master/spring-boot-project/spring-boot-dependencies/pom.xml
-    // 注意参考对应 Git 版本的 pom.xml
-    //ext['mariadb.version'] = '2.2.5'
-    //ext['hikaricp.version'] = '2.4.5'
-
-    repositories {
-        mavenLocal()
         maven {
-            url "https://mirrors.cloud.tencent.com/nexus/repository/maven-public/"
-        }
-        maven {
-            // change to point to your repo, e.g. http://my.org/repo
             url "https://codingcorp-maven.pkg.coding.net/repository/registry/maven-releases/"
             credentials {
-                username = System.getenv('REGISTRY_USER') != null ? System.getenv('REGISTRY_USER') : 'dt_uQFZxOtEdV'
-                password = System.getenv('REGISTRY_PASSWORD') != null ? System.getenv('REGISTRY_PASSWORD') : 'nDZT7n47irtOEkOSj5ps2hhocFwcaP'
+                username = System.getenv('REGISTRY_USER') ?: 'dt_uQFZxOtEdV'
+                password = System.getenv('REGISTRY_PASSWORD') ?: 'nDZT7n47irtOEkOSj5ps2hhocFwcaP'
             }
         }
     }
 
-    apply plugin: 'java'
-    apply plugin: 'idea'
-    apply plugin: 'net.nemerosa.versioning'
-    apply plugin: 'com.bmuschko.docker-remote-api'
-
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = sourceCompatibility
-
-    task sourcesJar(type: Jar) {
-        from sourceSets.main.allJava
-        classifier = 'sources'
-    }
-
-    // 所有（Java）项目都用全家桶
     dependencies {
+        classpath "net.coding.common:coding-plugin-collection:1.0.2"
+    }
+}
+
+
+subprojects {
+    apply plugin: "coding-plugin"
+
+/*    dependencies {
+
+        ext {
+            springBootVersion = '1.4.7.RELEASE'
+            protobufVersion = '3.3.0'
+            grpcVersion = '1.22.0'
+            quartzSchedulerVersion = '2.2.2'
+
+            commonVersion = '20200928.1'
+        }
         compile 'org.projectlombok:lombok:1.16.16'
         compile 'org.apache.commons:commons-lang3:3.4'
         compile 'com.zaxxer:HikariCP:2.4.5'
@@ -81,10 +46,9 @@ subprojects {
         compile group: 'org.mybatis.spring.boot', name: 'mybatis-spring-boot-starter', version: '1.3.5'
         compile 'net.coding.common:xxl-job-core:20201012.1'
         compile 'io.sentry:sentry-logback:3.0.0'
-
-        compile "net.coding.common:base:${commonVersion}"
         compile 'org.jsoup:jsoup:1.11.3'
 
+        compile "net.coding.common:base:${commonVersion}"
         compile "net.coding.common:util:${commonVersion}"
         compile "net.coding.common:annotation:${commonVersion}"
         compile "net.coding.common:vendor:${commonVersion}"
@@ -93,112 +57,11 @@ subprojects {
         compile "net.coding.common:rabbitmq:${commonVersion}"
 
         //proto
-        compile "net.coding.proto:project:resource_test01"
-        compile 'net.coding.proto:wiki:48577f24df724742a812cda3f78c3fdde31b82f2'
-    }
+        compile 'net.coding.proto:project:45ba5ea37e7a8ad2c5099c7cd4ed45ee50037fe9'
+        compile "net.coding.proto:wiki:20201113.1"
+    }*/
 
-    // Set build directory to a common location
-    if (project.parent == null) {
-        buildDir = new File(rootProject.buildDir, project.name)
-    } else {
-        buildDir = new File(project.parent.buildDir, project.name)
-    }
-
-    docker {
-        def dockerHost = System.getenv('DOCKER_HOST')
-        def dockerCertPath = System.getenv('DOCKER_CERT_PATH')
-        url = (dockerHost == null) ? 'unix:///var/run/docker.sock' : dockerHost.replace('tcp', 'http')
-        if (System.getenv('DOCKER_TLS_VERIFY') == "1" && dockerCertPath != null) {
-            certPath = new File(dockerCertPath)
-        }
-        registryCredentials {
-            url = System.getenv('REGISTRY_URL') != null ? System.getenv('REGISTRY_URL') : 'codingcorp-docker.pkg.coding.net'
-            username = System.getenv('REGISTRY_USER') != null ? System.getenv('REGISTRY_USER') : 'dt_uQFZxOtEdV'
-            password = System.getenv('REGISTRY_PASSWORD') != null ? System.getenv('REGISTRY_PASSWORD') : 'nDZT7n47irtOEkOSj5ps2hhocFwcaP'
-        }
-    }
-
-    versionFile {
-        // Path to the file to be written
-        file = new File(project.buildDir, 'resources/main/version.properties')
-    }
-
-    versioning {
-        noWarningOnDirty = true
-    }
-
-    // Force compile as UTF8
-    tasks.withType(JavaCompile) {
-        options.incremental = true
-        options.encoding = "UTF-8"
-    }
-
-    // Fix classpath too long problem
-    task pathingJar(type: Jar) {
-        dependsOn configurations.runtime
-        appendix = 'pathing'
-
-        doFirst {
-            manifest {
-                attributes "Class-Path": configurations.runtime.files.collect {
-                    it.toURI().toString().replaceFirst(/file:\/+/, '/')
-                }.join(' ')
-            }
-        }
-    }
-
-    plugins.withId("org.springframework.boot") {
-        bootRun {
-            // support -Dxxxx on the commandline
-            systemProperties = System.properties
-
-            dependsOn pathingJar
-            doFirst {
-                classpath = files("$buildDir/classes/main", "$buildDir/resources/main", pathingJar.archivePath)
-            }
-        }
-
-        task createDockerfile(type: Dockerfile) {
-            from baseDockerImage
-            runCommand 'mkdir /app'
-            workingDir '/app'
-            copyFile "${project.name}.jar", '/app'
-            volume '/data'
-            defaultCommand '/bin/bash', '-cx', "java $defaultJavaOption" +
-                    " \${ENABLE_DEBUG:+'-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005'}" +
-                    " \${ENABLE_URANDOM:+'-Djava.security.egd=file:/dev/./urandom'}" +
-                    " \$JAVA_OPTS -jar /app/${project.name}.jar"
-        }
-
-        task copyDockerResource(type: Copy, dependsOn: buildNeeded) {
-            from new File(project.buildDir, "/libs/${project.name}.jar")
-            into new File(project.buildDir, "/docker")
-        }
-
-        task buildDockerImage(type: DockerBuildImage) {
-            dependsOn createDockerfile
-            dependsOn copyDockerResource
-            inputDir = createDockerfile.destFile.parentFile
-            pull = true
-            tags = [
-                    "${rootProject.name.toLowerCase()}:${versioning.info.commit}".toString(),
-                    "${rootProject.name.toLowerCase()}:latest".toString()
-            ]
-            doLast {
-                delete inputDir
-            }
-        }
-
-        task createYamlTask(group: 'kubernetes', type: Exec) {
-            dependsOn bootRepackage
-            File file = getTemporaryDir();
-            commandLine "java", "-jar", jar.getArchivePath(), project.getName(), file.parentFile.parentFile.path + "/kubernetes"
-        }
-    }
-
-    test {
-        reports {
-            junitXml.enabled = true
-        }
-    }
 }
+
+
+

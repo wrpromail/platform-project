@@ -35,4 +35,6 @@ public interface ProjectResourceDao {
     List<Integer> findFixResourceList(Map<String, Object> parameter);
 
     Integer getBeginFixId();
+
+    int batchUpdateProjectResource(Map<String, Object> parameters);
 }

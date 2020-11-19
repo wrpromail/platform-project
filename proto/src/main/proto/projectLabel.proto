@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+package proto;
+
+import "code.proto";
+import "pager.proto";
+
+option java_generic_services = true;
+option java_package = "net.coding.proto.platform.project";
+option java_outer_classname = "ProjectLabelProto";
+
+message ProjectLabel {
+  int32 id = 1;
+  string name = 2;
+  int32 ownerId = 3;
+  int32 projectId = 4;
+  string color = 5;
+  int32 type = 6;
+}
+
+message GetLabelByIdRequest {
+  int32 id = 1;
+}
+
+message GetLabelResponse {
+  int32 code = 1;
+  string message = 2;
+  ProjectLabel projectLabel = 3;
+}
+
+message FindLabelByIdsRequest {
+  repeated int32 id = 1;
+}
+
+message FindLabelByIdsResponse {
+  repeated ProjectLabel projectLabel = 1;
+}
+
+message FindLabelListRequest {
+  int32 projectId = 1;
+  string name = 2;
+  proto.common.PageRequest pageRequest = 3;
+}
+
+message FindLabelListResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated ProjectLabel projectLabel = 3;
+  proto.common.PageInfo pageInfo = 4;
+}
+
+message AddLabelRequest {
+  string name = 1;
+  int32 ownerId = 2;
+  int32 projectId = 3;
+  string color = 4;
+  int32 type = 5;
+  int32 userId = 6;
+}
+
+message UpdateLabelRequest {
+  int32 id = 1;
+  string name = 2;
+  int32 ownerId = 3;
+  string color = 4;
+  int32 type = 5;
+  int32 userId = 6;
+}
+
+message DeleteLabelRequest {
+  int32 id = 1;
+  int32 projectId = 2;
+  int32 userId = 3;
+}
+
+message ProjectLabelResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  ProjectLabel projectLabel = 3;
+}
+
+message CommonLabelResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+}
+
+service ProjectLabelService {
+  rpc GetLabelById (GetLabelByIdRequest) returns (GetLabelResponse);
+  rpc FindLabelByIds (FindLabelByIdsRequest) returns (FindLabelByIdsResponse);
+  rpc FindLabelList (FindLabelListRequest) returns (FindLabelListResponse);
+  rpc AddLabel (AddLabelRequest) returns (ProjectLabelResponse);
+  rpc UpdateLabel (UpdateLabelRequest) returns (ProjectLabelResponse);
+  rpc DeleteLabel (DeleteLabelRequest) returns (CommonLabelResponse);
+}

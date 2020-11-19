@@ -336,4 +336,35 @@
     Order by id ASC
     LIMIT 1;
   </select>
+
+
+
+  <update id="batchUpdateProjectResource" parameterType="map">
+    UPDATE project_resources
+    <set>
+      <if test="updatedAt != null">
+        updated_at = #{updatedAt},
+      </if>
+      <if test="updatedBy != null">
+        updated_by = #{updatedBy},
+      </if>
+      <if test="targetTargetType != null">
+        target_type = #{targetTargetType},
+      </if>
+    </set>
+    <where>
+      <if test="projectId != null">
+        AND project_id = #{projectId}
+      </if>
+      <if test="targetIds != null and targetIds.size() > 0">
+        AND target_id IN
+        <foreach item = "item" index = "index" collection = "targetIds" open = "(" close = ")" separator=",">
+          #{item}
+        </foreach>
+      </if>
+      <if test="currentTargetType != null">
+        AND target_type = #{currentTargetType}
+      </if>
+    </where>
+  </update>
 </mapper>

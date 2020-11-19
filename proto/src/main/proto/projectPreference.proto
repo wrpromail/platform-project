@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package proto;
+
+import "code.proto";
+import "pager.proto";
+
+option java_generic_services = true;
+option java_package = "net.coding.proto.platform.project";
+option java_outer_classname = "ProjectPreferenceProto";
+
+message ProjectPreference {
+  int32 id = 1;
+  string projectId = 2;
+  int32 type = 3;
+  int32 status = 4;
+}
+
+message GetPreferenceByIdRequest {
+  int32 id = 1;
+}
+
+message GetPreferenceResponse {
+  int32 code = 1;
+  string message = 2;
+  ProjectPreference projectPreference = 3;
+}
+
+message FindPreferenceListRequest {
+  int32 projectId = 1;
+  proto.common.PageRequest pageRequest = 2;
+}
+
+message FindPreferenceListResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated ProjectPreference projectPreference = 3;
+  proto.common.PageInfo pageInfo = 4;
+}
+
+message AddPreferenceRequest {
+  int32 projectId = 1;
+  int32 type = 2;
+  int32 status = 3;
+  int32 userId = 4;
+}
+
+message UpdatePreferenceRequest {
+  int32 id = 1;
+  int32 type = 2;
+  int32 status = 3;
+  int32 userId = 4;
+}
+
+message DeletePreferenceRequest {
+  int32 id = 1;
+  int32 userId = 2;
+}
+
+message ProjectPreferenceResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  ProjectPreference projectPreference = 3;
+}
+
+message CommonPreferenceResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+}
+
+service ProjectPreferenceService {
+  rpc GetById (GetPreferenceByIdRequest) returns (GetPreferenceResponse);
+  rpc FindList (FindPreferenceListRequest) returns (FindPreferenceListResponse);
+  rpc Add (AddPreferenceRequest) returns (ProjectPreferenceResponse);
+  rpc Update (UpdatePreferenceRequest) returns (ProjectPreferenceResponse);
+  rpc Delete (DeletePreferenceRequest) returns (CommonPreferenceResponse);
+}

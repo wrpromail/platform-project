@@ -4,6 +4,7 @@ package net.coding.lib.project.dao;
 import net.coding.lib.project.entity.ResourceReference;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Map;
@@ -18,4 +19,54 @@ public interface ResourceReferenceDao {
     List<ResourceReference> getResourceReferenceMutually(Map<String, Object> parameter);
 
     ResourceReference getResourceReference(Map<String, Object> parameter);
+
+    int insert(ResourceReference resourceReference);
+
+    int batchInsert(List<ResourceReference> list);
+
+    int update(ResourceReference resourceReference);
+
+    int deleteByIds(Map<String, Object> parameter);
+
+    int countByTarget(Map<String, Object> parameter);
+
+    int countBySelfWithTargetDeleted(Map<String, Object> parameter);
+
+    List<ResourceReference> findListByTargetType(Map<String, Object> parameter);
+
+    List<ResourceReference> findListByTargetProjectId(Map<String, Object> parameter);
+
+    List<ResourceReference> findListBySelfType(Map<String, Object> parameter);
+
+    List<ResourceReference> findListBySelfProjectId(Map<String, Object> parameter);
+
+    List<ResourceReference> findListBySelfAndTarget(Map<String, Object> parameter);
+
+    List<ResourceReference> findReferMutuallyList(Map<String, Object> parameter);
+
+    List<ResourceReference> findMutuallyList(Map<String, Object> parameter);
+
+    List<Integer> findIdsMutually(Map<String, Object> parameter);
+
+    List<ResourceReference> findBySelfWithDescriptionCitedRelation(Map<String, Object> parameter);
+
+    List<ResourceReference> findBySelfWithoutDescriptionCitedRelation(Map<String, Object> parameter);
+
+    List<ResourceReference> findBySelfWithTargetDeleted(Map<String, Object> parameter);
+
+    List<ResourceReference> findByProjectIdWithDeleted(@Param("projectId") Integer projectId);
+
+    List<ResourceReference> findByProjectId(@Param("projectId") Integer projectId);
+
+    ResourceReference getByProjectIdAndCode(Map<String, Object> parameter);
+
+    ResourceReference getByTypeAndId(Map<String, Object> parameter);
+
+    ResourceReference getOptional(Map<String, Object> parameter);
+
+    ResourceReference getById(Map<String, Object> parameter);
+
+    List<ResourceReference> getWithDeletedByIds(Map<String, Object> parameter);
+
+    ResourceReference existsResourceReference(Map<String, Object> parameter);
 }

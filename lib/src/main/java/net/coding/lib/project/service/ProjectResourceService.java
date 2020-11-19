@@ -10,6 +10,7 @@ import net.coding.lib.project.utils.DateUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -168,5 +169,17 @@ public class ProjectResourceService {
 
     public Integer getBeginFixId() {
         return projectResourcesDao.getBeginFixId();
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public int batchUpdateProjectResource(Integer projectId, List<Integer> targetIds, String currentTargetType, String targetTargetType, Integer userId) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("projectId", projectId);
+        parameters.put("targetIds", targetIds);
+        parameters.put("currentTargetType", currentTargetType);
+        parameters.put("targetTargetType", targetTargetType);
+        parameters.put("updatedAt", DateUtil.getCurrentDate());
+        parameters.put("updatedBy", userId);
+        return projectResourcesDao.batchUpdateProjectResource(parameters);
     }
 }

@@ -1,37 +1,34 @@
 dependencies {
-    compile project(':common')
+
+    ext {
+        commonVersion = '20200928.1'
+    }
 
     compile 'org.redisson:redisson:3.13.4'
-
-    compile "net.coding.proto:platform:20201020.3"
+    compile "org.mybatis.spring.boot:mybatis-spring-boot-starter:1.3.5"
+    compile "com.github.pagehelper:pagehelper:5.0.2"
 
     compile "net.coding.common:rpc-client:20200922.1"
+    compile "net.coding.common:util:${commonVersion}"
+    compile "net.coding.common:base:${commonVersion}"
+    compile "net.coding.common:i18n:${commonVersion}"
+    compile "net.coding.common:vendor:${commonVersion}"
 
     compile ("net.coding.grpc.client:activity:20201102.2") {
         exclude(group: "net.coding.common")
     }
-
-    compile "net.coding.proto:notification:20201030.2"
-
     compile ('net.coding.grpc.client:platform-template:20201102.1') {
         exclude(group: "net.coding.common")
     }
-
-    compile 'net.coding.proto:storage:20201027.1'
-
-    compile "net.coding.proto:issue:20201102.2"
-
     compile ("net.coding.grpc.client:depot:20200916.2") {
         exclude(group: "net.coding.common")
     }
 
+    compile "net.coding.proto:platform:20201020.3"
+    compile 'net.coding.proto:storage:20201027.1'
+    compile "net.coding.proto:issue:20201102.2"
+    compile "net.coding.proto:notification:20201030.2"
     compile 'net.coding.proto:file:20201109.2'
-}
+    compile "net.coding.proto:wiki:20201113.1"
 
-sourceSets {
-    main {
-        resources {
-            srcDirs = ['src/main/resources', 'src/main/webapp']
-        }
-    }
 }

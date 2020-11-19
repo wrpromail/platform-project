@@ -1,0 +1,224 @@
+syntax = "proto3";
+
+package proto;
+
+import "code.proto";
+import "pager.proto";
+
+option java_generic_services = true;
+option java_package = "proto.projectResource";
+option java_outer_classname = "ProjectResourceProto";
+
+message AddProjectResourceRequest {
+  int32 projectId = 1;
+  string title = 2;
+  int32 targetId = 3;
+  int32 userId = 4;
+  string targetType = 5;
+  string resourceUrl = 6;
+}
+
+message OperateProjectResourceRequest {
+  int32 projectId = 1;
+  string title = 2;
+  int32 targetId = 3;
+  int32 userId = 4;
+  string targetType = 5;
+  int32 code = 6;
+  string resourceUrl = 7;
+}
+
+message DeleteProjectResourceRequest {
+  int32 projectId = 1;
+  string targetType = 2;
+  repeated int32 targetId = 3;
+  int32 userId = 4;
+}
+
+message ProjectResourceResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  ProjectResource projectResource = 3;
+}
+message ProjectResource {
+  int32 projectId = 1;
+  string title = 2;
+  int32 targetId = 3;
+  string targetType = 4;
+  int32 code = 5;
+  int32 id = 6;
+  string url = 7;
+}
+
+message GetProjectResourceRequest {
+  int32 projectId = 1;
+  int32 code = 2;
+}
+
+message FindProjectResourceRequest {
+  int32 projectId = 1;
+  string keyword = 2;
+  repeated string targetType = 3;
+  proto.common.PageRequest pageRequest = 4;
+}
+
+message FindProjectResourceResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated ProjectResource projectResource = 3;
+  proto.common.PageInfo pageInfo = 4;
+}
+
+message BatchProjectResourceRequest {
+  int32 projectId = 1;
+  repeated int32 code = 2;
+}
+
+message BatchProjectResourceResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated ProjectResource projectResource = 3;
+}
+
+message GenerateRequest {
+  int32 projectId = 1;
+  int32 codeAmount = 2;
+}
+
+message MultiResourceSequence {
+  int32 projectId = 1;
+  int32 startCode = 2;
+  int32 endCode = 3;
+}
+
+message MultiCodeResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  MultiResourceSequence multiResourceSequence= 3;
+}
+
+message BatchRelateResourceRequest {
+  repeated OperateProjectResourceRequest operateProjectResourceRequest = 1;
+}
+
+message ProjectResourceCommonResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+}
+
+message ProjectAndTypeAndTargetRequest {
+  int32 projectId = 1;
+  string targetType = 2;
+  int32 targetId = 3;
+}
+
+message PorjectAndTypeAndTargetsRequest {
+  int32 projectId = 1;
+  string targetType = 2;
+  repeated int32 targetId = 3;
+}
+
+message TypeAndTargetsRequest {
+  string targetType = 1;
+  repeated int32 targetId = 2;
+}
+
+message GetResourceLinkRequest {
+  int32 projectResourceId = 1;
+}
+
+message GetResourceLinkResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  string url = 3;
+}
+
+message AddProjectResourceSequenceRequest {
+  int32 projectId = 1;
+}
+
+message RecoverProjectResourceRequest {
+  int32 projectResourceId = 1;
+}
+
+message GetResourceRequest {
+  int32 projectResourceId = 1;
+}
+
+message FindProjectResourceMutuallyRequest {
+  int32 projectId = 1;
+  int32 code = 2;
+  int32 userId = 3;
+}
+
+message ProjectResourceDto {
+  int32 targetProjectId = 1;
+  string targetProjectName = 2;
+  string targetProjectDisplayName = 3;
+  int32 code = 4;
+  string targetType = 5;
+  int32 targetId = 6;
+  string title = 7;
+  string link = 8;
+  int32 status = 9;
+  bool hasCommentRelated = 10;
+}
+
+message FindProjectResourceMutuallyResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated ProjectResourceDto projectResourceDto = 3;
+}
+
+message AddExternalLinkRequest {
+  int32 userId = 1;
+  string title = 2;
+  string link = 3;
+  int32 projectId = 4;
+}
+
+message ExternalLink {
+  int32 userId = 1;
+  string title = 2;
+  string link = 3;
+  int32 projectId = 4;
+  int32 iid = 5;
+  int32 id = 6;
+}
+
+message AddExternalLinkResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  ExternalLink externalLink = 3;
+}
+
+message BatchUpdateProjectResourceRequest {
+  int32 projectId = 1;
+  int32 userId = 2;
+  repeated int32 targetId = 3;
+  string currentTargetType = 4;
+  string targetTargetType = 5;
+}
+
+service ProjectResourceService {
+  rpc AddProjectResource (AddProjectResourceRequest) returns (ProjectResourceResponse);
+  rpc UpdateProjectResource (OperateProjectResourceRequest) returns (ProjectResourceResponse);
+  rpc DeleteProjectResource (DeleteProjectResourceRequest) returns (ProjectResourceCommonResponse);
+  rpc FindProjectResourceList (FindProjectResourceRequest) returns (FindProjectResourceResponse);
+  rpc BatchProjectResourceList (BatchProjectResourceRequest) returns (BatchProjectResourceResponse);
+  rpc GenerateCodes (GenerateRequest) returns (MultiCodeResponse);
+  rpc RelateResource (OperateProjectResourceRequest) returns (ProjectResourceResponse);
+  rpc BatchRelateResource (BatchRelateResourceRequest) returns (ProjectResourceCommonResponse);
+  rpc GetByProjectAndTypeAndTarget (ProjectAndTypeAndTargetRequest) returns (ProjectResourceResponse);
+  rpc GetProjectResourceByCode (GetProjectResourceRequest) returns (ProjectResourceResponse);
+  rpc GetResourceLink (GetResourceLinkRequest) returns (GetResourceLinkResponse);
+  rpc RecoverProjectResource(RecoverProjectResourceRequest) returns (ProjectResourceCommonResponse);
+  rpc AddProjectResourceSequence (AddProjectResourceSequenceRequest) returns (ProjectResourceCommonResponse);
+  rpc GetProjectResourceById (GetResourceRequest) returns (ProjectResourceResponse);
+  rpc BatchListByProjectAndTypeAndTargets (PorjectAndTypeAndTargetsRequest) returns (BatchProjectResourceResponse);
+  rpc BatchListByTypeAndTargets(TypeAndTargetsRequest) returns (BatchProjectResourceResponse);
+  rpc GetProjectResourceWithDeleted(GetProjectResourceRequest) returns (ProjectResourceResponse);
+  rpc FindProjectResourceMutuallyList (FindProjectResourceMutuallyRequest) returns (FindProjectResourceMutuallyResponse);
+  rpc AddExternalLink(AddExternalLinkRequest) returns (AddExternalLinkResponse);
+  rpc BatchUpdateProjectResource (BatchUpdateProjectResourceRequest) returns (ProjectResourceCommonResponse);
+}

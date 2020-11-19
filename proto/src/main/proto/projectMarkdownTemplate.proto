@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package proto;
+
+import "code.proto";
+import "pager.proto";
+
+option java_generic_services = true;
+option java_package = "net.coding.proto.platform.project";
+option java_outer_classname = "ProjectMarkdownTemplateProto";
+
+message ProjectMarkdownTemplate {
+  int32 id = 1;
+  string teamId = 2;
+  int32 projectId = 3;
+  int32 title = 4;
+  string content = 5;
+  int32 defaultScene = 6;
+}
+
+message GetMarkdownTemplateByIdRequest {
+  int32 id = 1;
+}
+
+message GetMarkdownTemplateResponse {
+  int32 code = 1;
+  string message = 2;
+  ProjectMarkdownTemplate projectMarkdownTemplate = 3;
+}
+
+message FindMarkdownTemplateListRequest {
+  int32 projectId = 1;
+}
+
+message FindMarkdownTemplateListResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated ProjectMarkdownTemplate projectMarkdownTemplate = 3;
+}
+
+message AddMarkdownTemplateRequest {
+  int32 teamId = 1;
+  int32 projectId = 2;
+  string title = 3;
+  string content = 4;
+  string defaultScene = 5;
+  int32 userId = 6;
+}
+
+message UpdateMarkdownTemplateRequest {
+  int32 id = 1;
+  int32 teamId = 2;
+  string title = 3;
+  string content = 4;
+  string defaultScene = 5;
+  int32 userId = 6;
+}
+
+message DeleteMarkdownTemplateRequest {
+  int32 id = 1;
+  int32 userId = 2;
+}
+
+message ProjectMarkdownTemplateResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  ProjectMarkdownTemplate projectMarkdownTemplate = 3;
+}
+
+message CommonMarkdownTemplateResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+}
+
+service ProjectMarkdownTemplateService {
+  rpc GetById (GetMarkdownTemplateByIdRequest) returns (GetMarkdownTemplateResponse);
+  rpc FindList (FindMarkdownTemplateListRequest) returns (FindMarkdownTemplateListResponse);
+  rpc Add (AddMarkdownTemplateRequest) returns (ProjectMarkdownTemplateResponse);
+  rpc Update (UpdateMarkdownTemplateRequest) returns (ProjectMarkdownTemplateResponse);
+  rpc Delete (DeleteMarkdownTemplateRequest) returns (CommonMarkdownTemplateResponse);
+}
