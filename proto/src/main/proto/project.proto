@@ -1,0 +1,146 @@
+syntax = "proto3";
+
+package proto;
+
+import "code.proto";
+import "pager.proto";
+
+option java_generic_services = true;
+option java_package = "net.coding.proto.platform.project";
+option java_outer_classname = "ProjectProto";
+
+message AddProjectRequest {
+  int32 userId = 1;
+  string title = 2;
+  string link = 3;
+  int32 projectId = 4;
+}
+
+message Project {
+  int32 userId = 1;
+  string title = 2;
+  string link = 3;
+  int32 projectId = 4;
+  int32 iid = 5;
+  int32 id = 6;
+}
+
+message ProjectResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  Project project = 3;
+}
+
+message DeleteProjectRequest {
+  int32 id = 1;
+}
+
+message ProjectCommonResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+}
+
+message GetProjectByIdRequest {
+  int32 id = 1;
+  bool isDeleted = 2;
+}
+
+message GetProjectByOwnerIdAndNameRequest {
+  int32 ownerId = 1;
+  string name = 2;
+}
+
+message GetProjectByOwnerIdAndDisplayNameRequest {
+  int32 ownerId = 1;
+  string displayName = 2;
+}
+
+message GetProjectByTeamIdAndNameRequest {
+
+}
+
+message FindProjectByTeamOwnerIdRequest {
+  int32 teamId = 1;
+}
+
+message FindProjectListResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated Project project = 3;
+}
+
+message FindGuideProjectsNoDeletedRequest {
+  int32 teamOwnerId = 1;
+}
+
+message FindProjectByUserOwnerIdRequest {
+  int32 teamId = 1;
+}
+
+message FindArchiveAndNotDeletedByIdsRequest {
+  repeated int32 id = 1;
+}
+
+message FindByIdsRequest {
+  repeated int32 id = 1;
+}
+
+message FindByUserIdRequest {
+  int32 userId = 1;
+}
+
+message FindByUserIdAndLabelRequest {
+  int32 userId = 1;
+  string label = 2;
+}
+
+message FindByTypeAndRecommendedRequest {
+  int32 type = 1;
+  int32 recommended = 2;
+}
+
+message FindByTeamIdAndUserIdRequest {
+  int32 teamId = 1;
+  int32 userId = 2;
+  proto.common.PageRequest pageRequest = 3;
+}
+
+message FindProjectPageListResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated Project project = 3;
+  proto.common.PageInfo pageInfo = 4;
+}
+
+message FindSpecificPrivateAndPublicRequest {
+  repeated int32 id = 1;
+  string name = 2;
+  proto.common.PageRequest pageRequest = 3;
+}
+
+message FindPublicRequest {
+  string name = 1;
+  proto.common.PageRequest pageRequest = 2;
+}
+
+service ProjectService {
+  rpc AddProject(AddProjectRequest) returns (ProjectResponse);
+  rpc DeleteProject(DeleteProjectRequest) returns (ProjectCommonResponse);
+  rpc GetProjectById(GetProjectByIdRequest) returns (ProjectResponse);
+  rpc GetProjectByOwnerIdAndName(GetProjectByOwnerIdAndNameRequest) returns (ProjectResponse);
+  rpc GetProjectByOwnerIdAndDisplayName(GetProjectByOwnerIdAndDisplayNameRequest) returns (ProjectResponse);
+  rpc FindProjectByTeamOwnerId(FindProjectByTeamOwnerIdRequest) returns (FindProjectListResponse);
+  rpc FindGuideProjectsNoDeleted(FindGuideProjectsNoDeletedRequest) returns (FindProjectListResponse);
+  rpc FindProjectByUserOwnerId(FindProjectByUserOwnerIdRequest) returns (FindProjectListResponse);
+  rpc FindArchiveAndNotDeletedByIds(FindArchiveAndNotDeletedByIdsRequest) returns (FindProjectListResponse);
+  rpc FindByIds(FindByIdsRequest) returns (FindProjectListResponse);
+  rpc FindByUserId(FindByUserIdRequest) returns (FindProjectListResponse);
+  rpc FindByUserIdAndLabel(FindByUserIdAndLabelRequest) returns (FindProjectListResponse);
+  rpc FindByTypeAndRecommended(FindByTypeAndRecommendedRequest) returns (FindProjectListResponse);
+  rpc FindManagedOfUserInTeam(FindByTeamIdAndUserIdRequest) returns (FindProjectPageListResponse);
+  rpc FindJoinedOfUserInTeam(FindByTeamIdAndUserIdRequest) returns (FindProjectPageListResponse);
+  rpc FindAllOfUserInTeam(FindByTeamIdAndUserIdRequest) returns (FindProjectPageListResponse);
+  rpc FindSpecificPrivateAndPublic(FindSpecificPrivateAndPublicRequest) returns (FindProjectPageListResponse);
+  rpc FindPublic(FindPublicRequest) returns (FindProjectPageListResponse);
+  rpc FindByUserProjects(FindByUserIdRequest) returns (FindProjectListResponse);
+}

@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package proto;
+
+import "code.proto";
+
+option java_generic_services = true;
+option java_package = "net.coding.proto.platform.project";
+option java_outer_classname = "ExternalLinkProto";
+
+message AddExternalLinkRequest {
+  int32 userId = 1;
+  string title = 2;
+  string link = 3;
+  int32 projectId = 4;
+}
+
+message ExternalLink {
+  int32 userId = 1;
+  string title = 2;
+  string link = 3;
+  int32 projectId = 4;
+  int32 iid = 5;
+  int32 id = 6;
+}
+
+message AddExternalLinkResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  ExternalLink externalLink = 3;
+}
+
+service ExternalLinkService {
+  rpc AddExternalLink(AddExternalLinkRequest) returns (AddExternalLinkResponse);
+}

@@ -666,30 +666,6 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
     }
 
     @Override
-    public void addExternalLink(ProjectResourceProto.AddExternalLinkRequest request,
-                                StreamObserver<ProjectResourceProto.AddExternalLinkResponse> response) {
-        log.info("addExternalLink() grpc service receive: {}", request != null ? request.toString() : "");
-        try {
-            ExternalLink externalLink = externalLinkService.add(request.getUserId(), request.getTitle(), request.getLink());
-            ProjectResource record = new ProjectResource();
-            record.setProjectId(request.getProjectId());
-            record.setTitle(request.getTitle());
-            record.setTargetId(externalLink.getId());
-            record.setTargetType(ExternalLink.class.getSimpleName());
-            record.setCreatedBy(request.getUserId());
-            String projectPath = projectGrpcClient.getProjectPath(record.getProjectId());
-            log.info("addProjectResource() record= {}", record.toString());
-            ProjectResource resource = projectResourceServiceHelper.addProjectResource(record, projectPath);
-            externalLink.setIid(resource.getCode());
-            GrpcUtil.addExternalLinkResponse(CodeProto.Code.SUCCESS, "add success", externalLink, response);
-        } catch (Exception ex) {
-            log.error("addExternalLink() callException request={}, ex={}", request != null ? request.toString() : "", ex);
-            GrpcUtil.addExternalLinkResponse(CodeProto.Code.INTERNAL_ERROR,
-                    "findProjectResourceMutuallyList service error",null, response);
-        }
-    }
-
-    @Override
     public void batchUpdateProjectResource(ProjectResourceProto.BatchUpdateProjectResourceRequest request,
                                            StreamObserver<ProjectResourceProto.ProjectResourceCommonResponse> response) {
         log.info("batchUpdateProjectResource() grpc service receive: {}", request != null ? request.toString() : "");

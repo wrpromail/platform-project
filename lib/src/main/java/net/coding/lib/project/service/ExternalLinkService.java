@@ -28,8 +28,10 @@ public class ExternalLinkService {
         ExternalLink externalLink = new ExternalLink();
         externalLink.setCreatorId(userId);
         externalLink.setCreatedAt(DateUtil.getCurrentDate());
+        externalLink.setUpdatedAt(DateUtil.getCurrentDate());
         externalLink.setLink(link);
         externalLink.setTitle(title);
+        externalLink.setProjectId(0);
         externalLinkDao.insert(externalLink);
         return externalLink;
     }

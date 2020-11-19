@@ -26,6 +26,8 @@ public interface ResourceReferenceDao {
 
     int update(ResourceReference resourceReference);
 
+    int deleteById(Map<String, Object> parameter);
+
     int deleteByIds(Map<String, Object> parameter);
 
     int countByTarget(Map<String, Object> parameter);
@@ -54,9 +56,7 @@ public interface ResourceReferenceDao {
 
     List<ResourceReference> findBySelfWithTargetDeleted(Map<String, Object> parameter);
 
-    List<ResourceReference> findByProjectIdWithDeleted(@Param("projectId") Integer projectId);
-
-    List<ResourceReference> findByProjectId(@Param("projectId") Integer projectId);
+    List<ResourceReference> findByProjectId(Map<String, Object> parameter);
 
     ResourceReference getByProjectIdAndCode(Map<String, Object> parameter);
 

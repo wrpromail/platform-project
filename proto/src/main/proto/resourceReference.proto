@@ -19,8 +19,8 @@ message ResourceReference {
   int32 targetIid = 7;
   string targetType = 8;
   int32 id = 9;
-  int64 createAt = 10;
-  int64 updateAt = 11;
+  int64 createdAt = 10;
+  int64 updatedAt = 11;
   string deletedAt = 12;
 }
 
@@ -177,6 +177,7 @@ message FindByProjectIdWithDeletedRequest {
 
 message FindByProjectIdRequest {
   int32 projectId = 1;
+  bool withDeleted = 2;
 }
 
 message GetByProjectIdAndCodeRequest {
@@ -243,6 +244,15 @@ message ExistsResourceReferenceResponse {
   bool existsFlag = 3;
 }
 
+message DeleteByTypeAndIdRequest {
+  string type = 1;
+  int32 id = 2;
+}
+
+message DeleteByProjectIdRequest {
+  int32 projectId = 1;
+}
+
 service ResourceReferenceService {
   rpc SimpleAddResourceReference (SimpleAddResourceReferenceRequest) returns (ResourceReferenceResponse);
   rpc AddResourceReference (AddResourceReferenceRequest) returns (ResourceReferenceResponse);
@@ -250,6 +260,10 @@ service ResourceReferenceService {
   rpc UpdateResourceReference (UpdateResourceReferenceRequest) returns (ResourceReferenceResponse);
   rpc DeleteResourceReferenceByIds (DeleteResourceReferenceByIdsRequest) returns (ResourceReferenceCommonResponse);
   rpc DeleteResourceReferenceById (DeleteResourceReferenceByIdRequest) returns (ResourceReferenceCommonResponse);
+  rpc DeleteSelfByTypeAndId (DeleteByTypeAndIdRequest) returns (ResourceReferenceCommonResponse);
+  rpc DeleteTargetByTypeAndId (DeleteByTypeAndIdRequest) returns (ResourceReferenceCommonResponse);
+  rpc DeleteByTypeAndId (DeleteByTypeAndIdRequest) returns (ResourceReferenceCommonResponse);
+  rpc DeleteByProjectId (DeleteByProjectIdRequest) returns (ResourceReferenceCommonResponse);
   rpc CountByTarget(CountByTargetRequest) returns (CountResourceReferenceResponse);
   rpc CountBySelfWithTargetDeleted(CountBySelfWithTargetDeletedRequest) returns (CountResourceReferenceResponse);
   rpc FindListByTargetType(FindListByTargetTypeRequest) returns (FindResourceReferenceListResponse);
@@ -263,7 +277,6 @@ service ResourceReferenceService {
   rpc FindBySelfWithDescriptionCitedRelation (FindBySelfWithDescriptionCitedRelationRequest) returns (FindResourceReferenceListResponse);
   rpc FindBySelfWithoutDescriptionCitedRelation (FindBySelfWithoutDescriptionCitedRelationRequest) returns (FindResourceReferenceListResponse);
   rpc FindBySelfWithTargetDeleted (FindBySelfWithTargetDeletedRequest) returns (FindResourceReferenceListResponse);
-  rpc FindByProjectIdWithDeleted (FindByProjectIdWithDeletedRequest) returns (FindResourceReferenceListResponse);
   rpc FindByProjectId (FindByProjectIdRequest) returns (FindResourceReferenceListResponse);
   rpc GetByProjectIdAndCode (GetByProjectIdAndCodeRequest) returns (ResourceReferenceResponse);
   rpc GetByTypeAndId (GetByTypeAndIdRequest) returns (ResourceReferenceResponse);

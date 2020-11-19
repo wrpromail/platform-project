@@ -133,7 +133,7 @@ public class ProjectResourceServiceHelper {
                         if(wiki == null) {
                             return false;
                         }
-                        return wikiGrpcClient.wikiCanRead(userId, wiki.getProjectId(), wiki.getId());
+                        return wikiGrpcClient.wikiCanRead(userId, wiki.getProjectId(), wiki.getIid());
                     } else {
                         return true;
                     }

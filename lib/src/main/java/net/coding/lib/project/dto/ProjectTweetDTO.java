@@ -24,8 +24,8 @@ public class ProjectTweetDTO {
     private Integer project_id;
     private Integer owner_id;
     private UserDTO owner;
-    private Timestamp created_at;
-    private Timestamp updated_at;
+    private long created_at;
+    private long updated_at;
     private Integer comments;
     private List<ProjectTweetCommentDTO> comment_list;
     @QiniuCDNReplace
@@ -45,8 +45,8 @@ public class ProjectTweetDTO {
         this.project_id = tweet.getProjectId();
         this.owner_id = tweet.getOwnerId();
         this.content = tweet.getContent();
-        this.created_at = DateUtil.dateToTimestamp(tweet.getCreatedAt());
-        this.updated_at = DateUtil.dateToTimestamp(tweet.getUpdatedAt());
+        this.created_at = tweet.getCreatedAt().getTime();
+        this.updated_at = tweet.getUpdatedAt().getTime();
         this.comments = tweet.getComments();
         this.comment_list = new ArrayList<>();
         this.raw = withRaw ? tweet.getRaw() : null;
