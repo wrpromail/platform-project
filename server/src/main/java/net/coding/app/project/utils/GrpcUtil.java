@@ -4,10 +4,16 @@ import net.coding.lib.project.dto.ProjectResourceDTO;
 import net.coding.lib.project.entity.ExternalLink;
 import net.coding.lib.project.entity.ProjectResource;
 import net.coding.lib.project.entity.ResourceReference;
+import net.coding.lib.project.entity.ResourceReferenceCommentRelation;
 import net.coding.lib.project.utils.DateUtil;
+import net.coding.proto.platform.project.ExternalLinkProto;
+import net.coding.proto.platform.project.ResourceReferenceCommentRelationProto;
 import net.coding.proto.platform.project.ResourceReferenceProto;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -55,7 +61,10 @@ public class GrpcUtil {
                 .setTargetType(resource.getTargetType())
                 .setCode(resource.getCode())
                 .setId(resource.getId())
-                .setUrl(resource.getResourceUrl())
+                .setUrl(defaultStr(resource.getResourceUrl()))
+                .setCreatedAt(defaultLong(resource.getCreatedAt()))
+                .setUpdatedAt(defaultLong(resource.getUpdatedAt()))
+                .setDeletedAt(defaultDateStr(resource.getDeletedAt()))
                 .build();
         return projectResource;
     }
@@ -71,7 +80,10 @@ public class GrpcUtil {
                     .setTargetType(resource.getTargetType())
                     .setCode(resource.getCode())
                     .setId(resource.getId())
-                    .setUrl(Objects.nonNull(resource.getResourceUrl()) ? resource.getResourceUrl() : "")
+                    .setUrl(defaultStr(resource.getResourceUrl()))
+                    .setCreatedAt(defaultLong(resource.getCreatedAt()))
+                    .setUpdatedAt(defaultLong(resource.getUpdatedAt()))
+                    .setDeletedAt(defaultDateStr(resource.getDeletedAt()))
                     .build();
             result.add(projectResource);
         });
@@ -221,17 +233,18 @@ public class GrpcUtil {
 
     public static ResourceReferenceProto.ResourceReference getResourceReference(ResourceReference reference) {
         ResourceReferenceProto.ResourceReference resourceReference = ResourceReferenceProto.ResourceReference.newBuilder()
-                .setSelfId(reference.getSelfId())
-                .setSelfProjectId(reference.getSelfProjectId())
-                .setSelfIid(reference.getSelfIid())
-                .setSelfType(reference.getSelfType())
-                .setTargetId(reference.getTargetId())
-                .setTargetProjectId(reference.getTargetProjectId())
-                .setTargetType(reference.getTargetType())
-                .setId(reference.getId())
-                .setCreateAt(reference.getCreatedAt().getTime())
-                .setUpdateAt(reference.getUpdatedAt().getTime())
-                .setDeletedAt(DateUtil.dateToStr(reference.getDeletedAt()))
+                .setSelfId(defaultInt(reference.getSelfId()))
+                .setSelfProjectId(defaultInt(reference.getSelfProjectId()))
+                .setSelfIid(defaultInt(reference.getSelfIid()))
+                .setSelfType(defaultStr(reference.getSelfType()))
+                .setTargetId(defaultInt(reference.getTargetId()))
+                .setTargetProjectId(defaultInt(reference.getTargetProjectId()))
+                .setTargetIid(defaultInt(reference.getTargetIid()))
+                .setTargetType(defaultStr(reference.getTargetType()))
+                .setId(defaultInt(reference.getId()))
+                .setCreatedAt(defaultLong(reference.getCreatedAt()))
+                .setUpdatedAt(defaultLong(reference.getUpdatedAt()))
+                .setDeletedAt(defaultDateStr(reference.getDeletedAt()))
                 .build();
         return resourceReference;
     }
@@ -268,21 +281,47 @@ public class GrpcUtil {
         List<ResourceReferenceProto.ResourceReference> resourceReferenceList = new ArrayList<>();
         references.forEach(reference -> {
             ResourceReferenceProto.ResourceReference resourceReference = ResourceReferenceProto.ResourceReference.newBuilder()
-                    .setSelfId(reference.getSelfId())
-                    .setSelfProjectId(reference.getSelfProjectId())
-                    .setSelfIid(reference.getSelfIid())
-                    .setSelfType(reference.getSelfType())
-                    .setTargetId(reference.getTargetId())
-                    .setTargetProjectId(reference.getTargetProjectId())
-                    .setTargetType(reference.getTargetType())
-                    .setId(reference.getId())
-                    .setCreateAt(reference.getCreatedAt().getTime())
-                    .setUpdateAt(reference.getUpdatedAt().getTime())
-                    .setDeletedAt(DateUtil.dateToStr(reference.getDeletedAt()))
+                    .setSelfId(defaultInt(reference.getSelfId()))
+                    .setSelfProjectId(defaultInt(reference.getSelfProjectId()))
+                    .setSelfIid(defaultInt(reference.getSelfIid()))
+                    .setSelfType(defaultStr(reference.getSelfType()))
+                    .setTargetId(defaultInt(reference.getTargetId()))
+                    .setTargetProjectId(defaultInt(reference.getTargetProjectId()))
+                    .setTargetIid(defaultInt(reference.getTargetIid()))
+                    .setTargetType(defaultStr(reference.getTargetType()))
+                    .setId(defaultInt(reference.getId()))
+                    .setCreatedAt(defaultLong(reference.getCreatedAt()))
+                    .setUpdatedAt(defaultLong(reference.getUpdatedAt()))
+                    .setDeletedAt(defaultDateStr(reference.getDeletedAt()))
                     .build();
             resourceReferenceList.add(resourceReference);
         });
         return resourceReferenceList;
+    }
+
+    public static String defaultStr(String obj) {
+        return StringUtils.isNotEmpty(obj) ? obj : "";
+    }
+
+    public static Integer defaultInt(Integer obj) {
+        if(null != obj) {
+            return obj;
+        }
+        return 0;
+    }
+
+    public static long defaultLong(Date time) {
+        if(Objects.nonNull(time)) {
+            return time.getTime();
+        }
+        return 0L;
+    }
+
+    public static String defaultDateStr(Date time) {
+        if(Objects.nonNull(time)) {
+            return DateUtil.dateToStr(time);
+        }
+        return "";
     }
 
     public static void findResourceReferenceListResponse(CodeProto.Code code, String message,
@@ -328,9 +367,9 @@ public class GrpcUtil {
     }
 
     public static void addExternalLinkResponse(CodeProto.Code code, String message, ExternalLink externalLink,
-                                               StreamObserver<ProjectResourceProto.AddExternalLinkResponse> response) {
+                                               StreamObserver<ExternalLinkProto.AddExternalLinkResponse> response) {
         if(CodeProto.Code.SUCCESS.equals(code)) {
-            ProjectResourceProto.ExternalLink data = ProjectResourceProto.ExternalLink.newBuilder()
+            ExternalLinkProto.ExternalLink data = ExternalLinkProto.ExternalLink.newBuilder()
                     .setId(externalLink.getId())
                     .setUserId(externalLink.getCreatorId())
                     .setTitle(externalLink.getTitle())
@@ -338,7 +377,7 @@ public class GrpcUtil {
                     .setProjectId(externalLink.getProjectId())
                     .setIid(externalLink.getIid())
                     .build();
-            ProjectResourceProto.AddExternalLinkResponse build = ProjectResourceProto.AddExternalLinkResponse.newBuilder()
+            ExternalLinkProto.AddExternalLinkResponse build = ExternalLinkProto.AddExternalLinkResponse.newBuilder()
                     .setCode(code)
                     .setMessage(message)
                     .setExternalLink(data)
@@ -346,7 +385,7 @@ public class GrpcUtil {
             response.onNext(build);
             response.onCompleted();
         } else {
-            ProjectResourceProto.AddExternalLinkResponse build = ProjectResourceProto.AddExternalLinkResponse.newBuilder()
+            ExternalLinkProto.AddExternalLinkResponse build = ExternalLinkProto.AddExternalLinkResponse.newBuilder()
                     .setCode(code)
                     .setMessage(message)
                     .build();
@@ -367,6 +406,135 @@ public class GrpcUtil {
             response.onCompleted();
         } else {
             ResourceReferenceProto.ExistsResourceReferenceResponse build = ResourceReferenceProto.ExistsResourceReferenceResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        }
+    }
+
+    public static void addCommentRelationResponse(CodeProto.Code code, String message, ResourceReferenceCommentRelationProto.CommentRelation commentRelation,
+                                                 StreamObserver<ResourceReferenceCommentRelationProto.AddCommentRelationResponse> response) {
+        if(CodeProto.Code.SUCCESS.equals(code)) {
+            ResourceReferenceCommentRelationProto.AddCommentRelationResponse build = ResourceReferenceCommentRelationProto.AddCommentRelationResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .setCommentRelation(commentRelation)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        } else {
+            ResourceReferenceCommentRelationProto.AddCommentRelationResponse build = ResourceReferenceCommentRelationProto.AddCommentRelationResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        }
+    }
+
+    public static ResourceReferenceCommentRelationProto.CommentRelation getCommentRelation(ResourceReferenceCommentRelation record) {
+        ResourceReferenceCommentRelationProto.CommentRelation commentRelation = ResourceReferenceCommentRelationProto.CommentRelation.newBuilder()
+                .setProjectId(record.getProjectId())
+                .setResourceReferenceId(record.getResourceReferenceId())
+                .setResourceType(record.getResourceType())
+                .setCitedSource(record.getCitedSource())
+                .setCommentId(record.getCommentId())
+                .setId(record.getId())
+                .build();
+        return commentRelation;
+    }
+
+    public static void commentRelationCommonResponse(CodeProto.Code code, String message, StreamObserver<ResourceReferenceCommentRelationProto.CommentRelationCommonResponse> response) {
+        ResourceReferenceCommentRelationProto.CommentRelationCommonResponse build = ResourceReferenceCommentRelationProto.CommentRelationCommonResponse.newBuilder()
+                .setCode(code)
+                .setMessage(message)
+                .build();
+        response.onNext(build);
+        response.onCompleted();
+    }
+
+    public static List<ResourceReferenceCommentRelationProto.CommentRelation> getCommentRelationList(List<ResourceReferenceCommentRelation> resourceReferenceCommentRelationList) {
+        List<ResourceReferenceCommentRelationProto.CommentRelation> resourceReferenceList = new ArrayList<>();
+        resourceReferenceCommentRelationList.forEach(record -> {
+            ResourceReferenceCommentRelationProto.CommentRelation commentRelation = ResourceReferenceCommentRelationProto.CommentRelation.newBuilder()
+                    .setProjectId(record.getProjectId())
+                    .setResourceReferenceId(record.getResourceReferenceId())
+                    .setResourceType(record.getResourceType())
+                    .setCitedSource(record.getCitedSource())
+                    .setCommentId(record.getCommentId())
+                    .setId(record.getId())
+                    .setCreatedAt(record.getCreatedAt().getTime())
+                    .setUpdatedAt(record.getUpdatedAt().getTime())
+                    .setDeletedAt(record.getDeletedAt().getTime())
+                    .build();
+            resourceReferenceList.add(commentRelation);
+        });
+        return resourceReferenceList;
+    }
+
+    public static void findCommentRelationListResponse(CodeProto.Code code, String message,
+                                                         List<ResourceReferenceCommentRelation> resourceReferenceCommentRelationList,
+                                                         StreamObserver<ResourceReferenceCommentRelationProto.FindCommentRelationResponse> response) {
+        if(CodeProto.Code.SUCCESS.equals(code)) {
+            ResourceReferenceCommentRelationProto.FindCommentRelationResponse build = ResourceReferenceCommentRelationProto.FindCommentRelationResponse
+                    .newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .addAllCommentRelation(getCommentRelationList(resourceReferenceCommentRelationList))
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        } else {
+            ResourceReferenceCommentRelationProto.FindCommentRelationResponse build = ResourceReferenceCommentRelationProto.FindCommentRelationResponse
+                    .newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        }
+    }
+
+    public static void findReferenceIdsResponse(CodeProto.Code code, String message,
+                                                       List<Integer> resourceIdList,
+                                                       StreamObserver<ResourceReferenceCommentRelationProto.FindReferenceIdsResponse> response) {
+        if(CodeProto.Code.SUCCESS.equals(code)) {
+            ResourceReferenceCommentRelationProto.FindReferenceIdsResponse build = ResourceReferenceCommentRelationProto.FindReferenceIdsResponse
+                    .newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .addAllReferenceIds(resourceIdList)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        } else {
+            ResourceReferenceCommentRelationProto.FindReferenceIdsResponse build = ResourceReferenceCommentRelationProto.FindReferenceIdsResponse
+                    .newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        }
+    }
+
+    public static void hasCommentResponse(CodeProto.Code code, String message,
+                                          boolean isComment,
+                                          StreamObserver<ResourceReferenceCommentRelationProto.HasCommentResponse> response) {
+        if(CodeProto.Code.SUCCESS.equals(code)) {
+            ResourceReferenceCommentRelationProto.HasCommentResponse build = ResourceReferenceCommentRelationProto.HasCommentResponse
+                    .newBuilder()
+                    .setCode(code)
+                    .setIsComment(isComment)
+                    .setMessage(message)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        } else {
+            ResourceReferenceCommentRelationProto.HasCommentResponse build = ResourceReferenceCommentRelationProto.HasCommentResponse
+                    .newBuilder()
                     .setCode(code)
                     .setMessage(message)
                     .build();

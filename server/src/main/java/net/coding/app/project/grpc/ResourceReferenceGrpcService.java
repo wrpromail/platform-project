@@ -4,7 +4,6 @@ import net.coding.app.project.utils.GrpcUtil;
 import net.coding.lib.project.entity.ProjectResource;
 import net.coding.lib.project.entity.ResourceReference;
 import net.coding.lib.project.service.ProjectResourceService;
-import net.coding.lib.project.service.ProjectService;
 import net.coding.lib.project.service.ResourceReferenceService;
 import net.coding.lib.project.utils.DateUtil;
 import net.coding.proto.platform.project.ResourceReferenceProto;
@@ -43,7 +42,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                 return;
             }
             ResourceReference record = resourceReferenceService.getByProjectIdAndCode(request.getProjectId(), request.getSelfIid(), request.getTargetProjectId(), request.getTargetIid());
-            if (Objects.isNull(record)) {
+            if (Objects.nonNull(record)) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "simpleAddResourceReference ResourceReference is empty", null, response);
                 return;
             }
@@ -188,6 +187,27 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     }
 
     @Override
+    public void deleteResourceReferenceById(ResourceReferenceProto.DeleteResourceReferenceByIdRequest request,
+                                             StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
+        try {
+            log.info("deleteResourceReferenceById() grpc service receive: {}", request != null ? request.toString() : "");
+            if (request.getId() < 0) {
+                GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "deleteResourceReferenceById param error", response);
+                return;
+            }
+            int deleteFlag = resourceReferenceService.deleteById(request.getId());
+            if (0 < deleteFlag) {
+                GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.SUCCESS, "delete success", response);
+            } else {
+                GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
+            }
+        } catch (Exception ex) {
+            log.error("deleteResourceReferenceById() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
+        }
+    }
+
+    @Override
     public void deleteResourceReferenceByIds(ResourceReferenceProto.DeleteResourceReferenceByIdsRequest request,
                                              StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
         try {
@@ -204,6 +224,90 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
             }
         } catch (Exception ex) {
             log.error("deleteResourceReferenceByIds() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
+        }
+    }
+
+    @Override
+    public void deleteSelfByTypeAndId(ResourceReferenceProto.DeleteByTypeAndIdRequest request,
+                                             StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
+        try {
+            log.info("deleteSelfByTypeAndId() grpc service receive: {}", request != null ? request.toString() : "");
+            if (StringUtils.isEmpty(request.getType()) || request.getId() <= 0) {
+                GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "deleteSelfByTypeAndId param error", response);
+                return;
+            }
+            int deleteFlag = resourceReferenceService.deleteSelfByTypeAndId(request.getType(), request.getId());
+            if (0 < deleteFlag) {
+                GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.SUCCESS, "delete success", response);
+            } else {
+                GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
+            }
+        } catch (Exception ex) {
+            log.error("deleteSelfByTypeAndId() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
+        }
+    }
+
+    @Override
+    public void deleteTargetByTypeAndId(ResourceReferenceProto.DeleteByTypeAndIdRequest request,
+                                      StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
+        try {
+            log.info("deleteTargetByTypeAndId() grpc service receive: {}", request != null ? request.toString() : "");
+            if (StringUtils.isEmpty(request.getType()) || request.getId() <= 0) {
+                GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "deleteTargetByTypeAndId param error", response);
+                return;
+            }
+            int deleteFlag = resourceReferenceService.deleteTargetByTypeAndId(request.getType(), request.getId());
+            if (0 < deleteFlag) {
+                GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.SUCCESS, "delete success", response);
+            } else {
+                GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
+            }
+        } catch (Exception ex) {
+            log.error("deleteTargetByTypeAndId() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
+        }
+    }
+
+    @Override
+    public void deleteByTypeAndId(ResourceReferenceProto.DeleteByTypeAndIdRequest request,
+                                        StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
+        try {
+            log.info("deleteByTypeAndId() grpc service receive: {}", request != null ? request.toString() : "");
+            if (StringUtils.isEmpty(request.getType()) || request.getId() <= 0) {
+                GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "deleteByTypeAndId param error", response);
+                return;
+            }
+            int deleteFlag = resourceReferenceService.deleteByTypeAndId(request.getType(), request.getId());
+            if (0 < deleteFlag) {
+                GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.SUCCESS, "delete success", response);
+            } else {
+                GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
+            }
+        } catch (Exception ex) {
+            log.error("deleteByTypeAndId() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
+        }
+    }
+
+    @Override
+    public void deleteByProjectId(ResourceReferenceProto.DeleteByProjectIdRequest request,
+                                  StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
+        try {
+            log.info("deleteByProjectId() grpc service receive: {}", request != null ? request.toString() : "");
+            if (request.getProjectId() <= 0) {
+                GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "deleteByProjectId param error", response);
+                return;
+            }
+            int deleteFlag = resourceReferenceService.deleteByProjectId(request.getProjectId());
+            if (0 < deleteFlag) {
+                GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.SUCCESS, "delete success", response);
+            } else {
+                GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
+            }
+        } catch (Exception ex) {
+            log.error("deleteByProjectId() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
         }
     }
@@ -452,25 +556,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     }
 
     @Override
-    public void findByProjectIdWithDeleted(ResourceReferenceProto.FindByProjectIdWithDeletedRequest request,
-                                           StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
-        try {
-            log.info("findByProjectIdWithDeleted() grpc service receive: {}", request != null ? request.toString() : "");
-            if (request.getProjectId() <= 0) {
-                GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INVALID_PARAMETER, "findByProjectIdWithDeleted param error", null, response);
-                return;
-            }
-            GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.SUCCESS,
-                    "find success",
-                    resourceReferenceService.findByProjectIdWithDeleted(request.getProjectId()),
-                    response);
-        } catch (Exception ex) {
-            log.error("findByProjectIdWithDeleted() callException request={}, ex={}", request != null ? request.toString() : "", ex);
-            GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INTERNAL_ERROR, "find error", null, response);
-        }
-    }
-
-    @Override
     public void findByProjectId(ResourceReferenceProto.FindByProjectIdRequest request,
                                            StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
         try {
@@ -481,7 +566,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
             }
             GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.SUCCESS,
                     "find success",
-                    resourceReferenceService.findByProjectId(request.getProjectId()),
+                    resourceReferenceService.findByProjectId(request.getProjectId(), request.getWithDeleted()),
                     response);
         } catch (Exception ex) {
             log.error("findByProjectId() callException request={}, ex={}", request != null ? request.toString() : "", ex);
@@ -499,11 +584,15 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
             }
             ResourceReference resourceReference = resourceReferenceService.getByProjectIdAndCode(request.getSelfProjectId(),
                     request.getSelfCode(), request.getTargetProjectId(), request.getTargetCode());
-            GrpcUtil.resourceReferenceResponse(CodeProto.Code.SUCCESS,
-                    "get success",
-                    GrpcUtil.getResourceReference(resourceReference),
-                    response
-            );
+            if(Objects.nonNull(resourceReference)) {
+                GrpcUtil.resourceReferenceResponse(CodeProto.Code.SUCCESS,
+                        "get success",
+                        GrpcUtil.getResourceReference(resourceReference),
+                        response
+                );
+            } else {
+                GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "result is empty", null, response);
+            }
         } catch (Exception ex) {
             log.error("getByProjectIdAndCode() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.resourceReferenceResponse(CodeProto.Code.INTERNAL_ERROR, "get error", null, response);
@@ -520,11 +609,15 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
             }
             ResourceReference resourceReference = resourceReferenceService.getByTypeAndId(request.getSelfType(),
                     request.getSelfId(), request.getTargetType(), request.getTargetId());
-            GrpcUtil.resourceReferenceResponse(CodeProto.Code.SUCCESS,
-                    "get success",
-                    GrpcUtil.getResourceReference(resourceReference),
-                    response
-            );
+            if(Objects.nonNull(resourceReference)) {
+                GrpcUtil.resourceReferenceResponse(CodeProto.Code.SUCCESS,
+                        "get success",
+                        GrpcUtil.getResourceReference(resourceReference),
+                        response
+                );
+            } else {
+                GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "result is empty", null, response);
+            }
         } catch (Exception ex) {
             log.error("getByTypeAndId() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.resourceReferenceResponse(CodeProto.Code.INTERNAL_ERROR, "get error", null, response);
@@ -542,11 +635,15 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
             }
             ResourceReference resourceReference = resourceReferenceService.getOptional(request.getSelfProjectId(),
                     request.getSelfType(), request.getSelfId(), request.getTargetType());
-            GrpcUtil.resourceReferenceResponse(CodeProto.Code.SUCCESS,
-                    "get success",
-                    GrpcUtil.getResourceReference(resourceReference),
-                    response
-            );
+            if(Objects.nonNull(resourceReference)) {
+                GrpcUtil.resourceReferenceResponse(CodeProto.Code.SUCCESS,
+                        "get success",
+                        GrpcUtil.getResourceReference(resourceReference),
+                        response
+                );
+            } else {
+                GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "result is empty", null, response);
+            }
         } catch (Exception ex) {
             log.error("getOptional() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.resourceReferenceResponse(CodeProto.Code.INTERNAL_ERROR, "get error", null, response);
@@ -562,11 +659,15 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "getWithDeletedById param error", null, response);
             }
             ResourceReference resourceReference = resourceReferenceService.getById(request.getId(), request.getWithDeleted());
-            GrpcUtil.resourceReferenceResponse(CodeProto.Code.SUCCESS,
-                    "get success",
-                    GrpcUtil.getResourceReference(resourceReference),
-                    response
-            );
+            if(Objects.nonNull(resourceReference)) {
+                GrpcUtil.resourceReferenceResponse(CodeProto.Code.SUCCESS,
+                        "get success",
+                        GrpcUtil.getResourceReference(resourceReference),
+                        response
+                );
+            } else {
+                GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "result is empty", null, response);
+            }
         } catch (Exception ex) {
             log.error("getWithDeletedById() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.resourceReferenceResponse(CodeProto.Code.INTERNAL_ERROR, "get error", null, response);

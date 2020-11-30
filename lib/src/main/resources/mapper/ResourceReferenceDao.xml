@@ -89,37 +89,37 @@
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="selfId != null">
-        #{selfId,jdbcType=INTEGER},
+        #{selfId},
       </if>
       <if test="selfProjectId != null">
-        #{selfProjectId,jdbcType=INTEGER},
+        #{selfProjectId},
       </if>
       <if test="selfIid != null">
-        #{selfIid,jdbcType=INTEGER},
+        #{selfIid},
       </if>
       <if test="selfType != null">
-        #{selfType,jdbcType=VARCHAR},
+        #{selfType},
       </if>
       <if test="targetId != null">
-        #{targetId,jdbcType=INTEGER},
+        #{targetId},
       </if>
       <if test="targetProjectId != null">
-        #{targetProjectId,jdbcType=INTEGER},
+        #{targetProjectId},
       </if>
       <if test="targetIid != null">
-        #{targetIid,jdbcType=INTEGER},
+        #{targetIid},
       </if>
       <if test="targetType != null">
-        #{targetType,jdbcType=VARCHAR},
+        #{targetType},
       </if>
       <if test="createdAt != null">
-        #{createdAt,jdbcType=TIMESTAMP},
+        #{createdAt},
       </if>
       <if test="updatedAt != null">
-        #{updatedAt,jdbcType=TIMESTAMP},
+        #{updatedAt},
       </if>
       <if test="deletedAt != null">
-        #{deletedAt,jdbcType=TIMESTAMP},
+        #{deletedAt},
       </if>
     </trim>
   </insert>
@@ -228,47 +228,61 @@
     update resource_references
     <set>
       <if test="selfId != null">
-        self_id = #{selfId,jdbcType=INTEGER},
+        self_id = #{selfId},
       </if>
       <if test="selfProjectId != null">
-        self_project_id = #{selfProjectId,jdbcType=INTEGER},
+        self_project_id = #{selfProjectId},
       </if>
       <if test="selfIid != null">
-        self_iid = #{selfIid,jdbcType=INTEGER},
+        self_iid = #{selfIid},
       </if>
       <if test="selfType != null">
-        self_type = #{selfType,jdbcType=VARCHAR},
+        self_type = #{selfType},
       </if>
       <if test="targetId != null">
-        target_id = #{targetId,jdbcType=INTEGER},
+        target_id = #{targetId},
       </if>
       <if test="targetProjectId != null">
-        target_project_id = #{targetProjectId,jdbcType=INTEGER},
+        target_project_id = #{targetProjectId},
       </if>
       <if test="targetIid != null">
-        target_iid = #{targetIid,jdbcType=INTEGER},
+        target_iid = #{targetIid},
       </if>
       <if test="targetType != null">
-        target_type = #{targetType,jdbcType=VARCHAR},
+        target_type = #{targetType},
       </if>
       <if test="createdAt != null">
-        created_at = #{createdAt,jdbcType=TIMESTAMP},
+        created_at = #{createdAt},
       </if>
       <if test="updatedAt != null">
-        updated_at = #{updatedAt,jdbcType=TIMESTAMP},
+        updated_at = #{updatedAt},
       </if>
       <if test="deletedAt != null">
-        deleted_at = #{deletedAt,jdbcType=TIMESTAMP},
+        deleted_at = #{deletedAt},
       </if>
     </set>
     where id = #{id,jdbcType=INTEGER}
+  </update>
+
+  <update id="deleteById" parameterType="map">
+    update resource_references
+    <set>
+      <if test="deletedAt != null">
+        deleted_at = #{deletedAt},
+      </if>
+    </set>
+    <where>
+      <if test="id != null">
+        id = #{id},
+      </if>
+    </where>
   </update>
 
   <update id="deleteByIds" parameterType="map">
     update resource_references
     <set>
       <if test="deletedAt != null">
-        deleted_at = #{deletedAt,jdbcType=TIMESTAMP},
+        deleted_at = #{deletedAt},
       </if>
     </set>
     <where>
@@ -327,7 +341,7 @@
       <if test="targetType != null">
         AND target_type = #{targetType}
       </if>
-      <if test="targetIds != null">
+      <if test="targetId != null">
         AND target_id = #{targetId}
       </if>
       <if test="deletedAt != null">
@@ -487,23 +501,19 @@
       and rrcr.deleted_at = '1970-01-01 00:00:00')))
   </select>
 
-  <select id="findByProjectIdWithDeleted" parameterType="int" resultMap="BaseResultMap">
+  <select id="findByProjectId" parameterType="map" resultMap="BaseResultMap">
     SELECT
       *
     FROM
       resource_references
-    WHERE
-      self_project_id = #{projectId} OR target_project_id = #{projectId}
-  </select>
-
-  <select id="findByProjectId" parameterType="int" resultMap="BaseResultMap">
-    SELECT
-      *
-    FROM
-      resource_references
-    WHERE
-      ( self_project_id = #{projectId} OR target_project_id = #{projectId} )
-      AND deleted_at = '1970-01-01 00:00:00'
+    <where>
+      <if test="projectId != null">
+        AND ( self_project_id = #{projectId} OR target_project_id = #{projectId} )
+      </if>
+      <if test="deletedAt != null">
+        AND deleted_at = #{deletedAt}
+      </if>
+    </where>
   </select>
 
   <select id="getByProjectIdAndCode" parameterType="map" resultMap="BaseResultMap">

@@ -55,6 +55,13 @@ public class ResourceReferenceService {
         return resourceReferenceDao.update(resourceReference);
     }
 
+    public int deleteById(Integer id) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("deletedAt", DateUtil.getCurrentDate());
+        parameters.put("id", id);
+        return resourceReferenceDao.deleteById(parameters);
+    }
+
     public int deleteByIds(List<Integer> ids) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("deletedAt", DateUtil.getCurrentDate());
@@ -62,10 +69,56 @@ public class ResourceReferenceService {
         return resourceReferenceDao.deleteByIds(parameters);
     }
 
-    public int countByTarget(Integer targetProjectId, Integer targetId) {
+    public int deleteSelfByTypeAndId(String selfType, Integer selfId) {
+        List<ResourceReference> resourceReferenceList = findListBySelfType(selfType, selfId);
+        List<Integer> ids = resourceReferenceList
+                .stream()
+                .map(ResourceReference::getId)
+                .collect(Collectors.toList());
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("deletedAt", DateUtil.getCurrentDate());
+        parameters.put("ids", ids);
+        return resourceReferenceDao.deleteByIds(parameters);
+    }
+
+    public int deleteTargetByTypeAndId(String targetType, Integer targetId) {
+        List<ResourceReference> resourceReferenceList = findListByTargetType(targetType, targetId);
+        List<Integer> ids = resourceReferenceList
+                .stream()
+                .map(ResourceReference::getId)
+                .collect(Collectors.toList());
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("deletedAt", DateUtil.getCurrentDate());
+        parameters.put("ids", ids);
+        return resourceReferenceDao.deleteByIds(parameters);
+    }
+
+    public int deleteByTypeAndId(String type, Integer id) {
+        int selfDelete = deleteSelfByTypeAndId(type, id);
+        int targetDelete = deleteTargetByTypeAndId(type, id);
+        if(targetDelete > 0 && selfDelete > 0) {
+            return 1;
+        }
+        return 0;
+    }
+
+    public int deleteByProjectId(Integer projectId) {
+        List<ResourceReference> resourceReferenceList = findByProjectId(projectId, false);
+        List<Integer> ids = resourceReferenceList
+                .stream()
+                .map(ResourceReference::getId)
+                .collect(Collectors.toList());
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("deletedAt", DateUtil.getCurrentDate());
+        parameters.put("ids", ids);
+        return resourceReferenceDao.deleteByIds(parameters);
+    }
+
+    public int countByTarget(Integer targetProjectId, Integer targetIid) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("targetProjectId", targetProjectId);
-        parameters.put("targetId", targetId);
+        parameters.put("targetIid", targetIid);
+        parameters.put("deletedAt", "1970-01-01 00:00:00");
         return resourceReferenceDao.countByTarget(parameters);
     }
 
@@ -98,7 +151,7 @@ public class ResourceReferenceService {
                             if(wiki == null) {
                                 return false;
                             }
-                            return wikiGrpcClient.wikiCanRead(userId, wiki.getProjectId(), wiki.getId());
+                            return wikiGrpcClient.wikiCanRead(userId, wiki.getProjectId(), wiki.getIid());
                         } else {
                             return true;
                         }
@@ -147,7 +200,7 @@ public class ResourceReferenceService {
                             if(wiki == null) {
                                 return false;
                             }
-                            return wikiGrpcClient.wikiCanRead(userId, wiki.getProjectId(), wiki.getId());
+                            return wikiGrpcClient.wikiCanRead(userId, wiki.getProjectId(), wiki.getIid());
                         } else {
                             return true;
                         }
@@ -202,32 +255,35 @@ public class ResourceReferenceService {
                             if(wiki == null) {
                                 return false;
                             }
-                            return wikiGrpcClient.wikiCanRead(userId, wiki.getProjectId(), wiki.getId());
+                            return wikiGrpcClient.wikiCanRead(userId, wiki.getProjectId(), wiki.getIid());
                         } else {
                             return true;
                         }
                     })
                     .collect(Collectors.toList());
+            log.info("findBySelfWithTargetDeleted resourceReferences={}", resourceReferences.toString());
             return resourceReferences;
         } else {
             return resourceReferenceDao.findBySelfWithTargetDeleted(parameters);
         }
     }
 
-    public List<ResourceReference> findByProjectIdWithDeleted(Integer projectId) {
-        return resourceReferenceDao.findByProjectIdWithDeleted(projectId);
-    }
-
-    public List<ResourceReference> findByProjectId(Integer projectId) {
-        return resourceReferenceDao.findByProjectId(projectId);
+    public List<ResourceReference> findByProjectId(Integer projectId, boolean withDeleted) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("projectId", projectId);
+        if(false == withDeleted) {
+            parameters.put("deletedAt", "1970-01-01 00:00:00");
+        }
+        return resourceReferenceDao.findByProjectId(parameters);
     }
 
     public ResourceReference getByProjectIdAndCode(Integer selfProjectId, Integer selfCode, Integer targetProjectId, Integer targetCode) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("selfProjectId", selfProjectId);
-        parameters.put("selfCode", selfCode);
+        parameters.put("selfIid", selfCode);
         parameters.put("targetProjectId", targetProjectId);
-        parameters.put("targetCode", targetCode);
+        parameters.put("targetIid", targetCode);
+        parameters.put("deletedAt", "1970-01-01 00:00:00");
         return resourceReferenceDao.getByProjectIdAndCode(parameters);
     }
 
@@ -237,6 +293,7 @@ public class ResourceReferenceService {
         parameters.put("selfId", selfId);
         parameters.put("targetType", targetType);
         parameters.put("targetId", targetId);
+        parameters.put("deletedAt", "1970-01-01 00:00:00");
         return resourceReferenceDao.getByTypeAndId(parameters);
     }
 
@@ -246,6 +303,7 @@ public class ResourceReferenceService {
         parameters.put("selfType", selfType);
         parameters.put("selfId", selfId);
         parameters.put("targetType", targetType);
+        parameters.put("deletedAt", "1970-01-01 00:00:00");
         return resourceReferenceDao.getOptional(parameters);
     }
 

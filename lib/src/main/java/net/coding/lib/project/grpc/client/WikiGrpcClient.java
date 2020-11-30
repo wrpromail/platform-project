@@ -34,7 +34,9 @@ public class WikiGrpcClient extends EndpointGrpcClient<WikiServiceGrpc.WikiServi
                 .setProjectId(projectId)
                 .setIid(iid)
                 .build();
+        log.info("WikiGrpcClient.getWikiByProjectIdAndIidWithoutRecycleBin request={}", request.toString());
         WikiProto.GetWikiByProjectIdAndIidResponse response = newStub().getWikiByProjectIdAndIidWithoutRecycleBin(request);
+        log.info("WikiGrpcClient.getWikiByProjectIdAndIidWithoutRecycleBin response={}", response.toString());
         if(response.getCode() == 0) {
             return response.getData();
         }
@@ -47,7 +49,9 @@ public class WikiGrpcClient extends EndpointGrpcClient<WikiServiceGrpc.WikiServi
                 .setUserId(userId)
                 .setWikiIid(wikiIid)
                 .build();
+        log.info("WikiGrpcClient.wikiCanRead request={}", request.toString());
         WikiProto.WikiCanReadResponse response = newStub().wikiCanRead(request);
+        log.info("WikiGrpcClient.wikiCanRead response={}", response.toString());
         if(response.getCode() == 0) {
             return response.getData();
         }

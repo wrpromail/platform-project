@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+package proto;
+
+import "code.proto";
+import "pager.proto";
+
+option java_generic_services = true;
+option java_package = "net.coding.proto.platform.project";
+option java_outer_classname = "ResourceReferenceCommentRelationProto";
+
+message CommentRelation {
+  int32 projectId = 1;
+  int32 resourceReferenceId = 2;
+  string resourceType = 3;
+  string citedSource = 4;
+  int32 commentId = 5;
+  int64 id = 6;
+  int64 createdAt = 7;
+  int64 updatedAt = 8;
+  int64 deletedAt = 9;
+}
+
+message AddCommentRelationRequest {
+  int32 projectId = 1;
+  int32 resourceReferenceId = 2;
+  string resourceType = 3;
+  string citedSource = 4;
+  int32 commentId = 5;
+  int64 createdAt = 6;
+  int64 updatedAt = 7;
+  string deletedAt = 8;
+}
+
+message BatchAddCommentRelationRequest {
+  repeated AddCommentRelationRequest addCommentRelationRequest = 1;
+}
+
+message AddCommentRelationResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  CommentRelation commentRelation = 3;
+}
+
+message DeleteByReferenceIdsRequest {
+  repeated int32 referenceId = 1;
+  bool isDescription = 2;
+}
+
+message DeleteByCommentIdAndReferenceIdsRequest {
+  int32 commentId = 1;
+  repeated int32 referenceId = 2;
+}
+
+message CommentRelationCommonResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+}
+
+message FindByResourceReferenceIdRequest {
+  int32 referenceId = 1;
+}
+
+message FindCommentRelationResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated CommentRelation commentRelation = 3;
+}
+
+message FindReferenceIdsRequest {
+  repeated int32 referenceId = 1;
+  int32 number = 2;
+}
+
+message FindReferenceIdsResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated int32 referenceIds = 3;
+}
+
+message FindUsedReferenceIdsWithoutDescriptionRequest {
+  repeated int32 referenceId = 1;
+}
+
+message HasCommentRequest {
+  int32 referenceId = 1;
+}
+
+message HasCommentResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  bool isComment = 3;
+}
+
+message FindByCommentIdAndCommentTypeRequest {
+  int32 commentId = 1;
+  string resourceType = 2;
+}
+
+service ResourceReferenceCommentRelationService {
+  rpc AddCommentRelation (AddCommentRelationRequest) returns (AddCommentRelationResponse);
+  rpc BatchAddCommentRelation(BatchAddCommentRelationRequest) returns (CommentRelationCommonResponse);
+  rpc DeleteByReferenceIds (DeleteByReferenceIdsRequest) returns (CommentRelationCommonResponse);
+  rpc DeleteByCommentIdAndReferenceIds (DeleteByCommentIdAndReferenceIdsRequest) returns (CommentRelationCommonResponse);
+  rpc FindByResourceReferenceId (FindByResourceReferenceIdRequest) returns (FindCommentRelationResponse);
+  rpc FindReferenceRelationsBelowEqual (FindReferenceIdsRequest) returns (FindReferenceIdsResponse);
+  rpc FindReferenceRelationsAbove (FindReferenceIdsRequest) returns (FindReferenceIdsResponse);
+  rpc FindUsedReferenceIdsWithoutDescription (FindUsedReferenceIdsWithoutDescriptionRequest) returns (FindReferenceIdsResponse);
+  rpc FindByCommentIdAndCommentType (FindByCommentIdAndCommentTypeRequest) returns (FindCommentRelationResponse);
+  rpc HasComment (HasCommentRequest) returns (HasCommentResponse);
+}
