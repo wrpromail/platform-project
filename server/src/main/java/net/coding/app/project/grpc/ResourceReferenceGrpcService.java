@@ -67,7 +67,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
             insert.setTargetProjectId(target.getProjectId());
             insert.setCreatedAt(DateUtil.getCurrentDate());
             insert.setUpdatedAt(DateUtil.getCurrentDate());
-            insert.setDeletedAt(DateUtil.strToDate("1970-01-01 00:00:00"));
             log.info("simpleAddResourceReference() insert: {}", insert.toString());
             ResourceReference resourceReference = resourceReferenceService.insert(insert);
             if (Objects.nonNull(resourceReference.getId()) && 0 < resourceReference.getId()) {
@@ -101,7 +100,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
             insert.setTargetProjectId(request.getTargetProjectId());
             insert.setCreatedAt(DateUtil.getCurrentDate());
             insert.setUpdatedAt(DateUtil.getCurrentDate());
-            insert.setDeletedAt(DateUtil.strToDate("1970-01-01 00:00:00"));
             log.info("addResourceReference() insert: {}", insert.toString());
             ResourceReference resourceReference = resourceReferenceService.insert(insert);
             if (Objects.nonNull(resourceReference.getId()) && 0 < resourceReference.getId()) {
@@ -137,7 +135,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                 insert.setTargetProjectId(resourceReference.getTargetProjectId());
                 insert.setCreatedAt(DateUtil.getCurrentDate());
                 insert.setUpdatedAt(DateUtil.getCurrentDate());
-                insert.setDeletedAt(DateUtil.strToDate("1970-01-01 00:00:00"));
                 resourceReferenceList.add(insert);
             });
             int batchInsertFlag = resourceReferenceService.batchInsert(resourceReferenceList);
