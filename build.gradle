@@ -19,7 +19,7 @@ buildscript {
     }
 
     dependencies {
-        classpath "net.coding.common:coding-plugin-collection:1.0.2"
+        classpath "net.coding.common:coding-plugin-collection:1.1.0"
     }
 }
 
