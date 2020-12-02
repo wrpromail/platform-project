@@ -9,6 +9,7 @@ import net.coding.lib.project.utils.DateUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -56,6 +57,9 @@ public class ResourceReferenceService {
     }
 
     public int deleteById(Integer id) {
+        if(id <= 0) {
+            return 0;
+        }
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("deletedAt", DateUtil.getCurrentDate());
         parameters.put("id", id);
@@ -63,6 +67,9 @@ public class ResourceReferenceService {
     }
 
     public int deleteByIds(List<Integer> ids) {
+        if(CollectionUtils.isEmpty(ids)) {
+            return 0;
+        }
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("deletedAt", DateUtil.getCurrentDate());
         parameters.put("ids", ids);
@@ -75,6 +82,9 @@ public class ResourceReferenceService {
                 .stream()
                 .map(ResourceReference::getId)
                 .collect(Collectors.toList());
+        if(CollectionUtils.isEmpty(ids)) {
+            return 0;
+        }
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("deletedAt", DateUtil.getCurrentDate());
         parameters.put("ids", ids);
@@ -87,6 +97,9 @@ public class ResourceReferenceService {
                 .stream()
                 .map(ResourceReference::getId)
                 .collect(Collectors.toList());
+        if(CollectionUtils.isEmpty(ids)) {
+            return 0;
+        }
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("deletedAt", DateUtil.getCurrentDate());
         parameters.put("ids", ids);
@@ -108,6 +121,9 @@ public class ResourceReferenceService {
                 .stream()
                 .map(ResourceReference::getId)
                 .collect(Collectors.toList());
+        if(CollectionUtils.isEmpty(ids)) {
+            return 0;
+        }
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("deletedAt", DateUtil.getCurrentDate());
         parameters.put("ids", ids);

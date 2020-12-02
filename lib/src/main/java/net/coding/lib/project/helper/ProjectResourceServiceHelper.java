@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -99,6 +100,9 @@ public class ProjectResourceServiceHelper {
         parameters.put("deletedBy", userId);
         int result = projectResourceService.batchDelete(parameters);
 
+        if(Objects.isNull(targetType) || CollectionUtils.isEmpty(targetIdList)) {
+            return;
+        }
         if(result > 0) {
             Map<String, Object> map = new HashMap<>();
             map.put("targetType", targetType);

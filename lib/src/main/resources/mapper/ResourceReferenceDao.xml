@@ -251,42 +251,19 @@
       <if test="updatedAt != null">
         updated_at = #{updatedAt},
       </if>
-      <if test="deletedAt != null">
-        deleted_at = #{deletedAt},
-      </if>
     </set>
     where id = #{id,jdbcType=INTEGER}
   </update>
 
   <update id="deleteById" parameterType="map">
-    update resource_references
-    <set>
-      <if test="deletedAt != null">
-        deleted_at = #{deletedAt},
-      </if>
-    </set>
-    <where>
-      <if test="id != null">
-        id = #{id},
-      </if>
-    </where>
+    update resource_references set deleted_at = #{deletedAt} WHERE id = #{id}
   </update>
 
   <update id="deleteByIds" parameterType="map">
-    update resource_references
-    <set>
-      <if test="deletedAt != null">
-        deleted_at = #{deletedAt},
-      </if>
-    </set>
-    <where>
-      <if test="ids != null and ids.size() > 0">
-        AND id IN
-        <foreach item = "item" index = "index" collection = "ids" open = "(" close = ")" separator=",">
-          #{item}
-        </foreach>
-      </if>
-    </where>
+    update resource_references set deleted_at = #{deletedAt} WHERE id IN
+    <foreach item = "item" index = "index" collection = "ids" open = "(" close = ")" separator=",">
+      #{item}
+    </foreach>
   </update>
 
   <select id="countByTarget" parameterType="map" resultType="int">
