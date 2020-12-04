@@ -188,7 +188,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                                              StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
         try {
             log.info("deleteResourceReferenceById() grpc service receive: {}", request != null ? request.toString() : "");
-            if (request.getId() < 0) {
+            if (request.getId() <= 0) {
                 GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "deleteResourceReferenceById param error", response);
                 return;
             }
