@@ -17,6 +17,8 @@ public interface ResourceReferenceCommentRelationDao {
 
     int deleteByReferenceIds(Map<String, Object> parameter);
 
+    int deleteByReferenceIdsAndCitedSource(Map<String, Object> parameter);
+
     int deleteByCommentIdAndReferenceIds(Map<String, Object> parameter);
 
     List<ResourceReferenceCommentRelation> findByResourceReferenceId(Map<String, Object> parameter);

@@ -131,43 +131,27 @@
   </insert>
 
   <update id="deleteByReferenceIds" parameterType="map">
-    update resource_reference_comment_relations
-    <set>
-      <if test="deletedAt != null">
-        deleted_at = #{deletedAt},
-      </if>
-    </set>
-    <where>
-      <if test="referenceIds != null and referenceIds.size() > 0">
-        AND resource_reference_id IN
-        <foreach item = "item" index = "index" collection = "referenceIds" open = "(" close = ")" separator=",">
-          #{item}
-        </foreach>
-      </if>
-      <if test="citedSource != null">
-        and cited_source = #{citedSource}
-      </if>
-    </where>
+    update resource_reference_comment_relations set deleted_at = #{deletedAt}
+      where resource_reference_id IN
+      <foreach item = "item" index = "index" collection = "referenceIds" open = "(" close = ")" separator=",">
+        #{item}
+      </foreach>
+  </update>
+
+  <update id="deleteByReferenceIdsAndCitedSource" parameterType="map">
+    update resource_reference_comment_relations set deleted_at = #{deletedAt}
+    where cited_source = #{citedSource} AND resource_reference_id IN
+    <foreach item = "item" index = "index" collection = "referenceIds" open = "(" close = ")" separator=",">
+      #{item}
+    </foreach>
   </update>
 
   <update id="deleteByCommentIdAndReferenceIds" parameterType="map">
-    update resource_reference_comment_relations
-    <set>
-      <if test="deletedAt != null">
-        deleted_at = #{deletedAt},
-      </if>
-    </set>
-    <where>
-      <if test="referenceIds != null and referenceIds.size() > 0">
-        AND resource_reference_id IN
-        <foreach item = "item" index = "index" collection = "referenceIds" open = "(" close = ")" separator=",">
-          #{item}
-        </foreach>
-      </if>
-      <if test="commentId != null">
-        and comment_id = #{commentId}
-      </if>
-    </where>
+    update resource_reference_comment_relations set deleted_at = #{deletedAt}
+      where comment_id = #{commentId} and resource_reference_id IN
+      <foreach item = "item" index = "index" collection = "referenceIds" open = "(" close = ")" separator=",">
+        #{item}
+      </foreach>
   </update>
 
   <select id="findByResourceReferenceId" parameterType="map" resultMap="BaseResultMap">
