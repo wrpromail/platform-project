@@ -2,6 +2,7 @@ package net.coding.lib.project.service;
 
 import net.coding.lib.project.dao.ResourceReferenceCommentRelationDao;
 import net.coding.lib.project.entity.ResourceReferenceCommentRelation;
+import net.coding.lib.project.utils.DateUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,12 +32,13 @@ public class ResourceReferenceCommentRelationService {
         return resourceReferenceCommentRelationDao.batchInsert(list);
     }
 
-    public int deleteByReferenceIds(List<Integer> list, boolean isDescription) {
+    public int deleteByReferenceIds(List<Integer> referenceIds, boolean isDescription) {
         Map<String, Object> parameter = new HashMap<>();
-        parameter.put("list", list);
-        parameter.put("deletedAt", "1970-01-01 00:00:00");
+        parameter.put("referenceIds", referenceIds);
+        parameter.put("deletedAt", DateUtil.getCurrentDate());
         if(isDescription) {
-            parameter.put("cited_source", "DESCRIPTION");
+            parameter.put("citedSource", "DESCRIPTION");
+            return resourceReferenceCommentRelationDao.deleteByReferenceIdsAndCitedSource(parameter);
         }
         return resourceReferenceCommentRelationDao.deleteByReferenceIds(parameter);
     }
@@ -45,7 +47,7 @@ public class ResourceReferenceCommentRelationService {
         Map<String, Object> parameter = new HashMap<>();
         parameter.put("referenceIds", referenceIds);
         parameter.put("commentId", commentId);
-        parameter.put("deletedAt", "1970-01-01 00:00:00");
+        parameter.put("deletedAt", DateUtil.getCurrentDate());
         return resourceReferenceCommentRelationDao.deleteByCommentIdAndReferenceIds(parameter);
     }
 
