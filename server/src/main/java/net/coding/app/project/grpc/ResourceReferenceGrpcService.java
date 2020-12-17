@@ -37,7 +37,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                                            StreamObserver<ResourceReferenceProto.ResourceReferenceResponse> response) {
         try {
             log.info("simpleAddResourceReference() grpc service receive: {}", request != null ? request.toString() : "");
-            if (request.getProjectId() <= 0 || request.getSelfIid() <= 0 || request.getTargetProjectId() <= 0 || request.getTargetIid() <= 0) {
+            if (request == null || request.getProjectId() <= 0 || request.getSelfIid() <= 0 || request.getTargetProjectId() <= 0 || request.getTargetIid() <= 0) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "simpleAddResourceReference parameters error", null, response);
                 return;
             }
@@ -85,7 +85,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                                      StreamObserver<ResourceReferenceProto.ResourceReferenceResponse> response) {
         try {
             log.info("addResourceReference() grpc service receive: {}", request != null ? request.toString() : "");
-            if (request.getSelfIid() <= 0 || request.getSelfIid() <= 0 || request.getTargetProjectId() <= 0 || request.getTargetIid() <= 0) {
+            if (request.getSelfIid() <= 0 || request.getTargetProjectId() <= 0 || request.getTargetIid() <= 0) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "addResourceReference parameters error", null, response);
                 return;
             }
@@ -143,7 +143,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
             } else {
                 GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "batchAdd error", response);
             }
-        }  catch (Exception ex) {
+        } catch (Exception ex) {
             log.error("batchAddResourceReference() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "batchAdd error", response);
         }
@@ -151,10 +151,10 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
 
     @Override
     public void updateResourceReference(ResourceReferenceProto.UpdateResourceReferenceRequest request,
-                                     StreamObserver<ResourceReferenceProto.ResourceReferenceResponse> response) {
+                                        StreamObserver<ResourceReferenceProto.ResourceReferenceResponse> response) {
         try {
             log.info("updateResourceReference() grpc service receive: {}", request != null ? request.toString() : "");
-            if(request.getSelfIid() <= 0 || request.getSelfIid() <= 0 || request.getTargetProjectId() <= 0 || request.getTargetIid() <= 0) {
+            if (request.getSelfIid() <= 0  || request.getTargetProjectId() <= 0 || request.getTargetIid() <= 0) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "updateResourceReference parameters error", null, response);
                 return;
             }
@@ -172,12 +172,12 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
             update.setId(request.getId());
             log.info("updateResourceReference() update: {}", update.toString());
             int updateFlag = resourceReferenceService.update(update);
-            if(0 < updateFlag) {
+            if (0 < updateFlag) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.SUCCESS, "update success", GrpcUtil.getResourceReference(update), response);
             } else {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INTERNAL_ERROR, "update error", null, response);
             }
-        }  catch (Exception ex) {
+        } catch (Exception ex) {
             log.error("updateResourceReference() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.resourceReferenceResponse(CodeProto.Code.INTERNAL_ERROR, "update error", null, response);
         }
@@ -185,7 +185,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
 
     @Override
     public void deleteResourceReferenceById(ResourceReferenceProto.DeleteResourceReferenceByIdRequest request,
-                                             StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
+                                            StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
         try {
             log.info("deleteResourceReferenceById() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getId() <= 0) {
@@ -227,7 +227,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
 
     @Override
     public void deleteSelfByTypeAndId(ResourceReferenceProto.DeleteByTypeAndIdRequest request,
-                                             StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
+                                      StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
         try {
             log.info("deleteSelfByTypeAndId() grpc service receive: {}", request != null ? request.toString() : "");
             if (StringUtils.isEmpty(request.getType()) || request.getId() <= 0) {
@@ -248,7 +248,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
 
     @Override
     public void deleteTargetByTypeAndId(ResourceReferenceProto.DeleteByTypeAndIdRequest request,
-                                      StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
+                                        StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
         try {
             log.info("deleteTargetByTypeAndId() grpc service receive: {}", request != null ? request.toString() : "");
             if (StringUtils.isEmpty(request.getType()) || request.getId() <= 0) {
@@ -269,7 +269,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
 
     @Override
     public void deleteByTypeAndId(ResourceReferenceProto.DeleteByTypeAndIdRequest request,
-                                        StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
+                                  StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
         try {
             log.info("deleteByTypeAndId() grpc service receive: {}", request != null ? request.toString() : "");
             if (StringUtils.isEmpty(request.getType()) || request.getId() <= 0) {
@@ -311,7 +311,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
 
     @Override
     public void countByTarget(ResourceReferenceProto.CountByTargetRequest request,
-                         StreamObserver<ResourceReferenceProto.CountResourceReferenceResponse> response) {
+                              StreamObserver<ResourceReferenceProto.CountResourceReferenceResponse> response) {
         try {
             log.info("countByTarget() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getTargetProjectId() <= 0 || request.getTargetIid() <= 0) {
@@ -364,7 +364,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
 
     @Override
     public void findListByTargetProjectId(ResourceReferenceProto.FindListByTargetProjectIdRequest request,
-                                     StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
+                                          StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
         try {
             log.info("findListByTargetProjectId() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getTargetProjectId() <= 0 || request.getTargetIid() <= 0) {
@@ -383,7 +383,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
 
     @Override
     public void findListBySelfType(ResourceReferenceProto.FindListBySelfTypeRequest request,
-                                     StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
+                                   StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
         try {
             log.info("findListBySelfType() grpc service receive: {}", request != null ? request.toString() : "");
             if (StringUtils.isEmpty(request.getSelfType()) || request.getSelfId() <= 0) {
@@ -402,7 +402,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
 
     @Override
     public void findListBySelfProjectId(ResourceReferenceProto.FindListBySelfProjectIdRequest request,
-                                   StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
+                                        StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
         try {
             log.info("findListBySelfProjectId() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getSelfProjectId() <= 0 || request.getSelfIid() <= 0) {
@@ -440,10 +440,10 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
 
     @Override
     public void findReferMutuallyList(ResourceReferenceProto.FindReferMutuallyListRequest request,
-                                   StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
+                                      StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
         try {
             log.info("findReferMutuallyList() grpc service receive: {}", request != null ? request.toString() : "");
-            if (request.getSelfProjectId() <= 0 || request.getSelfIid() <= 0 ) {
+            if (request.getSelfProjectId() <= 0 || request.getSelfIid() <= 0) {
                 GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INVALID_PARAMETER, "findReferMutuallyList param error", null, response);
                 return;
             }
@@ -459,7 +459,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
 
     @Override
     public void findMutuallyList(ResourceReferenceProto.FindMutuallyListRequest request,
-                                   StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
+                                 StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
         try {
             log.info("findMutuallyList() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getSelfProjectId() <= 0 || request.getSelfCode() <= 0 || request.getTargetProjectId() <= 0 || request.getTargetCode() <= 0) {
@@ -478,7 +478,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
 
     @Override
     public void findIdsMutually(ResourceReferenceProto.FindIdsMutuallyRequest request,
-                                 StreamObserver<ResourceReferenceProto.FindIdsMutuallyResponse> response) {
+                                StreamObserver<ResourceReferenceProto.FindIdsMutuallyResponse> response) {
         try {
             log.info("findIdsMutually() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getProjectId() <= 0 || request.getCode() <= 0) {
@@ -497,7 +497,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
 
     @Override
     public void findBySelfWithDescriptionCitedRelation(ResourceReferenceProto.FindBySelfWithDescriptionCitedRelationRequest request,
-                                StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
+                                                       StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
         try {
             log.info("findBySelfWithDescriptionCitedRelation() grpc service receive: {}", request != null ? request.toString() : "");
             if (StringUtils.isEmpty(request.getSelfType()) || request.getSelfId() <= 0) {
@@ -516,7 +516,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
 
     @Override
     public void findBySelfWithoutDescriptionCitedRelation(ResourceReferenceProto.FindBySelfWithoutDescriptionCitedRelationRequest request,
-                                StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
+                                                          StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
         try {
             log.info("findBySelfWithoutDescriptionCitedRelation() grpc service receive: {}", request != null ? request.toString() : "");
             if (StringUtils.isEmpty(request.getSelfType()) || request.getSelfId() <= 0) {
@@ -535,7 +535,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
 
     @Override
     public void findBySelfWithTargetDeleted(ResourceReferenceProto.FindBySelfWithTargetDeletedRequest request,
-                                StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
+                                            StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
         try {
             log.info("findBySelfWithTargetDeleted() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getProjectId() <= 0 || request.getCode() <= 0) {
@@ -554,7 +554,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
 
     @Override
     public void findByProjectId(ResourceReferenceProto.FindByProjectIdRequest request,
-                                           StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
+                                StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
         try {
             log.info("findByProjectId() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getProjectId() <= 0) {
@@ -578,10 +578,11 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
             log.info("getByProjectIdAndCode() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getSelfProjectId() <= 0 || request.getSelfCode() <= 0 || request.getTargetProjectId() <= 0 || request.getTargetCode() <= 0) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "getByProjectIdAndCode param error", null, response);
+                return;
             }
             ResourceReference resourceReference = resourceReferenceService.getByProjectIdAndCode(request.getSelfProjectId(),
                     request.getSelfCode(), request.getTargetProjectId(), request.getTargetCode());
-            if(Objects.nonNull(resourceReference)) {
+            if (Objects.nonNull(resourceReference)) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.SUCCESS,
                         "get success",
                         GrpcUtil.getResourceReference(resourceReference),
@@ -598,15 +599,16 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
 
     @Override
     public void getByTypeAndId(ResourceReferenceProto.GetByTypeAndIdRequest request,
-                                      StreamObserver<ResourceReferenceProto.ResourceReferenceResponse> response) {
+                               StreamObserver<ResourceReferenceProto.ResourceReferenceResponse> response) {
         try {
             log.info("getByTypeAndId() grpc service receive: {}", request != null ? request.toString() : "");
             if (StringUtils.isEmpty(request.getSelfType()) || request.getSelfId() <= 0 || StringUtils.isEmpty(request.getTargetType()) || request.getTargetId() <= 0) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "getByTypeAndId param error", null, response);
+                return;
             }
             ResourceReference resourceReference = resourceReferenceService.getByTypeAndId(request.getSelfType(),
                     request.getSelfId(), request.getTargetType(), request.getTargetId());
-            if(Objects.nonNull(resourceReference)) {
+            if (Objects.nonNull(resourceReference)) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.SUCCESS,
                         "get success",
                         GrpcUtil.getResourceReference(resourceReference),
@@ -623,16 +625,17 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
 
     @Override
     public void getOptional(ResourceReferenceProto.GetOptionalRequest request,
-                                      StreamObserver<ResourceReferenceProto.ResourceReferenceResponse> response) {
+                            StreamObserver<ResourceReferenceProto.ResourceReferenceResponse> response) {
         try {
             log.info("getOptional() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getSelfProjectId() <= 0 || StringUtils.isEmpty(request.getSelfType()) ||
                     request.getSelfId() <= 0 || StringUtils.isEmpty(request.getTargetType())) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "getOptional param error", null, response);
+                return;
             }
             ResourceReference resourceReference = resourceReferenceService.getOptional(request.getSelfProjectId(),
                     request.getSelfType(), request.getSelfId(), request.getTargetType());
-            if(Objects.nonNull(resourceReference)) {
+            if (Objects.nonNull(resourceReference)) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.SUCCESS,
                         "get success",
                         GrpcUtil.getResourceReference(resourceReference),
@@ -649,14 +652,15 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
 
     @Override
     public void getById(ResourceReferenceProto.GetByIdRequest request,
-                                   StreamObserver<ResourceReferenceProto.ResourceReferenceResponse> response) {
+                        StreamObserver<ResourceReferenceProto.ResourceReferenceResponse> response) {
         try {
             log.info("getWithDeletedById() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getId() <= 0) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "getWithDeletedById param error", null, response);
+                return;
             }
             ResourceReference resourceReference = resourceReferenceService.getById(request.getId(), request.getWithDeleted());
-            if(Objects.nonNull(resourceReference)) {
+            if (Objects.nonNull(resourceReference)) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.SUCCESS,
                         "get success",
                         GrpcUtil.getResourceReference(resourceReference),
@@ -694,9 +698,9 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                                         StreamObserver<ResourceReferenceProto.ExistsResourceReferenceResponse> response) {
         try {
             log.info("existsResourceReference() grpc service receive: {}", request != null ? request.toString() : "");
-            if (request.getTargetProjectId() <= 0 || request.getTargetIid() <= 0 || request.getSelfProjectId() <= 0
-                    || request.getTargetIid() <= 0) {
+            if (request.getTargetProjectId() <= 0 || request.getTargetIid() <= 0 || request.getSelfProjectId() <= 0) {
                 GrpcUtil.existsResourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "param error", false, response);
+                return;
             }
             GrpcUtil.existsResourceReferenceResponse(CodeProto.Code.SUCCESS,
                     "find success",

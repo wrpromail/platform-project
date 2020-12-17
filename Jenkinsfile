@@ -10,10 +10,9 @@ pipeline {
 
     stage('build:all') {
       steps {
-         withCredentials([usernamePassword(credentialsId: '264aecc0-8aa8-44d9-ae06-123fce42a493',
-                usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PASSWORD')]) {
-              sh './build.sh'
-         }
+          withCredentials([usernamePassword(credentialsId: env.BUILD_CREDENTIALS_ID,usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PASSWORD')]) {
+          sh './build.sh'
+           }
       }
     }
   }
