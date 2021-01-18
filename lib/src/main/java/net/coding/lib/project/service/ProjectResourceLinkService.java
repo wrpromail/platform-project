@@ -32,28 +32,29 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
+import lombok.AllArgsConstructor;
+
 @Service
+@AllArgsConstructor
 public class ProjectResourceLinkService {
 
-    @Resource
-    private IssueServiceGrpcClient issueServiceGrpcClient;
 
-    @Autowired
-    private ExternalLinkService externalLinkService;
+    private final IssueServiceGrpcClient issueServiceGrpcClient;
 
-    @Autowired
-    private MergeRequestService mergeRequestService;
+    private final ExternalLinkService externalLinkService;
 
-    @Autowired
-    private ReleaseService releaseService;
+    private final MergeRequestService mergeRequestService;
 
-    @Autowired
-    private FileServiceGrpcClient fileServiceGrpcClient;
+    private final ReleaseService releaseService;
 
-    @Autowired
-    private DepotService depotService;
+    private final FileServiceGrpcClient fileServiceGrpcClient;
 
-    public static final Pattern PATTERN = Pattern.compile("^#([0-9]+)|(?:[^0-9a-zA-Z_])#([0-9]+)");
+    private final DepotService depotService;
+
+    private final ProjectService projectService;
+
+    private final ProjectResourceService projectResourceService;
+
     public static final Pattern HTML_ENTITY_PATTERN = Pattern.compile("&#.+;", Pattern.DOTALL);
 
     private static final String template = "<a class=\"refer-resource-link {0}\" href=\"{1}\" refer-id=\"{2}\" target=\"_blank\">{3}</a>";
@@ -90,11 +91,7 @@ public class ProjectResourceLinkService {
         add("wiki");
     }};
 
-    @Autowired
-    private ProjectService projectService;
 
-    @Autowired
-    private ProjectResourceService projectResourceService;
 
     public String linkize(String content, Project project) {
         if (null == project) {

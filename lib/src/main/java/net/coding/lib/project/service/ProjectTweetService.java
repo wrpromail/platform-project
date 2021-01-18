@@ -3,6 +3,7 @@ package net.coding.lib.project.service;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 
+import net.coding.grpc.client.template.TemplateGrpcClient;
 import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dao.ProjectTweetDao;
 import net.coding.lib.project.entity.Project;
@@ -11,8 +12,12 @@ import net.coding.lib.project.enums.ActivityEnums;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.helper.ProjectServiceHelper;
 import net.coding.lib.project.utils.DateUtil;
+import net.coding.lib.project.utils.TextUtil;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -22,32 +27,40 @@ import java.util.Objects;
 
 import javax.annotation.Resource;
 
+import lombok.AllArgsConstructor;
+
+import static net.coding.common.constants.ValidationConstants.TWEET_LIMIT_IMAGES;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.CONTENT_INCLUDE_SENSITIVE_WORDS;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_TWEET_FAST;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_TWEET_REPEAT;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.TWEET_IMAGE_LIMIT_N;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.TWEET_NOT_EXISTS;
 
 @Service
+@AllArgsConstructor
 public class ProjectTweetService {
 
-    @Resource
-    private ProjectService projectService;
+    private final ProjectTweetDao projectTweetDao;
 
-    @Resource
-    private ProjectTweetDao projectTweetDao;
+    private final ProjectServiceHelper projectServiceHelper;
 
-    @Resource
-    private ProjectServiceHelper projectServiceHelper;
+    private final ProfanityWordService profanityWordService;
+
+    private final TemplateGrpcClient templateGrpcClient;
+
+    private final ProjectResourceLinkService projectResourceLinkService;
 
     public ProjectTweet insert(String content, String slateRaw, boolean doCheck, Project project) throws CoreException {
         String raw = content;
         Integer userId = 0;
         Integer teamId = 0;
-        if(Objects.nonNull(SystemContextHolder.get())) {
-            userId = SystemContextHolder.get().getId();
-            teamId = SystemContextHolder.get().getTeamId();
+        if (Objects.isNull(SystemContextHolder.get())) {
+            return null;
         }
-        content = projectServiceHelper.updateAndCheckContent(content, project, teamId);
-        if(doCheck) {
+        userId = SystemContextHolder.get().getId();
+        teamId = SystemContextHolder.get().getTeamId();
+        content = updateAndCheckContent(content, project, teamId);
+        if (doCheck) {
             ProjectTweet lastTweet = getLastTweetInTenMinutes(userId);
             if (lastTweet != null) {
                 // 十分钟内不能创建相同的项目公告
@@ -60,17 +73,16 @@ public class ProjectTweetService {
                 }
             }
         }
-        ProjectTweet record = new ProjectTweet();
-        record.setProjectId(project.getId());
-        record.setOwnerId(userId);
-        record.setContent(content);
-        record.setRaw(raw);
-        record.setSlateRaw(StringUtils.defaultIfEmpty(slateRaw, ""));
-        record.setCreatedAt(DateUtil.getCurrentDate());
-        record.setUpdatedAt(DateUtil.getCurrentDate());
-        record.setComments(0);
-        projectTweetDao.insert(record);
-        if(record.getId() <= 0) {
+        ProjectTweet record = ProjectTweet.builder()
+                .projectId(project.getId())
+                .ownerId(userId).content(content)
+                .raw(raw)
+                .slateRaw(StringUtils.defaultIfEmpty(slateRaw, ""))
+                .createdAt(DateUtil.getCurrentDate())
+                .updatedAt(DateUtil.getCurrentDate())
+                .comments(0)
+                .build();
+        if (projectTweetDao.insert(record) <= 0) {
             return null;
         }
         // 通知项目内所有人，被 @ 的人除外
@@ -82,14 +94,12 @@ public class ProjectTweetService {
         return record;
     }
 
-
-
     public ProjectTweet getLastTweetInTenMinutes(Integer userId) {
-        Date time = new Date(System.currentTimeMillis() - 10 * 60 * 1000);
-        Map<String, Object> param = new HashMap<>();
-        param.put("ownerId", userId);
-        param.put("updatedAt", time);
-        return projectTweetDao.getLastTweetInTenMinutes(param);
+        ProjectTweet projectTweet = ProjectTweet.builder()
+                .ownerId(userId)
+                .updatedAt(new Date(System.currentTimeMillis() - 10 * 60 * 1000))
+                .build();
+        return projectTweetDao.getProjectTweet(projectTweet);
     }
 
     public ProjectTweet update(Integer id, String raw, String slateRaw, Project project) throws CoreException {
@@ -97,16 +107,16 @@ public class ProjectTweetService {
         if (tweet == null) {
             throw CoreException.of(TWEET_NOT_EXISTS);
         }
-        if(!Objects.equals(tweet.getProjectId(), project.getId())) {
+        if (!Objects.equals(tweet.getProjectId(), project.getId())) {
             return null;
         }
         Integer userId = 0;
         Integer teamId = 0;
-        if(Objects.nonNull(SystemContextHolder.get())) {
+        if (Objects.nonNull(SystemContextHolder.get())) {
             userId = SystemContextHolder.get().getId();
             teamId = SystemContextHolder.get().getTeamId();
         }
-        String content = projectServiceHelper.updateAndCheckContent(raw, project, teamId);
+        String content = updateAndCheckContent(raw, project, teamId);
         tweet.setRaw(raw);
         tweet.setContent(content);
         if (StringUtils.isNoneEmpty(slateRaw)) {
@@ -114,7 +124,7 @@ public class ProjectTweetService {
         }
         tweet.setUpdatedAt(DateUtil.getCurrentDate());
         Integer flag = projectTweetDao.update(tweet);
-        if(flag <= 0) {
+        if (flag <= 0) {
             return null;
         }
         // 通知项目内所有人，被 @ 的人除外
@@ -126,19 +136,22 @@ public class ProjectTweetService {
         return tweet;
     }
 
-    public int delete(Integer id, Integer userId, Project project) throws CoreException {
+    public int delete(Integer id, Integer userId, Project project) {
         ProjectTweet tweet = projectTweetDao.getById(id);
         if (tweet == null) {
             return -1;
         }
-        if(!Objects.equals(tweet.getProjectId(), project.getId())) {
+        if (!Objects.equals(tweet.getProjectId(), project.getId())) {
             return -1;
         }
-        ProjectTweet projectTweet = new ProjectTweet();
-        projectTweet.setDeletedAt(DateUtil.getCurrentDate());
-        projectTweet.setId(id);
+        ProjectTweet projectTweet = ProjectTweet.builder()
+                .id(id)
+                .deletedAt(DateUtil.getCurrentDate())
+                .build();
         Integer result = projectTweetDao.update(projectTweet);
-        projectServiceHelper.postProjectTweetCreateActivity(project, tweet, userId, ActivityEnums.ACTION_TWEET_DELETE, ProjectTweet.ACTION_DELETE, "delete");
+        if (result != null && result > 0) {
+            projectServiceHelper.postProjectTweetCreateActivity(project, tweet, userId, ActivityEnums.ACTION_TWEET_DELETE, ProjectTweet.ACTION_DELETE, "delete");
+        }
         return result;
     }
 
@@ -147,18 +160,52 @@ public class ProjectTweetService {
     }
 
     public PageInfo<ProjectTweet> findList(Integer projectId, Integer page, Integer pageSize) {
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("projectId", projectId);
-        parameters.put("deletedAt", "1970-01-01 00:00:00");
-        PageInfo<ProjectTweet> pageInfo = PageHelper.startPage(page, pageSize)
-                .doSelectPageInfo(() -> projectTweetDao.findList(parameters));
-        return pageInfo;
+        ProjectTweet projectTweet = ProjectTweet.builder()
+                .projectId(projectId)
+                .build();
+        return PageHelper.startPage(page, pageSize)
+                .doSelectPageInfo(() -> projectTweetDao.findList(projectTweet));
     }
 
     public ProjectTweet getLast(Integer projectId) {
-        Map<String, Object> params = new HashMap<>();
-        params.put("projectId", projectId);
-        params.put("deletedAt", "1970-01-01 00:00:00");
-        return projectTweetDao.getLast(params);
+        ProjectTweet projectTweet = ProjectTweet.builder()
+                .projectId(projectId)
+                .build();
+        return projectTweetDao.getProjectTweet(projectTweet);
+    }
+
+    /**
+     * 解析 {@code content} 并检查内容是否合法.
+     *
+     * @param content 文本
+     * @param project 项目
+     * @return 解析后的文本
+     * @throws CoreException 图片数目超出限制/包含限制词
+     */
+    public String updateAndCheckContent(String content, Project project, Integer teamId) throws CoreException {
+        String newContent = projectResourceLinkService.linkize(content, project);
+        newContent = templateGrpcClient.markdownWithMonkey(teamId, newContent, false);
+        newContent = TextUtil.filterUserInputContent(newContent);
+        //newContent = downloadImageService.filterHTML(newContent);
+
+        // 图片数目超过限制
+        if (limitTweetImages(newContent, TWEET_LIMIT_IMAGES)) {
+            throw CoreException.of(TWEET_IMAGE_LIMIT_N, TWEET_LIMIT_IMAGES);
+        }
+        // 包含限制词
+        String profanity = profanityWordService.checkContent(newContent);
+        if (StringUtils.isNotEmpty(profanity)) {
+            throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, profanity);
+        }
+        return newContent;
+    }
+
+    /**
+     * 判断用户冒泡的图片数量是否超限
+     */
+    public boolean limitTweetImages(String content, int amount) {
+        Document doc = Jsoup.parse(content);
+        Elements eles = doc.select("img.bubble-markdown-image");
+        return eles.size() > amount;
     }
 }

@@ -13,22 +13,22 @@ import org.lognet.springboot.grpc.GRpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import io.grpc.stub.StreamObserver;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import proto.common.CodeProto;
 import proto.projectResource.ProjectResourceProto;
 
 @Slf4j
 @GRpcService
+@AllArgsConstructor
 public class ExternalLinkGrpcService extends ExternalLinkServiceGrpc.ExternalLinkServiceImplBase {
 
-    @Autowired
-    private ExternalLinkService externalLinkService;
+    private final ExternalLinkService externalLinkService;
 
-    @Autowired
-    private ProjectGrpcClient projectGrpcClient;
+    private final ProjectGrpcClient projectGrpcClient;
 
-    @Autowired
-    private ProjectResourceServiceHelper projectResourceServiceHelper;
+    private final ProjectResourceServiceHelper projectResourceServiceHelper;
+
 
     @Override
     public void addExternalLink(ExternalLinkProto.AddExternalLinkRequest request,
@@ -50,7 +50,7 @@ public class ExternalLinkGrpcService extends ExternalLinkServiceGrpc.ExternalLin
         } catch (Exception ex) {
             log.error("addExternalLink() callException request={}, ex={}", request != null ? request.toString() : "", ex);
             GrpcUtil.addExternalLinkResponse(CodeProto.Code.INTERNAL_ERROR,
-                    "addExternalLink service error",null, response);
+                    "addExternalLink service error", null, response);
         }
     }
 }

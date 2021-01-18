@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.coding.lib.project.dao.DeployTokenArtifactsDao">
+  <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.DeployTokenArtifacts">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="deploy_token_id" jdbcType="INTEGER" property="deployTokenId" />
+    <result column="artifact_id" jdbcType="INTEGER" property="artifactId" />
+    <result column="artifact_scope" jdbcType="VARCHAR" property="artifactScope" />
+    <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
+    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
+    <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, deploy_token_id, artifact_id, artifact_scope, updated_at, created_at, deleted_at
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from deploy_token_artifacts
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+
+  <select id="getDeployTokenArtifacts" parameterType="net.coding.lib.project.entity.DeployTokenArtifacts" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from deploy_token_artifacts
+    <where>
+    <if test="deployTokenId !=null">
+      deploy_token_id = #{deployTokenId}
+    </if>
+    </where>
+  </select>
+</mapper>

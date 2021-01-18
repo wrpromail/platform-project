@@ -28,7 +28,7 @@ public class ProjectMember implements Serializable {
     /**
      * 类型
      */
-    private Byte type;
+    private Short type;
 
     /**
      * 创建时间
