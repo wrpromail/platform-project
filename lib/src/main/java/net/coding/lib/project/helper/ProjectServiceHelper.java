@@ -5,13 +5,15 @@ import com.google.common.eventbus.AsyncEventBus;
 
 import net.coding.common.base.bean.setting.AtSetting;
 import net.coding.common.base.event.ActivityEvent;
+import net.coding.common.base.event.ProjectDeleteEvent;
 import net.coding.common.base.event.ProjectNameChangeEvent;
 import net.coding.common.base.gson.JSON;
+import net.coding.common.i18n.utils.LocaleMessageSource;
 import net.coding.common.util.TextUtils;
 import net.coding.e.proto.ActivitiesProto;
 import net.coding.grpc.client.activity.ActivityGrpcClient;
 import net.coding.grpc.client.pinyin.PinyinClient;
-import net.coding.grpc.client.template.TemplateGrpcClient;
+import net.coding.grpc.client.platform.LoggingGrpcClient;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.entity.ProjectPreference;
@@ -19,7 +21,6 @@ import net.coding.lib.project.entity.ProjectSetting;
 import net.coding.lib.project.entity.ProjectTweet;
 import net.coding.lib.project.enums.ActivityEnums;
 import net.coding.lib.project.event.NotificationEvent;
-import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.grpc.client.NotificationGrpcClient;
 import net.coding.lib.project.grpc.client.ProjectGrpcClient;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
@@ -27,15 +28,12 @@ import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.service.ProfanityWordService;
 import net.coding.lib.project.service.ProjectMemberService;
 import net.coding.lib.project.service.ProjectPreferenceService;
-import net.coding.lib.project.service.ProjectResourceLinkService;
 import net.coding.lib.project.utils.DateUtil;
 import net.coding.lib.project.utils.ResourceUtil;
 import net.coding.lib.project.utils.TextUtil;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -52,22 +50,21 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import proto.notification.NotificationProto;
+import proto.platform.logging.loggingProto;
 import proto.platform.project.ProjectProto;
 import proto.platform.user.UserProto;
 
 import static java.util.stream.Collectors.toList;
+import static net.coding.common.constants.ProjectConstants.ACTION_DELETE;
 import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE;
 import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE_DATE;
 import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE_DESCRIPTION;
 import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE_DISPLAY_NAME;
 import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE_NAME;
 import static net.coding.common.constants.ProjectConstants.PROJECT_PRIVATE;
-import static net.coding.common.constants.ValidationConstants.TWEET_LIMIT_IMAGES;
 import static net.coding.grpc.client.pinyin.PinyinClient.DEFAULT_SEPARATOR;
 import static net.coding.lib.project.entity.ProjectPreference.PREFERENCE_STATUS_TRUE;
 import static net.coding.lib.project.entity.ProjectPreference.PREFERENCE_TYPE_PROJECT_TWEET;
-import static net.coding.lib.project.exception.CoreException.ExceptionType.CONTENT_INCLUDE_SENSITIVE_WORDS;
-import static net.coding.lib.project.exception.CoreException.ExceptionType.TWEET_IMAGE_LIMIT_N;
 
 @Component
 @Slf4j
@@ -97,6 +94,9 @@ public class ProjectServiceHelper {
 
     private final PinyinClient pinyinClient;
 
+    private final LoggingGrpcClient loggingGrpcClient;
+
+    private final LocaleMessageSource localeMessageSource;
 
     public String checkContent(String content) {
         // 包含限制词
@@ -403,4 +403,47 @@ public class ProjectServiceHelper {
         asyncEventBus.post(funActivityEvent);
     }
 
+    public void postProjectDeleteEvent(Integer userId, Project project) {
+        asyncEventBus.post(
+                ProjectDeleteEvent.builder()
+                        .teamId(project.getTeamOwnerId())
+                        .userId(userId)
+                        .projectId(project.getId())
+                        .build()
+        );
+
+        asyncEventBus.post(
+                ActivityEvent.builder()
+                        .creatorId(userId)
+                        .type(Project.class)
+                        .targetId(project.getId())
+                        .projectId(project.getId())
+                        .action(ACTION_DELETE)
+                        .content("")
+                        .build()
+        );
+
+        loggingGrpcClient.insertOperationLog(loggingProto.OperationLogInsertRequest.newBuilder()
+                .setUserId(userId)
+                .setTeamId(project.getTeamOwnerId())
+                .setContentName("deleteProject")
+                .setTargetId(project.getId())
+                .setTargetType(project.getClass().getSimpleName())
+                .setAdminAction(false)
+                .setText(htmlLink(project))
+                .build());
+    }
+
+    public String htmlLink(Project project) {
+        String host = teamGrpcClient.getTeamHostWithProtocolByTeamId(project.getTeamOwnerId());
+        StringBuilder sb = new StringBuilder();
+        sb.append(localeMessageSource.getMessage("project_deleted"));
+        sb.append("<a href='");
+        sb.append(host);
+        sb.append("/p/" + project.getName());
+        sb.append("' target='_blank'>");
+        sb.append(StringUtils.defaultIfBlank(project.getDisplayName(), project.getName()));
+        sb.append("</a>");
+        return sb.toString();
+    }
 }
