@@ -26,8 +26,12 @@ public class DeployTokenDepotService {
 
 
     public List<DeployTokenDepot> getTokenById(Integer deployTokenId) {
-        DeployTokenDepot deployTokenDepot = DeployTokenDepot.builder().deployTokenId(deployTokenId).build();
-        return deployTokenDepotsDao.getDeployTokenDepot(deployTokenDepot);
+        return deployTokenDepotsDao.getDeployTokenDepot(deployTokenId);
+    }
+
+    public int deleteByTokenId(Integer deployTokenId) {
+        return deployTokenDepotsDao.deleteByDeployTokenDepot(deployTokenId);
+
     }
 
 }

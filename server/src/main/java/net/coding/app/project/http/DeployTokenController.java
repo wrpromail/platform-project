@@ -4,14 +4,22 @@ import net.coding.common.annotation.ProjectApiProtector;
 import net.coding.common.annotation.ProtectedAPI;
 import net.coding.common.annotation.enums.Action;
 import net.coding.common.annotation.enums.Function;
+import net.coding.common.base.annotation.RequestAttribute;
 import net.coding.common.constants.DeployTokenScopeEnum;
 import net.coding.common.constants.TwoFactorAuthConstants;
 import net.coding.common.util.Result;
+import net.coding.common.vendor.CodingStringUtils;
+import net.coding.lib.project.dto.DeployTokenDTO;
 import net.coding.lib.project.dto.DeployTokenDepotDTO;
+import net.coding.lib.project.dto.DeployTokenScopeDTO;
 import net.coding.lib.project.entity.DeployTokens;
 import net.coding.lib.project.exception.CoreException;
+import net.coding.lib.project.form.AddDeployTokenForm;
 import net.coding.lib.project.service.DeployTokenService;
 
+import org.springframework.util.CollectionUtils;
+import org.springframework.validation.Errors;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -20,6 +28,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.validation.Valid;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -39,6 +49,34 @@ public class DeployTokenController {
 
     private final DeployTokenService deployTokenService;
 
+    @ProtectedAPI
+    @RequestMapping(value = "", method = RequestMethod.POST)
+    @ProjectApiProtector(function = Function.ProjectDeployToken, action = Action.Create)
+    public Result addDeployToken(
+            @PathVariable Integer projectId,
+            @Valid AddDeployTokenForm form
+    ) throws CoreException {
+
+        deployTokenService.validateCreateForm(form);
+        return Result.success(deployTokenService.addDeployToken(projectId, form));
+    }
+
+    @ProtectedAPI
+    @RequestMapping(value = "/{id}/scope", method = RequestMethod.PUT)
+    @ProjectApiProtector(function = Function.ProjectDeployToken, action = Action.Update)
+    public boolean modifyDeployTokenScope(
+            @PathVariable Integer projectId,
+            @PathVariable Integer id,
+            @ModelAttribute AddDeployTokenForm form,
+            Errors errors
+    ) throws CoreException {
+        deployTokenService.validateUpdateForm(form);
+        if (errors.hasErrors()) {
+            throw CoreException.of(errors);
+        }
+        return deployTokenService.modifyDeployTokenScope(projectId, id, form);
+    }
+
 
     /**
      * 获取部署令牌列表
@@ -49,6 +87,33 @@ public class DeployTokenController {
     @ProjectApiProtector(function = Function.ProjectDeployToken, action = Action.View)
     public Result getDeployTokens(@PathVariable Integer projectId) {
         return Result.success(deployTokenService.getUserDeployTokens(projectId));
+    }
+
+    /**
+     * 删除令牌
+     */
+    @ProtectedAPI(authMethod = TwoFactorAuthConstants.AUTH_TYPE_DEFAULT)
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    @ProjectApiProtector(function = Function.ProjectDeployToken, action = Action.Delete)
+    public boolean deleteDeployToken(
+            @PathVariable Integer projectId,
+            @PathVariable Integer id
+    ) throws CoreException {
+        return deployTokenService.deleteDeployToken(projectId, id);
+    }
+
+    /**
+     * 禁用令牌
+     */
+    @ProtectedAPI
+    @RequestMapping(value = "/{id}/isEnable", method = RequestMethod.PUT)
+    @ProjectApiProtector(function = Function.ProjectDeployToken, action = Action.Update)
+    public boolean isEnable(
+            @PathVariable Integer projectId,
+            @PathVariable Integer id,
+            boolean enableFlag
+    ) throws CoreException {
+        return deployTokenService.enableDeployToken(projectId, id, enableFlag);
     }
 
     /**
@@ -72,7 +137,7 @@ public class DeployTokenController {
     @ProjectApiProtector(function = Function.ProjectDeployToken, action = Action.View)
     public Result getScopes() {
         return Result.success(Stream.of(DeployTokenScopeEnum.values())
-                .map(e -> DeployTokenDepotDTO.builder().depotId(e.getValue()).scope(e.getText()).build())
+                .map(e -> DeployTokenScopeDTO.builder().value(e.getValue()).text(e.getText()).build())
                 .collect(Collectors.toList()));
     }
 

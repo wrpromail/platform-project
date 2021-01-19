@@ -13,16 +13,63 @@
   <sql id="Base_Column_List">
     id, deploy_token_id, depot_id, depot_scope, updated_at, created_at, deleted_at
   </sql>
-  <select id="getDeployTokenDepot" parameterType="net.coding.lib.project.entity.DeployTokenDepot" resultMap="BaseResultMap">
+
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="net.coding.lib.project.entity.DeployTokenDepot" useGeneratedKeys="true">
+    insert into deploy_token_depots
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="deployTokenId != null">
+        deploy_token_id,
+      </if>
+      <if test="depotId != null">
+        depot_id,
+      </if>
+      <if test="depotScope != null">
+        depot_scope,
+      </if>
+      <if test="updatedAt != null">
+        updated_at,
+      </if>
+      <if test="createdAt != null">
+        created_at,
+      </if>
+      <if test="deletedAt != null">
+        deleted_at,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="deployTokenId != null">
+        #{deployTokenId,jdbcType=INTEGER},
+      </if>
+      <if test="depotId != null">
+        #{depotId,jdbcType=INTEGER},
+      </if>
+      <if test="depotScope != null">
+        #{depotScope,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedAt != null">
+        #{updatedAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createdAt != null">
+        #{createdAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="deletedAt != null">
+        #{deletedAt,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+
+    <update id="deleteByDeployTokenDepot">
+    update  deploy_token_depots set deleted_at = NOW()
+    where  deploy_token_id = #{deployTokenId}
+  </update>
+
+  <select id="getDeployTokenDepot" resultMap="BaseResultMap">
 
     select
     <include refid="Base_Column_List" />
     from deploy_token_depots
     <where>
-      <if test="deployTokenId!=null">
         deploy_token_id=#{deployTokenId}
-      </if>
     </where>
-
   </select>
 </mapper>

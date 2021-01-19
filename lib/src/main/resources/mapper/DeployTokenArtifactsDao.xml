@@ -13,6 +13,57 @@
   <sql id="Base_Column_List">
     id, deploy_token_id, artifact_id, artifact_scope, updated_at, created_at, deleted_at
   </sql>
+
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="net.coding.lib.project.entity.DeployTokenArtifacts" useGeneratedKeys="true">
+    insert into deploy_token_artifacts
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="deployTokenId != null">
+        deploy_token_id,
+      </if>
+      <if test="artifactId != null">
+        artifact_id,
+      </if>
+      <if test="artifactScope != null">
+        artifact_scope,
+      </if>
+      <if test="updatedAt != null">
+        updated_at,
+      </if>
+      <if test="createdAt != null">
+        created_at,
+      </if>
+      <if test="deletedAt != null">
+        deleted_at,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="deployTokenId != null">
+        #{deployTokenId,jdbcType=INTEGER},
+      </if>
+      <if test="artifactId != null">
+        #{artifactId,jdbcType=INTEGER},
+      </if>
+      <if test="artifactScope != null">
+        #{artifactScope,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedAt != null">
+        #{updatedAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createdAt != null">
+        #{createdAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="deletedAt != null">
+        #{deletedAt,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+
+  <update id="deleteByDeployTokenArtifacts" >
+    update deploy_token_artifacts
+    set deleted_at=NOW()
+    where  deploy_token_id = #{deployTokenId}
+  </update>
+
   <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
     select 
     <include refid="Base_Column_List" />
@@ -20,14 +71,12 @@
     where id = #{id,jdbcType=INTEGER}
   </select>
 
-  <select id="getDeployTokenArtifacts" parameterType="net.coding.lib.project.entity.DeployTokenArtifacts" resultMap="BaseResultMap">
+  <select id="getDeployTokenArtifacts" resultMap="BaseResultMap">
     select
     <include refid="Base_Column_List" />
     from deploy_token_artifacts
     <where>
-    <if test="deployTokenId !=null">
       deploy_token_id = #{deployTokenId}
-    </if>
     </where>
   </select>
 </mapper>
