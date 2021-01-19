@@ -42,14 +42,4 @@
     from depots
     where deleted_at = '1970-01-01 00:00:00' AND id = #{id,jdbcType=INTEGER}
   </select>
-  <select id="getByIds" parameterType="java.util.List" resultMap="BaseResultMap">
-    select
-    <include refid="Base_Column_List" />
-    from depots
-    where id in
-    <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
-      #{id,jdbcType=INTEGER}
-    </foreach>
-
-  </select>
 </mapper>

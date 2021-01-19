@@ -4,11 +4,14 @@ package net.coding.lib.project.dao;
 import net.coding.lib.project.entity.Project;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.Map;
 
 @Mapper
 public interface ProjectDao {
 
-    Project getProject(Project project);
+    Project getById(@Param("id") Integer id);
 
-    Integer update(Project project);
+    Project getByNameAndTeamId(Map<String, Object> parameter);
 }

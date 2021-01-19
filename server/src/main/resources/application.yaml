@@ -9,7 +9,7 @@ i18n:
   baseName: platform-project,ui
 
 amqp:
-  url: ${AMQP_URL:amqp://guest:guest@rabbitmq:5672/}
+  url: ${AMQP_URL:amqp://guest:guest@9.135.93.238:5672/}
 
 sentry:
   enable: true
@@ -21,11 +21,11 @@ grpc:
   enableReflection: true
   client:
     coding:
-      serviceName: ${CODING_SERVICE_NAME:coding}
+      serviceName: ${CODING_SERVICE_NAME:9.135.93.238}
       servicePort: ${CODING_SERVICE_PORT:20153}
 
 jdbc:
-  host: ${JDBC_HOST:jdbc:mysql://mariadb:3306/coding}
+  host: ${JDBC_HOST:jdbc:mysql://9.135.93.238:3306/coding}
   username: ${JDBC_USERNAME:coding}
   password: ${JDBC_PASSWORD:coding123}
 
@@ -36,7 +36,7 @@ logging:
 
 spring:
   redis:
-    host: ${REDIS_HOST:127.0.0.1}
+    host: ${REDIS_HOST:9.135.93.238}
     port: ${REDIS_PORT:6379}
     timeout: 3600
     database: 0
@@ -55,7 +55,7 @@ log4j:
 #xxl:
 #  job:
 #    admin:
-#      addresses: ${PLATFORM_XXL_JOB:http://9.135.97.50:8080}/admin
+#      addresses: ${PLATFORM_XXL_JOB:http://9.135.93.238:8080}/admin
 #    executor:
 #      appname: platform-project
 #      port: 9981
@@ -67,16 +67,4 @@ management.endpoints.web.exposure.include: '*'
 management.endpoint.health.show-details: always
 management.metrics.tags.application: ${spring.application.name}
 
-storage.provider.contains: ddd
-storage.provider: ddd
-cache.enable: false
-cache.disableChannel: true
 
-
-cache.redis.host: 127.0.0.1
-cache.redis.port: 6379
-cache.redis.database: "10"
-cache.redis.prefix: CoreL2160922:V2
-REDIS_HOST: 127.0.0.1
-REDIS_PORT: "6379"
-REDISSON_HOST: 127.0.0.1
