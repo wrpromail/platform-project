@@ -1,7 +1,7 @@
 dependencies {
 
     ext {
-        commonVersion = '20210113.2'
+        commonVersion = '20201215.4'
     }
 
     compile 'org.redisson:redisson:3.13.4'
@@ -13,8 +13,7 @@ dependencies {
     compile 'io.prometheus:simpleclient_hotspot:0.1.0'
     compile 'io.prometheus:simpleclient_servlet:0.1.0'
     compile 'io.sentry:sentry-logback:3.0.0'
-    compile 'io.springfox:springfox-swagger2:2.9.2'
-    compile 'io.springfox:springfox-swagger-ui:2.9.2'
+
     compile "net.coding.common:rpc-client:${commonVersion}"
     compile "net.coding.common:util:${commonVersion}"
     compile "net.coding.common:base:${commonVersion}"
@@ -24,12 +23,6 @@ dependencies {
     compile "net.coding.common:eventbus:${commonVersion}"
     compile "net.coding.common:server:${commonVersion}"
     compile "net.coding.common:rabbitmq:${commonVersion}"
-    compile "net.coding.common:storage:${commonVersion}"
-    compile "net.coding.common:cache:${commonVersion}"
-    compile "net.coding.common:db:${commonVersion}"
-    compile "net.coding.common:cache-evict:${commonVersion}"
-
-
 
     compile ("net.coding.grpc.client:activity:20201102.2") {
         exclude(group: "net.coding.common")
@@ -40,21 +33,12 @@ dependencies {
     compile ("net.coding.grpc.client:depot:20200916.2") {
         exclude(group: "net.coding.common")
     }
-    compile ("net.coding.grpc.client:platform:20210108.1") {
-        exclude(group: "net.coding.common")
-    }
-    compile ("net.coding.grpc.client:pinyin:20201230.1") {
-        exclude(group: "net.coding.common")
-    }
-    compile ("net.coding.grpc.client:permission:20201230.1") {
-        exclude(group: "net.coding.common")
-    }
-    compile "net.coding.proto:platform:20201230.1"
+
+    compile "net.coding.proto:platform:20201020.3"
     compile 'net.coding.proto:storage:20201027.1'
     compile "net.coding.proto:issue:20201102.2"
     compile "net.coding.proto:notification:20201030.2"
     compile 'net.coding.proto:file:20201109.2'
     compile "net.coding.proto:wiki:20201113.1"
-    compile "net.coding.proto:artifact:20210112.1"
 
 }

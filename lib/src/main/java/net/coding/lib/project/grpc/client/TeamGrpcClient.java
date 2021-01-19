@@ -1,7 +1,6 @@
 package net.coding.lib.project.grpc.client;
 
 import net.coding.common.rpc.client.EndpointGrpcClient;
-import net.coding.grpc.client.platform.BeanUtil;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -36,13 +35,5 @@ public class TeamGrpcClient extends EndpointGrpcClient<TeamServiceGrpc.TeamServi
                 .build();
         TeamProto.GetTeamHostWithProtocolResponse response = newStub().getTeamHostWithProtocol(request);
         return response.getTeamHostWithProtocol();
-    }
-    public TeamProto.GetTeamResponse getTeam(TeamProto.GetTeamByIdRequest request) {
-        try {
-            return  newStub().getTeamById(request);
-        } catch (Exception e) {
-            log.error("getTeam {}" ,e.getMessage());
-            return null;
-        }
     }
 }

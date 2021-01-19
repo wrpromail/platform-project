@@ -44,16 +44,16 @@ public class Project implements Serializable {
     /**
      * 项目状态
      */
-    private Short status;
+    private Integer status;
 
-    private Short recommended;
+    private Integer recommended;
 
     /**
      * 是否公开仓库源代码
      */
     private Integer depotShared;
 
-    private Integer type;
+    private Boolean type;
 
     private Short maxMember;
 
@@ -115,7 +115,7 @@ public class Project implements Serializable {
     /**
      * 是否隐藏  TCB为1
      */
-    private Boolean invisible;
+    private Integer invisible;
 
     /**
      * 标签  TCB

@@ -17,7 +17,9 @@ public interface ProjectTweetDao {
 
     ProjectTweet getById(@Param("id") Integer id);
 
-    List<ProjectTweet> findList(ProjectTweet record);
+    List<ProjectTweet> findList(Map<String, Object> parameter);
 
-    ProjectTweet getProjectTweet(ProjectTweet record);
+    ProjectTweet getLast(Map<String, Object> parameter);
+
+    ProjectTweet getLastTweetInTenMinutes(Map<String, Object> parameter);
 }
