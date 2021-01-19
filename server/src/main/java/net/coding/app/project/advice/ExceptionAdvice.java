@@ -34,7 +34,7 @@ public class ExceptionAdvice {
     @ResponseBody
     public ResponseEntity<ExceptionMessage> bindExceptionHandler(Exception ex) {
         if (log.isDebugEnabled()) {
-            log.error("Exception advice bind exception", ex);
+            log.error("Exception advice bind exception {}", ex.getMessage());
         } else {
             log.warn("Exception advice bind exception {}", ex.getMessage());
         }
@@ -77,7 +77,7 @@ public class ExceptionAdvice {
     @ResponseBody
     public ResponseEntity<ExceptionMessage> handleError(AppException exception) {
         if (log.isDebugEnabled()) {
-            log.error("Exception advice handle app exception", exception);
+            log.error("Exception advice handle app exception , code = {}, msg = {}", exception.getCode(), exception.getKey());
         } else {
             log.warn("Exception advice handle app exception, code = {}, msg = {}", exception.getCode(), exception.getKey());
         }
@@ -102,7 +102,7 @@ public class ExceptionAdvice {
     @ResponseBody
     public ResponseEntity<ExceptionMessage> handleError(CoreException exception) {
         if (log.isDebugEnabled()) {
-            log.error("Exception advice handle app exception", exception);
+            log.error("Exception advice handle app exception, code = {}, msg = {}", exception.getCode(), exception.getKey());
         } else {
             log.warn("Exception advice handle app exception, code = {}, msg = {}", exception.getCode(), exception.getKey());
         }
@@ -123,7 +123,7 @@ public class ExceptionAdvice {
     @ExceptionHandler
     @ResponseBody
     public ResponseEntity<ExceptionMessage> handle(Exception exception) {
-        log.error("Exception advice handle exception", exception);
+        log.error("Exception advice handle exception,  {}", exception.getMessage());
         return ResponseEntity.ok().body(defaultMessage());
     }
 

@@ -3,9 +3,11 @@ package net.coding.lib.project.entity;
 import java.io.Serializable;
 import java.util.Date;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class ExternalLink implements Serializable {
 
     private static final long serialVersionUID = 1604385041173L;
@@ -48,4 +50,5 @@ public class ExternalLink implements Serializable {
     private Date updatedAt;
 
     private Date deletedAt;
+
 }

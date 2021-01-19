@@ -5,14 +5,17 @@ import com.google.common.eventbus.AsyncEventBus;
 
 import net.coding.common.base.bean.setting.AtSetting;
 import net.coding.common.base.event.ActivityEvent;
+import net.coding.common.base.event.ProjectNameChangeEvent;
 import net.coding.common.base.gson.JSON;
 import net.coding.common.util.TextUtils;
 import net.coding.e.proto.ActivitiesProto;
 import net.coding.grpc.client.activity.ActivityGrpcClient;
+import net.coding.grpc.client.pinyin.PinyinClient;
 import net.coding.grpc.client.template.TemplateGrpcClient;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.entity.ProjectPreference;
+import net.coding.lib.project.entity.ProjectSetting;
 import net.coding.lib.project.entity.ProjectTweet;
 import net.coding.lib.project.enums.ActivityEnums;
 import net.coding.lib.project.event.NotificationEvent;
@@ -33,7 +36,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -41,21 +43,27 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import javax.annotation.Resource;
-
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import proto.notification.NotificationProto;
 import proto.platform.project.ProjectProto;
 import proto.platform.user.UserProto;
 
 import static java.util.stream.Collectors.toList;
+import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE;
+import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE_DATE;
+import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE_DESCRIPTION;
+import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE_DISPLAY_NAME;
+import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE_NAME;
 import static net.coding.common.constants.ProjectConstants.PROJECT_PRIVATE;
 import static net.coding.common.constants.ValidationConstants.TWEET_LIMIT_IMAGES;
+import static net.coding.grpc.client.pinyin.PinyinClient.DEFAULT_SEPARATOR;
 import static net.coding.lib.project.entity.ProjectPreference.PREFERENCE_STATUS_TRUE;
 import static net.coding.lib.project.entity.ProjectPreference.PREFERENCE_TYPE_PROJECT_TWEET;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.CONTENT_INCLUDE_SENSITIVE_WORDS;
@@ -63,77 +71,47 @@ import static net.coding.lib.project.exception.CoreException.ExceptionType.TWEET
 
 @Component
 @Slf4j
+@AllArgsConstructor
 public class ProjectServiceHelper {
 
     public static final Pattern AT_REG = Pattern.compile("(@([^@\\s<>()（）：:，,。…~!！？?'‘\"]+))(.{0}|\\s)");
 
-    @Resource
-    private UserGrpcClient userGrpcClient;
+    private final UserGrpcClient userGrpcClient;
 
-    @Resource
-    private ProjectMemberService projectMemberService;
+    private final ProjectMemberService projectMemberService;
 
-    @Resource
-    private ProfanityWordService profanityWordService;
-
-    @Resource
-    private ProjectResourceLinkService projectResourceLinkService;
-
-    @Resource
-    private ProjectPreferenceService projectPreferenceService;
-
-    @Resource
-    private ProjectGrpcClient projectGrpcClient;
-
-    @Autowired
-    private AsyncEventBus asyncEventBus;
-
-    @Autowired
-    private TeamGrpcClient teamGrpcClient;
-
-    @Autowired
-    private ActivityGrpcClient activityGrpcClient;
-
-    @Autowired
-    private NotificationGrpcClient notifiactionGrpcClient;
-
-    @Autowired
-    private TemplateGrpcClient templateGrpcClient;
+    private final ProfanityWordService profanityWordService;
 
 
-    /**
-     * 解析 {@code content} 并检查内容是否合法.
-     *
-     * @param content 文本
-     * @param project 项目
-     * @return 解析后的文本
-     * @throws CoreException 图片数目超出限制/包含限制词
-     */
-    public String updateAndCheckContent(String content, Project project, Integer teamId) throws CoreException {
-        String newContent = projectResourceLinkService.linkize(content, project);
-        newContent = templateGrpcClient.markdownWithMonkey(teamId, newContent, false);
-        newContent = TextUtil.filterUserInputContent(newContent);
-        //newContent = downloadImageService.filterHTML(newContent);
+    private final ProjectPreferenceService projectPreferenceService;
 
-        // 图片数目超过限制
-        if (limitTweetImages(newContent, TWEET_LIMIT_IMAGES)) {
-            throw CoreException.of(TWEET_IMAGE_LIMIT_N, TWEET_LIMIT_IMAGES);
-        }
+    private final ProjectGrpcClient projectGrpcClient;
+
+    private final AsyncEventBus asyncEventBus;
+
+    private final TeamGrpcClient teamGrpcClient;
+
+    private final ActivityGrpcClient activityGrpcClient;
+
+    private final NotificationGrpcClient notifiactionGrpcClient;
+
+    private final PinyinClient pinyinClient;
+
+
+    public String checkContent(String content) {
         // 包含限制词
-        String profanity = profanityWordService.checkContent(newContent);
-        if (StringUtils.isNotEmpty(profanity)) {
-            throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, profanity);
-        }
-        return newContent;
+        String profanity = profanityWordService.checkContent(content);
+        return profanity;
     }
 
-    /**
-     * 判断用户冒泡的图片数量是否超限
-     */
-    public boolean limitTweetImages(String content, int amount) {
-        Document doc = Jsoup.parse(content);
-        Elements eles = doc.select("img.bubble-markdown-image");
-        return eles.size() > amount;
+    public String getPinYin(String displayName, String name) {
+        return pinyinClient.combined(
+                StringUtils.defaultIfBlank(
+                        displayName,
+                        name
+                ),
+                DEFAULT_SEPARATOR
+        );
     }
 
     public Set<Integer> parseAtUser(Integer userId, Project project, String content, Integer targetOwnerId) {
@@ -153,8 +131,8 @@ public class ProjectServiceHelper {
                 userIdSet.addAll(projectMemberService.findListByProjectId(project.getId()).stream().map(projectMember -> projectMember.getId()).collect(Collectors.toSet()));
                 break;
             }
-            UserProto.User user= userGrpcClient.getUserByNameAndTeamId(name, project.getTeamOwnerId());
-            if(null == user) {
+            UserProto.User user = userGrpcClient.getUserByNameAndTeamId(name, project.getTeamOwnerId());
+            if (null == user) {
                 user = userGrpcClient.getUserByGlobalKey(name);
             }
             if (null == user) {
@@ -231,7 +209,7 @@ public class ProjectServiceHelper {
 
                 notifiactionGrpcClient.send(NotificationProto.NotificationSendRequest.newBuilder()
                         .addAllUserId(userIds)
-                        .setContent(message)
+                        .setContent(Optional.ofNullable(message).orElse(null))
                         .setTargetType(NotificationProto.TargetType.Project)
                         .setTargetId(tweet.getId().toString())
                         .setSetting(NotificationProto.Setting.AtSetting)
@@ -269,7 +247,7 @@ public class ProjectServiceHelper {
         if (Objects.isNull(user) || Objects.isNull(projectId)) {
             return false;
         }
-        if(projectGrpcClient.isProjectRobotUser(user.getGlobalKey())) {
+        if (projectGrpcClient.isProjectRobotUser(user.getGlobalKey())) {
             return true;
         }
         return projectMemberService.getByProjectIdAndUserId(projectId, user.getId()) != null;
@@ -285,13 +263,12 @@ public class ProjectServiceHelper {
         // 获取用户列表
         List<ProjectMember> members = projectMemberService.findListByProjectId(project.getId());
         // 过滤创建者自身及被 @ 的用户
-        List<Integer> userIds = members.stream()
+        return members.stream()
                 .filter(m ->
                         !Objects.equals(m.getUserId(), userId)
                                 && !atUserIds.contains(m.getUserId()))
                 .map(ProjectMember::getUserId)
                 .collect(toList());
-        return userIds;
     }
 
     /**
@@ -370,7 +347,60 @@ public class ProjectServiceHelper {
                     .build();
             activityGrpcClient.sendActivity(request);
         } catch (Exception ex) {
-            log.error("发送动态失败！ex={}", ex);
+            log.error("Send activity failed！ex={}", ex.getMessage());
         }
     }
+
+    public void postProjectNameChangeEvent(Project project) {
+        ProjectNameChangeEvent projectNameChangeEvent = ProjectNameChangeEvent.builder().projectId(project.getId()).newName(project.getName()).build();
+        asyncEventBus.post(projectNameChangeEvent);
+    }
+
+    public void postNameActivityEvent(Integer userId, Project project) {
+        ActivityEvent nameActivityEvent = ActivityEvent.builder().creatorId(userId).type(Project.class)
+                .targetId(project.getId()).projectId(project.getId()).action(ACTION_UPDATE_NAME).content(StringUtils.EMPTY).build();
+        asyncEventBus.post(nameActivityEvent);
+    }
+
+    public void postDisplayNameActivityEvent(Integer userId, Project project) {
+        ActivityEvent displayNameActivityEvent = ActivityEvent.builder().creatorId(userId).type(Project.class)
+                .targetId(project.getId()).projectId(project.getId()).action(ACTION_UPDATE_DISPLAY_NAME).content(StringUtils.EMPTY).build();
+        asyncEventBus.post(displayNameActivityEvent);
+    }
+
+    public void postDescriptionActivityEvent(Integer userId, Project project) {
+        ActivityEvent descriptionActivityEvent = ActivityEvent.builder().creatorId(userId).type(Project.class)
+                .targetId(project.getId()).projectId(project.getId()).action(ACTION_UPDATE_DESCRIPTION).content(StringUtils.EMPTY).build();
+        asyncEventBus.post(descriptionActivityEvent);
+    }
+
+    public void postDateActivityEvent(Integer userId, Project project) {
+        ActivityEvent dateActivityEvent = ActivityEvent.builder().creatorId(userId).type(Project.class)
+                .targetId(project.getId()).projectId(project.getId()).action(ACTION_UPDATE_DATE).content(StringUtils.EMPTY).build();
+        asyncEventBus.post(dateActivityEvent);
+    }
+
+    public void postIconActivityEvent(Integer userId, Project project) {
+        ActivityEvent iconActivityEvent = ActivityEvent.builder().creatorId(userId)
+                .type(Project.class)
+                .targetId(project.getId())
+                .projectId(project.getId())
+                .action(ACTION_UPDATE)
+                .content(StringUtils.EMPTY)
+                .build();
+        asyncEventBus.post(iconActivityEvent);
+    }
+
+    public void postFunctionActivity(Integer userId, ProjectSetting projectSetting, Short action) {
+        ActivityEvent funActivityEvent = ActivityEvent.builder()
+                .creatorId(userId)
+                .type(ProjectSetting.class)
+                .targetId(projectSetting.getId())
+                .projectId(projectSetting.getProjectId())
+                .action(action)
+                .content(projectSetting.getCode())
+                .build();
+        asyncEventBus.post(funActivityEvent);
+    }
+
 }
