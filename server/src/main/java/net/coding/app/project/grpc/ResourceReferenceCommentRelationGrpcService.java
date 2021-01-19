@@ -35,7 +35,7 @@ public class ResourceReferenceCommentRelationGrpcService extends
                                    StreamObserver<ResourceReferenceCommentRelationProto.AddCommentRelationResponse> response) {
         try {
             log.info("addCommentRelation() grpc service receive: {}", request != null ? request.toString() : "");
-            if (request.getProjectId() <= 0 || request.getCommentId() <= 0 || request.getResourceReferenceId() <= 0
+            if (request.getProjectId() <= 0 || request.getCommentId() < 0 || request.getResourceReferenceId() <= 0
                     || StringUtils.isEmpty(request.getResourceType()) || StringUtils.isEmpty(request.getCitedSource())) {
                 GrpcUtil.addCommentRelationResponse(CodeProto.Code.INVALID_PARAMETER, "addCommentRelation parameters error", null, response);
                 return;
@@ -58,7 +58,7 @@ public class ResourceReferenceCommentRelationGrpcService extends
                 GrpcUtil.addCommentRelationResponse(CodeProto.Code.INTERNAL_ERROR, "add error", null, response);
             }
         } catch (Exception ex) {
-            log.error("addCommentRelation() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("addCommentRelation() callException request={}, ex={}", request != null ? request.toString() : "", ex.getMessage());
             GrpcUtil.addCommentRelationResponse(CodeProto.Code.INTERNAL_ERROR, "add error", null, response);
         }
     }
@@ -91,15 +91,15 @@ public class ResourceReferenceCommentRelationGrpcService extends
             } else {
                 GrpcUtil.commentRelationCommonResponse(CodeProto.Code.INTERNAL_ERROR, "batchAdd error", response);
             }
-        }  catch (Exception ex) {
-            log.error("commentRelationCommonResponse() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+        } catch (Exception ex) {
+            log.error("commentRelationCommonResponse() callException request={}, ex={}", request != null ? request.toString() : "", ex.getMessage());
             GrpcUtil.commentRelationCommonResponse(CodeProto.Code.INTERNAL_ERROR, "batchAdd error", response);
         }
     }
 
     @Override
     public void deleteByReferenceIds(ResourceReferenceCommentRelationProto.DeleteByReferenceIdsRequest request,
-                                           StreamObserver<ResourceReferenceCommentRelationProto.CommentRelationCommonResponse> response) {
+                                     StreamObserver<ResourceReferenceCommentRelationProto.CommentRelationCommonResponse> response) {
         try {
             log.info("deleteByReferenceIds() grpc service receive: {}", request != null ? request.toString() : "");
             if (CollectionUtils.isEmpty(request.getReferenceIdList())) {
@@ -113,7 +113,7 @@ public class ResourceReferenceCommentRelationGrpcService extends
                 GrpcUtil.commentRelationCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
             }
         } catch (Exception ex) {
-            log.error("deleteByReferenceIds() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("deleteByReferenceIds() callException request={}, ex={}", request != null ? request.toString() : "", ex.getMessage());
             GrpcUtil.commentRelationCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
         }
     }
@@ -123,7 +123,7 @@ public class ResourceReferenceCommentRelationGrpcService extends
                                                  StreamObserver<ResourceReferenceCommentRelationProto.CommentRelationCommonResponse> response) {
         try {
             log.info("deleteByReferenceIds() grpc service receive: {}", request != null ? request.toString() : "");
-            if (CollectionUtils.isEmpty(request.getReferenceIdList()) || request.getCommentId() <= 0) {
+            if (CollectionUtils.isEmpty(request.getReferenceIdList()) || request.getCommentId() < 0) {
                 GrpcUtil.commentRelationCommonResponse(CodeProto.Code.INVALID_PARAMETER, "deleteByReferenceIds param error", response);
                 return;
             }
@@ -134,7 +134,7 @@ public class ResourceReferenceCommentRelationGrpcService extends
                 GrpcUtil.commentRelationCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
             }
         } catch (Exception ex) {
-            log.error("deleteByReferenceIds() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("deleteByReferenceIds() callException request={}, ex={}", request != null ? request.toString() : "", ex.getMessage());
             GrpcUtil.commentRelationCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
         }
     }
@@ -153,7 +153,7 @@ public class ResourceReferenceCommentRelationGrpcService extends
                     resourceReferenceCommentRelationService.findByResourceReferenceId(request.getReferenceId()),
                     response);
         } catch (Exception ex) {
-            log.error("findByResourceReferenceId() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("findByResourceReferenceId() callException request={}, ex={}", request != null ? request.toString() : "", ex.getMessage());
             GrpcUtil.findCommentRelationListResponse(CodeProto.Code.INTERNAL_ERROR, "find error", null, response);
         }
     }
@@ -172,7 +172,7 @@ public class ResourceReferenceCommentRelationGrpcService extends
                     resourceReferenceCommentRelationService.findReferenceRelationsBelowEqual(request.getReferenceIdList(), request.getNumber()),
                     response);
         } catch (Exception ex) {
-            log.error("findReferenceRelationsBelowEqual() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("findReferenceRelationsBelowEqual() callException request={}, ex={}", request != null ? request.toString() : "", ex.getMessage());
             GrpcUtil.findReferenceIdsResponse(CodeProto.Code.INTERNAL_ERROR, "find error", null, response);
         }
     }
@@ -191,7 +191,7 @@ public class ResourceReferenceCommentRelationGrpcService extends
                     resourceReferenceCommentRelationService.findReferenceRelationsAbove(request.getReferenceIdList(), request.getNumber()),
                     response);
         } catch (Exception ex) {
-            log.error("findReferenceRelationsAbove() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("findReferenceRelationsAbove() callException request={}, ex={}", request != null ? request.toString() : "", ex.getMessage());
             GrpcUtil.findReferenceIdsResponse(CodeProto.Code.INTERNAL_ERROR, "find error", null, response);
         }
     }
@@ -210,7 +210,7 @@ public class ResourceReferenceCommentRelationGrpcService extends
                     resourceReferenceCommentRelationService.findUsedReferenceIdsWithoutDescription(request.getReferenceIdList()),
                     response);
         } catch (Exception ex) {
-            log.error("findUsedReferenceIdsWithoutDescription() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("findUsedReferenceIdsWithoutDescription() callException request={}, ex={}", request != null ? request.toString() : "", ex.getMessage());
             GrpcUtil.findReferenceIdsResponse(CodeProto.Code.INTERNAL_ERROR, "find error", null, response);
         }
     }
@@ -226,7 +226,7 @@ public class ResourceReferenceCommentRelationGrpcService extends
                 return;
             }
             int counts = resourceReferenceCommentRelationService.countComment(request.getReferenceId());
-            if(counts > 0) {
+            if (counts > 0) {
                 isComment = true;
             }
             GrpcUtil.hasCommentResponse(CodeProto.Code.SUCCESS,
@@ -234,7 +234,7 @@ public class ResourceReferenceCommentRelationGrpcService extends
                     isComment,
                     response);
         } catch (Exception ex) {
-            log.error("hasComment() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("hasComment() callException request={}, ex={}", request != null ? request.toString() : "", ex.getMessage());
             GrpcUtil.hasCommentResponse(CodeProto.Code.INTERNAL_ERROR, "find error", isComment, response);
         }
     }
@@ -244,7 +244,7 @@ public class ResourceReferenceCommentRelationGrpcService extends
                                               StreamObserver<ResourceReferenceCommentRelationProto.FindCommentRelationResponse> response) {
         try {
             log.info("findByCommentIdAndCommentType() grpc service receive: {}", request != null ? request.toString() : "");
-            if (request.getCommentId() <= 0 || StringUtils.isEmpty(request.getResourceType())) {
+            if (request.getCommentId() < 0 || StringUtils.isEmpty(request.getResourceType())) {
                 GrpcUtil.findCommentRelationListResponse(CodeProto.Code.INVALID_PARAMETER, "findByCommentIdAndCommentType param error", null, response);
                 return;
             }
@@ -253,7 +253,7 @@ public class ResourceReferenceCommentRelationGrpcService extends
                     resourceReferenceCommentRelationService.findByCommentIdAndCommentType(request.getCommentId(), request.getResourceType()),
                     response);
         } catch (Exception ex) {
-            log.error("findByCommentIdAndCommentType() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("findByCommentIdAndCommentType() callException request={}, ex={}", request != null ? request.toString() : "", ex.getMessage());
             GrpcUtil.findCommentRelationListResponse(CodeProto.Code.INTERNAL_ERROR, "find error", null, response);
         }
     }
