@@ -187,9 +187,9 @@ public class CoreException extends Exception {
         LABEL_NAME_ERROR(2500, "label_name_error"),
         LABEL_EXIST(2501, "label_exist"),
         LABEL_COLOR_ERROR(2502, "label_color_error"),
+        LABEL_NAME_TOO_LONG(2503, "label_name_too_long"),
         //permissions相关以 14 开头
         PERMISSION_DENIED(1400, "permission_denied"),
-
 
         DEPLOY_TOKEN_NOT_EXIST(7202, "deploy_token_not_exist"),
         DEPLOY_TOKEN_PROJECT_NOT_MATCH(7203, "deploy_token_project_not_match"),

@@ -49,7 +49,6 @@ import static springfox.documentation.builders.PathSelectors.regex;
         net.coding.common.redis.Config.class
 })
 @ImportAutoConfiguration({GRpcAutoConfiguration.class})
-@MapperScan("net.coding.lib.project")
 @EnableScheduling
 @EnableSwagger2
 public class Application {
