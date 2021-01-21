@@ -11,4 +11,11 @@ public interface GatewayHeader {
 
     String PROJECT_ID = "CODING-PROJECT-ID";
     String PROJECT_NAME = "CODING-PROJECT-NAME";
+
+    String SESSION_KEY = "SESSION-HEADER-KEY";
+    /**
+     * 团队域名
+     */
+    String HOST = "X-FORWARDED-HOST";
+
 }

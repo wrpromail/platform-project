@@ -3,8 +3,8 @@ package net.coding.app.project.advice;
 import net.coding.common.i18n.utils.LocaleMessageSourceUtil;
 import net.coding.lib.project.exception.AppException;
 import net.coding.lib.project.exception.CoreException;
+import net.coding.lib.project.exception.CoreRuntimeException;
 import net.coding.lib.project.exception.ExceptionMessage;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
@@ -26,6 +26,7 @@ public class ExceptionAdvice {
 
     private final static String NETWORK_CONNECTION_ERROR = "network_connection_error";
     private final static String NETWORK_CONNECTION_ERROR_CODE = "905";
+
 
     /**
      * validate验证异常
@@ -119,6 +120,25 @@ public class ExceptionAdvice {
         );
     }
 
+    @ExceptionHandler(CoreRuntimeException.class)
+    @ResponseBody
+    public ResponseEntity<ExceptionMessage> handleCoreRuntimeException(CoreRuntimeException ex) {
+        if (log.isDebugEnabled()) {
+            log.error("handle app exception", ex);
+        } else {
+            log.warn("Exception advice handle app exception, code = {}, msg = {}",
+                    ex.getExceptionType().getErrorCode()
+                    , ex.getExceptionType().getResourceKey()
+            );
+        }
+        return ResponseEntity.ok().body(
+                ExceptionMessage.of(
+                        String.valueOf(ex.getExceptionType().getErrorCode()),
+                        ex.getExceptionType().getResourceKey(),
+                        LocaleMessageSourceUtil.getMessage(ex.getExceptionType().getResourceKey())
+                )
+        );
+    }
 
     @ExceptionHandler
     @ResponseBody
