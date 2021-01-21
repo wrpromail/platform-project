@@ -33,7 +33,6 @@ public class ExternalLinkGrpcService extends ExternalLinkServiceGrpc.ExternalLin
     @Override
     public void addExternalLink(ExternalLinkProto.AddExternalLinkRequest request,
                                 StreamObserver<ExternalLinkProto.AddExternalLinkResponse> response) {
-        log.info("addExternalLink() grpc service receive: {}", request != null ? request.toString() : "");
         try {
             ExternalLink externalLink = externalLinkService.add(request.getUserId(), request.getTitle(), request.getLink());
             ProjectResource record = new ProjectResource();
@@ -43,12 +42,11 @@ public class ExternalLinkGrpcService extends ExternalLinkServiceGrpc.ExternalLin
             record.setTargetType(ExternalLink.class.getSimpleName());
             record.setCreatedBy(request.getUserId());
             String projectPath = projectGrpcClient.getProjectPath(record.getProjectId());
-            log.info("addProjectResource() record= {}", record.toString());
             ProjectResource resource = projectResourceServiceHelper.addProjectResource(record, projectPath);
             externalLink.setIid(resource.getCode());
             GrpcUtil.addExternalLinkResponse(CodeProto.Code.SUCCESS, "add success", externalLink, response);
         } catch (Exception ex) {
-            log.error("addExternalLink() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("addExternalLink fail, parameter is "+ request.toString(), ex);
             GrpcUtil.addExternalLinkResponse(CodeProto.Code.INTERNAL_ERROR,
                     "addExternalLink service error", null, response);
         }

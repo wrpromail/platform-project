@@ -36,7 +36,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void simpleAddResourceReference(ResourceReferenceProto.SimpleAddResourceReferenceRequest request,
                                            StreamObserver<ResourceReferenceProto.ResourceReferenceResponse> response) {
         try {
-            log.info("simpleAddResourceReference() grpc service receive: {}", request != null ? request.toString() : "");
             if (request == null || request.getProjectId() <= 0 || request.getSelfIid() <= 0 || request.getTargetProjectId() <= 0 || request.getTargetIid() <= 0) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "simpleAddResourceReference parameters error", null, response);
                 return;
@@ -67,7 +66,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
             insert.setTargetProjectId(target.getProjectId());
             insert.setCreatedAt(DateUtil.getCurrentDate());
             insert.setUpdatedAt(DateUtil.getCurrentDate());
-            log.info("simpleAddResourceReference() insert: {}", insert.toString());
             ResourceReference resourceReference = resourceReferenceService.insert(insert);
             if (Objects.nonNull(resourceReference.getId()) && 0 < resourceReference.getId()) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.SUCCESS, "add success", GrpcUtil.getResourceReference(resourceReference), response);
@@ -75,7 +73,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INTERNAL_ERROR, "add error", null, response);
             }
         } catch (Exception ex) {
-            log.error("simpleAddResourceReference() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("simpleAddResourceReference fail, parameter is " + request.toString(), ex);
             GrpcUtil.resourceReferenceResponse(CodeProto.Code.INTERNAL_ERROR, "add error", null, response);
         }
     }
@@ -84,7 +82,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void addResourceReference(ResourceReferenceProto.AddResourceReferenceRequest request,
                                      StreamObserver<ResourceReferenceProto.ResourceReferenceResponse> response) {
         try {
-            log.info("addResourceReference() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getSelfIid() <= 0 || request.getTargetProjectId() <= 0 || request.getTargetIid() <= 0) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "addResourceReference parameters error", null, response);
                 return;
@@ -100,7 +97,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
             insert.setTargetProjectId(request.getTargetProjectId());
             insert.setCreatedAt(DateUtil.getCurrentDate());
             insert.setUpdatedAt(DateUtil.getCurrentDate());
-            log.info("addResourceReference() insert: {}", insert.toString());
             ResourceReference resourceReference = resourceReferenceService.insert(insert);
             if (Objects.nonNull(resourceReference.getId()) && 0 < resourceReference.getId()) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.SUCCESS, "simpleAdd success", GrpcUtil.getResourceReference(resourceReference), response);
@@ -108,7 +104,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INTERNAL_ERROR, "simpleAdd error", null, response);
             }
         } catch (Exception ex) {
-            log.error("addResourceReference() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("addResourceReference fail, parameter is " + request.toString(), ex);
             GrpcUtil.resourceReferenceResponse(CodeProto.Code.INTERNAL_ERROR, "add error", null, response);
         }
     }
@@ -117,7 +113,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void batchAddResourceReference(ResourceReferenceProto.BatchAddResourceReferenceRequest request,
                                           StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
         try {
-            log.info("batchAddResourceReference() grpc service receive: {}", request != null ? request.toString() : "");
             if (CollectionUtils.isEmpty(request.getAddResourceReferenceRequestList())) {
                 GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "batchAddResourceReference param error", response);
                 return;
@@ -144,7 +139,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                 GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "batchAdd error", response);
             }
         } catch (Exception ex) {
-            log.error("batchAddResourceReference() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("batchAddResourceReference fail, parameter is " + request.toString(), ex);
             GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "batchAdd error", response);
         }
     }
@@ -153,7 +148,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void updateResourceReference(ResourceReferenceProto.UpdateResourceReferenceRequest request,
                                         StreamObserver<ResourceReferenceProto.ResourceReferenceResponse> response) {
         try {
-            log.info("updateResourceReference() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getSelfIid() <= 0  || request.getTargetProjectId() <= 0 || request.getTargetIid() <= 0) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "updateResourceReference parameters error", null, response);
                 return;
@@ -170,7 +164,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
             update.setCreatedAt(DateUtil.getCurrentDate());
             update.setUpdatedAt(DateUtil.getCurrentDate());
             update.setId(request.getId());
-            log.info("updateResourceReference() update: {}", update.toString());
             int updateFlag = resourceReferenceService.update(update);
             if (0 < updateFlag) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.SUCCESS, "update success", GrpcUtil.getResourceReference(update), response);
@@ -178,7 +171,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INTERNAL_ERROR, "update error", null, response);
             }
         } catch (Exception ex) {
-            log.error("updateResourceReference() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("updateResourceReference fail, parameter is " + request.toString(), ex);
             GrpcUtil.resourceReferenceResponse(CodeProto.Code.INTERNAL_ERROR, "update error", null, response);
         }
     }
@@ -187,7 +180,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void deleteResourceReferenceById(ResourceReferenceProto.DeleteResourceReferenceByIdRequest request,
                                             StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
         try {
-            log.info("deleteResourceReferenceById() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getId() <= 0) {
                 GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "deleteResourceReferenceById param error", response);
                 return;
@@ -199,7 +191,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                 GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
             }
         } catch (Exception ex) {
-            log.error("deleteResourceReferenceById() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("deleteResourceReferenceById fail, parameter is " + request.toString(), ex);
             GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
         }
     }
@@ -208,7 +200,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void deleteResourceReferenceByIds(ResourceReferenceProto.DeleteResourceReferenceByIdsRequest request,
                                              StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
         try {
-            log.info("deleteResourceReferenceByIds() grpc service receive: {}", request != null ? request.toString() : "");
             if (CollectionUtils.isEmpty(request.getIdList())) {
                 GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "deleteResourceReferenceByIds param error", response);
                 return;
@@ -220,7 +211,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                 GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
             }
         } catch (Exception ex) {
-            log.error("deleteResourceReferenceByIds() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("deleteResourceReferenceByIds fail, parameter is " + request.toString(), ex);
             GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
         }
     }
@@ -229,7 +220,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void deleteSelfByTypeAndId(ResourceReferenceProto.DeleteByTypeAndIdRequest request,
                                       StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
         try {
-            log.info("deleteSelfByTypeAndId() grpc service receive: {}", request != null ? request.toString() : "");
             if (StringUtils.isEmpty(request.getType()) || request.getId() <= 0) {
                 GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "deleteSelfByTypeAndId param error", response);
                 return;
@@ -241,7 +231,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                 GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
             }
         } catch (Exception ex) {
-            log.error("deleteSelfByTypeAndId() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("deleteSelfByTypeAndId fail, parameter is " + request.toString(), ex);
             GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
         }
     }
@@ -250,7 +240,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void deleteTargetByTypeAndId(ResourceReferenceProto.DeleteByTypeAndIdRequest request,
                                         StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
         try {
-            log.info("deleteTargetByTypeAndId() grpc service receive: {}", request != null ? request.toString() : "");
             if (StringUtils.isEmpty(request.getType()) || request.getId() <= 0) {
                 GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "deleteTargetByTypeAndId param error", response);
                 return;
@@ -262,7 +251,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                 GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
             }
         } catch (Exception ex) {
-            log.error("deleteTargetByTypeAndId() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("deleteTargetByTypeAndId fail, parameter is " + request.toString(), ex);
             GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
         }
     }
@@ -271,7 +260,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void deleteByTypeAndId(ResourceReferenceProto.DeleteByTypeAndIdRequest request,
                                   StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
         try {
-            log.info("deleteByTypeAndId() grpc service receive: {}", request != null ? request.toString() : "");
             if (StringUtils.isEmpty(request.getType()) || request.getId() <= 0) {
                 GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "deleteByTypeAndId param error", response);
                 return;
@@ -283,7 +271,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                 GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
             }
         } catch (Exception ex) {
-            log.error("deleteByTypeAndId() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("deleteByTypeAndId fail, parameter is " + request.toString(), ex);
             GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
         }
     }
@@ -292,7 +280,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void deleteByProjectId(ResourceReferenceProto.DeleteByProjectIdRequest request,
                                   StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
         try {
-            log.info("deleteByProjectId() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getProjectId() <= 0) {
                 GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "deleteByProjectId param error", response);
                 return;
@@ -304,7 +291,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                 GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
             }
         } catch (Exception ex) {
-            log.error("deleteByProjectId() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("deleteByProjectId fail, parameter is " + request.toString(), ex);
             GrpcUtil.resourceReferenceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "delete error", response);
         }
     }
@@ -313,7 +300,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void countByTarget(ResourceReferenceProto.CountByTargetRequest request,
                               StreamObserver<ResourceReferenceProto.CountResourceReferenceResponse> response) {
         try {
-            log.info("countByTarget() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getTargetProjectId() <= 0 || request.getTargetIid() <= 0) {
                 GrpcUtil.countByTargetResponse(CodeProto.Code.INVALID_PARAMETER, "countByTarget param error", 0, response);
                 return;
@@ -321,7 +307,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
             int counts = resourceReferenceService.countByTarget(request.getTargetProjectId(), request.getTargetIid());
             GrpcUtil.countByTargetResponse(CodeProto.Code.SUCCESS, "count success", counts, response);
         } catch (Exception ex) {
-            log.error("countByTarget() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("countByTarget fail, parameter is " + request.toString(), ex);
             GrpcUtil.countByTargetResponse(CodeProto.Code.INTERNAL_ERROR, "count error", 0, response);
         }
     }
@@ -330,7 +316,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void countBySelfWithTargetDeleted(ResourceReferenceProto.CountBySelfWithTargetDeletedRequest request,
                                              StreamObserver<ResourceReferenceProto.CountResourceReferenceResponse> response) {
         try {
-            log.info("countBySelfWithTargetDeleted() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getProjectId() <= 0 || request.getCode() <= 0) {
                 GrpcUtil.countByTargetResponse(CodeProto.Code.INVALID_PARAMETER, "countBySelfWithTargetDeleted param error", 0, response);
                 return;
@@ -338,7 +323,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
             int counts = resourceReferenceService.countBySelfWithTargetDeleted(request.getProjectId(), request.getCode());
             GrpcUtil.countByTargetResponse(CodeProto.Code.SUCCESS, "count success", counts, response);
         } catch (Exception ex) {
-            log.error("countBySelfWithTargetDeleted() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("countBySelfWithTargetDeleted fail, parameter is " + request.toString(), ex);
             GrpcUtil.countByTargetResponse(CodeProto.Code.INTERNAL_ERROR, "count error", 0, response);
         }
     }
@@ -347,7 +332,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void findListByTargetType(ResourceReferenceProto.FindListByTargetTypeRequest request,
                                      StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
         try {
-            log.info("findListByTargetType() grpc service receive: {}", request != null ? request.toString() : "");
             if (StringUtils.isEmpty(request.getTargetType()) || request.getTargetId() <= 0) {
                 GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INVALID_PARAMETER, "findListByTargetType param error", null, response);
                 return;
@@ -357,7 +341,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                     resourceReferenceService.findListByTargetType(request.getTargetType(), request.getTargetId()),
                     response);
         } catch (Exception ex) {
-            log.error("findListByTargetType() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("findListByTargetType fail, parameter is " + request.toString(), ex);
             GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INTERNAL_ERROR, "find error", null, response);
         }
     }
@@ -366,7 +350,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void findListByTargetProjectId(ResourceReferenceProto.FindListByTargetProjectIdRequest request,
                                           StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
         try {
-            log.info("findListByTargetProjectId() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getTargetProjectId() <= 0 || request.getTargetIid() <= 0) {
                 GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INVALID_PARAMETER, "findListByTargetProjectId param error", null, response);
                 return;
@@ -376,7 +359,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                     resourceReferenceService.findListByTargetProjectId(request.getTargetProjectId(), request.getTargetIid(), request.getUserId(), request.getIsFilter()),
                     response);
         } catch (Exception ex) {
-            log.error("findListByTargetProjectId() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("findListByTargetProjectId fail, parameter is " + request.toString(), ex);
             GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INTERNAL_ERROR, "find error", null, response);
         }
     }
@@ -385,7 +368,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void findListBySelfType(ResourceReferenceProto.FindListBySelfTypeRequest request,
                                    StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
         try {
-            log.info("findListBySelfType() grpc service receive: {}", request != null ? request.toString() : "");
             if (StringUtils.isEmpty(request.getSelfType()) || request.getSelfId() <= 0) {
                 GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INVALID_PARAMETER, "findListBySelfType param error", null, response);
                 return;
@@ -395,7 +377,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                     resourceReferenceService.findListBySelfType(request.getSelfType(), request.getSelfId()),
                     response);
         } catch (Exception ex) {
-            log.error("findListBySelfType() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("findListBySelfType fail, parameter is " + request.toString(), ex);
             GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INTERNAL_ERROR, "find error", null, response);
         }
     }
@@ -404,7 +386,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void findListBySelfProjectId(ResourceReferenceProto.FindListBySelfProjectIdRequest request,
                                         StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
         try {
-            log.info("findListBySelfProjectId() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getSelfProjectId() <= 0 || request.getSelfIid() <= 0) {
                 GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INVALID_PARAMETER, "findListBySelfProjectId param error", null, response);
                 return;
@@ -414,7 +395,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                     resourceReferenceService.findListBySelfProjectId(request.getSelfProjectId(), request.getSelfIid()),
                     response);
         } catch (Exception ex) {
-            log.error("findListBySelfProjectId() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("findListBySelfProjectId fail, parameter is " + request.toString(), ex);
             GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INTERNAL_ERROR, "find error", null, response);
         }
     }
@@ -423,7 +404,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void findListBySelfAndTarget(ResourceReferenceProto.FindlistBySelfAndTargetRequest request,
                                         StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
         try {
-            log.info("findListBySelfAndTarget() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getProjectId() <= 0 || request.getSelfAndTargetId() <= 0) {
                 GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INVALID_PARAMETER, "findListBySelfAndTarget param error", null, response);
                 return;
@@ -433,7 +413,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                     resourceReferenceService.findListBySelfAndTarget(request.getProjectId(), request.getSelfAndTargetId()),
                     response);
         } catch (Exception ex) {
-            log.error("findListBySelfAndTarget() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("findListBySelfAndTarget fail, parameter is " + request.toString(), ex);
             GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INTERNAL_ERROR, "find error", null, response);
         }
     }
@@ -442,7 +422,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void findReferMutuallyList(ResourceReferenceProto.FindReferMutuallyListRequest request,
                                       StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
         try {
-            log.info("findReferMutuallyList() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getSelfProjectId() <= 0 || request.getSelfIid() <= 0) {
                 GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INVALID_PARAMETER, "findReferMutuallyList param error", null, response);
                 return;
@@ -452,7 +431,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                     resourceReferenceService.findReferMutuallyList(request.getSelfProjectId(), request.getSelfIid(), request.getUserId(), request.getIsFilter()),
                     response);
         } catch (Exception ex) {
-            log.error("findReferMutuallyList() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("findReferMutuallyList fail, parameter is " + request.toString(), ex);
             GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INTERNAL_ERROR, "find error", null, response);
         }
     }
@@ -461,7 +440,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void findMutuallyList(ResourceReferenceProto.FindMutuallyListRequest request,
                                  StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
         try {
-            log.info("findMutuallyList() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getSelfProjectId() <= 0 || request.getSelfCode() <= 0 || request.getTargetProjectId() <= 0 || request.getTargetCode() <= 0) {
                 GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INVALID_PARAMETER, "findMutuallyList param error", null, response);
                 return;
@@ -471,7 +449,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                     resourceReferenceService.findMutuallyList(request.getSelfProjectId(), request.getSelfCode(), request.getTargetProjectId(), request.getTargetCode()),
                     response);
         } catch (Exception ex) {
-            log.error("findMutuallyList() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("findMutuallyList fail, parameter is " + request.toString(), ex);
             GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INTERNAL_ERROR, "find error", null, response);
         }
     }
@@ -480,7 +458,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void findIdsMutually(ResourceReferenceProto.FindIdsMutuallyRequest request,
                                 StreamObserver<ResourceReferenceProto.FindIdsMutuallyResponse> response) {
         try {
-            log.info("findIdsMutually() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getProjectId() <= 0 || request.getCode() <= 0) {
                 GrpcUtil.findIdsMutuallyResponse(CodeProto.Code.INVALID_PARAMETER, "findIdsMutually param error", null, response);
                 return;
@@ -490,7 +467,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                     resourceReferenceService.findIdsMutually(request.getProjectId(), request.getCode()),
                     response);
         } catch (Exception ex) {
-            log.error("findIdsMutually() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("findIdsMutually fail, parameter is " + request.toString(), ex);
             GrpcUtil.findIdsMutuallyResponse(CodeProto.Code.INTERNAL_ERROR, "find error", null, response);
         }
     }
@@ -499,7 +476,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void findBySelfWithDescriptionCitedRelation(ResourceReferenceProto.FindBySelfWithDescriptionCitedRelationRequest request,
                                                        StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
         try {
-            log.info("findBySelfWithDescriptionCitedRelation() grpc service receive: {}", request != null ? request.toString() : "");
             if (StringUtils.isEmpty(request.getSelfType()) || request.getSelfId() <= 0) {
                 GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INVALID_PARAMETER, "findBySelfWithDescriptionCitedRelation param error", null, response);
                 return;
@@ -509,7 +485,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                     resourceReferenceService.findBySelfWithDescriptionCitedRelation(request.getSelfType(), request.getSelfId()),
                     response);
         } catch (Exception ex) {
-            log.error("findBySelfWithDescriptionCitedRelation() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("findIdsMutfindBySelfWithDescriptionCitedRelationually fail, parameter is " + request.toString(), ex);
             GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INTERNAL_ERROR, "find error", null, response);
         }
     }
@@ -518,7 +494,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void findBySelfWithoutDescriptionCitedRelation(ResourceReferenceProto.FindBySelfWithoutDescriptionCitedRelationRequest request,
                                                           StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
         try {
-            log.info("findBySelfWithoutDescriptionCitedRelation() grpc service receive: {}", request != null ? request.toString() : "");
             if (StringUtils.isEmpty(request.getSelfType()) || request.getSelfId() <= 0) {
                 GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INVALID_PARAMETER, "findBySelfWithoutDescriptionCitedRelation param error", null, response);
                 return;
@@ -528,7 +503,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                     resourceReferenceService.findBySelfWithoutDescriptionCitedRelation(request.getSelfType(), request.getSelfId()),
                     response);
         } catch (Exception ex) {
-            log.error("findBySelfWithoutDescriptionCitedRelation() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("findBySelfWithoutDescriptionCitedRelation fail, parameter is " + request.toString(), ex);
             GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INTERNAL_ERROR, "find error", null, response);
         }
     }
@@ -537,7 +512,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void findBySelfWithTargetDeleted(ResourceReferenceProto.FindBySelfWithTargetDeletedRequest request,
                                             StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
         try {
-            log.info("findBySelfWithTargetDeleted() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getProjectId() <= 0 || request.getCode() <= 0) {
                 GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INVALID_PARAMETER, "findBySelfWithTargetDeleted param error", null, response);
                 return;
@@ -547,7 +521,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                     resourceReferenceService.findBySelfWithTargetDeleted(request.getProjectId(), request.getCode(), request.getUserId(), request.getIsFilter()),
                     response);
         } catch (Exception ex) {
-            log.error("findBySelfWithTargetDeleted() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("findBySelfWithTargetDeleted fail, parameter is " + request.toString(), ex);
             GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INTERNAL_ERROR, "find error", null, response);
         }
     }
@@ -556,7 +530,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void findByProjectId(ResourceReferenceProto.FindByProjectIdRequest request,
                                 StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
         try {
-            log.info("findByProjectId() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getProjectId() <= 0) {
                 GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INVALID_PARAMETER, "findByProjectId param error", null, response);
                 return;
@@ -566,7 +539,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                     resourceReferenceService.findByProjectId(request.getProjectId(), request.getWithDeleted()),
                     response);
         } catch (Exception ex) {
-            log.error("findByProjectId() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("findByProjectId fail, parameter is " + request.toString(), ex);
             GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INTERNAL_ERROR, "find error", null, response);
         }
     }
@@ -575,7 +548,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void getByProjectIdAndCode(ResourceReferenceProto.GetByProjectIdAndCodeRequest request,
                                       StreamObserver<ResourceReferenceProto.ResourceReferenceResponse> response) {
         try {
-            log.info("getByProjectIdAndCode() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getSelfProjectId() <= 0 || request.getSelfCode() <= 0 || request.getTargetProjectId() <= 0 || request.getTargetCode() <= 0) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "getByProjectIdAndCode param error", null, response);
                 return;
@@ -592,7 +564,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "result is empty", null, response);
             }
         } catch (Exception ex) {
-            log.error("getByProjectIdAndCode() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("getByProjectIdAndCode fail, parameter is " + request.toString(), ex);
             GrpcUtil.resourceReferenceResponse(CodeProto.Code.INTERNAL_ERROR, "get error", null, response);
         }
     }
@@ -601,7 +573,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void getByTypeAndId(ResourceReferenceProto.GetByTypeAndIdRequest request,
                                StreamObserver<ResourceReferenceProto.ResourceReferenceResponse> response) {
         try {
-            log.info("getByTypeAndId() grpc service receive: {}", request != null ? request.toString() : "");
             if (StringUtils.isEmpty(request.getSelfType()) || request.getSelfId() <= 0 || StringUtils.isEmpty(request.getTargetType()) || request.getTargetId() <= 0) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "getByTypeAndId param error", null, response);
                 return;
@@ -618,7 +589,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "result is empty", null, response);
             }
         } catch (Exception ex) {
-            log.error("getByTypeAndId() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("getByTypeAndId fail, parameter is " + request.toString(), ex);
             GrpcUtil.resourceReferenceResponse(CodeProto.Code.INTERNAL_ERROR, "get error", null, response);
         }
     }
@@ -627,7 +598,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void getOptional(ResourceReferenceProto.GetOptionalRequest request,
                             StreamObserver<ResourceReferenceProto.ResourceReferenceResponse> response) {
         try {
-            log.info("getOptional() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getSelfProjectId() <= 0 || StringUtils.isEmpty(request.getSelfType()) ||
                     request.getSelfId() <= 0 || StringUtils.isEmpty(request.getTargetType())) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "getOptional param error", null, response);
@@ -645,7 +615,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "result is empty", null, response);
             }
         } catch (Exception ex) {
-            log.error("getOptional() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("getOptional fail, parameter is " + request.toString(), ex);
             GrpcUtil.resourceReferenceResponse(CodeProto.Code.INTERNAL_ERROR, "get error", null, response);
         }
     }
@@ -654,7 +624,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void getById(ResourceReferenceProto.GetByIdRequest request,
                         StreamObserver<ResourceReferenceProto.ResourceReferenceResponse> response) {
         try {
-            log.info("getWithDeletedById() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getId() <= 0) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "getWithDeletedById param error", null, response);
                 return;
@@ -670,7 +639,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "result is empty", null, response);
             }
         } catch (Exception ex) {
-            log.error("getWithDeletedById() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("getWithDeletedById fail, parameter is " + request.toString(), ex);
             GrpcUtil.resourceReferenceResponse(CodeProto.Code.INTERNAL_ERROR, "get error", null, response);
         }
     }
@@ -679,7 +648,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void findWithDeletedByIds(ResourceReferenceProto.FindWithDeletedByIdsRequest request,
                                      StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
         try {
-            log.info("findWithDeletedByIds() grpc service receive: {}", request != null ? request.toString() : "");
             if (CollectionUtils.isEmpty(request.getIdList())) {
                 GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INVALID_PARAMETER, "getWithDeletedById param error", null, response);
             }
@@ -688,7 +656,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                     resourceReferenceService.getWithDeletedByIds(request.getIdList()),
                     response);
         } catch (Exception ex) {
-            log.error("findWithDeletedByIds() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("findWithDeletedByIds fail, parameter is " + request.toString(), ex);
             GrpcUtil.findResourceReferenceListResponse(CodeProto.Code.INTERNAL_ERROR, "get error", null, response);
         }
     }
@@ -697,7 +665,6 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void existsResourceReference(ResourceReferenceProto.ExistsResourceReferenceRequest request,
                                         StreamObserver<ResourceReferenceProto.ExistsResourceReferenceResponse> response) {
         try {
-            log.info("existsResourceReference() grpc service receive: {}", request != null ? request.toString() : "");
             if (request.getTargetProjectId() <= 0 || request.getTargetIid() <= 0 || request.getSelfProjectId() <= 0) {
                 GrpcUtil.existsResourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "param error", false, response);
                 return;
@@ -708,7 +675,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
                             request.getSelfProjectId(), request.getSelfIid()),
                     response);
         } catch (Exception ex) {
-            log.error("existsResourceReference() callException request={}, ex={}", request != null ? request.toString() : "", ex);
+            log.error("existsResourceReference fail, parameter is " + request.toString(), ex);
             GrpcUtil.existsResourceReferenceResponse(CodeProto.Code.INTERNAL_ERROR, "exists error", false, response);
         }
     }
