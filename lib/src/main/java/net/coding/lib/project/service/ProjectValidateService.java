@@ -38,17 +38,6 @@ public class ProjectValidateService {
 
     private final ProfanityWordService profanityWordService;
 
-    private final ProjectDao projectDao;
-
-    public Project getProjectByOwnerIdAndName(Integer userOwnerId, String projectName) {
-        Project project = Project.builder().name(projectName).userOwnerId(userOwnerId).build();
-        return projectDao.getProject(project);
-    }
-
-    public Project getProjectByOwnerIdAndDisplayName(Integer userOwnerId, String displayName) {
-        Project project = Project.builder().displayName(displayName).userOwnerId(userOwnerId).build();
-        return projectDao.getProject(project);
-    }
 
     public void validate(Project project, UpdateProjectForm updateProjectForm, Errors errors) throws CoreException {
 
@@ -139,9 +128,6 @@ public class ProjectValidateService {
             if (null != teamId) {
                 return existProjectName(name, teamId);
             }
-            //2.个人项目--某个人名下所有项目不能重名
-            Project p = getProjectByOwnerIdAndName(project.getOwnerId(), name);
-            return null != p && !project.getId().equals(p.getId());
         }
         return false;
     }
@@ -153,13 +139,7 @@ public class ProjectValidateService {
 
         //1.查询是否团队项目,若是团队项目则--团队范围内项目不能重名
         Integer teamId = getTeamId(targetProject);
-        if (teamId != null) {
-            return existProjectDisplayName(displayName, teamId);
-        }
-
-        //2.个人项目--某个人名下所有项目不能重名
-        Project p = getProjectByOwnerIdAndDisplayName(targetProject.getOwnerId(), displayName);
-        return null != p && !targetProject.getId().equals(p.getId());
+        return existProjectDisplayName(displayName, teamId);
 
     }
 

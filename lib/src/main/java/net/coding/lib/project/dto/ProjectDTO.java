@@ -18,10 +18,13 @@ import lombok.Setter;
  */
 @Builder
 public class ProjectDTO {
+
     private String description;
     private Integer id;
     private String name;
     private String display_name;
     private String start_date;
     private String end_date;
+    private String icon;
+
 }
