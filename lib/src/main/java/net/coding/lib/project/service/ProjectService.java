@@ -4,6 +4,7 @@ import net.coding.common.cache.evict.constant.CacheType;
 import net.coding.common.cache.evict.manager.EvictCacheManager;
 import net.coding.lib.project.enums.CacheTypeEnum;
 import net.coding.lib.project.parameter.ProjectQueryParameter;
+import net.coding.lib.project.parameter.ProjectUpdateParameter;
 import net.coding.lib.project.service.download.CodingSettings;
 import net.coding.common.storage.support.Storage;
 import net.coding.common.storage.support.bean.ImageInfo;
@@ -80,8 +81,7 @@ public class ProjectService {
 
 
     public Project getById(Integer id) {
-        Project project = Project.builder().id(id).build();
-        return projectDao.getProject(project);
+        return projectDao.getProjectById(id);
     }
 
     public ProjectDTO getProjectDtoById(Integer id) {
@@ -89,13 +89,11 @@ public class ProjectService {
     }
 
     public Project getByIdAndTeamId(Integer id, Integer teamOwnerId) {
-        Project project = Project.builder().id(id).teamOwnerId(teamOwnerId).build();
-        return projectDao.getProject(project);
+        return projectDao.getProjectByIdAndTeamId(id, teamOwnerId);
     }
 
     public Project getByNameAndTeamId(String projectName, Integer teamOwnerId) {
-        Project project = Project.builder().name(projectName).teamOwnerId(teamOwnerId).build();
-        return projectDao.getProject(project);
+        return projectDao.getProjectByNameAndTeamId(projectName, teamOwnerId);
     }
 
     public List<Project> getProjects(ProjectQueryParameter parameter) {
@@ -111,8 +109,7 @@ public class ProjectService {
     }
 
     public int update(UpdateProjectForm form) throws CoreException {
-        Project query = Project.builder().id(projectValidateService.getId(form.getId())).build();
-        Project project = projectDao.getProject(query);
+        Project project = getById(projectValidateService.getId(form.getId()));
         if (project == null) {
             throw CoreException.of(CoreException.ExceptionType.PARAMETER_INVALID);
         }
@@ -177,10 +174,17 @@ public class ProjectService {
 
         }
 
-        project.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
         project.setNamePinyin(projectServiceHelper.getPinYin(project.getDisplayName(), project.getName()));
 
-        int result = projectDao.update(project);
+        ProjectUpdateParameter projectUpdateParameter = ProjectUpdateParameter.builder()
+                .id(project.getId())
+                .description(project.getDescription())
+                .displayName(project.getDisplayName())
+                .name(project.getName())
+                .namePinyin(project.getNamePinyin())
+                .startDate(project.getStartDate())
+                .endDate(project.getEndDate()).build();
+        int result = projectDao.updateBasicInfo(projectUpdateParameter);
 
         if (result > 0) {
             //清除缓存
@@ -223,9 +227,9 @@ public class ProjectService {
             throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
         }
         project.setIcon(icon);
-
-        Integer result = projectDao.update(project);
+        Integer result = projectDao.updateIcon(project.getId(), icon);
         if (result > 0) {
+            handleCache(project, CacheTypeEnum.UPDATE);
             //发送事件通知
             projectServiceHelper.postIconActivityEvent(currentUser.getId(), project);
 
@@ -261,7 +265,8 @@ public class ProjectService {
                 .name(project.getName())
                 .display_name(project.getDisplayName())
                 .start_date(formatDate(project.getStartDate()))
-                .end_date(formatDate(project.getEndDate())).build();
+                .end_date(formatDate(project.getEndDate()))
+                .icon(project.getIcon()).build();
     }
 
 

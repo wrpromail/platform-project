@@ -29,19 +29,10 @@
     select
     <include refid="Base_Column_List" />
     from deploy_tokens
-    <where>
-      <if test="id !=null">
-        id = #{id}
-      </if>
-      <if test="projectId != null">
-        AND `project_id` = #{projectId}
-      </if>
-      <if test="type != null">
-        AND `type` = #{type}
-      </if>
-
-      AND deleted_at = '1970-01-01 00:00:00'
-    </where>
+    where
+      `project_id` = #{projectId}
+    AND `type` = #{type}
+    AND deleted_at = '1970-01-01 00:00:00'
     ORDER BY created_at DESC
   </select>
   <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
