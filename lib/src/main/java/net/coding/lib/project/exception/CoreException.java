@@ -82,6 +82,15 @@ public class CoreException extends Exception {
         CAPTCHA_SLIDE_ERROR(919, "j_captcha_error"),
         SERVER_BUSY(920, "server_busy"),
 
+        // user 相关以 10 开头
+        USER_NOT_EXISTS(1001, "user_not_exists"),
+
+
+        //team
+        TEAM_NOT_EXIST(3700, "team_not_exist"),
+        TEAM_MEMBER_NOT_EXISTS(3710, "team_member_not_exists"),
+        TEAM_NOT_HAVE_PROJECT(3718, "team_not_have_project"),
+
         // project 相关以 11 开头
         PROJECT_NOT_EXIST(1100, "project_not_exists"),
         PROJECT_MEMBER_EXISTS(1101, "project_member_exists"),
@@ -149,7 +158,6 @@ public class CoreException extends Exception {
         PROJECT_DEMO_RESET_LIMIT(1170, "project_demo_reset_limit"),
         PROJECT_TEMPLATE_NOT_EXIST(1171, "project_template_not_exist"),
         PROJECT_ARCHIVED_ONLY_ADMIN(1172, "project_archived_only_admin"),
-
 
 
         //group相关的以 15开头

@@ -1,10 +1,9 @@
 package net.coding.lib.project.service;
 
-import net.coding.common.base.dao.BaseDao;
 import net.coding.common.cache.evict.constant.CacheType;
 import net.coding.common.cache.evict.manager.EvictCacheManager;
-import net.coding.common.config.TencentOASettings;
 import net.coding.lib.project.enums.CacheTypeEnum;
+import net.coding.lib.project.parameter.ProjectQueryParameter;
 import net.coding.lib.project.service.download.CodingSettings;
 import net.coding.common.storage.support.Storage;
 import net.coding.common.storage.support.bean.ImageInfo;
@@ -24,17 +23,17 @@ import net.coding.lib.project.helper.ProjectServiceHelper;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.Errors;
 
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
-
-import javax.annotation.Resource;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -89,11 +88,19 @@ public class ProjectService {
         return buildProjectDTO(getById(id));
     }
 
+    public Project getByIdAndTeamId(Integer id, Integer teamOwnerId) {
+        Project project = Project.builder().id(id).teamOwnerId(teamOwnerId).build();
+        return projectDao.getProject(project);
+    }
+
     public Project getByNameAndTeamId(String projectName, Integer teamOwnerId) {
         Project project = Project.builder().name(projectName).teamOwnerId(teamOwnerId).build();
         return projectDao.getProject(project);
     }
 
+    public List<Project> getProjects(ProjectQueryParameter parameter) {
+        return projectDao.findByProjects(parameter);
+    }
 
     public void validateUpDate(UpdateProjectForm updateProjectForm, Errors errors) throws CoreException {
         Project project = getById(projectValidateService.getId(updateProjectForm.getId()));
@@ -226,6 +233,24 @@ public class ProjectService {
         return buildProjectDTO(project);
     }
 
+    /**
+     * 删除项目
+     */
+    public void delete(Integer userId, Integer teamId, Integer projectId) throws CoreException {
+        Project project = getByIdAndTeamId(projectId, teamId);
+        if (project == null) {
+            throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
+        }
+        int result = projectDao.delete(projectId);
+        if (result < 0) {
+            throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
+        }
+        //清除缓存
+        handleCache(project, CacheTypeEnum.DELETE);
+        projectServiceHelper.postProjectDeleteEvent(userId, project);
+    }
+
+
     public ProjectDTO buildProjectDTO(Project project) {
         if (project == null) {
             return null;
@@ -255,8 +280,7 @@ public class ProjectService {
 
         // enterprise: do not allow none team projects
         if (codingSettings.getEnterprise().getEnable()) {
-            TeamProto.GetTeamByIdRequest request = TeamProto.GetTeamByIdRequest.newBuilder().setId(project.getTeamOwnerId()).build();
-            TeamProto.GetTeamResponse team = teamGrpcClient.getTeam(request);
+            TeamProto.GetTeamResponse team = teamGrpcClient.getTeam(project.getTeamOwnerId());
             if (team == null || team.getData().getLock() || team.getData().getAdminLoacked() || team.getData().getId() != user.getTeamId()) {
                 return GUEST;
             }

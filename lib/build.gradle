@@ -29,6 +29,7 @@ dependencies {
     compile "net.coding.common:cache:${commonVersion}"
     compile "net.coding.common:db:${commonVersion}"
     compile "net.coding.common:cache-evict:${commonVersion}"
+    compile "net.coding.common:dto:${commonVersion}"
 
 
 
@@ -41,7 +42,7 @@ dependencies {
     compile ("net.coding.grpc.client:depot:20200916.2") {
         exclude(group: "net.coding.common")
     }
-    compile ("net.coding.grpc.client:platform:20210108.1") {
+    compile ("net.coding.grpc.client:platform:20210118.1") {
         exclude(group: "net.coding.common")
     }
     compile ("net.coding.grpc.client:pinyin:20201230.1") {
@@ -57,6 +58,8 @@ dependencies {
     compile 'net.coding.proto:file:20201109.2'
     compile "net.coding.proto:wiki:20201113.1"
     compile "net.coding.proto:artifact:20210112.1"
+    compile "net.coding.proto:permission:20201230.1"
+    compile "net.coding.proto:open-api:20210121.2"
 
     compile("tk.mybatis:mapper-spring-boot-starter:2.1.5")
 

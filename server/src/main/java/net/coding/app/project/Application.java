@@ -37,16 +37,16 @@ import static springfox.documentation.builders.PathSelectors.regex;
         net.coding.grpc.client.activity.Config.class,
         net.coding.grpc.client.template.Config.class,
         net.coding.grpc.client.pinyin.Config.class,
-        net.coding.grpc.client.platform.TeamProjectServiceGrpcClient.class,
-        net.coding.grpc.client.platform.GlobalKeyGrpcClient.class,
         net.coding.common.i18n.Config.class,
         net.coding.grpc.client.depot.Config.class,
         net.coding.common.util.Config.class,
         net.coding.common.storage.Config.class,
         net.coding.common.config.Config.class,
-        net.coding.grpc.client.permission.RoleServiceGrpcClient.class,
+        net.coding.common.redis.Config.class,
         net.coding.common.cache.evict.Config.class,
-        net.coding.common.redis.Config.class
+        net.coding.grpc.client.platform.Config.class,
+        net.coding.grpc.client.permission.Config.class
+
 })
 @ImportAutoConfiguration({GRpcAutoConfiguration.class})
 @EnableScheduling
@@ -54,9 +54,11 @@ import static springfox.documentation.builders.PathSelectors.regex;
 public class Application {
     @Value("${production:false}")
     private boolean production;
+
     public static void main(String[] args) {
         BaseServer.run(Application.class, args);
     }
+
     @Bean
     public Docket docket() {
         ApiSelectorBuilder builder = new Docket(DocumentationType.SWAGGER_2)

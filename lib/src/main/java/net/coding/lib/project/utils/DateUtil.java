@@ -3,7 +3,10 @@ package net.coding.lib.project.utils;
 import net.coding.lib.project.entity.ResourceReference;
 
 import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.text.MessageFormat;
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -49,29 +52,30 @@ public class DateUtil {
     }
 
     /**
-     * Date转LocalDateTime
-     * 使用系统时区
+     * Date转LocalDateTime 使用系统时区
+     *
      * @param date
      * @return
      */
-    public static LocalDateTime dateToLocalDateTime(Date date){
+    public static LocalDateTime dateToLocalDateTime(Date date) {
         Instant instant = date.toInstant();
         return instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 
     /**
-     * LocalDateTime转Date
-     * 使用系统时区
+     * LocalDateTime转Date 使用系统时区
+     *
      * @param localDateTime
      * @return
      */
-    public static Date localDateTimeToDate(LocalDateTime localDateTime){
+    public static Date localDateTimeToDate(LocalDateTime localDateTime) {
         ZonedDateTime zdt = localDateTime.atZone(ZoneId.systemDefault());
         return Date.from(zdt.toInstant());
     }
 
     /**
      * 日期转字符串
+     *
      * @param localDateTime
      * @param pattern
      * @return
@@ -83,6 +87,7 @@ public class DateUtil {
 
     /**
      * 将字符串日期解析为java.time.LocalDateTime
+     *
      * @param dateTimeStr
      * @param pattern
      * @return
@@ -110,39 +115,39 @@ public class DateUtil {
 
     /**
      * 结束日期，补齐" 23:59:59"
+     *
      * @param localDateTime
      * @return
      */
-    public static LocalDateTime getEndDateWithHMS(LocalDateTime localDateTime){
+    public static LocalDateTime getEndDateWithHMS(LocalDateTime localDateTime) {
         return LocalDateTime.of(localDateTime.toLocalDate(), LocalTime.MAX);
     }
 
 
-
-    public static LocalDateTime getAfterYears(LocalDateTime localDateTime, int count){
+    public static LocalDateTime getAfterYears(LocalDateTime localDateTime, int count) {
         return localDateTime.plusYears(count);
     }
 
-    public static LocalDateTime getAfterMonths(LocalDateTime localDateTime, int count){
+    public static LocalDateTime getAfterMonths(LocalDateTime localDateTime, int count) {
         return localDateTime.plusMonths(count);
     }
 
-    public static LocalDateTime getAfterDays(LocalDateTime localDateTime, int count){
+    public static LocalDateTime getAfterDays(LocalDateTime localDateTime, int count) {
         return localDateTime.plusDays(count);
     }
 
-    public static LocalDateTime getAfterMinutes(LocalDateTime localDateTime, int count){
+    public static LocalDateTime getAfterMinutes(LocalDateTime localDateTime, int count) {
         return localDateTime.plusMinutes(count);
     }
 
-    public static LocalDateTime getAfterSeconds(LocalDateTime localDateTime, int count){
+    public static LocalDateTime getAfterSeconds(LocalDateTime localDateTime, int count) {
         return localDateTime.plusSeconds(count);
     }
 
 
-
     /**
      * 获得当前年的第一天
+     *
      * @param
      * @return
      */
@@ -152,6 +157,7 @@ public class DateUtil {
 
     /**
      * 获得当前年的最后一天
+     *
      * @param
      * @return
      */
@@ -162,6 +168,7 @@ public class DateUtil {
 
     /**
      * 获得当前月的第一天
+     *
      * @param
      * @return
      */
@@ -171,6 +178,7 @@ public class DateUtil {
 
     /**
      * 获得当前月的最后一天
+     *
      * @param
      * @return
      */
@@ -181,88 +189,96 @@ public class DateUtil {
 
     /**
      * 获得当前星期的第一天
+     *
      * @param localDateTime
-     * @param locale 默认Locale.CHINA 周日为一周的第一天
+     * @param locale        默认Locale.CHINA 周日为一周的第一天
      * @return
      */
     public static LocalDateTime getWeekFirstDay(LocalDateTime localDateTime, Locale locale) {
-        return localDateTime.with(WeekFields.of(locale==null?Locale.CHINA:locale).dayOfWeek(),1);
+        return localDateTime.with(WeekFields.of(locale == null ? Locale.CHINA : locale).dayOfWeek(), 1);
     }
 
     /**
      * 获得当前星期的最后一天
+     *
      * @param localDateTime
-     * @param locale 默认默认Locale.CHINA 周日为一周的第一天
+     * @param locale        默认默认Locale.CHINA 周日为一周的第一天
      * @return
      */
     public static LocalDateTime getWeekLastDay(LocalDateTime localDateTime, Locale locale) {
-        return localDateTime.with(WeekFields.of(locale==null? Locale.CHINA:locale).dayOfWeek(),7);
+        return localDateTime.with(WeekFields.of(locale == null ? Locale.CHINA : locale).dayOfWeek(), 7);
     }
-
 
 
     /**
      * 计算两个日期之间相差年数
+     *
      * @param smallDateTime 较小的时间
-     * @param bigDateTime  较大的时间
+     * @param bigDateTime   较大的时间
      * @return 相差年数
      */
     public static int getYearDiff(LocalDateTime smallDateTime, LocalDateTime bigDateTime) {
-        return (int)smallDateTime.until(bigDateTime, ChronoUnit.YEARS);
+        return (int) smallDateTime.until(bigDateTime, ChronoUnit.YEARS);
     }
 
     /**
      * 计算两个日期之间相差月数
+     *
      * @param smallDateTime 较小的时间
-     * @param bigDateTime  较大的时间
+     * @param bigDateTime   较大的时间
      * @return 相差月数
      */
     public static int getMonthDiff(LocalDateTime smallDateTime, LocalDateTime bigDateTime) {
-        return (int)smallDateTime.until(bigDateTime, ChronoUnit.MONTHS);
+        return (int) smallDateTime.until(bigDateTime, ChronoUnit.MONTHS);
     }
 
     /**
      * 计算两个日期之间相差的天数
+     *
      * @param smallDateTime 较小的时间
-     * @param bigDateTime  较大的时间
+     * @param bigDateTime   较大的时间
      * @return 相差天数
      */
-    public static int getDayDiff(LocalDateTime smallDateTime, LocalDateTime bigDateTime){
-        return (int)smallDateTime.until(bigDateTime, ChronoUnit.DAYS);
+    public static int getDayDiff(LocalDateTime smallDateTime, LocalDateTime bigDateTime) {
+        return (int) smallDateTime.until(bigDateTime, ChronoUnit.DAYS);
     }
 
     /**
      * 计算两个日期之间相差小时数
+     *
      * @param smallDateTime 较小的时间
-     * @param bigDateTime  较大的时间
+     * @param bigDateTime   较大的时间
      * @return 相差小时数
      */
-    public static int getHourDiff(LocalDateTime smallDateTime, LocalDateTime bigDateTime){
-        return (int)smallDateTime.until(bigDateTime, ChronoUnit.HOURS);
+    public static int getHourDiff(LocalDateTime smallDateTime, LocalDateTime bigDateTime) {
+        return (int) smallDateTime.until(bigDateTime, ChronoUnit.HOURS);
     }
 
     /**
      * 计算两个日期之间相差分钟数
+     *
      * @param smallDateTime
      * @param bigDateTime
      * @return 相差分钟数
      */
-    public static int getMinutesDiff(LocalDateTime smallDateTime, LocalDateTime bigDateTime){
-        return (int)smallDateTime.until(bigDateTime, ChronoUnit.MINUTES);
+    public static int getMinutesDiff(LocalDateTime smallDateTime, LocalDateTime bigDateTime) {
+        return (int) smallDateTime.until(bigDateTime, ChronoUnit.MINUTES);
     }
 
     /**
      * 计算两个日期之间相差秒数
+     *
      * @param smallDateTime
      * @param bigDateTime
      * @return 相差秒数
      */
-    public static int getSecondsDiff(LocalDateTime smallDateTime, LocalDateTime bigDateTime){
-        return (int)smallDateTime.until(bigDateTime, ChronoUnit.SECONDS);
+    public static int getSecondsDiff(LocalDateTime smallDateTime, LocalDateTime bigDateTime) {
+        return (int) smallDateTime.until(bigDateTime, ChronoUnit.SECONDS);
     }
 
     /**
      * 获取当前标准格式的时间
+     *
      * @return
      */
     public static String getCurrentDateTimeStr() {
@@ -272,16 +288,18 @@ public class DateUtil {
 
     /**
      * 获取当前标准格式的时间
+     *
      * @return
      */
     public static Integer getCurrentHour() {
         LocalDateTime now = LocalDateTime.now();
-        String hour = dateTimeToStr(now, SQL_TIME).substring(11,13);
+        String hour = dateTimeToStr(now, SQL_TIME).substring(11, 13);
         return Integer.valueOf(hour);
     }
 
     /**
      * 获取当前标准格式的时间
+     *
      * @return
      */
     public static Date getCurrentDate() {
@@ -299,5 +317,11 @@ public class DateUtil {
         ZoneId zoneId = ZoneId.systemDefault();
         LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, zoneId);
         return formatter.format(localDateTime);
+    }
+
+    public static Long DateToTime(Date date) {
+        DateFormat dateFormat = new SimpleDateFormat(SQL_DATE);
+        return dateFormat.parse(dateFormat.format(date), new ParsePosition(0)).getTime() / 1000;
+
     }
 }
