@@ -43,7 +43,6 @@
          `name` = #{name,jdbcType=VARCHAR}
       AND team_owner_id=#{teamOwnerId ,jdbcType=INTEGER}
       AND deleted_at = '1970-01-01 00:00:00'
-    where
     LIMIT 1
   </select>
 
@@ -55,7 +54,6 @@
     `id` = #{id}
     AND team_owner_id=#{teamOwnerId}
     AND deleted_at = '1970-01-01 00:00:00'
-    where
     LIMIT 1
   </select>
   <select id="getProjectById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
