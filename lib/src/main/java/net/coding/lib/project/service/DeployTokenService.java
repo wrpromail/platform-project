@@ -320,7 +320,7 @@ public class DeployTokenService {
         teamId = SystemContextHolder.get().getTeamId();
         userId = SystemContextHolder.get().getId();
         if (teamId == null) {
-            throw CoreException.of(CoreException.ExceptionType.ENTERPRISE_NOT_EXISTS);
+            throw CoreException.of(CoreException.ExceptionType.TEAM_NOT_EXIST);
         }
         int gkId = getGlobalKey(teamId);
         if (gkId <= 0) {

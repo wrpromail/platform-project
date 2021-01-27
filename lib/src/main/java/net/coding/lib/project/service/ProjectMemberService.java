@@ -1,20 +1,21 @@
 package net.coding.lib.project.service;
 
+import net.coding.common.util.BeanUtils;
 import net.coding.lib.project.dao.ProjectMemberDao;
 import net.coding.lib.project.entity.ProjectMember;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
+import java.sql.Timestamp;
 import java.util.List;
-import java.util.Map;
+
+import lombok.AllArgsConstructor;
 
 @Service
+@AllArgsConstructor
 public class ProjectMemberService {
 
-    @Autowired
-    private ProjectMemberDao projectMemberDao;
+    private final ProjectMemberDao projectMemberDao;
 
     public ProjectMember getById(Integer id) {
         return projectMemberDao.getById(id);
@@ -28,23 +29,11 @@ public class ProjectMemberService {
         return projectMemberDao.update(projectMember);
     }
 
-    public List<ProjectMember> findList(Map<String, Object> parameter) {
-        parameter.put("deletedAt", "1970-01-01 00:00:00");
-        return projectMemberDao.findList(parameter);
-    }
-
     public List<ProjectMember> findListByProjectId(Integer projectId) {
-        Map<String, Object> parameter = new HashMap<>();
-        parameter.put("projectId", projectId);
-        parameter.put("deletedAt", "1970-01-01 00:00:00");
-        return projectMemberDao.findListByProjectId(parameter);
+        return projectMemberDao.findListByProjectId(projectId, Timestamp.valueOf(BeanUtils.NOT_DELETED_AT));
     }
 
     public ProjectMember getByProjectIdAndUserId(Integer projectId, Integer userId) {
-        Map<String, Object> parameter = new HashMap<>();
-        parameter.put("projectId", projectId);
-        parameter.put("userId", userId);
-        parameter.put("deletedAt", "1970-01-01 00:00:00");
-        return projectMemberDao.getByProjectIdAndUserId(parameter);
+        return projectMemberDao.getByProjectIdAndUserId(projectId, userId, Timestamp.valueOf(BeanUtils.NOT_DELETED_AT));
     }
 }

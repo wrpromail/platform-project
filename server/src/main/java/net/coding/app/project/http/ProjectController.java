@@ -6,8 +6,11 @@ import net.coding.common.annotation.ProtectedAPI;
 import net.coding.common.annotation.enums.Action;
 import net.coding.common.annotation.enums.Function;
 import net.coding.common.constants.OAuthConstants;
+import net.coding.common.constants.TwoFactorAuthConstants;
 import net.coding.common.storage.support.internal.StorageStream;
 import net.coding.common.storage.support.internal.StorageUploadStream;
+import net.coding.common.util.Result;
+import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dto.ProjectDTO;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.exception.CoreException;
@@ -16,11 +19,14 @@ import net.coding.lib.project.service.ProjectService;
 import net.coding.lib.project.service.ProjectValidateService;
 
 import org.springframework.validation.Errors;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Objects;
 
 import javax.validation.Valid;
 
@@ -51,6 +57,21 @@ public class ProjectController {
                                         @StorageStream(bucket = "coding-net-project-icon") StorageUploadStream form) throws CoreException {
 
         return projectService.updateProjectIcon(projectId, form);
+    }
+
+    @ApiOperation(value = "delete_project", notes = "删除项目")
+    @ProtectedAPI(authMethod = TwoFactorAuthConstants.AUTH_TYPE_DEFAULT)
+    @EnterpriseApiProtector(function = Function.EnterpriseProject, action = Action.Delete)
+    @RequestMapping(value = "{projectId}", method = RequestMethod.DELETE)
+    public Result deleteProject(@RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
+                                @PathVariable Integer projectId) throws CoreException {
+        Integer userId = 0;
+        if (Objects.isNull(SystemContextHolder.get())) {
+            throw CoreException.of(CoreException.ExceptionType.USER_NOT_LOGIN);
+        }
+        userId = SystemContextHolder.get().getId();
+        projectService.delete(userId, teamId, projectId);
+        return Result.success();
     }
 
     @ApiOperation(value = "update_project", notes = "更新项目")
