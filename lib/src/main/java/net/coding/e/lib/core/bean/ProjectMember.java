@@ -1,4 +1,4 @@
-package net.coding.lib.project.entity;
+package net.coding.e.lib.core.bean;
 
 import java.io.Serializable;
 import java.sql.Timestamp;

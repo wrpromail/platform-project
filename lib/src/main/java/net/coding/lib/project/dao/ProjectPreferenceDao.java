@@ -18,7 +18,13 @@ public interface ProjectPreferenceDao {
 
     ProjectPreference getById(@Param("id") Integer id);
 
+    List<ProjectPreference> getByProjectId(@Param("projectId") Integer projectId);
+
     List<ProjectPreference> findList(Map<String, Object> parameter);
 
     ProjectPreference getByProjectIdAndType(Map<String, Object> parameter);
+
+    int insertIntegration(@Param("list") List<ProjectPreference> projectPreferences);
+
+    int updateStatus(@Param("projectId") Integer projectId, @Param("type") Integer type, @Param("status") Integer status);
 }

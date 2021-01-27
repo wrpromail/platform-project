@@ -7,6 +7,7 @@ import net.coding.grpc.client.template.TemplateGrpcClient;
 import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dao.ProjectTweetDao;
 import net.coding.lib.project.entity.Project;
+import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.entity.ProjectTweet;
 import net.coding.lib.project.enums.ActivityEnums;
 import net.coding.lib.project.exception.CoreException;
@@ -45,6 +46,7 @@ public class ProjectTweetService {
     private final ProjectServiceHelper projectServiceHelper;
 
     private final ProfanityWordService profanityWordService;
+    private final ProjectMemberService projectMemberService;
 
     private final TemplateGrpcClient templateGrpcClient;
 
@@ -86,9 +88,9 @@ public class ProjectTweetService {
             return null;
         }
         // 通知项目内所有人，被 @ 的人除外
-        projectServiceHelper.notifyMembers(userId, content, project, record);
+        projectServiceHelper.notifyMembers(projectMemberService.filterNotifyUserIds(userId, content, project, record), userId, project, record);
         // 通知被 @ 的人
-        projectServiceHelper.notifyAtMembers(userId, content, record, project, false);
+        projectServiceHelper.notifyAtMembers(projectMemberService.parseAtUser(userId, project, content, record.getOwnerId()), userId, content, record, project, false);
         // 记录项目冒泡／公告创建动态
         projectServiceHelper.postProjectTweetCreateActivity(project, record, userId, ActivityEnums.ACTION_TWEET_CREATE, ProjectTweet.ACTION_CREATE, "create");
         return record;
@@ -128,9 +130,9 @@ public class ProjectTweetService {
             return null;
         }
         // 通知项目内所有人，被 @ 的人除外
-        projectServiceHelper.notifyUpdateMembers(userId, content, project, tweet);
+        projectServiceHelper.notifyUpdateMembers(projectMemberService.filterNotifyUserIds(userId, content, project, tweet), userId, project, tweet);
         // 通知被 @ 的人
-        projectServiceHelper.notifyAtMembers(userId, content, tweet, project, false);
+        projectServiceHelper.notifyAtMembers(projectMemberService.parseAtUser(userId, project, content, tweet.getOwnerId()), userId, content, tweet, project, false);
         // 记录项目冒泡／公告创建动态
         projectServiceHelper.postProjectTweetCreateActivity(project, tweet, userId, ActivityEnums.ACTION_TWEET_UPDATE, ProjectTweet.ACTION_UPDATE, "update");
         return tweet;

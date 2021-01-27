@@ -10,8 +10,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import proto.platform.user.UserProto;
 
+@Builder
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserDTO {
 
     private static final long serialVersionUID = -7903007276342218409L;
@@ -26,21 +34,17 @@ public class UserDTO {
     private String company;
     private String slogan;
     private String website;
-    @QiniuCDNReplace
     private String introduction;
-    @QiniuCDNReplace
     private String avatar;
-    @QiniuCDNReplace
     private String gravatar;
-    @QiniuCDNReplace
     private String lavatar;
-    private Date created_at;
-    private Date last_logined_at;
-    private Date last_activity_at;
+    private long created_at;
+    private long last_logined_at;
+    private long last_activity_at;
     private String global_key;
     private String name;
     private String name_pinyin;
-    private Date updated_at;
+    private long updated_at;
     private String path;
     private Integer status;//not null
     private String email;
@@ -100,6 +104,8 @@ public class UserDTO {
 
     private String relevantURL;
 
+    private Integer teamId;
+
     public UserDTO(UserProto.User user) {
         //基本类型初始化
         this.status = 0;
@@ -112,6 +118,7 @@ public class UserDTO {
         this.follow = false;
         if (user != null) {
             this.sex = user.getSex();
+            this.teamId = user.getTeamId();
             this.location = TextUtils.htmlEscape(user.getLocation());
             this.company = TextUtils.htmlEscape(user.getCompany());
             this.slogan = TextUtils.htmlEscape(user.getSlogan());
@@ -119,13 +126,13 @@ public class UserDTO {
             this.avatar = user.getAvatar();
             this.lavatar = user.getAvatar();
             this.gravatar = user.getGravatar();
-            this.created_at = new Date(user.getCreatedAt());
-            this.last_logined_at = new Date(user.getLastLoginedAt());
+            this.created_at = user.getCreatedAt();
+            this.last_logined_at = user.getLastLoginedAt();
             this.global_key = TextUtils.htmlEscape(user.getGlobalKey());
             this.name = TextUtils.htmlEscape(user.getName());
             this.name_pinyin = user.getNamePinyin();
-            this.updated_at = new Date(user.getUpdatedAt());
-            this.status = Optional.ofNullable(user.getStatus()).orElse( 1);
+            this.updated_at = user.getUpdatedAt();
+            this.status = Optional.ofNullable(user.getStatus()).orElse(1);
             this.id = Optional.ofNullable(user.getId()).orElse(0);
             this.email_validation = user.getEmailValidation();
             this.account_type = user.getAccountType();

@@ -123,26 +123,26 @@ public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBas
                             .projectName(request.getProjectName())
                             .build()
             );
-            DescribeProjectsResponse(responseObserver, SUCCESS,
-                    SUCCESS.name().toLowerCase(), projects);
-        } catch (CoreException e) {
-            log.error("RpcService describeUserProjects error CoreException ", e);
-            DescribeProjectsResponse(responseObserver, NOT_FOUND,
-                    localeMessageSource.getMessage(e.getKey()), null);
-        } catch (Exception e) {
-            log.error("rpcService describeUserProjects error Exception ", e);
-            DescribeProjectsResponse(responseObserver, INVALID_PARAMETER,
-                    INVALID_PARAMETER.name().toLowerCase(), null);
+                DescribeProjectsResponse(responseObserver, SUCCESS,
+                        SUCCESS.name().toLowerCase(), projects);
+            } catch (CoreException e) {
+                log.error("RpcService describeUserProjects error CoreException ", e);
+                DescribeProjectsResponse(responseObserver, NOT_FOUND,
+                        localeMessageSource.getMessage(e.getKey()), null);
+            } catch (Exception e) {
+                log.error("rpcService describeUserProjects error Exception ", e);
+                DescribeProjectsResponse(responseObserver, INVALID_PARAMETER,
+                        INVALID_PARAMETER.name().toLowerCase(), null);
+            }
         }
-    }
 
-    @Override
-    public void describeOneProject(
-            ProjectProto.DescribeOneProjectRequest request,
-            StreamObserver<ProjectProto.DescribeOneProjectResponse> responseObserver) {
-        try {
-            Project project = projectService.getById(request.getProjectId());
-            if (project == null) {
+        @Override
+        public void describeOneProject(
+                ProjectProto.DescribeOneProjectRequest request,
+                StreamObserver<ProjectProto.DescribeOneProjectResponse> responseObserver) {
+            try {
+                Project project = projectService.getById(request.getProjectId());
+                if (project == null) {
                 throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
             }
             ProjectMember projectMember = projectMemberService.getByProjectIdAndUserId(

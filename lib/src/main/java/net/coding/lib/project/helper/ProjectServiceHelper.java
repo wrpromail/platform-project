@@ -26,7 +26,6 @@ import net.coding.lib.project.grpc.client.ProjectGrpcClient;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.service.ProfanityWordService;
-import net.coding.lib.project.service.ProjectMemberService;
 import net.coding.lib.project.service.ProjectPreferenceService;
 import net.coding.lib.project.utils.DateUtil;
 import net.coding.lib.project.utils.ResourceUtil;
@@ -36,32 +35,26 @@ import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import proto.notification.NotificationProto;
 import proto.platform.logging.loggingProto;
 import proto.platform.project.ProjectProto;
-import proto.platform.user.UserProto;
 
-import static java.util.stream.Collectors.toList;
 import static net.coding.common.constants.ProjectConstants.ACTION_DELETE;
 import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE;
 import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE_DATE;
 import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE_DESCRIPTION;
 import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE_DISPLAY_NAME;
 import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE_NAME;
-import static net.coding.common.constants.ProjectConstants.PROJECT_PRIVATE;
 import static net.coding.grpc.client.pinyin.PinyinClient.DEFAULT_SEPARATOR;
 import static net.coding.lib.project.entity.ProjectPreference.PREFERENCE_STATUS_TRUE;
 import static net.coding.lib.project.entity.ProjectPreference.PREFERENCE_TYPE_PROJECT_TWEET;
@@ -71,11 +64,8 @@ import static net.coding.lib.project.entity.ProjectPreference.PREFERENCE_TYPE_PR
 @AllArgsConstructor
 public class ProjectServiceHelper {
 
-    public static final Pattern AT_REG = Pattern.compile("(@([^@\\s<>()（）：:，,。…~!！？?'‘\"]+))(.{0}|\\s)");
-
     private final UserGrpcClient userGrpcClient;
 
-    private final ProjectMemberService projectMemberService;
 
     private final ProfanityWordService profanityWordService;
 
@@ -114,52 +104,14 @@ public class ProjectServiceHelper {
         );
     }
 
-    public Set<Integer> parseAtUser(Integer userId, Project project, String content, Integer targetOwnerId) {
-        Set<Integer> userIdSet = new HashSet<>();
-        if (userId == null || project == null || StringUtils.isEmpty(content)) {
-            return userIdSet;
-        }
-
-        if (null == project.getTeamOwnerId()) {
-            return userIdSet;
-        }
-
-        Matcher matcher = AT_REG.matcher(content);
-        while (matcher.find()) {
-            String name = matcher.group(2);
-            if ("all".equals(StringUtils.lowerCase(name))) {
-                userIdSet.addAll(projectMemberService.findListByProjectId(project.getId()).stream().map(projectMember -> projectMember.getId()).collect(Collectors.toSet()));
-                break;
-            }
-            UserProto.User user = userGrpcClient.getUserByNameAndTeamId(name, project.getTeamOwnerId());
-            if (null == user) {
-                user = userGrpcClient.getUserByGlobalKey(name);
-            }
-            if (null == user) {
-                continue;
-            }
-            if (project.getType().equals(PROJECT_PRIVATE) && !this.isMember(user, project.getId())) {
-                continue;
-            }
-            if (Objects.equals(Integer.valueOf(user.getId()), targetOwnerId)) {
-                continue;
-            }
-            userIdSet.add(user.getId());
-        }
-        userIdSet.remove(userId);
-        return userIdSet;
-    }
-
     /**
      * 通知项目内所有人创建了一条冒泡，创建者自身及被 @ 的人除外
      */
-    public void notifyMembers(Integer userId, String content, Project project, ProjectTweet tweet) {
+    public void notifyMembers(List<Integer> userIds, Integer userId, Project project, ProjectTweet tweet) {
         // 检查偏好设置中的开关是否开启
         ProjectPreference projectPreference = projectPreferenceService.getByProjectIdAndType(project.getId(), PREFERENCE_TYPE_PROJECT_TWEET);
         Short preferenceStatus = projectPreference != null ? projectPreference.getStatus().shortValue() : null;
         if (Objects.equals(preferenceStatus, PREFERENCE_STATUS_TRUE)) {
-            List<Integer> userIds = filterNotifyUserIds(userId, content, project, tweet);
-
             if (userIds.size() > 0) {
                 String userLink = userGrpcClient.getUserHtmlLinkById(userId);
                 String projectPath = projectGrpcClient.getProjectPath(project.getId());
@@ -193,13 +145,11 @@ public class ProjectServiceHelper {
     /**
      * 通知项目内所有人创建了一条冒泡，创建者自身及被 @ 的人除外
      */
-    public void notifyUpdateMembers(Integer userId, String content, Project project, ProjectTweet tweet) {
+    public void notifyUpdateMembers(List<Integer> userIds, Integer userId, Project project, ProjectTweet tweet) {
         // 检查偏好设置中的开关是否开启
         ProjectPreference projectPreference = projectPreferenceService.getByProjectIdAndType(project.getId(), PREFERENCE_TYPE_PROJECT_TWEET);
         Short preferenceStatus = projectPreference != null ? projectPreference.getStatus().shortValue() : null;
         if (Objects.equals(preferenceStatus, PREFERENCE_STATUS_TRUE)) {
-            List<Integer> userIds = filterNotifyUserIds(userId, content, project, tweet);
-
             if (userIds.size() > 0) {
                 String userLink = userGrpcClient.getUserHtmlLinkById(userId);
                 String projectPath = projectGrpcClient.getProjectPath(project.getId());
@@ -243,45 +193,16 @@ public class ProjectServiceHelper {
         return projectPath + "/setting/notice/" + projectTweet.getId();
     }
 
-    public boolean isMember(UserProto.User user, Integer projectId) {
-        if (Objects.isNull(user) || Objects.isNull(projectId)) {
-            return false;
-        }
-        if (projectGrpcClient.isProjectRobotUser(user.getGlobalKey())) {
-            return true;
-        }
-        return projectMemberService.getByProjectIdAndUserId(projectId, user.getId()) != null;
-    }
-
-    public List<Integer> filterNotifyUserIds(
-            Integer userId,
-            String content,
-            Project project,
-            ProjectTweet tweet) {
-        // 获取被 @ 的用户编号
-        Set<Integer> atUserIds = parseAtUser(userId, project, content, tweet.getOwnerId());
-        // 获取用户列表
-        List<ProjectMember> members = projectMemberService.findListByProjectId(project.getId());
-        // 过滤创建者自身及被 @ 的用户
-        return members.stream()
-                .filter(m ->
-                        !Objects.equals(m.getUserId(), userId)
-                                && !atUserIds.contains(m.getUserId()))
-                .map(ProjectMember::getUserId)
-                .collect(toList());
-    }
-
     /**
      * 处理content中的@通知 user: 发送者
      */
     public void notifyAtMembers(
+            Set<Integer> userIds,
             Integer userId,
             String content,
             ProjectTweet tweet,
             Project project,
             Boolean appendContent) {
-        Set<Integer> userIds = parseAtUser(userId, project, content, tweet.getOwnerId());
-
         String notification;
         String userLink = userGrpcClient.getUserHtmlLinkById(userId);
         String projectPath = projectGrpcClient.getProjectPath(project.getId());
@@ -446,4 +367,58 @@ public class ProjectServiceHelper {
         sb.append("</a>");
         return sb.toString();
     }
+
+    /**
+     * 添加成员推送消息
+     *
+     * @param operationUserId
+     * @param projectId
+     */
+    public void postAddMembersEvent(Integer operationUserId, Integer projectId, ProjectMember projectMember, Integer userId, boolean isInvite) {
+        asyncEventBus.post(
+                ActivityEvent.builder()
+                        .creatorId(operationUserId)
+                        .type(net.coding.e.lib.core.bean.ProjectMember.class)
+                        .targetId(projectMember.getId())
+                        .projectId(projectId)
+                        .action(ProjectMember.ACTION_ADD_MEMBER)
+                        .content("")
+                        .build()
+
+        );
+
+        String userLink = userGrpcClient.getUserHtmlLinkById(operationUserId);
+        String projectHtmlUrl = projectHtmlLink(projectId);
+        String message = ResourceUtil.ui("notification_add_member",
+                userLink, projectHtmlUrl);
+        String inviteMessage = ResourceUtil.ui("notification_invite_member",
+                userLink, projectHtmlUrl);
+
+        // 站内通知
+        List<Integer> userIds = new ArrayList<>();
+        userIds.add(userId);
+        sentProjectMemberNotification(userIds,message,projectId);
+
+        if (isInvite) {
+
+            sentProjectMemberNotification(userIds,inviteMessage,projectId);
+
+        }
+    }
+    private void sentProjectMemberNotification(List<Integer> userIds,String message,Integer projectId){
+        notifiactionGrpcClient.send(NotificationProto.NotificationSendRequest.newBuilder()
+                .addAllUserId(userIds)
+                .setContent(Optional.ofNullable(message).orElse(null))
+                .setTargetType(NotificationProto.TargetType.ProjectMember)
+                .setTargetId(projectId.toString())
+                .setSetting(NotificationProto.Setting.ProjectMemberSetting)
+                .setSkipValidate(false)
+                .setSkipEmail(false)
+                .setSkipSystem(false)
+                .setSkipWechatWorkMessage(true)
+                .setForce(false)
+                .build());
+    }
+
+
 }

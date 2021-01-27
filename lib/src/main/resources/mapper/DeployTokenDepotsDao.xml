@@ -58,7 +58,7 @@
     </trim>
   </insert>
 
-    <update id="deleteByDeployTokenDepot">
+  <update id="deleteByDeployTokenDepot">
     update  deploy_token_depots set deleted_at = NOW()
     where  deploy_token_id = #{deployTokenId}
     and deleted_at =  #{deletedAt}
@@ -70,8 +70,8 @@
     <include refid="Base_Column_List" />
     from deploy_token_depots
     <where>
-        deploy_token_id = #{deployTokenId}
-        and deleted_at = #{deletedAt}
+      deploy_token_id = #{deployTokenId}
+      and deleted_at = #{deletedAt}
     </where>
   </select>
 </mapper>
