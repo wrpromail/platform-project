@@ -48,7 +48,7 @@
     from depots
     where id in
     <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
-      #{id,jdbcType=INTEGER}
+      #{item,jdbcType=INTEGER}
     </foreach>
 
   </select>

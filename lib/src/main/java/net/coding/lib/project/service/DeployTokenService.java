@@ -352,12 +352,12 @@ public class DeployTokenService {
         //关联token与每个仓库的权限
         if (!form.isApplyToAllDepots() && !CollectionUtils.isEmpty(form.getDepotScopes())) {
             List<DeployTokenDepotDTO> depotScopes = form.getDepotScopes();
-            insertDeployTokenDepot(id, depotScopes);
+            insertDeployTokenDepot(deployToken.getId(), depotScopes);
         }
         //关联token与每个制品库的权限
         if (!form.isApplyToAllArtifacts() && !CollectionUtils.isEmpty(form.getArtifactScopes())) {
             List<DeployTokenArtifactDTO> artifactScopes = form.getArtifactScopes();
-            insertDeployArtifact(id, artifactScopes);
+            insertDeployArtifact(deployToken.getId(), artifactScopes);
         }
         return toDeployTokenDto(deployToken, true);
 
