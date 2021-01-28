@@ -22,8 +22,10 @@ public class DeployTokenArtifactsService {
 
 
     public List<DeployTokenArtifacts> getByTokenId(Integer deployTokenId) {
-        DeployTokenArtifacts deployTokenArtifacts = DeployTokenArtifacts.builder().deployTokenId(deployTokenId).build();
-        return deployTokenArtifactsDao.getDeployTokenArtifacts(deployTokenArtifacts);
+        return deployTokenArtifactsDao.getDeployTokenArtifacts(deployTokenId);
     }
 
+    public int deleteByTokenId(Integer deployTokenId) {
+        return deployTokenArtifactsDao.deleteByDeployTokenArtifacts(deployTokenId);
+    }
 }

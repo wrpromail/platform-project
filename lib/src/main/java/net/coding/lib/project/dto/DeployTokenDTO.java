@@ -22,7 +22,7 @@ public class DeployTokenDTO {
     private List<ArtifactScopeDTO> artifactScopes;
     private Date expiredAt;
     private boolean enabled;
-    private Date createdAt;
-    private Date lastActivityAt;
-    private Date updatedAt;
+    private long createdAt;
+    private long lastActivityAt;
+    private long updatedAt;
 }

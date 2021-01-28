@@ -42,7 +42,7 @@ dependencies {
     compile ("net.coding.grpc.client:depot:20200916.2") {
         exclude(group: "net.coding.common")
     }
-    compile ("net.coding.grpc.client:platform:20210118.1") {
+    compile ("net.coding.grpc.client:platform:20210126.2") {
         exclude(group: "net.coding.common")
     }
     compile ("net.coding.grpc.client:pinyin:20201230.1") {
@@ -51,7 +51,6 @@ dependencies {
     compile ("net.coding.grpc.client:permission:20201230.1") {
         exclude(group: "net.coding.common")
     }
-    compile "net.coding.proto:platform:20201230.1"
     compile 'net.coding.proto:storage:20201027.1'
     compile "net.coding.proto:issue:20201102.2"
     compile "net.coding.proto:notification:20201030.2"

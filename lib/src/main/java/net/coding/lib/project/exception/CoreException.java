@@ -54,6 +54,7 @@ import static net.coding.common.base.validator.ValidationConstants.TASK_DESCRIPT
 @Slf4j
 public class CoreException extends Exception {
     public enum ExceptionType {
+        USER_NOT_LOGIN(1000, "user_not_login"),
         DEFAULT_FAIL_EXCEPTION(1, "default_fail_exception"),
         CSRF_VALIDATE_FAILED(801, "csrf_validate_failed"),
 
@@ -201,6 +202,18 @@ public class CoreException extends Exception {
 
         DEPLOY_TOKEN_NOT_EXIST(7202, "deploy_token_not_exist"),
         DEPLOY_TOKEN_PROJECT_NOT_MATCH(7203, "deploy_token_project_not_match"),
+        DEPLOY_TOKEN_CREATOR_NOT_MATCH(7204, "deploy_token_creator_not_match"),
+        DEPLOY_TOKEN_PASSWORD_EMPTY(7205, "deploy_token_password_empty"),
+        DEPLOY_TOKEN_STATUS_EMPTY(7206, "deploy_token_status_empty"),
+        DEPLOY_TOKEN_SCOPE_EMPTY(7207, "deploy_token_scope_empty"),
+        DEPLOY_TOKEN_SCOPE_INVALID(7208, "deploy_token_scope_invalid"),
+        DEPLOY_TOKEN_NAME_TOO_LONG(7209, "deploy_token_name_too_long"),
+        DEPLOY_TOKEN_USER_SCOPE_INVALID(7210, "deploy_token_user_scope_invalid"),
+        DEPLOY_TOKEN_CREATE_FAIL(7212, "deploy_token_create_fail"),
+        DEPLOY_TOKEN_NAME_EMPTY(7299, "deploy_token_name_empty"),
+        DEPLOY_TOKEN_DISABLED(7300, "deploy_token_disabled"),
+        DEPLOY_TOKEN_EXPIRED(7301, "deploy_token_expired"),
+        ENTERPRISE_NOT_EXISTS(5003, "enterprise_not_exists"),
         ;
 
         private final int errorCode;

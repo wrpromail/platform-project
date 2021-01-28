@@ -24,8 +24,132 @@
     enabled, `type`, apply_to_all_depots, apply_to_all_artifacts, created_at, last_activity_at, 
     updated_at, deleted_at
   </sql>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="net.coding.lib.project.entity.DeployTokens" useGeneratedKeys="true">
+    insert into deploy_tokens
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="projectId != null">
+        project_id,
+      </if>
+      <if test="creatorId != null">
+        creator_id,
+      </if>
+      <if test="tokenName != null">
+        token_name,
+      </if>
+      <if test="globalKeyId != null">
+        global_key_id,
+      </if>
+      <if test="token != null">
+        token,
+      </if>
+      <if test="scope != null">
+        `scope`,
+      </if>
+      <if test="expiredAt != null">
+        expired_at,
+      </if>
+      <if test="enabled != null">
+        enabled,
+      </if>
+      <if test="type != null">
+        `type`,
+      </if>
+      <if test="applyToAllDepots != null">
+        apply_to_all_depots,
+      </if>
+      <if test="applyToAllArtifacts != null">
+        apply_to_all_artifacts,
+      </if>
+      <if test="createdAt != null">
+        created_at,
+      </if>
+      <if test="lastActivityAt != null">
+        last_activity_at,
+      </if>
+      <if test="updatedAt != null">
+        updated_at,
+      </if>
+      <if test="deletedAt != null">
+        deleted_at,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="projectId != null">
+        #{projectId,jdbcType=INTEGER},
+      </if>
+      <if test="creatorId != null">
+        #{creatorId,jdbcType=INTEGER},
+      </if>
+      <if test="tokenName != null">
+        #{tokenName,jdbcType=VARCHAR},
+      </if>
+      <if test="globalKeyId != null">
+        #{globalKeyId,jdbcType=INTEGER},
+      </if>
+      <if test="token != null">
+        #{token,jdbcType=VARCHAR},
+      </if>
+      <if test="scope != null">
+        #{scope,jdbcType=VARCHAR},
+      </if>
+      <if test="expiredAt != null">
+        #{expiredAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="enabled != null">
+        #{enabled,jdbcType=BOOLEAN},
+      </if>
+      <if test="type != null">
+        #{type,jdbcType=TINYINT},
+      </if>
+      <if test="applyToAllDepots != null">
+        #{applyToAllDepots,jdbcType=BOOLEAN},
+      </if>
+      <if test="applyToAllArtifacts != null">
+        #{applyToAllArtifacts,jdbcType=TINYINT},
+      </if>
+      <if test="createdAt != null">
+        #{createdAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="lastActivityAt != null">
+        #{lastActivityAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedAt != null">
+        #{updatedAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="deletedAt != null">
+        #{deletedAt,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
 
-  <select id="selectByDeployTokens" parameterType="net.coding.lib.project.entity.DeployTokens" resultMap="BaseResultMap">
+  <update id="deleteDeployTokens">
+      update deploy_tokens
+      set deleted_at=NOW()
+      where id = #{id}
+      LIMIT 1
+    </update>
+
+  <update id="updateEnableDeployToken">
+    update deploy_tokens
+    set
+        enabled = #{enabled,jdbcType=BOOLEAN},
+        updated_at = NOW()
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+  <update id="update">
+  update deploy_tokens
+  set
+      `scope` = #{scope,jdbcType=VARCHAR},
+      expired_at = #{expiredAt,jdbcType=TIMESTAMP},
+      apply_to_all_depots = #{applyToAllDepots,jdbcType=BOOLEAN},
+      apply_to_all_artifacts = #{applyToAllArtifacts,jdbcType=TINYINT},
+      updated_at = NOW()
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+
+  <select id="selectByDeployTokens"  resultMap="BaseResultMap">
     select
     <include refid="Base_Column_List" />
     from deploy_tokens
@@ -35,6 +159,7 @@
     AND deleted_at = '1970-01-01 00:00:00'
     ORDER BY created_at DESC
   </select>
+
   <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
     select
     <include refid="Base_Column_List" />

@@ -3,6 +3,7 @@ package net.coding.lib.project.dao;
 import net.coding.lib.project.entity.DeployTokenDepot;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -13,5 +14,10 @@ import java.util.List;
  */
 @Mapper
 public interface DeployTokenDepotsDao {
-    List<DeployTokenDepot> getDeployTokenDepot(DeployTokenDepot deployTokenDepot);
+    List<DeployTokenDepot> getDeployTokenDepot(@Param("deployTokenId") Integer deployTokenId);
+
+    int deleteByDeployTokenDepot(@Param("deployTokenId") Integer deployTokenId);
+
+    int insert(DeployTokenDepot deployTokenDepot);
+
 }
