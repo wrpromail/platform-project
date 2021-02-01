@@ -62,10 +62,11 @@
     update deploy_token_artifacts
     set deleted_at=NOW()
     where  deploy_token_id = #{deployTokenId}
+    and deleted_at = #{deletedAt}
   </update>
 
   <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
-    select 
+    select
     <include refid="Base_Column_List" />
     from deploy_token_artifacts
     where id = #{id,jdbcType=INTEGER}
@@ -77,6 +78,7 @@
     from deploy_token_artifacts
     <where>
       deploy_token_id = #{deployTokenId}
+      and deleted_at = #{deletedAt}
     </where>
   </select>
 </mapper>
