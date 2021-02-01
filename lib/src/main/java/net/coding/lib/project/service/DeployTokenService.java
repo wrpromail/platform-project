@@ -243,7 +243,7 @@ public class DeployTokenService {
         deployTokenDepotService.deleteByTokenId(deployToken.getId());
         //更改项目令牌权限
         if (!form.isApplyToAllDepots() && !CollectionUtils.isEmpty(form.getDepotScopes())) {
-            insertDeployTokenDepot(null, form.getDepotScopes());
+            insertDeployTokenDepot(deployToken.getId(), form.getDepotScopes());
         }
         deployTokenArtifactsService.deleteByTokenId(deployToken.getId());
         //更改项目令牌权限
@@ -265,7 +265,7 @@ public class DeployTokenService {
         Timestamp init_at = new Timestamp(System.currentTimeMillis());
         for (DeployTokenDepotDTO deployTokenDepotDTO : depotScopes) {
             DeployTokenDepot deployTokenDepot = DeployTokenDepot.builder()
-                    .deployTokenId(Objects.nonNull(id) ? id : new Integer(deployTokenDepotDTO.getDepotId()))
+                    .deployTokenId(id)
                     .depotId(Integer.valueOf(deployTokenDepotDTO.getDepotId()))
                     .depotScope(deployTokenDepotDTO.getScope())
                     .createdAt(init_at)
