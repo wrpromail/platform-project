@@ -33,7 +33,9 @@ public class AddDeployTokenForm extends BaseForm {
     private List<DeployTokenDepotDTO> depotScopes;
     private List<DeployTokenArtifactDTO> artifactScopes;
     private String scope;
+    @Builder.Default
     private boolean applyToAllDepots = true;
+    @Builder.Default
     private boolean applyToAllArtifacts = true;
 
     public static final Set<String> ARTIFACT_SCOPE_SET = Sets.newHashSet(

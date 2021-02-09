@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package app.grpc.enterprise;
+
+option java_package = "net.coding.e.proto";
+option java_outer_classname = "CommonProto";
+
+message Result {
+  int32 code = 1;
+  string message = 2;
+  // 新增、修改、删除 操作时返回的 id
+  uint32 id = 3;
+}

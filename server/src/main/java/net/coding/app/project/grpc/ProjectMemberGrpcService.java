@@ -44,8 +44,7 @@ public class ProjectMemberGrpcService extends ProjectMemberServiceGrpc.ProjectMe
     @Override
     public void operateProjectMember(ProjectMemberProto.OperateProjectMemberRequest request,
                                      io.grpc.stub.StreamObserver<ProjectMemberProto.OperateProjectMemberResponse> responseObserver) {
-        Project project = new Project();
-        project = projectService.getById(request.getProjectId());
+        Project project = projectService.getById(request.getProjectId());
         try {
             if (project == null) {
                 throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);

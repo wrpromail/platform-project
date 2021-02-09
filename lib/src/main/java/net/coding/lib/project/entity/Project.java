@@ -1,7 +1,16 @@
 package net.coding.lib.project.entity;
 
+import net.coding.common.constants.ProjectConstants;
+import net.coding.common.util.BeanUtils;
+import net.coding.lib.project.utils.DateUtil;
+
 import java.io.Serializable;
 import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,13 +21,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Table(name = "projects")
 public class Project implements Serializable {
-
     private static final long serialVersionUID = 1000000000001L;
-
     /**
      * 编号
      */
+    @Id
+    @GeneratedValue(generator = "JDBC")
+    @Column(name = "`id`", updatable = false, nullable = false)
     private Integer id;
 
     /**
@@ -29,33 +40,38 @@ public class Project implements Serializable {
     /**
      * 创建时间
      */
-    private Date createdAt;
+    @Builder.Default
+    private Date createdAt = DateUtil.getCurrentDate();
 
     /**
      * 更新时间
      */
-    private Date updatedAt;
-
+    @Builder.Default
+    private Date updatedAt = DateUtil.getCurrentDate();
     /**
      * 删除时间
      */
-    private Date deletedAt;
+    @Builder.Default
+    private Date deletedAt = DateUtil.strToDate(BeanUtils.NOT_DELETED_AT);
 
     /**
      * 项目状态
      */
-    private Short status;
+    @Builder.Default
+    private Short status = 1;
 
     private Short recommended;
 
     /**
      * 是否公开仓库源代码
      */
-    private Integer depotShared;
+    @Builder.Default
+    private Boolean depotShared = false;
 
     private Integer type;
 
-    private Short maxMember;
+    @Builder.Default
+    private Integer maxMember = 10;
 
     /**
      * 名称
@@ -85,7 +101,7 @@ public class Project implements Serializable {
     /**
      * 版本
      */
-    private Byte plan;
+    private Short plan = ProjectConstants.PLAN_FREE;
 
     /**
      * 项目所属团队ID
@@ -113,12 +129,13 @@ public class Project implements Serializable {
     private Integer projectFileQuota;
 
     /**
-     * 是否隐藏  TCB为1
+     * 是否隐藏
      */
-    private Boolean invisible;
+    @Builder.Default
+    private Boolean invisible = false;
 
     /**
-     * 标签  TCB
+     * 标签
      */
     private String label;
 }

@@ -1,11 +1,8 @@
 package net.coding.lib.project.form;
 
 
-import org.apache.commons.lang.math.NumberUtils;
 import org.hibernate.validator.constraints.NotEmpty;
-import org.springframework.validation.Errors;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -27,6 +24,7 @@ public class AddMemberForm {
 
     private List<Integer> targetUserIds;
     private String[] targetUserIdStrArray;
+    @Builder.Default
     private short type = 80;
 
 

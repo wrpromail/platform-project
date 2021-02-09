@@ -5,15 +5,19 @@ import com.google.common.eventbus.AsyncEventBus;
 
 import net.coding.common.base.bean.setting.AtSetting;
 import net.coding.common.base.event.ActivityEvent;
+import net.coding.common.base.event.CreateProjectUserEvent;
+import net.coding.common.base.event.ProjectCreateEvent;
 import net.coding.common.base.event.ProjectDeleteEvent;
 import net.coding.common.base.event.ProjectNameChangeEvent;
 import net.coding.common.base.gson.JSON;
 import net.coding.common.i18n.utils.LocaleMessageSource;
 import net.coding.common.util.TextUtils;
 import net.coding.e.proto.ActivitiesProto;
+import net.coding.exchange.dto.user.User;
 import net.coding.grpc.client.activity.ActivityGrpcClient;
 import net.coding.grpc.client.pinyin.PinyinClient;
 import net.coding.grpc.client.platform.LoggingGrpcClient;
+import net.coding.grpc.client.platform.UserServiceGrpcClient;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.entity.ProjectPreference;
@@ -25,11 +29,14 @@ import net.coding.lib.project.grpc.client.NotificationGrpcClient;
 import net.coding.lib.project.grpc.client.ProjectGrpcClient;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
+import net.coding.lib.project.metrics.ProjectCreateMetrics;
+import net.coding.lib.project.parameter.ProjectCreateParameter;
 import net.coding.lib.project.service.ProfanityWordService;
 import net.coding.lib.project.service.ProjectPreferenceService;
 import net.coding.lib.project.utils.DateUtil;
 import net.coding.lib.project.utils.ResourceUtil;
 import net.coding.lib.project.utils.TextUtil;
+import net.coding.proto.CredentialProto;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Document;
@@ -49,6 +56,7 @@ import proto.notification.NotificationProto;
 import proto.platform.logging.loggingProto;
 import proto.platform.project.ProjectProto;
 
+import static net.coding.common.constants.ProjectConstants.ACTION_CREATE;
 import static net.coding.common.constants.ProjectConstants.ACTION_DELETE;
 import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE;
 import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE_DATE;
@@ -66,9 +74,7 @@ public class ProjectServiceHelper {
 
     private final UserGrpcClient userGrpcClient;
 
-
     private final ProfanityWordService profanityWordService;
-
 
     private final ProjectPreferenceService projectPreferenceService;
 
@@ -80,13 +86,15 @@ public class ProjectServiceHelper {
 
     private final ActivityGrpcClient activityGrpcClient;
 
-    private final NotificationGrpcClient notifiactionGrpcClient;
+    private final NotificationGrpcClient notificationGrpcClient;
 
     private final PinyinClient pinyinClient;
 
     private final LoggingGrpcClient loggingGrpcClient;
 
     private final LocaleMessageSource localeMessageSource;
+
+    private final UserServiceGrpcClient userServiceGrpcClient;
 
     public String checkContent(String content) {
         // 包含限制词
@@ -157,7 +165,7 @@ public class ProjectServiceHelper {
                 String message = ResourceUtil.ui("notification_update_project_notice",
                         userLink, projectHtmlUrl, this.getTweetHtmlLink(tweet, project, projectPath));
 
-                notifiactionGrpcClient.send(NotificationProto.NotificationSendRequest.newBuilder()
+                notificationGrpcClient.send(NotificationProto.NotificationSendRequest.newBuilder()
                         .addAllUserId(userIds)
                         .setContent(Optional.ofNullable(message).orElse(null))
                         .setTargetType(NotificationProto.TargetType.Project)
@@ -351,14 +359,15 @@ public class ProjectServiceHelper {
                 .setTargetId(project.getId())
                 .setTargetType(project.getClass().getSimpleName())
                 .setAdminAction(false)
-                .setText(htmlLink(project))
+                .setText(localeMessageSource.getMessage("project_deleted",
+                        new Object[]{htmlLink(project)}))
+
                 .build());
     }
 
     public String htmlLink(Project project) {
         String host = teamGrpcClient.getTeamHostWithProtocolByTeamId(project.getTeamOwnerId());
         StringBuilder sb = new StringBuilder();
-        sb.append(localeMessageSource.getMessage("project_deleted"));
         sb.append("<a href='");
         sb.append(host);
         sb.append("/p/" + project.getName());
@@ -386,27 +395,25 @@ public class ProjectServiceHelper {
                         .build()
 
         );
-
         String userLink = userGrpcClient.getUserHtmlLinkById(operationUserId);
         String projectHtmlUrl = projectHtmlLink(projectId);
         String message = ResourceUtil.ui("notification_add_member",
                 userLink, projectHtmlUrl);
         String inviteMessage = ResourceUtil.ui("notification_invite_member",
                 userLink, projectHtmlUrl);
-
-        // 站内通知
-        List<Integer> userIds = new ArrayList<>();
-        userIds.add(userId);
-        sentProjectMemberNotification(userIds,message,projectId);
-
-        if (isInvite) {
-
-            sentProjectMemberNotification(userIds,inviteMessage,projectId);
-
+        if (!userId.equals(operationUserId)) {
+            // 站内通知
+            List<Integer> userIds = new ArrayList<>();
+            userIds.add(userId);
+            sentProjectMemberNotification(userIds, message, projectId);
+            if (isInvite) {
+                sentProjectMemberNotification(userIds, inviteMessage, projectId);
+            }
         }
     }
-    private void sentProjectMemberNotification(List<Integer> userIds,String message,Integer projectId){
-        notifiactionGrpcClient.send(NotificationProto.NotificationSendRequest.newBuilder()
+
+    private void sentProjectMemberNotification(List<Integer> userIds, String message, Integer projectId) {
+        notificationGrpcClient.send(NotificationProto.NotificationSendRequest.newBuilder()
                 .addAllUserId(userIds)
                 .setContent(Optional.ofNullable(message).orElse(null))
                 .setTargetType(NotificationProto.TargetType.ProjectMember)
@@ -421,4 +428,94 @@ public class ProjectServiceHelper {
     }
 
 
+    public void postProjectCreateEvent(Project project,
+                                       ProjectCreateParameter parameter,
+                                       CredentialProto.Credential credential) {
+        Map<String, String> initMap = new HashMap<>();
+        initMap.put("createSvnLayout", parameter.getCreateSvnLayout());
+        initMap.put("credential", Optional.ofNullable(credential)
+                .map(CredentialProto.Credential::getCredentialId).orElse(""));
+        initMap.put("credentialType", Optional.ofNullable(credential)
+                .map(c -> c.getType().name()).orElse(""));
+        Boolean gitEnabled = parameter.getGitEnabled();
+        if (gitEnabled) {
+            initMap.put("readme", parameter.getGitReadmeEnabled());
+            initMap.put("gitignore", parameter.getGitIgnore());
+            initMap.put("license", parameter.getGitLicense());
+            initMap.put("template", parameter.getTemplate());
+        } else {
+            initMap.put("readme", "no");
+            initMap.put("gitignore", "no");
+            initMap.put("license", "no");
+        }
+
+        // ProjectCreateEvent 的触发要放到添加完成员后，否则创建团队项目时用户会无权限添加 README
+        long prevTime = System.currentTimeMillis();
+        User user = userServiceGrpcClient.getUser(parameter.getUserId());
+        asyncEventBus.post(
+                ProjectCreateEvent.builder()
+                        .projectId(project.getId())
+                        .fork(false)
+                        .parentId(0)
+                        .rootId(0)
+                        .initMap(initMap)
+                        .quota(100 * 1024)
+                        .creator(user)
+                        .vcsType(parameter.getVcsType())
+                        .shared(parameter.getShared() == 1)
+                        .initDepot(parameter.getShouldInitDepot())
+                        .build() // 100G
+        );
+
+        ProjectCreateMetrics.setProjectCreateEvent(System.currentTimeMillis() - prevTime);
+
+        if (!project.getInvisible()) {
+            asyncEventBus.post(
+                    ActivityEvent.builder()
+                            .creatorId(parameter.getUserId())
+                            .type(net.coding.e.lib.core.bean.Project.class)
+                            .targetId(project.getId())
+                            .projectId(project.getId())
+                            .action(ACTION_CREATE)
+                            .content("")
+                            .build()
+            );
+            loggingGrpcClient.insertOperationLog(loggingProto.OperationLogInsertRequest.newBuilder()
+                    .setUserId(parameter.getUserId())
+                    .setTeamId(parameter.getTeamId())
+                    .setContentName("createProject")
+                    .setTargetId(project.getId())
+                    .setTargetType(project.getClass().getSimpleName())
+                    .setAdminAction(false)
+                    .setText(localeMessageSource.getMessage("project_created",
+                            new Object[]{""
+                                    , htmlLink(project)}).trim())
+                    .build()
+            );
+        }
+
+        asyncEventBus.post(CreateProjectUserEvent.builder()
+                .userId(parameter.getUserId())
+                .teamId(parameter.getTeamId())
+                .projectId(project.getId())
+                .build()
+        );
+    }
+
+    public void sendCreateProjectNotification(Integer ownerId, Integer userId, Project project) {
+        notificationGrpcClient.send(
+                NotificationProto
+                        .NotificationSendRequest
+                        .newBuilder()
+                        .addUserId(ownerId)
+                        .setContent(
+                                localeMessageSource.getMessage("project_created",
+                                        new Object[]{userGrpcClient.getUserHtmlLinkById(userId)
+                                                , htmlLink(project)}))
+                        .setTargetType(NotificationProto.TargetType.Project)
+                        .setTargetId(String.valueOf(project.getId()))
+                        .setSetting(NotificationProto.Setting.ProjectMemberSetting)
+                        .build()
+        );
+    }
 }

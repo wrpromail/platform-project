@@ -3,11 +3,15 @@ package net.coding.lib.project.service;
 import net.coding.grpc.client.platform.TeamProjectServiceGrpcClient;
 import net.coding.lib.project.dao.ProjectDao;
 import net.coding.lib.project.entity.Project;
+import net.coding.lib.project.enums.DemoProjectTemplateEnums;
+import net.coding.lib.project.enums.ProjectTemplateEnums;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.UpdateProjectForm;
+import net.coding.lib.project.parameter.ProjectCreateParameter;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.EnumUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.Errors;
 
@@ -19,10 +23,20 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import proto.platform.team.project.TeamProjectProto;
 
+import static net.coding.common.base.validator.ValidationConstants.PROJECT_NAME_MIN_LENGTH;
 import static net.coding.common.constants.CommonConstants.DATA_REGEX;
+import static net.coding.common.constants.ProjectConstants.PROJECT_NAME_CLOUD_REGEX;
 import static net.coding.common.constants.ProjectConstants.PROJECT_NAME_REGEX;
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_DISPLAY_NAME_MIN_LENGTH;
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_NAME_CLOUD_MAX_LENGTH;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PARAMETER_INVALID;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_DISPLAY_NAME_IS_EMPTY;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_DISPLAY_NAME_LENGTH_ERROR;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NAME_ERROR;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NAME_IS_EMPTY;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NAME_LENGTH_ERROR;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_TYPE_INVALID;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_VCS_TYPE_INVALID;
 
 /**
  * @Author liuying
@@ -33,6 +47,10 @@ import static net.coding.common.base.validator.ValidationConstants.PROJECT_NAME_
 @Slf4j
 @AllArgsConstructor
 public class ProjectValidateService {
+
+    private static final short ENABLE_SHARED = 1;
+
+    private static final short DISABLE_SHARED = 0;
 
     private final TeamProjectServiceGrpcClient teamProjectServiceGrpcClient;
 
@@ -49,7 +67,7 @@ public class ProjectValidateService {
         }
         String name = updateProjectForm.getName().replace(" ", "-");
         if (!checkProjectName(name)) {
-            throw CoreException.of(CoreException.ExceptionType.PROJECT_NAME_ERROR);
+            throw CoreException.of(PROJECT_NAME_ERROR);
         }
 
         if (IsNameExist(name, project)) {
@@ -79,6 +97,59 @@ public class ProjectValidateService {
 
     }
 
+    public void validateCreateProject(ProjectCreateParameter parameter,String email) throws CoreException {
+        if (StringUtils.isBlank(parameter.getName())) {
+            throw CoreException.of(PROJECT_NAME_IS_EMPTY);
+        }
+        if (StringUtils.isBlank(parameter.getDisplayName())) {
+            throw CoreException.of(PROJECT_DISPLAY_NAME_IS_EMPTY);
+        }
+        // 对外API 应 TCB, mendix 要求 projectName 长度64 位，CODING 自身前端限制32、后端以64为准
+        if (parameter.getName().length() < PROJECT_NAME_MIN_LENGTH
+                || parameter.getName().length() > PROJECT_NAME_CLOUD_MAX_LENGTH) {
+            throw CoreException.of(PROJECT_NAME_LENGTH_ERROR,
+                    PROJECT_NAME_MIN_LENGTH, PROJECT_NAME_CLOUD_MAX_LENGTH);
+        }
+        String name = parameter.getName().replace(" ", "-");
+        boolean check = checkCloudProjectName(name);
+        if (!check) {
+            throw CoreException.of(PROJECT_NAME_ERROR);
+        }
+
+        if (parameter.getDisplayName().length() < PROJECT_DISPLAY_NAME_MIN_LENGTH
+                || parameter.getDisplayName().length() > PROJECT_NAME_CLOUD_MAX_LENGTH) {
+            throw CoreException.of(PROJECT_DISPLAY_NAME_LENGTH_ERROR,
+                    PROJECT_DISPLAY_NAME_MIN_LENGTH, PROJECT_NAME_CLOUD_MAX_LENGTH);
+        }
+
+        if (StringUtils.isBlank(parameter.getType()) || !NumberUtils.isNumber(parameter.getType())) {
+            throw CoreException.of(PROJECT_TYPE_INVALID);
+        }
+
+        //todo http 请求时 需注意
+/*        if (!"true".equalsIgnoreCase(parameter.getGitReadmeEnabled())) {
+            gitReadmeEnabled = "false";
+        }
+        if (!"true".equalsIgnoreCase(parameter.getCreateSvnLayout())) {
+            createSvnLayout = "false";
+        }
+        if (parameter.getShared() != ENABLE_SHARED) {
+            shared = DISABLE_SHARED;
+        }*/
+        if (!"git".equalsIgnoreCase(parameter.getVcsType())
+                && !"svn".equalsIgnoreCase(parameter.getVcsType())
+                && !"hg".equalsIgnoreCase(parameter.getVcsType())) {
+            throw CoreException.of(PROJECT_VCS_TYPE_INVALID);
+        }
+        if ("svn".equalsIgnoreCase(parameter.getVcsType()) && StringUtils.isBlank(email)) {
+            throw CoreException.of(CoreException.ExceptionType.USER_EMAIL_NOT_BIND);
+        }
+        if (StringUtils.isNotEmpty(parameter.getTemplate())
+                && DemoProjectTemplateEnums.string2enum(parameter.getTemplate()) == null) {
+            throw CoreException.of(PARAMETER_INVALID);
+        }
+    }
+
     public static boolean checkProjectName(String projectName) {
         return !(!projectName.matches(PROJECT_NAME_REGEX) || projectName.endsWith(".git"));
     }
@@ -86,11 +157,11 @@ public class ProjectValidateService {
     public void validateDisplayName(UpdateProjectForm updateProjectForm, Project targetProject) throws CoreException {
         String displayName = updateProjectForm.getDisplayName();
         if (StringUtils.isBlank(displayName)) {
-            throw CoreException.of(CoreException.ExceptionType.PROJECT_DISPLAY_NAME_IS_EMPTY);
+            throw CoreException.of(PROJECT_DISPLAY_NAME_IS_EMPTY);
         }
         if (displayName.length() < PROJECT_DISPLAY_NAME_MIN_LENGTH
                 || displayName.length() > PROJECT_NAME_CLOUD_MAX_LENGTH) {
-            throw CoreException.of(CoreException.ExceptionType.PROJECT_DISPLAY_NAME_LENGTH_ERROR,
+            throw CoreException.of(PROJECT_DISPLAY_NAME_LENGTH_ERROR,
                     PROJECT_DISPLAY_NAME_MIN_LENGTH, PROJECT_NAME_CLOUD_MAX_LENGTH);
         }
         if (isDisplayNameExists(displayName, targetProject)) {
@@ -193,6 +264,15 @@ public class ProjectValidateService {
             log.warn("existProjectDisplayName {}", e.getMessage());
         }
         return false;
+    }
+
+    public static boolean checkCloudProjectName(String projectName) {
+        return !(!projectName.matches(PROJECT_NAME_CLOUD_REGEX) || projectName.endsWith(".git"));
+    }
+
+    public boolean validateProjectTemplate(String projectTemplate) {
+        return StringUtils.isNotEmpty(projectTemplate)
+                && EnumUtils.isValidEnum(ProjectTemplateEnums.class, projectTemplate);
     }
 
 }

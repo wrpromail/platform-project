@@ -9,6 +9,7 @@ import net.coding.common.util.BeanUtils;
 import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dao.ProjectSettingsDao;
 import net.coding.lib.project.dto.ProjectFunctionDTO;
+import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectSetting;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.helper.ProjectServiceHelper;
@@ -125,6 +126,29 @@ public class ProjectSettingService {
             return true;
         }
         return false;
+    }
+
+    /**
+     * 更新项目旧的开关是否开启
+     */
+    public ProjectSetting updateProjectTaskHide(Integer projectId, boolean hide) {
+        ProjectSetting projectSetting = findProjectSetting(projectId, ProjectSetting.Code.TASK_HIDE.getCode());
+        if (null == projectSetting) {
+            projectSetting = new ProjectSetting();
+            projectSetting.setProjectId(projectId);
+            projectSetting.setCode(ProjectSetting.Code.TASK_HIDE.getCode());
+            projectSetting.setValue(hide ? ProjectSetting.valueTrue : ProjectSetting.valueFalse);
+            projectSetting.setDescription(ProjectSetting.Code.TASK_HIDE.getDescription());
+
+            projectSettingsDao.insert(projectSetting);
+        } else {
+            projectSetting.setValue(hide ? ProjectSetting.valueTrue : ProjectSetting.valueFalse);
+            projectSettingsDao.update(projectSetting);
+        }
+
+        CacheManager.evict(CACHE_REGION, "getAllFunction:" + projectId);
+
+        return projectSetting;
     }
 
     public ProjectSetting findProjectSetting(Integer projectId, String function) {
