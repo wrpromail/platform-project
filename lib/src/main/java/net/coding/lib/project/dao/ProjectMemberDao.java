@@ -5,8 +5,8 @@ import net.coding.lib.project.entity.ProjectMember;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.sql.Timestamp;
 import java.util.List;
-import java.util.Map;
 
 @Mapper
 public interface ProjectMemberDao {
@@ -17,9 +17,10 @@ public interface ProjectMemberDao {
 
     ProjectMember getById(@Param("id") Integer id);
 
-    List<ProjectMember> findList(Map<String, Object> parameter);
+    List<ProjectMember> findListByProjectId(@Param("projectId") Integer projectId,
+                                            @Param("deletedAt") Timestamp deletedAt);
 
-    List<ProjectMember> findListByProjectId(Map<String, Object> parameter);
-
-    ProjectMember getByProjectIdAndUserId(Map<String, Object> parameter);
+    ProjectMember getByProjectIdAndUserId(@Param("projectId") Integer projectId,
+                                          @Param("userId") Integer userId,
+                                          @Param("deletedAt") Timestamp deletedAt);
 }

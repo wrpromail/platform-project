@@ -357,32 +357,32 @@ public class ProjectServiceHelper {
     }
 
     public void postNameActivityEvent(Integer userId, Project project) {
-        ActivityEvent nameActivityEvent = ActivityEvent.builder().creatorId(userId).type(Project.class)
+        ActivityEvent nameActivityEvent = ActivityEvent.builder().creatorId(userId).type(net.coding.e.lib.core.bean.Project.class)
                 .targetId(project.getId()).projectId(project.getId()).action(ACTION_UPDATE_NAME).content(StringUtils.EMPTY).build();
         asyncEventBus.post(nameActivityEvent);
     }
 
     public void postDisplayNameActivityEvent(Integer userId, Project project) {
-        ActivityEvent displayNameActivityEvent = ActivityEvent.builder().creatorId(userId).type(Project.class)
+        ActivityEvent displayNameActivityEvent = ActivityEvent.builder().creatorId(userId).type(net.coding.e.lib.core.bean.Project.class)
                 .targetId(project.getId()).projectId(project.getId()).action(ACTION_UPDATE_DISPLAY_NAME).content(StringUtils.EMPTY).build();
         asyncEventBus.post(displayNameActivityEvent);
     }
 
     public void postDescriptionActivityEvent(Integer userId, Project project) {
-        ActivityEvent descriptionActivityEvent = ActivityEvent.builder().creatorId(userId).type(Project.class)
+        ActivityEvent descriptionActivityEvent = ActivityEvent.builder().creatorId(userId).type(net.coding.e.lib.core.bean.Project.class)
                 .targetId(project.getId()).projectId(project.getId()).action(ACTION_UPDATE_DESCRIPTION).content(StringUtils.EMPTY).build();
         asyncEventBus.post(descriptionActivityEvent);
     }
 
     public void postDateActivityEvent(Integer userId, Project project) {
-        ActivityEvent dateActivityEvent = ActivityEvent.builder().creatorId(userId).type(Project.class)
+        ActivityEvent dateActivityEvent = ActivityEvent.builder().creatorId(userId).type(net.coding.e.lib.core.bean.Project.class)
                 .targetId(project.getId()).projectId(project.getId()).action(ACTION_UPDATE_DATE).content(StringUtils.EMPTY).build();
         asyncEventBus.post(dateActivityEvent);
     }
 
     public void postIconActivityEvent(Integer userId, Project project) {
         ActivityEvent iconActivityEvent = ActivityEvent.builder().creatorId(userId)
-                .type(Project.class)
+                .type(net.coding.e.lib.core.bean.Project.class)
                 .targetId(project.getId())
                 .projectId(project.getId())
                 .action(ACTION_UPDATE)
@@ -394,7 +394,7 @@ public class ProjectServiceHelper {
     public void postFunctionActivity(Integer userId, ProjectSetting projectSetting, Short action) {
         ActivityEvent funActivityEvent = ActivityEvent.builder()
                 .creatorId(userId)
-                .type(ProjectSetting.class)
+                .type(net.coding.e.lib.core.bean.ProjectSetting.class)
                 .targetId(projectSetting.getId())
                 .projectId(projectSetting.getProjectId())
                 .action(action)
@@ -415,7 +415,7 @@ public class ProjectServiceHelper {
         asyncEventBus.post(
                 ActivityEvent.builder()
                         .creatorId(userId)
-                        .type(Project.class)
+                        .type(net.coding.e.lib.core.bean.Project.class)
                         .targetId(project.getId())
                         .projectId(project.getId())
                         .action(ACTION_DELETE)

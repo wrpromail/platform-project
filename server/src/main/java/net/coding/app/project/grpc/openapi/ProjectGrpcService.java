@@ -170,12 +170,6 @@ public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBas
         try {
             UserProto.User currentUser = userGrpcClient.getUserById(request.getUser().getId());
 
-            ProjectMember projectMember = projectMemberService.getByProjectIdAndUserId(
-                    request.getProjectId(),
-                    request.getUser().getId());
-            if (projectMember == null) {
-                throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
-            }
             //验证用户接口权限
             boolean hasPermissionInProject = aclServiceGrpcClient.hasPermissionInProject(
                     PermissionProto.Permission.newBuilder()
@@ -210,7 +204,7 @@ public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBas
             Project project = projectService.getByIdAndTeamId(
                     request.getProjectId(),
                     request.getUser().getTeamId());
-            if(project == null) {
+            if (project == null) {
                 throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
             }
             //验证用户接口权限
