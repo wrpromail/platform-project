@@ -5,6 +5,7 @@ import net.coding.common.cache.evict.constant.CacheType;
 import net.coding.common.cache.evict.manager.EvictCacheManager;
 import net.coding.common.config.PDSettings;
 import net.coding.common.config.TencentOASettings;
+import net.coding.common.util.BeanUtils;
 import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dao.ProjectSettingsDao;
 import net.coding.lib.project.dto.ProjectFunctionDTO;
@@ -107,7 +108,7 @@ public class ProjectSettingService {
                     .description(setting.getDescription())
                     .createdAt(new Timestamp(System.currentTimeMillis()))
                     .updatedAt(new Timestamp(System.currentTimeMillis()))
-                    .deletedAt(new Timestamp(-28800000))
+                    .deletedAt(BeanUtils.getDefaultDeletedAt())
                     .build();
         } else if (projectSetting.getCode().equals(value)) {
             return false;

@@ -1,10 +1,11 @@
 ext {
     commonVersion = '20210202.1'
+
 }
 dependencies {
 
 
-
+    compile project(":proto")
     compile 'org.redisson:redisson:3.13.4'
     compile "org.mybatis.spring.boot:mybatis-spring-boot-starter:1.3.5"
     compile "com.github.pagehelper:pagehelper:5.0.2"
@@ -30,7 +31,7 @@ dependencies {
     compile "net.coding.common:db:${commonVersion}"
     compile "net.coding.common:cache-evict:${commonVersion}"
     compile "net.coding.common:dto:${commonVersion}"
-
+    compile "net.coding.common:verification:${commonVersion}"
 
 
     compile ("net.coding.grpc.client:activity:20201102.2") {

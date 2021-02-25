@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package proto;
+
+import "code.proto";
+import "pager.proto";
+
+option java_generic_services = true;
+option java_package = "net.coding.proto.platform.project";
+option java_outer_classname = "ProjectMemberProto";
+
+message OperateProjectMemberRequest {
+  int32 userId = 1;
+  int32 targetUserId = 2;
+  int32 roleValue= 3;
+  int32 projectId = 4;
+}
+
+message OperateProjectMemberResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+}
+
+
+service ProjectMemberService {
+  rpc OperateProjectMember(OperateProjectMemberRequest) returns (OperateProjectMemberResponse);
+}

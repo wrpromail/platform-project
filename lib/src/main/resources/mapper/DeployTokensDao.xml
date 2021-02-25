@@ -154,7 +154,7 @@
     <include refid="Base_Column_List" />
     from deploy_tokens
     where
-      `project_id` = #{projectId}
+    `project_id` = #{projectId}
     AND `type` = #{type}
     AND deleted_at = '1970-01-01 00:00:00'
     ORDER BY created_at DESC

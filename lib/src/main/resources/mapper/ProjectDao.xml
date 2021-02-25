@@ -111,6 +111,6 @@
   </select>
 
   <update id="delete">
-        UPDATE projects SET deleted_at = NOW() WHERE id = #{id}
-    </update>
+    UPDATE projects SET deleted_at = NOW() WHERE id = #{id}
+  </update>
 </mapper>

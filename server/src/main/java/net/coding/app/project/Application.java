@@ -2,9 +2,9 @@ package net.coding.app.project;
 
 import net.coding.common.server.BaseConfig;
 import net.coding.common.server.BaseServer;
+import net.coding.common.verification.VerificationAutoConfiguration;
 
 import org.lognet.springboot.grpc.autoconfigure.GRpcAutoConfiguration;
-import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -48,7 +48,7 @@ import static springfox.documentation.builders.PathSelectors.regex;
         net.coding.grpc.client.permission.Config.class
 
 })
-@ImportAutoConfiguration({GRpcAutoConfiguration.class})
+@ImportAutoConfiguration({GRpcAutoConfiguration.class, VerificationAutoConfiguration.class})
 @EnableScheduling
 @EnableSwagger2
 public class Application {
