@@ -9,12 +9,6 @@ option java_generic_services = true;
 option java_package = "net.coding.proto.platform.project";
 option java_outer_classname = "ProjectMemberProto";
 
-message OperateProjectMemberRequest {
-    int32 userId = 1;
-    int32 targetUserId = 2;
-    int32 roleValue = 3;
-    int32 projectId = 4;
-}
 
 message AddProjectMemberRequest {
     int32 projectIdCoding = 1; //项目id
@@ -23,15 +17,10 @@ message AddProjectMemberRequest {
     int32 type = 4; // 90:项目管理员，80:普通成员，只有90、80两个选项
 }
 
-message OperateProjectMemberResponse {
-    proto.common.Code code = 1;
-    string message = 2;
-}
 message AddProjectMemberResponse {
     proto.common.Code code = 1;
     string message = 2;
 }
 service ProjectMemberService {
     rpc AddProjectMember (AddProjectMemberRequest) returns (AddProjectMemberResponse);
-    rpc OperateProjectMember (OperateProjectMemberRequest) returns (OperateProjectMemberResponse);
 }

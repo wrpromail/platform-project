@@ -18,9 +18,6 @@ import org.springframework.util.ObjectUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import io.grpc.stub.StreamObserver;
 import lombok.AllArgsConstructor;
@@ -91,60 +88,6 @@ public class ProjectMemberGrpcService extends ProjectMemberServiceGrpc.ProjectMe
         } catch (Exception e) {
             log.error("RpcService AddProjectMember error CoreException ", e);
             responseObserver.onNext(ProjectMemberProto.AddProjectMemberResponse.newBuilder()
-                    .setCode(CodeProto.Code.INTERNAL_ERROR)
-                    .setMessage(e.getMessage())
-                    .build());
-        } finally {
-            responseObserver.onCompleted();
-        }
-    }
-
-    @Override
-    public void operateProjectMember(ProjectMemberProto.OperateProjectMemberRequest request,
-                                     io.grpc.stub.StreamObserver<ProjectMemberProto.OperateProjectMemberResponse> responseObserver) {
-        Project project = projectService.getById(request.getProjectId());
-        try {
-            if (project == null) {
-                throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
-            }
-            UserProto.User currentUser = userGrpcClient.getUserById(request.getUserId());
-
-            //验证用户接口权限
-            boolean hasPermissionInProject = aclServiceGrpcClient.hasPermissionInProject(
-                    PermissionProto.Permission.newBuilder()
-                            .setFunction(PermissionProto.Function.ProjectMember)
-                            .setAction(PermissionProto.Action.Create)
-                            .build(),
-                    request.getProjectId(),
-                    currentUser.getGlobalKey(),
-                    currentUser.getId()
-            );
-            if (!hasPermissionInProject) {
-                throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
-            }
-            UserProto.User targetUser = userGrpcClient.getUserById(request.getTargetUserId());
-
-            if (projectMemberService.isMember(targetUser, request.getProjectId())) {
-                projectMemberService.updateProjectMemberType(request.getProjectId(), request.getTargetUserId(), (short) request.getRoleValue());
-            } else {
-                List<Integer> userIds = new ArrayList<>();
-                userIds.add(request.getTargetUserId());
-                projectMemberService.doAddMember(request.getUserId(), userIds, (short) request.getRoleValue(), project, false);
-            }
-            responseObserver.onNext(ProjectMemberProto.OperateProjectMemberResponse.newBuilder()
-                    .setCode(CodeProto.Code.SUCCESS)
-                    .build());
-
-        } catch (CoreException e) {
-            log.error("RpcService operateProjectMember error CoreException ", e);
-            responseObserver.onNext(ProjectMemberProto.OperateProjectMemberResponse.newBuilder()
-                    .setCode(CodeProto.Code.INTERNAL_ERROR)
-                    .setMessage(e.getMessage())
-                    .build());
-
-        } catch (Exception e) {
-            log.error("RpcService operateProjectMember error CoreException ", e);
-            responseObserver.onNext(ProjectMemberProto.OperateProjectMemberResponse.newBuilder()
                     .setCode(CodeProto.Code.INTERNAL_ERROR)
                     .setMessage(e.getMessage())
                     .build());

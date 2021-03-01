@@ -1,14 +1,14 @@
 package net.coding.lib.project.service;
 
+import com.google.common.collect.ImmutableList;
+
 import com.github.pagehelper.PageRowBounds;
 
 import net.coding.common.util.BeanUtils;
 import net.coding.common.util.ResultPage;
-import net.coding.e.proto.IssueProto;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dao.ProjectDao;
-import net.coding.common.util.BeanUtils;
 import net.coding.lib.project.dao.ProjectMemberDao;
 import net.coding.lib.project.dto.ProjectMemberDTO;
 import net.coding.lib.project.dto.RoleDTO;
@@ -22,6 +22,9 @@ import net.coding.lib.project.grpc.client.IssueServiceGrpcClient;
 import net.coding.lib.project.grpc.client.ProjectGrpcClient;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.helper.ProjectServiceHelper;
+import net.coding.lib.project.hook.trigger.CreateMemberEventTriggerTrigger;
+import net.coding.lib.project.hook.trigger.DeleteMemberEventTriggerTrigger;
+import net.coding.lib.project.hook.trigger.UpdateMemberRoleEventTriggerTrigger;
 import net.coding.lib.project.pager.ResultPageFactor;
 
 import org.apache.commons.lang3.StringUtils;
@@ -48,10 +51,9 @@ import proto.acl.AclProto;
 import proto.advanced_role.AdvancedRoleProto;
 import proto.platform.user.UserProto;
 
-import static net.coding.common.constants.RoleConstants.OWNER;
-
 import static java.util.stream.Collectors.toList;
 import static net.coding.common.constants.ProjectConstants.PROJECT_PRIVATE;
+import static net.coding.common.constants.RoleConstants.OWNER;
 
 @Service
 @AllArgsConstructor
@@ -76,6 +78,10 @@ public class ProjectMemberService {
 
     private final short MEMBER_TYPE = 80;
 
+    private final CreateMemberEventTriggerTrigger createMemberEventTrigger;
+    private final DeleteMemberEventTriggerTrigger deleteMemberEventTrigger;
+    private final UpdateMemberRoleEventTriggerTrigger updateMemberRoleEventTriggerTrigger;
+
 
     public ProjectMember getById(Integer id) {
         return projectMemberDao.getById(id);
@@ -89,9 +95,26 @@ public class ProjectMemberService {
         return projectMemberDao.update(projectMember);
     }
 
-    public boolean updateProjectMemberType(Integer projectId, Integer targetUserId, short type) throws CoreException {
-        return projectMemberDao.updateProjectMemberType(projectId, targetUserId, type, BeanUtils.getDefaultDeletedAt()) > 0;
-
+    public boolean updateProjectMemberType
+            (
+                    Integer currentUserId,
+                    Integer memberId,
+                    Project project,
+                    short type,
+                    Integer roleId
+            ) {
+        int result = projectMemberDao.updateProjectMemberType(project.getId(), memberId, type, BeanUtils.getDefaultDeletedAt());
+        if (result > 0) {
+            ProjectMember projectMember = getByProjectIdAndUserId(project.getId(), memberId);
+            updateMemberRoleEventTriggerTrigger.trigger
+                    (
+                            ImmutableList.of(String.valueOf(roleId)),
+                            projectMember,
+                            project.getId(),
+                            currentUserId
+                    );
+        }
+        return result > 0;
     }
 
     public List<ProjectMember> findListByProjectId(Integer projectId) {
@@ -129,16 +152,14 @@ public class ProjectMemberService {
 
     }
 
-    public List<RoleDTO> findMemberCountByProjectId(Integer projectId) throws CoreException {
+    public List<RoleDTO> findMemberCountByProjectId(Integer projectId) {
         List<RoleDTO> roleDTOList = new ArrayList<>();
         try {
             List<AdvancedRoleProto.RoleMemberCount> roleMemberCounts =
                     advancedRoleServiceGrpcClient.findMemberCountByProjectId(projectId);
             roleMemberCounts.stream().forEach(roleMemberCount -> roleDTOList.add(toRoleMemberDTO(roleMemberCount)));
-
         } catch (Exception e) {
             log.error("advancedRoleServiceGrpcClient findMemberCountByProjectId is error{} ", e.getMessage());
-
         }
         return roleDTOList;
     }
@@ -157,7 +178,6 @@ public class ProjectMemberService {
         if (projectMember == null || projectMember.getType() <= MEMBER_TYPE) {
             throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
         }
-
 
         List<Integer> targetUserIds = new ArrayList<>();
         Arrays.stream(addMemberForm.getUsers().split(",")).forEach(targetUserIdStr -> {
@@ -194,22 +214,38 @@ public class ProjectMemberService {
         try {
             Optional<AdvancedRoleProto.FindProjectRoleByRoleAndProjectResponse> response =
                     advancedRoleServiceGrpcClient.findProjectRoleByRoleAndProject(project.getId(), type);
-            targetUserIds.stream().forEach(userId -> {
-                AtomicInteger insertRole = new AtomicInteger(0);
-                try {
-                    advancedRoleServiceGrpcClient.insertProjectRoleRecord(project.getId(),
-                            response.get().getRole(),
-                            project.getTeamOwnerId(),
-                            userId);
-                } catch (Exception e) {
-                    log.error("advancedRoleServiceGrpcClient insertProjectRoleRecord is error{} ", e.getMessage());
-                }
-                insertRole.set(response.get().getRole().getId());
-                //发送消息
-                ProjectMember projectMember = getByProjectIdAndUserId(project.getId(), userId);
-                projectServiceHelper.postAddMembersEvent(insertRole,currentUserId, project.getId(), projectMember, userId, isInvite);
+            response.ifPresent(res -> {
+                targetUserIds.forEach(userId -> {
+                    AtomicInteger insertRole = new AtomicInteger(0);
+                    try {
+                        advancedRoleServiceGrpcClient.insertProjectRoleRecord(
+                                project.getId(),
+                                res.getRole(),
+                                project.getTeamOwnerId(),
+                                userId
+                        );
+                    } catch (Exception e) {
+                        log.error("advancedRoleServiceGrpcClient insertProjectRoleRecord is error{} ", e.getMessage());
+                    }
+                    insertRole.set(res.getRole().getId());
+                    //发送消息
+                    ProjectMember projectMember = getByProjectIdAndUserId(project.getId(), userId);
+                    projectServiceHelper.postAddMembersEvent(
+                            insertRole,
+                            currentUserId,
+                            project.getId(),
+                            projectMember,
+                            userId,
+                            isInvite
+                    );
+                    createMemberEventTrigger.trigger(
+                            ImmutableList.of(String.valueOf(res.getRole().getId())),
+                            projectMember,
+                            project.getId(),
+                            currentUserId
+                    );
+                });
             });
-
         } catch (Exception e) {
             log.error("advancedRoleServiceGrpcClient findProjectRoleByRoleAndProject is error{} ", e.getMessage());
         }
@@ -288,7 +324,7 @@ public class ProjectMemberService {
             if (project.getType().equals(PROJECT_PRIVATE) && !this.isMember(user, project.getId())) {
                 continue;
             }
-            if (Objects.equals(Integer.valueOf(user.getId()), targetOwnerId)) {
+            if (Objects.equals(user.getId(), targetOwnerId)) {
                 continue;
             }
             userIdSet.add(user.getId());
@@ -312,7 +348,7 @@ public class ProjectMemberService {
         if (currentUser == null) {
             throw CoreException.of(CoreException.ExceptionType.USER_NOT_LOGIN);
         }
-        if (currentUser.getId() == targetUserId.intValue()) {
+        if (currentUser.getId() == targetUserId) {
             throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
         }
         Project project = projectDao.getProjectById(projectId);
@@ -344,13 +380,18 @@ public class ProjectMemberService {
         }
         int result = projectMemberDao.deleteMember(projectId, targetUserId, BeanUtils.getDefaultDeletedAt());
         if (result > 0) {
+            List<String> roleIdList = advancedRoleServiceGrpcClient.findUserRolesInProject
+                    (targetUserId,
+                            project.getTeamOwnerId(),
+                            projectId).stream().map(role -> String.valueOf(role.getId())).collect(toList());
             advancedRoleServiceGrpcClient.removeUserRoleRecordsInProject(projectId, targetUserId);
             projectServiceHelper.postDeleteMemberEvent(currentUser.getId(), projectId, targetUserId);
+            deleteMemberEventTrigger.trigger(roleIdList, member, projectId, currentUser.getId());
         }
 
     }
 
-    public boolean updateVisitTime(Integer projectMemberId){
-        return projectMemberDao.updateVisitTime(projectMemberId,BeanUtils.getDefaultDeletedAt())==1;
+    public boolean updateVisitTime(Integer projectMemberId) {
+        return projectMemberDao.updateVisitTime(projectMemberId, BeanUtils.getDefaultDeletedAt()) == 1;
     }
 }
