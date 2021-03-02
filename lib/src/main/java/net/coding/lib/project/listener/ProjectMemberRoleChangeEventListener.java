@@ -1,0 +1,58 @@
+package net.coding.lib.project.listener;
+
+import com.google.common.eventbus.Subscribe;
+import net.coding.common.base.gson.JSON;
+import net.coding.lib.project.entity.Project;
+import net.coding.lib.project.entity.ProjectMember;
+import net.coding.lib.project.exception.CoreException;
+import net.coding.lib.project.listener.event.ProjectMemberRoleChangeEvent;
+import net.coding.lib.project.service.ProjectMemberService;
+import net.coding.lib.project.service.ProjectService;
+
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collections;
+import java.util.Objects;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * 项目成员权限事件处理
+ */
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class ProjectMemberRoleChangeEventListener {
+
+    private final ProjectService projectService;
+
+    private final ProjectMemberService projectMemberService;
+
+    @Subscribe
+    @Transactional
+    public void handle(ProjectMemberRoleChangeEvent event) {
+        try {
+            log.info("ProjectMemberRoleChangeEventListener , event :{}", JSON.toJson(event));
+            Project project = projectService.getById(event.getProjectId());
+            if (Objects.isNull(project)) {
+                log.info("ProjectMemberRoleChangeEventListener Project is null, projectId = {}", event.getProjectId());
+                return;
+            }
+            ProjectMember projectMember = projectMemberService.getByProjectIdAndUserId(event.getProjectId(), event.getTargetUserId());
+            if (Objects.nonNull(projectMember)) {
+                projectMemberService.updateProjectMemberType(event.getProjectId(),
+                        event.getTargetUserId(), (short) event.getRoleValue());
+            } else {
+                projectMemberService.doAddMember(event.getCurrentUserId(), Collections.singletonList(event.getTargetUserId()),
+                        (short) event.getRoleValue(), project, false);
+            }
+        } catch (CoreException ex) {
+            log.info("ProjectMemberRoleChangeEventListener Error, projectId = {}, targetUserId = {}, currentUserId = {}",
+                    event.getProjectId(),
+                    event.getTargetUserId(),
+                    event.getCurrentUserId());
+        }
+    }
+}
