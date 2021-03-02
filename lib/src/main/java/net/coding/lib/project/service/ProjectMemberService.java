@@ -87,7 +87,7 @@ public class ProjectMemberService {
     }
 
     public boolean updateProjectMemberType(Integer projectId, Integer targetUserId, short type) throws CoreException {
-        return projectMemberDao.updateProjectMemberType(projectId, targetUserId, type,BeanUtils.getDefaultDeletedAt()) > 0;
+        return projectMemberDao.updateProjectMemberType(projectId, targetUserId, type, BeanUtils.getDefaultDeletedAt()) > 0;
 
     }
 
@@ -105,17 +105,22 @@ public class ProjectMemberService {
         }
         List<ProjectMember> projectMemberList = projectMemberDao.getProjectMembers(projectId, keyWord, pager);
         List<ProjectMemberDTO> projectMembers = new ArrayList<>();
-        projectMemberList.stream().forEach(projectMember -> projectMembers.add(ProjectMemberDTO.builder().id(projectMember.getId()).project_id(projectMember.getProjectId())
-                .user_id(projectMember.getUserId())
-                .created_at(projectMember.getCreatedAt().getTime())
-                .last_visit_at(projectMember.getLastVisitAt().getTime()).build()));
+        projectMemberList.stream().forEach(projectMember ->
+                projectMembers.add(ProjectMemberDTO.builder()
+                        .id(projectMember.getId())
+                        .project_id(projectMember.getProjectId())
+                        .user_id(projectMember.getUserId())
+                        .created_at(projectMember.getCreatedAt().getTime())
+                        .last_visit_at(projectMember.getLastVisitAt().getTime()).build()));
         if (!CollectionUtils.isEmpty(projectMembers)) {
             projectMembers.stream().forEach(projectMemberDTO ->
                     projectMemberDTO.setUser(new UserDTO(userGrpcClient.getUserById(projectMemberDTO.getUser_id())
                     )));
             projectMembers.stream().forEach(projectMemberDTO ->
-                    projectMemberDTO.setRoles(toRoleDTO(advancedRoleServiceGrpcClient.findUserRolesInProject(projectMemberDTO.getUser().getId(),
-                            projectMemberDTO.getUser().getTeamId(), projectId))));
+                    projectMemberDTO.setRoles(
+                            toRoleDTO(
+                                    advancedRoleServiceGrpcClient.findUserRolesInProject(projectMemberDTO.getUser().getId(),
+                                            projectMemberDTO.getUser().getTeamId(), projectId))));
         }
         return new ResultPageFactor<ProjectMemberDTO>().def(pager, projectMembers);
 
@@ -124,7 +129,8 @@ public class ProjectMemberService {
     public List<RoleDTO> findMemberCountByProjectId(Integer projectId) throws CoreException {
         List<RoleDTO> roleDTOList = new ArrayList<>();
         try {
-            List<AdvancedRoleProto.RoleMemberCount> roleMemberCounts = advancedRoleServiceGrpcClient.findMemberCountByProjectId(projectId);
+            List<AdvancedRoleProto.RoleMemberCount> roleMemberCounts =
+                    advancedRoleServiceGrpcClient.findMemberCountByProjectId(projectId);
             roleMemberCounts.stream().forEach(roleMemberCount -> roleDTOList.add(toRoleMemberDTO(roleMemberCount)));
 
         } catch (Exception e) {
@@ -143,7 +149,8 @@ public class ProjectMemberService {
         if (Objects.isNull(project)) {
             throw CoreException.of(CoreException.ExceptionType.PROJECT_NAME_EXISTS);
         }
-        ProjectMember projectMember = projectMemberDao.getProjectMemberByUserAndProject(currentUser.getId(), projectId, BeanUtils.getDefaultDeletedAt());
+        ProjectMember projectMember = projectMemberDao.getProjectMemberByUserAndProject(currentUser.getId(),
+                projectId, BeanUtils.getDefaultDeletedAt());
         if (projectMember == null || projectMember.getType() <= MEMBER_TYPE) {
             throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
         }
@@ -152,7 +159,7 @@ public class ProjectMemberService {
         List<Integer> targetUserIds = new ArrayList<>();
         Arrays.stream(addMemberForm.getUsers().split(",")).forEach(targetUserIdStr -> {
             UserProto.User user = userGrpcClient.getUserByGlobalKey(targetUserIdStr);
-            if (Objects.nonNull(user)) {
+            if (Objects.nonNull(user) || user.getId() != currentUser.getId()) {
                 Integer id = user.getId();
                 targetUserIds.add(id);
             }
@@ -160,12 +167,19 @@ public class ProjectMemberService {
         doAddMember(currentUser.getId(), targetUserIds, addMemberForm.getType(), project, false);
     }
 
-    public void doAddMember(Integer currentUserId, List<Integer> targetUserIds, short type, Project project, boolean isInvite) throws CoreException {
+    public void doAddMember(Integer currentUserId, List<Integer> targetUserIds,
+                            short type, Project project, boolean isInvite) throws CoreException {
         Timestamp init_at = new Timestamp(System.currentTimeMillis());
-        List<Integer> memberUserIdList = targetUserIds.stream().filter(targetUserId -> !targetUserId.equals(currentUserId) &&
-                Objects.isNull(projectMemberDao.getProjectMemberByUserAndProject(
-                        targetUserId, project.getId(), BeanUtils.getDefaultDeletedAt()))).collect(toList());
-        ProjectMember targetProjectMember = ProjectMember.builder().projectId(project.getId())
+        List<Integer> memberUserIdList = targetUserIds.stream()
+                .filter(targetUserId ->
+                        Objects.isNull(projectMemberDao.getProjectMemberByUserAndProject(
+                                targetUserId, project.getId(), BeanUtils.getDefaultDeletedAt())))
+                .collect(toList());
+        if (CollectionUtils.isEmpty(memberUserIdList)) {
+            return;
+        }
+        ProjectMember targetProjectMember = ProjectMember.builder()
+                .projectId(project.getId())
                 .type(type)
                 .deletedAt(BeanUtils.getDefaultDeletedAt())
                 .createdAt(init_at)
@@ -175,18 +189,22 @@ public class ProjectMemberService {
         projectMemberDao.insertList(memberUserIdList, targetProjectMember);
 
         try {
-            Optional<AdvancedRoleProto.FindProjectRoleByRoleAndProjectResponse> response = advancedRoleServiceGrpcClient.findProjectRoleByRoleAndProject(project.getId(), (int) type);
+            Optional<AdvancedRoleProto.FindProjectRoleByRoleAndProjectResponse> response =
+                    advancedRoleServiceGrpcClient.findProjectRoleByRoleAndProject(project.getId(), type);
             targetUserIds.stream().forEach(userId -> {
                 AtomicInteger insertRole = new AtomicInteger(0);
                 try {
-                    advancedRoleServiceGrpcClient.insertProjectRoleRecord(project.getId(), response.get().getRole(), project.getTeamOwnerId(), userId);
+                    advancedRoleServiceGrpcClient.insertProjectRoleRecord(project.getId(),
+                            response.get().getRole(),
+                            project.getTeamOwnerId(),
+                            userId);
                 } catch (Exception e) {
                     log.error("advancedRoleServiceGrpcClient insertProjectRoleRecord is error{} ", e.getMessage());
                 }
                 insertRole.set(response.get().getRole().getId());
                 //发送消息
-                ProjectMember projectMember1 = getByProjectIdAndUserId(project.getId(), userId);
-                projectServiceHelper.postAddMembersEvent(userId, project.getId(), projectMember1, userId, isInvite);
+                ProjectMember projectMember = getByProjectIdAndUserId(project.getId(), userId);
+                projectServiceHelper.postAddMembersEvent(currentUserId, project.getId(), projectMember, userId, isInvite);
             });
 
         } catch (Exception e) {
@@ -252,7 +270,9 @@ public class ProjectMemberService {
         while (matcher.find()) {
             String name = matcher.group(2);
             if ("all".equals(StringUtils.lowerCase(name))) {
-                userIdSet.addAll(findListByProjectId(project.getId()).stream().map(projectMember -> projectMember.getId()).collect(Collectors.toSet()));
+                userIdSet.addAll(findListByProjectId(project.getId()).stream()
+                        .map(ProjectMember::getId)
+                        .collect(Collectors.toSet()));
                 break;
             }
             UserProto.User user = userGrpcClient.getUserByNameAndTeamId(name, project.getTeamOwnerId());

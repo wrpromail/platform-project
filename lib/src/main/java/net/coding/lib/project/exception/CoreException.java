@@ -85,7 +85,7 @@ public class CoreException extends Exception {
 
         // user 相关以 10 开头
         USER_NOT_EXISTS(1001, "user_not_exists"),
-
+        USER_EMAIL_NOT_BIND(1047, "user_email_not_bind"),
 
         //team
         TEAM_NOT_EXIST(3700, "team_not_exist"),
@@ -159,6 +159,7 @@ public class CoreException extends Exception {
         PROJECT_DEMO_RESET_LIMIT(1170, "project_demo_reset_limit"),
         PROJECT_TEMPLATE_NOT_EXIST(1171, "project_template_not_exist"),
         PROJECT_ARCHIVED_ONLY_ADMIN(1172, "project_archived_only_admin"),
+        PROJECT_NAME_IS_EMPTY(1173, "project_name_not_empty"),
 
 
         //group相关的以 15开头

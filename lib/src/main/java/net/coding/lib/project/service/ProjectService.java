@@ -1,8 +1,20 @@
 package net.coding.lib.project.service;
 
+import com.google.common.base.Strings;
+
+import net.coding.common.base.service.ProfanityWordsService;
 import net.coding.common.cache.evict.constant.CacheType;
 import net.coding.common.cache.evict.manager.EvictCacheManager;
+import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
+import net.coding.lib.project.dao.ProjectGroupProjectDao;
+import net.coding.lib.project.dao.TeamProjectDao;
+import net.coding.lib.project.entity.ProjectGroupProject;
+import net.coding.lib.project.entity.TeamProject;
 import net.coding.lib.project.enums.CacheTypeEnum;
+import net.coding.lib.project.grpc.client.CredentialGRpcClient;
+import net.coding.lib.project.metrics.ProjectCreateMetrics;
+import net.coding.lib.project.parameter.BaseCredentialParameter;
+import net.coding.lib.project.parameter.ProjectCreateParameter;
 import net.coding.lib.project.parameter.ProjectQueryParameter;
 import net.coding.lib.project.parameter.ProjectUpdateParameter;
 import net.coding.lib.project.service.download.CodingSettings;
@@ -21,16 +33,20 @@ import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.UpdateProjectForm;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
 import net.coding.lib.project.helper.ProjectServiceHelper;
+import net.coding.lib.project.utils.DateUtil;
+import net.coding.proto.CredentialProto;
 
+import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.Errors;
 
 import java.sql.Date;
-import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -46,12 +62,15 @@ import static net.coding.common.base.validator.ValidationConstants.PROJECT_ICON_
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_ICON_MAX_WIDTH;
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_ICON_MIN_HEIGHT;
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_ICON_MIN_WIDTH;
+import static net.coding.common.constants.ProjectConstants.INFINITY_MEMBER;
 import static net.coding.common.constants.RoleConstants.ADMIN;
 import static net.coding.common.constants.RoleConstants.GUEST;
 import static net.coding.common.constants.RoleConstants.MEMBER;
 import static net.coding.common.constants.RoleConstants.MEMBER_NO_CODE;
 import static net.coding.common.constants.RoleConstants.OWNER;
 import static net.coding.common.constants.RoleConstants.VISITOR;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.CONTENT_INCLUDE_SENSITIVE_WORDS;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_CREATION_ERROR;
 
 
 @Service
@@ -75,6 +94,20 @@ public class ProjectService {
 
     private final ProjectValidateService projectValidateService;
 
+    private final ProfanityWordService profanityWordService;
+
+    private final AdvancedRoleServiceGrpcClient advancedRoleServiceGrpcClient;
+
+    private final ProjectSettingService projectSettingService;
+
+    private final TeamProjectDao teamProjectDao;
+
+    private final ProjectGroupProjectDao projectGroupProjectDao;
+
+    private final ProjectPreferenceService projectPreferenceService;
+
+    private final CredentialGRpcClient credentialGRpcClient;
+
     private final String TABLE_NAME = "projects";
 
     private final String ICON_REGX_STR = ".+\\.(jpg|bmp|gif|png|jpeg)$";
@@ -96,6 +129,11 @@ public class ProjectService {
         return projectDao.getProjectByNameAndTeamId(projectName, teamOwnerId);
     }
 
+    public Project getByDisplayNameAndTeamId(String displayName, Integer teamOwnerId) {
+        return projectDao.getProjectByDisplayNameAndTeamId(displayName, teamOwnerId);
+    }
+
+
     public List<Project> getProjects(ProjectQueryParameter parameter) {
         return projectDao.findByProjects(parameter);
     }
@@ -115,15 +153,15 @@ public class ProjectService {
         }
         String nameProfanityWord = projectServiceHelper.checkContent(form.getName());
         if (StringUtils.isNotEmpty(nameProfanityWord)) {
-            throw CoreException.of(CoreException.ExceptionType.CONTENT_INCLUDE_SENSITIVE_WORDS, nameProfanityWord);
+            throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, nameProfanityWord);
         }
         String displayNameProfanityWord = projectServiceHelper.checkContent(form.getDisplayName());
         if (StringUtils.isNotBlank(displayNameProfanityWord)) {
-            throw CoreException.of(CoreException.ExceptionType.CONTENT_INCLUDE_SENSITIVE_WORDS, displayNameProfanityWord);
+            throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, displayNameProfanityWord);
         }
         String descriptionProfanityWord = projectServiceHelper.checkContent(form.getDescription());
         if (StringUtils.isNotEmpty(descriptionProfanityWord)) {
-            throw CoreException.of(CoreException.ExceptionType.CONTENT_INCLUDE_SENSITIVE_WORDS, descriptionProfanityWord);
+            throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, descriptionProfanityWord);
         }
 
 
@@ -237,6 +275,127 @@ public class ProjectService {
         return buildProjectDTO(project);
     }
 
+    public int createProject(ProjectCreateParameter parameter, boolean notifyOwner) throws Exception {
+        String nameProfanityWord = profanityWordService.checkContent(parameter.getName());
+        if (StringUtils.isNotEmpty(nameProfanityWord)) {
+            throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, nameProfanityWord);
+        }
+        String displayNameProfanityWord = profanityWordService.checkContent(parameter.getDisplayName());
+        if (StringUtils.isNotEmpty(displayNameProfanityWord)) {
+            throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, displayNameProfanityWord);
+        }
+        String descriptionProfanityWord = profanityWordService.checkContent(parameter.getDescription());
+        if (StringUtils.isNotEmpty(descriptionProfanityWord)) {
+            throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, descriptionProfanityWord);
+        }
+
+        long prevTime = System.currentTimeMillis();
+        Project project = initializeProject(parameter, notifyOwner);
+        ProjectCreateMetrics.setInitProjectData(System.currentTimeMillis() - prevTime);
+
+        CredentialProto.Credential credential = createCredential(project, parameter);
+
+        projectServiceHelper.postProjectCreateEvent(project, parameter, credential);
+
+        return project.getId();
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Project initializeProject(ProjectCreateParameter parameter, boolean notifyOwner) throws Exception {
+        TeamProto.GetTeamResponse response =
+                teamGrpcClient.getTeam(parameter.getTeamId());
+        if (response == null || response.getData() == null) {
+            throw CoreException.of(CoreException.ExceptionType.TEAM_NOT_EXIST);
+        }
+        // 描述的转义改为在输出时处理
+        String targetDescription = Strings.nullToEmpty(parameter.getDescription());
+        if (1024 < targetDescription.length()) {
+            throw CoreException.of(CoreException.ExceptionType.PROJECT_DESCRIPTION_TOO_LONG);
+        }
+        int r = RandomUtils.nextInt(14) + 1;
+        String icon = StringUtils.defaultIfBlank(parameter.getIcon(),
+                "/static/project_icon/scenery-version-2-" + r + ".svg");
+        Project project = Project.builder()
+                .userOwnerId(0)
+                .ownerId(0)
+                .teamOwnerId(parameter.getTeamId())
+                .type(NumberUtils.toInt(parameter.getType()))
+                .depotShared(parameter.getShared() == 1)
+                .name(parameter.getName())
+                .displayName(parameter.getDisplayName())
+                .namePinyin(projectServiceHelper.getPinYin(
+                        parameter.getDisplayName(),
+                        parameter.getName()))
+                .maxMember(INFINITY_MEMBER)
+                .description(targetDescription)
+                .icon(icon)
+                .startDate(parameter.getStartDate())
+                .endDate(parameter.getEndDate())
+                .invisible(parameter.getInvisible())
+                .label(parameter.getLabel())
+                .build();
+        int result = projectDao.insertSelective(project);
+        if (result <= 0) {
+            throw CoreException.of(PROJECT_CREATION_ERROR);
+        }
+
+        TeamProject teamProject = TeamProject.builder()
+                .projectId(project.getId())
+                .teamId(parameter.getTeamId())
+                .build();
+        teamProjectDao.insertSelective(teamProject);
+
+        // 项目分组
+        if (parameter.getGroupId() != null && parameter.getGroupId() > 0) {
+            ProjectGroupProject projectGroupProject = ProjectGroupProject.builder()
+                    .ownerId(parameter.getUserId())
+                    .projectGroupId(parameter.getGroupId())
+                    .projectId(project.getId())
+                    .build();
+            projectGroupProjectDao.insertSelective(projectGroupProject);
+        }
+
+        // 通知 企业所有者
+        if (notifyOwner && !project.getInvisible()) {
+            projectServiceHelper.sendCreateProjectNotification(
+                    response.getData().getOwner().getId(),
+                    parameter.getUserId(),
+                    project);
+        }
+
+        // 初始化新项目的内置角色，这个必须在 addMember 之前
+        advancedRoleServiceGrpcClient.initProjectPredefinedRoles(project.getId(), parameter.getTeamId());
+
+        projectMemberService.doAddMember(parameter.getUserId(), Collections.singletonList(parameter.getUserId()),
+                ADMIN, project, false);
+
+        // 创建项目默认的偏好设置 由于创建项目较慢这里 7 次 insert 把这个转移到异步
+        projectPreferenceService.initProjectPreferences(project.getId());
+
+        //新的项目隐藏掉 task
+        projectSettingService.updateProjectTaskHide(project.getId(), true);
+
+        return project;
+    }
+
+    private CredentialProto.Credential createCredential(Project project, ProjectCreateParameter parameter) {
+        BaseCredentialParameter credentialParameter = parameter.getBaseCredentialParameter();
+        if (credentialParameter == null || StringUtils.isBlank(credentialParameter.getType())) {
+            return null;
+        }
+        credentialParameter.setTeamId(parameter.getTeamId());
+        credentialParameter.setProjectId(project.getId());
+        credentialParameter.setCreatorId(parameter.getUserId());
+        try {
+            int connId = credentialGRpcClient.createCredential(parameter.getUserGk(), true, credentialParameter);
+            return credentialGRpcClient.getById(connId, false);
+        } catch (Exception e) {
+            log.warn("create credential failed", e);
+        }
+        return null;
+    }
+
+
     /**
      * 删除项目
      */
@@ -251,7 +410,11 @@ public class ProjectService {
         if (project == null) {
             throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
         }
-        int result = projectDao.delete(projectId);
+        int result = projectDao.updateByPrimaryKeySelective(
+                Project.builder()
+                        .id(projectId)
+                        .deletedAt(DateUtil.getCurrentDate())
+                        .build());
         if (result < 0) {
             throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
         }

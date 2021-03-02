@@ -7,6 +7,7 @@ import net.coding.grpc.client.platform.TeamServiceGrpcClient;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.enums.ProjectLabelEnums;
+import net.coding.lib.project.enums.RegisterSourceEnum;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.UpdateProjectForm;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
@@ -14,6 +15,7 @@ import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.parameter.ProjectQueryParameter;
 import net.coding.lib.project.service.ProjectMemberService;
 import net.coding.lib.project.service.ProjectService;
+import net.coding.lib.project.service.openapi.OpenApiProjectService;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.lognet.springboot.grpc.GRpcService;
@@ -33,6 +35,7 @@ import proto.platform.permission.PermissionProto;
 import proto.platform.team.TeamProto;
 import proto.platform.user.UserProto;
 
+import static net.coding.common.constants.RoleConstants.ADMIN;
 import static proto.open.api.CodeProto.Code.INVALID_PARAMETER;
 import static proto.open.api.CodeProto.Code.NOT_FOUND;
 import static proto.open.api.CodeProto.Code.SUCCESS;
@@ -45,11 +48,13 @@ import static proto.open.api.CodeProto.Code.SUCCESS;
 @Slf4j
 @GRpcService
 @AllArgsConstructor
-public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBase {
+public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectServiceImplBase {
 
     private final ProjectService projectService;
 
     private final ProjectMemberService projectMemberService;
+
+    private final OpenApiProjectService openApiProjectService;
 
     private final ProtoConvertUtils protoConvertUtils;
 
@@ -160,6 +165,46 @@ public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBas
             log.error("rpcService describeOneProject error Exception ", e);
             DescribeProjectResponse(responseObserver, INVALID_PARAMETER,
                     INVALID_PARAMETER.name().toLowerCase(), null);
+        }
+    }
+
+    @Override
+    public void createProjectWithTemplate(
+            ProjectProto.CreateProjectWithTemplateRequest request,
+            StreamObserver<ProjectProto.CreateProjectWithTemplateResponse> responseObserver) {
+        try {
+            Integer projectId = openApiProjectService.createProject(request,
+                    RegisterSourceEnum.QCLOUD_API.name());
+            createProjectWithTemplateResponse(responseObserver, SUCCESS,
+                    SUCCESS.name().toLowerCase(), projectId);
+        } catch (CoreException e) {
+            log.error("RpcService createProjectWithTemplate error CoreException ", e);
+            createProjectWithTemplateResponse(responseObserver, NOT_FOUND,
+                    e.getMessage(), 0);
+        } catch (Exception e) {
+            log.error("rpcService createProjectWithTemplate error Exception ", e);
+            createProjectWithTemplateResponse(responseObserver, INVALID_PARAMETER,
+                    INVALID_PARAMETER.name().toLowerCase(), 0);
+        }
+    }
+
+    @Override
+    public void createCodingProject(
+            ProjectProto.CreateProjectWithTemplateRequest request,
+            StreamObserver<ProjectProto.CreateProjectWithTemplateResponse> responseObserver) {
+        try {
+            Integer projectId = openApiProjectService.createProject(request,
+                    RegisterSourceEnum.OPEN_API.name());
+            createProjectWithTemplateResponse(responseObserver, SUCCESS,
+                    SUCCESS.name().toLowerCase(), projectId);
+        } catch (CoreException e) {
+            log.error("RpcService createCodingProject error CoreException ", e);
+            createProjectWithTemplateResponse(responseObserver, NOT_FOUND,
+                    e.getMessage(), 0);
+        } catch (Exception e) {
+            log.error("rpcService createCodingProject error Exception ", e);
+            createProjectWithTemplateResponse(responseObserver, INVALID_PARAMETER,
+                    INVALID_PARAMETER.name().toLowerCase(), 0);
         }
     }
 
@@ -285,6 +330,23 @@ public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBas
             builder.setProject(protoConvertUtils.describeProjectToProto(project));
         }
         responseObserver.onNext(builder.build());
+        responseObserver.onCompleted();
+    }
+
+    public void createProjectWithTemplateResponse(
+            StreamObserver<ProjectProto.CreateProjectWithTemplateResponse> responseObserver,
+            CodeProto.Code code,
+            String message,
+            Integer projectId) {
+        ResultProto.Result result = ResultProto.Result.newBuilder()
+                .setCode(code.getNumber())
+                .setId(projectId)
+                .setMessage(message)
+                .build();
+        responseObserver.onNext(ProjectProto.CreateProjectWithTemplateResponse.newBuilder()
+                .setResult(result)
+                .setProjectId(projectId)
+                .build());
         responseObserver.onCompleted();
     }
 
