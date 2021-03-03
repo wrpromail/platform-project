@@ -15,10 +15,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AgileTemplateGRpcClient extends EndpointGrpcClient<AgileTemplateServiceGrpc.AgileTemplateServiceBlockingStub> {
 
-    @Value("${grpc.client.issue.serviceName:e-micro-agile}")
+    @Value("${grpc.client.issue.service.serviceName:e-micro-agile}")
     private String serviceName;
 
-    @Value("${grpc.client.issue.servicePort:20153}")
+    @Value("${grpc.client.issue.service.servicePort:20153}")
     private int servicePort;
 
     @Override

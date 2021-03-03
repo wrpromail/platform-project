@@ -8,6 +8,8 @@ import net.coding.common.base.event.ActivityEvent;
 import net.coding.common.base.event.CreateProjectUserEvent;
 import net.coding.common.base.event.ProjectCreateEvent;
 import net.coding.common.base.event.ProjectDeleteEvent;
+import net.coding.common.base.event.ProjectMemberCreateEvent;
+import net.coding.common.base.event.ProjectMemberRoleChangeEvent;
 import net.coding.common.base.event.ProjectNameChangeEvent;
 import net.coding.common.base.gson.JSON;
 import net.coding.common.i18n.utils.LocaleMessageSource;
@@ -49,6 +51,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -383,7 +386,7 @@ public class ProjectServiceHelper {
      * @param operationUserId
      * @param projectId
      */
-    public void postAddMembersEvent(Integer operationUserId, Integer projectId, ProjectMember projectMember, Integer userId, boolean isInvite) {
+    public void postAddMembersEvent(AtomicInteger insertRole, Integer operationUserId, Integer projectId, ProjectMember projectMember, Integer userId, boolean isInvite) {
         asyncEventBus.post(
                 ActivityEvent.builder()
                         .creatorId(operationUserId)
@@ -395,6 +398,21 @@ public class ProjectServiceHelper {
                         .build()
 
         );
+        asyncEventBus.post(
+                ProjectMemberCreateEvent.builder()
+                        .projectId(projectId)
+                        .userId(projectMember.getUserId())
+                        .build()
+        );
+        if (insertRole.intValue() > 0) {
+            asyncEventBus.post(ProjectMemberRoleChangeEvent.builder()
+                    .projectId(projectId)
+                    .roleId(insertRole.intValue())
+                    .targetUserId(projectMember.getUserId())
+                    .operate(1)
+                    .build()
+            );
+        }
         String userLink = userGrpcClient.getUserHtmlLinkById(operationUserId);
         String projectHtmlUrl = projectHtmlLink(projectId);
         String message = ResourceUtil.ui("notification_add_member",
