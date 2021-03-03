@@ -104,4 +104,12 @@ public class ProjectController {
         return projectService.getProjectDtoById(project.getId());
     }
 
+    @ApiOperation(value = "visit_project", notes = "更新项目阅读时间")
+    @ProtectedAPI
+    @EnterpriseApiProtector(function = Function.EnterpriseProject, action = Action.Update)
+    @RequestMapping(value = {"/{projectId}/update-visit"}, method = RequestMethod.POST)
+    public boolean visitProject(@PathVariable("projectId") int projectId) throws
+            CoreException {
+        return projectService.updateVisitProject(projectId);
+    }
 }

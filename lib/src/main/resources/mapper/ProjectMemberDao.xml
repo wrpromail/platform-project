@@ -187,4 +187,20 @@
     AND project_id = #{projectId}
     AND deleted_at = #{deletedAt}
   </update>
+
+  <update id="deleteMember">
+     update project_members
+     set deleted_at = NOW()
+     where user_id = #{userId}
+     AND project_id = #{projectId}
+     AND deleted_at = #{deletedAt}
+  </update>
+
+  <update id="updateVisitTime">
+    update project_members
+     set last_visit_at = NOW()
+     where id = #{id}
+     AND deleted_at = #{deletedAt}
+
+  </update>
 </mapper>

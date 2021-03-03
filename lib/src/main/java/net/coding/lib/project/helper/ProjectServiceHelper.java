@@ -10,6 +10,7 @@ import net.coding.common.base.event.ProjectCreateEvent;
 import net.coding.common.base.event.ProjectDeleteEvent;
 import net.coding.common.base.event.ProjectMemberCreateEvent;
 import net.coding.common.base.event.ProjectMemberRoleChangeEvent;
+import net.coding.common.base.event.ProjectMemberDeleteEvent;
 import net.coding.common.base.event.ProjectNameChangeEvent;
 import net.coding.common.base.gson.JSON;
 import net.coding.common.i18n.utils.LocaleMessageSource;
@@ -430,7 +431,36 @@ public class ProjectServiceHelper {
         }
     }
 
-    private void sentProjectMemberNotification(List<Integer> userIds, String message, Integer projectId) {
+
+    public void postDeleteMemberEvent(Integer currentUserId, Integer projectId, Integer targetUserId){
+        asyncEventBus.post(
+                ProjectMemberDeleteEvent.builder()
+                        .projectId(projectId)
+                        .userId(targetUserId)
+                        .build()
+        );
+
+        asyncEventBus.post(
+                ActivityEvent.builder()
+                        .creatorId(currentUserId)
+                        .type(net.coding.e.lib.core.bean.ProjectMember.class)
+                        .targetId(targetUserId)
+                        .projectId(projectId)
+                        .action(net.coding.e.lib.core.bean.ProjectMember.ACTION_REMOVE_MEMBER)
+                        .content("")
+                        .build()
+        );
+        List<Integer> userIds = new ArrayList<>();
+        userIds.add(targetUserId);
+        String userLink = userGrpcClient.getUserHtmlLinkById(currentUserId);
+        String projectHtmlUrl = projectHtmlLink(projectId);
+        String message = ResourceUtil.ui("notification_delete_member",
+                userLink, projectHtmlUrl);
+        sentProjectMemberNotification(userIds,message,projectId);
+    }
+
+
+    private void sentProjectMemberNotification(List<Integer> userIds,String message,Integer projectId){
         notificationGrpcClient.send(NotificationProto.NotificationSendRequest.newBuilder()
                 .addAllUserId(userIds)
                 .setContent(Optional.ofNullable(message).orElse(null))

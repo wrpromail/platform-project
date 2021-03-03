@@ -47,6 +47,9 @@ import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -423,6 +426,17 @@ public class ProjectService {
         projectServiceHelper.postProjectDeleteEvent(userId, project);
     }
 
+    public boolean updateVisitProject(Integer projectId) throws CoreException {
+        UserProto.User currentUser = SystemContextHolder.get();
+        if (Objects.isNull(currentUser)) {
+            throw CoreException.of(CoreException.ExceptionType.USER_NOT_LOGIN);
+        }
+        ProjectMember projectMember = projectMemberService.getByProjectIdAndUserId(projectId, currentUser.getId());
+        if(!projectMemberService.isMember(currentUser,projectId)){
+            throw CoreException.of(CoreException.ExceptionType.PROJECT_MEMBER_NOT_EXISTS);
+        }
+        return projectMemberService.updateVisitTime(projectMember.getId());
+    }
 
     public ProjectDTO buildProjectDTO(Project project) {
         if (project == null) {
@@ -440,9 +454,10 @@ public class ProjectService {
 
 
     private String formatDate(java.util.Date date) {
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        DateTimeFormatter dateFormat = DateTimeFormatter.ISO_DATE;
         if (date != null) {
-            return dateFormat.format(date);
+            LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            return localDate.format(dateFormat);
         }
         return null;
     }

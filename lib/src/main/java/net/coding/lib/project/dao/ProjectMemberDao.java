@@ -38,10 +38,19 @@ public interface ProjectMemberDao {
                                           @Param("keyWord") String keyWord,
                                           @Param("page") PageRowBounds page);
 
-    ProjectMember getProjectMemberByUserAndProject(@Param("userId") Integer userId, @Param("projectId") Integer projectId, @Param("deletedAt") Timestamp deletedAt);
+    ProjectMember getProjectMemberByUserAndProject(@Param("userId") Integer userId,
+                                                   @Param("projectId") Integer projectId,
+                                                   @Param("deletedAt") Timestamp deletedAt);
 
     int updateProjectMemberType(@Param("projectId") Integer projectId,
                                 @Param("userId") Integer targetUserId,
                                 @Param("type") short type,
                                 @Param("deletedAt") Timestamp deletedAt);
+
+    int deleteMember(@Param("projectId") Integer projectId,
+                     @Param("userId") Integer targetUserId,
+                     @Param("deletedAt") Timestamp deletedAt);
+
+    int updateVisitTime(@Param("id") Integer id,
+                        @Param("deletedAt") Timestamp deletedAt);
 }

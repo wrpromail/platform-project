@@ -38,4 +38,15 @@ public class IssueServiceGrpcClient extends EndpointGrpcClient<IssueServiceGrpc.
         IssueProto.IssueResponse response = newStub().getIssueById(request);
         return response;
     }
+
+    public Integer countUsingProjectIssuesByProjectAndUser(Integer projectId, Integer userId) {
+        IssueProto.countUsingProjectIssuesByProjectAndUserRequest request =
+                IssueProto.countUsingProjectIssuesByProjectAndUserRequest.newBuilder()
+                        .setProjectId(projectId)
+                        .setUserId(userId)
+                        .build();
+        IssueProto.countUsingProjectIssuesByProjectAndUserResponse response = newStub().countUsingProjectIssuesByProjectAndUser(request);
+
+        return response.getCount();
+    }
 }
