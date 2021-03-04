@@ -204,7 +204,7 @@ public class ProjectMemberService {
                 insertRole.set(response.get().getRole().getId());
                 //发送消息
                 ProjectMember projectMember = getByProjectIdAndUserId(project.getId(), userId);
-                projectServiceHelper.postAddMembersEvent(currentUserId, project.getId(), projectMember, userId, isInvite);
+                projectServiceHelper.postAddMembersEvent(insertRole,currentUserId, project.getId(), projectMember, userId, isInvite);
             });
 
         } catch (Exception e) {
