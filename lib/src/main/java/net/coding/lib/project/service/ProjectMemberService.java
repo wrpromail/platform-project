@@ -4,6 +4,7 @@ import com.github.pagehelper.PageRowBounds;
 
 import net.coding.common.util.BeanUtils;
 import net.coding.common.util.ResultPage;
+import net.coding.e.proto.IssueProto;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dao.ProjectDao;
@@ -17,6 +18,7 @@ import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.entity.ProjectTweet;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.AddMemberForm;
+import net.coding.lib.project.grpc.client.IssueServiceGrpcClient;
 import net.coding.lib.project.grpc.client.ProjectGrpcClient;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.helper.ProjectServiceHelper;
@@ -29,11 +31,8 @@ import org.springframework.util.CollectionUtils;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.sql.Timestamp;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -48,6 +47,7 @@ import proto.acl.AclProto;
 import proto.advanced_role.AdvancedRoleProto;
 import proto.platform.user.UserProto;
 
+import static net.coding.common.constants.RoleConstants.OWNER;
 
 import static java.util.stream.Collectors.toList;
 import static net.coding.common.constants.ProjectConstants.PROJECT_PRIVATE;
@@ -70,6 +70,8 @@ public class ProjectMemberService {
     private final ProjectServiceHelper projectServiceHelper;
 
     private final ProjectGrpcClient projectGrpcClient;
+
+    private final IssueServiceGrpcClient issueServiceGrpcClient;
 
     private final short MEMBER_TYPE = 80;
 
@@ -304,5 +306,50 @@ public class ProjectMemberService {
         return getByProjectIdAndUserId(projectId, user.getId()) != null;
     }
 
+    public void delMember(Integer projectId, Integer targetUserId) throws CoreException {
+        UserProto.User currentUser = SystemContextHolder.get();
+        if (currentUser == null) {
+            throw CoreException.of(CoreException.ExceptionType.USER_NOT_LOGIN);
+        }
+        if (currentUser.getId() == targetUserId.intValue()) {
+            throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
+        }
+        Project project = projectDao.getProjectById(projectId);
+        if (null == project) {
+            throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
+        }
 
+        ProjectMember member = getByProjectIdAndUserId(projectId, targetUserId);
+        if (member == null) {
+            log.error("User {} is not member of project {}", targetUserId, projectId);
+            throw CoreException.of(CoreException.ExceptionType.PROJECT_MEMBER_NOT_EXISTS);
+        }
+        ProjectMember currentMember = getByProjectIdAndUserId(projectId, currentUser.getId());
+        if (null == currentMember) {
+            log.error("CurrentUser {} is not member of project {}", currentUser.getId(), projectId);
+            throw CoreException.of(CoreException.ExceptionType.PROJECT_MEMBER_NOT_EXISTS);
+        }
+  /*
+         如果当前操作用户的权限低于被操作用户
+         或者被操作用户的权限是ONWER,则权限不足
+         */
+        if ((currentMember.getType().compareTo(member.getType()) <= 0) || member.getType().equals(OWNER)) {
+            throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
+        }
+
+        int progressIssueCount = issueServiceGrpcClient.countUsingProjectIssuesByProjectAndUser(projectId, targetUserId);
+        if (progressIssueCount > 0) {
+            throw CoreException.of(CoreException.ExceptionType.DELETE_MEMBER_FAIL_HAVE_PROGRESS_ISSUE);
+        }
+        int result = projectMemberDao.deleteMember(projectId, targetUserId, BeanUtils.getDefaultDeletedAt());
+        if (result > 0) {
+            advancedRoleServiceGrpcClient.removeUserRoleRecordsInProject(projectId, targetUserId);
+            projectServiceHelper.postDeleteMemberEvent(currentUser.getId(), projectId, targetUserId);
+        }
+
+    }
+
+    public boolean updateVisitTime(Integer projectMemberId){
+        return projectMemberDao.updateVisitTime(projectMemberId,BeanUtils.getDefaultDeletedAt())==1;
+    }
 }
