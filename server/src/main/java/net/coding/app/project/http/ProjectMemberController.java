@@ -38,7 +38,7 @@ import lombok.AllArgsConstructor;
  * @Version 1.0
  */
 @RestController
-@RequestMapping("/api/platform/project/members")
+@RequestMapping("/api/platform/project")
 @AllArgsConstructor
 @Api(value = "项目成员", tags = "项目成员")
 public class ProjectMemberController {
@@ -52,7 +52,7 @@ public class ProjectMemberController {
     })
 
     @ApiResponses(value = {@ApiResponse(code = 200, message = "Success", response = ProjectMemberDTO.class)})
-    @RequestMapping(value = {"/{projectId}"}, method = RequestMethod.GET)
+    @RequestMapping(value = {"/members/{projectId}", "/{projectId}/members"}, method = RequestMethod.GET)
     public Result members(@PathVariable(value = "projectId") Integer projectId,
                           @RequestParam(required = false) String keyWord,
                           @PagerResolve PageRowBounds pager) throws CoreException {
@@ -66,7 +66,7 @@ public class ProjectMemberController {
             @ApiImplicitParam(name = "projectId", value = "项目 ID（必填）", paramType = "integer", required = true)
     })
     @ApiResponses(value = {@ApiResponse(code = 200, message = "Success", response = RoleDTO.class)})
-    @RequestMapping(value = "/{projectId}/roles", method = RequestMethod.GET)
+    @RequestMapping(value = {"/members/{projectId}/roles", "{projectId}/roles"}, method = RequestMethod.GET)
     public Result listRoles(@PathVariable(value = "projectId") Integer projectId) throws CoreException {
 
         return Result.success(projectMemberService.findMemberCountByProjectId(projectId));
@@ -77,7 +77,7 @@ public class ProjectMemberController {
      */
     @ProtectedAPI(oauthScope = OAuthConstants.Scope.PROJECT_MEMBERS)
     @ProjectApiProtector(function = Function.ProjectMember, action = Action.Create)
-    @RequestMapping(value = "/{projectId}", method = RequestMethod.POST)
+    @RequestMapping(value = {"/members/{projectId}", "/{projectId}/members"}, method = RequestMethod.POST)
     public Result addMemberForGK(@PathVariable(value = "projectId") Integer projectId,
                                  @Valid AddMemberForm form
 
@@ -89,12 +89,12 @@ public class ProjectMemberController {
     @ApiOperation(value = "delMember", notes = "删除某个项目成员")
     @ProtectedAPI(oauthScope = OAuthConstants.Scope.PROJECT_MEMBERS)
     @ProjectApiProtector(function = Function.ProjectMember, action = Action.Delete)
-    @RequestMapping(value = {"/{projectId}/{targetUserId}"}, method = RequestMethod.DELETE)
+    @RequestMapping(value = {"/members/{projectId}/{targetUserId}"}, method = RequestMethod.DELETE)
     public Result delMember(
             @PathVariable("targetUserId") int targetUserId,
             @PathVariable("projectId") int projectId
     ) throws CoreException {
-        projectMemberService.delMember(projectId,targetUserId);
+        projectMemberService.delMember(projectId, targetUserId);
         return Result.success();
 
     }
