@@ -27,6 +27,7 @@ import net.coding.lib.project.pager.ResultPageFactor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -161,7 +162,7 @@ public class ProjectMemberService {
         List<Integer> targetUserIds = new ArrayList<>();
         Arrays.stream(addMemberForm.getUsers().split(",")).forEach(targetUserIdStr -> {
             UserProto.User user = userGrpcClient.getUserByGlobalKey(targetUserIdStr);
-            if (Objects.nonNull(user) || user.getId() != currentUser.getId()) {
+            if (!ObjectUtils.isEmpty(user) && user.getId() != currentUser.getId()) {
                 Integer id = user.getId();
                 targetUserIds.add(id);
             }
