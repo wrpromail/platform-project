@@ -2,9 +2,11 @@ package net.coding.lib.project.service;
 
 import com.google.common.base.Strings;
 
-import net.coding.common.base.service.ProfanityWordsService;
 import net.coding.common.cache.evict.constant.CacheType;
+import net.coding.common.cache.evict.constant.TableMapping;
+import net.coding.common.cache.evict.definition.MappingSerialize;
 import net.coding.common.cache.evict.manager.EvictCacheManager;
+import net.coding.common.redis.api.JedisManager;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.lib.project.dao.ProjectGroupProjectDao;
 import net.coding.lib.project.dao.TeamProjectDao;
@@ -44,8 +46,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.Errors;
 
 import java.sql.Date;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -114,6 +114,8 @@ public class ProjectService {
     private final String TABLE_NAME = "projects";
 
     private final String ICON_REGX_STR = ".+\\.(jpg|bmp|gif|png|jpeg)$";
+
+    private final JedisManager jedisManager;
 
 
     public Project getById(Integer id) {
@@ -432,10 +434,14 @@ public class ProjectService {
             throw CoreException.of(CoreException.ExceptionType.USER_NOT_LOGIN);
         }
         ProjectMember projectMember = projectMemberService.getByProjectIdAndUserId(projectId, currentUser.getId());
-        if(!projectMemberService.isMember(currentUser,projectId)){
+        if (!projectMemberService.isMember(currentUser, projectId)) {
             throw CoreException.of(CoreException.ExceptionType.PROJECT_MEMBER_NOT_EXISTS);
         }
-        return projectMemberService.updateVisitTime(projectMember.getId());
+        boolean result = projectMemberService.updateVisitTime(projectMember.getId());
+        if (result) {
+            handleUnReadCache(projectId, currentUser.getId());
+        }
+        return result;
     }
 
     public ProjectDTO buildProjectDTO(Project project) {
@@ -531,6 +537,35 @@ public class ProjectService {
             throw CoreException.of(CoreException.ExceptionType.PROJECT_ICON_ERROR);
         }
         return icon;
+    }
+
+    /**
+     * 更新访问项目时间时，清空动态未读条数缓存，因缓存 key 格式特殊，故新增此方法
+     *
+     * @param projectId
+     * @param userId
+     */
+    protected void handleUnReadCache(Integer projectId, Integer userId) {
+        String tableName = "activities";
+        Optional.ofNullable(TableMapping.CACHE_DEFINITION_MAP)
+                .map(MappingSerialize::getEntities)
+                .map(d -> d.get(tableName))
+                .ifPresent(m -> {
+                    String region = m.getRegion();
+                    String version = m.getVersion();
+                    StringBuilder stringBuilder = new StringBuilder();
+                    stringBuilder.append(region)
+                            .append(":")
+                            .append(countCacheKey(version,
+                                    "unread", "projectId", projectId, "userId", userId));
+                    String cacheKey = stringBuilder.toString();
+                    jedisManager.setex(cacheKey, 86400 * 10, "0");
+                });
+
+    }
+
+    protected String countCacheKey(String version, Object... params) {
+        return version + ":C:" + StringUtils.join(params, '#');
     }
 
     protected void handleCache(Project project, CacheTypeEnum type) {

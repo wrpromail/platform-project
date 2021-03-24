@@ -66,7 +66,7 @@ public class ProjectMemberController {
             @ApiImplicitParam(name = "projectId", value = "项目 ID（必填）", paramType = "integer", required = true)
     })
     @ApiResponses(value = {@ApiResponse(code = 200, message = "Success", response = RoleDTO.class)})
-    @RequestMapping(value = {"/members/{projectId}/roles", "{projectId}/roles"}, method = RequestMethod.GET)
+    @RequestMapping(value = {"/members/{projectId}/roles", "{projectId}/members/roles"}, method = RequestMethod.GET)
     public Result listRoles(@PathVariable(value = "projectId") Integer projectId) throws CoreException {
 
         return Result.success(projectMemberService.findMemberCountByProjectId(projectId));
@@ -89,7 +89,7 @@ public class ProjectMemberController {
     @ApiOperation(value = "delMember", notes = "删除某个项目成员")
     @ProtectedAPI(oauthScope = OAuthConstants.Scope.PROJECT_MEMBERS)
     @ProjectApiProtector(function = Function.ProjectMember, action = Action.Delete)
-    @RequestMapping(value = {"/members/{projectId}/{targetUserId}"}, method = RequestMethod.DELETE)
+    @RequestMapping(value = {"/members/{projectId}/{targetUserId}", "/{projectId}/members/{targetUserId}"}, method = RequestMethod.DELETE)
     public Result delMember(
             @PathVariable("targetUserId") int targetUserId,
             @PathVariable("projectId") int projectId

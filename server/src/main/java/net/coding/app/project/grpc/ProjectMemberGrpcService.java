@@ -1,30 +1,33 @@
 package net.coding.app.project.grpc;
 
-import com.google.gson.internal.$Gson$Preconditions;
 
 import net.coding.grpc.client.permission.AclServiceGrpcClient;
 import net.coding.lib.project.entity.Project;
-import net.coding.lib.project.entity.ProjectMember;
+import net.coding.lib.project.enums.RoleTypeEnum;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.service.ProjectMemberService;
 import net.coding.lib.project.service.ProjectService;
-import net.coding.proto.platform.project.ProjectLabelProto;
 import net.coding.proto.platform.project.ProjectMemberProto;
 import net.coding.proto.platform.project.ProjectMemberServiceGrpc;
 
 import org.lognet.springboot.grpc.GRpcService;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
+import io.grpc.stub.StreamObserver;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import proto.common.CodeProto;
 import proto.platform.permission.PermissionProto;
 import proto.platform.user.UserProto;
-
-import static proto.open.api.CodeProto.Code.SUCCESS;
 
 
 @Slf4j
@@ -40,6 +43,61 @@ public class ProjectMemberGrpcService extends ProjectMemberServiceGrpc.ProjectMe
 
     private final AclServiceGrpcClient aclServiceGrpcClient;
 
+    @Override
+    public void addProjectMember(
+            ProjectMemberProto.AddProjectMemberRequest request,
+            StreamObserver<ProjectMemberProto.AddProjectMemberResponse> responseObserver) {
+        try {
+            if (ObjectUtils.isEmpty(RoleTypeEnum.of(request.getType()))) {
+                throw CoreException.of(CoreException.ExceptionType.PARAMETER_INVALID);
+            }
+            Project project = projectService.getById(request.getProjectIdCoding());
+            if (project == null) {
+                throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
+            }
+            UserProto.User currentUser = userGrpcClient.getUserByGlobalKey(request.getUserGk());
+            if (currentUser == null) {
+                throw CoreException.of(CoreException.ExceptionType.USER_NOT_EXISTS);
+            }
+            //验证用户接口权限
+            boolean hasPermissionInProject = aclServiceGrpcClient.hasPermissionInProject(
+                    PermissionProto.Permission.newBuilder()
+                            .setFunction(PermissionProto.Function.ProjectMember)
+                            .setAction(PermissionProto.Action.Create)
+                            .build(),
+                    request.getProjectIdCoding(),
+                    currentUser.getGlobalKey(),
+                    currentUser.getId()
+            );
+            if (!hasPermissionInProject) {
+                throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
+            }
+            ;
+            List<Integer> targetUserIds = new ArrayList<>();
+            Arrays.stream(request.getMemberGks().split(",")).forEach(targetUserIdStr -> {
+                UserProto.User user = userGrpcClient.getUserByGlobalKey(targetUserIdStr);
+                if (!ObjectUtils.isEmpty(user) && user.getId() != currentUser.getId()) {
+                    Integer id = user.getId();
+                    targetUserIds.add(id);
+                }
+            });
+            if (CollectionUtils.isEmpty(targetUserIds)) {
+                throw CoreException.of(CoreException.ExceptionType.USER_NOT_EXISTS);
+            }
+            projectMemberService.doAddMember(currentUser.getId(), targetUserIds, (short) request.getType(), project, false);
+            responseObserver.onNext(ProjectMemberProto.AddProjectMemberResponse.newBuilder()
+                    .setCode(CodeProto.Code.SUCCESS)
+                    .build());
+        } catch (Exception e) {
+            log.error("RpcService AddProjectMember error CoreException ", e);
+            responseObserver.onNext(ProjectMemberProto.AddProjectMemberResponse.newBuilder()
+                    .setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(e.getMessage())
+                    .build());
+        } finally {
+            responseObserver.onCompleted();
+        }
+    }
 
     @Override
     public void operateProjectMember(ProjectMemberProto.OperateProjectMemberRequest request,
