@@ -5,7 +5,7 @@ import org.apache.commons.lang.StringUtils;
 import java.util.Arrays;
 
 public enum ProjectLabelEnums {
-    TKE, TCB, SLS;
+    TKE, TCB, SLS, APIGW;
 
 
     public static ProjectLabelEnums resolve(String label) {
