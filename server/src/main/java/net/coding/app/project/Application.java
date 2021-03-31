@@ -19,6 +19,7 @@ import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.ApiSelectorBuilder;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
+import sun.nio.ch.Net;
 
 import static springfox.documentation.builders.PathSelectors.regex;
 
@@ -45,7 +46,8 @@ import static springfox.documentation.builders.PathSelectors.regex;
         net.coding.common.redis.Config.class,
         net.coding.common.cache.evict.Config.class,
         net.coding.grpc.client.platform.Config.class,
-        net.coding.grpc.client.permission.Config.class
+        net.coding.grpc.client.permission.Config.class,
+        net.coding.service.hook.definition.ServiceHookConfigurer.class
 
 })
 @ImportAutoConfiguration({GRpcAutoConfiguration.class, VerificationAutoConfiguration.class})

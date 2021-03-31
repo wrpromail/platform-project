@@ -62,11 +62,22 @@ public class ProjectMemberRoleChangeEventListener {
 
             ProjectMember projectMember = projectMemberService.getByProjectIdAndUserId(event.getProjectId(), event.getTargetUserId());
             if (Objects.nonNull(projectMember)) {
-                projectMemberService.updateProjectMemberType(event.getProjectId(),
-                        event.getTargetUserId(), (short) event.getRoleValue());
+                projectMemberService.updateProjectMemberType
+                        (
+                                event.getCurrentUserId(),
+                                projectMember.getUserId(),
+                                project,
+                                (short) event.getRoleValue(),
+                                event.getRoleId()
+                        );
             } else {
-                projectMemberService.doAddMember(event.getCurrentUserId(), Collections.singletonList(event.getTargetUserId()),
-                        (short) event.getRoleValue(), project, false);
+                projectMemberService.doAddMember
+                        (
+                                event.getCurrentUserId(),
+                                Collections.singletonList(event.getTargetUserId()),
+                                (short) event.getRoleValue(),
+                                project, false
+                        );
             }
         } catch (CoreException ex) {
             log.info("ProjectMemberRoleChangeEventListener Error, projectId = {}, targetUserId = {}, currentUserId = {}",
