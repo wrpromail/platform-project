@@ -9,10 +9,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * deploy_tokens
- * @author 
- */
 @Data
 @Builder
 @AllArgsConstructor
@@ -90,4 +86,12 @@ public class DeployTokens implements Serializable {
     private Timestamp deletedAt;
 
     private static final long serialVersionUID = 1L;
+
+    public static final short TYPE_CODEDOG = 5;
+    public static final short TYPE_QTA = 6;
+    public static final short TYPE_QCI = 7;
+    public static final String CODEDOG_TOKEN_NAME = "CODEDOG_AUTO_GEN";
+    public static final String QTA_TOKEN_NAME = "QTA_AUTO_GEN";
+    public static final String QCI_TOKEN_NAME = "QCI_AUTO_GEN";
+
 }

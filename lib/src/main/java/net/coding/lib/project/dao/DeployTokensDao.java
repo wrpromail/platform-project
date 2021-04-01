@@ -6,6 +6,7 @@ import net.coding.lib.project.parameter.DeployTokenUpdateParameter;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 @Mapper
@@ -22,4 +23,13 @@ public interface DeployTokensDao {
     int update(DeployTokenUpdateParameter parameter);
 
     int insert(DeployTokens deployTokens);
+
+    DeployTokens selectDeployToken(@Param("projectId") Integer projectId,
+                                   @Param("type") Short type,
+                                   @Param("tokenName") String tokenName,
+                                   @Param("deletedAt") Timestamp deletedAt);
+
+    int updateExpired(@Param("id") Integer id,
+                      @Param("expiredAt") Timestamp expiredAt,
+                      @Param("deletedAt") Timestamp deletedAt);
 }

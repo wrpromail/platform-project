@@ -4,20 +4,16 @@ import net.coding.common.annotation.ProjectApiProtector;
 import net.coding.common.annotation.ProtectedAPI;
 import net.coding.common.annotation.enums.Action;
 import net.coding.common.annotation.enums.Function;
-import net.coding.common.base.annotation.RequestAttribute;
 import net.coding.common.constants.DeployTokenScopeEnum;
 import net.coding.common.constants.TwoFactorAuthConstants;
 import net.coding.common.util.Result;
-import net.coding.common.vendor.CodingStringUtils;
-import net.coding.lib.project.dto.DeployTokenDTO;
-import net.coding.lib.project.dto.DeployTokenDepotDTO;
+import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dto.DeployTokenScopeDTO;
 import net.coding.lib.project.entity.DeployTokens;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.AddDeployTokenForm;
 import net.coding.lib.project.service.DeployTokenService;
 
-import org.springframework.util.CollectionUtils;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -34,6 +31,7 @@ import javax.validation.Valid;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
+import proto.platform.user.UserProto;
 
 /**
  * @Author liuying
@@ -58,7 +56,11 @@ public class DeployTokenController {
     ) throws CoreException {
 
         deployTokenService.validateCreateForm(form);
-        return Result.success(deployTokenService.addDeployToken(projectId, form));
+        UserProto.User user = SystemContextHolder.get();
+        if (!Objects.nonNull(user)) {
+            throw CoreException.of(CoreException.ExceptionType.USER_NOT_LOGIN);
+        }
+        return Result.success(deployTokenService.addDeployToken(projectId, user, form, (short) 0));
     }
 
     @ProtectedAPI
