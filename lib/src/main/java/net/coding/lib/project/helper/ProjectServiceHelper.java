@@ -432,11 +432,11 @@ public class ProjectServiceHelper {
     }
 
 
-    public void postDeleteMemberEvent(Integer currentUserId, Integer projectId, Integer targetUserId){
+    public void postDeleteMemberEvent(Integer currentUserId, Integer projectId, ProjectMember projectMember) {
         asyncEventBus.post(
                 ProjectMemberDeleteEvent.builder()
                         .projectId(projectId)
-                        .userId(targetUserId)
+                        .userId(projectMember.getUserId())
                         .build()
         );
 
@@ -444,23 +444,23 @@ public class ProjectServiceHelper {
                 ActivityEvent.builder()
                         .creatorId(currentUserId)
                         .type(net.coding.e.lib.core.bean.ProjectMember.class)
-                        .targetId(targetUserId)
+                        .targetId(projectMember.getId())
                         .projectId(projectId)
                         .action(net.coding.e.lib.core.bean.ProjectMember.ACTION_REMOVE_MEMBER)
                         .content("")
                         .build()
         );
         List<Integer> userIds = new ArrayList<>();
-        userIds.add(targetUserId);
+        userIds.add(projectMember.getUserId());
         String userLink = userGrpcClient.getUserHtmlLinkById(currentUserId);
         String projectHtmlUrl = projectHtmlLink(projectId);
         String message = ResourceUtil.ui("notification_delete_member",
                 userLink, projectHtmlUrl);
-        sentProjectMemberNotification(userIds,message,projectId);
+        sentProjectMemberNotification(userIds, message, projectId);
     }
 
 
-    private void sentProjectMemberNotification(List<Integer> userIds,String message,Integer projectId){
+    private void sentProjectMemberNotification(List<Integer> userIds, String message, Integer projectId) {
         notificationGrpcClient.send(NotificationProto.NotificationSendRequest.newBuilder()
                 .addAllUserId(userIds)
                 .setContent(Optional.ofNullable(message).orElse(null))
