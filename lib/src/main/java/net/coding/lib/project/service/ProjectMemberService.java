@@ -385,7 +385,7 @@ public class ProjectMemberService {
                             project.getTeamOwnerId(),
                             projectId).stream().map(role -> String.valueOf(role.getId())).collect(toList());
             advancedRoleServiceGrpcClient.removeUserRoleRecordsInProject(projectId, targetUserId);
-            projectServiceHelper.postDeleteMemberEvent(currentUser.getId(), projectId, targetUserId);
+            projectServiceHelper.postDeleteMemberEvent(currentUser.getId(), projectId, member);
             deleteMemberEventTrigger.trigger(roleIdList, member, projectId, currentUser.getId());
         }
 
