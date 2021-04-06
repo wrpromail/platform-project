@@ -6,14 +6,15 @@ import com.github.pagehelper.PageInfo;
 import net.coding.grpc.client.template.TemplateGrpcClient;
 import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dao.ProjectTweetDao;
+import net.coding.lib.project.dto.ProjectTweetDTO;
 import net.coding.lib.project.entity.Project;
-import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.entity.ProjectTweet;
 import net.coding.lib.project.enums.ActivityEnums;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.helper.ProjectServiceHelper;
 import net.coding.lib.project.utils.DateUtil;
 import net.coding.lib.project.utils.TextUtil;
+import net.coding.lib.project.utils.UserUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
@@ -21,14 +22,12 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
-import javax.annotation.Resource;
-
 import lombok.AllArgsConstructor;
+import proto.platform.user.UserProto;
 
 import static net.coding.common.constants.ValidationConstants.TWEET_LIMIT_IMAGES;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.CONTENT_INCLUDE_SENSITIVE_WORDS;
@@ -209,5 +208,24 @@ public class ProjectTweetService {
         Document doc = Jsoup.parse(content);
         Elements eles = doc.select("img.bubble-markdown-image");
         return eles.size() > amount;
+    }
+
+    public ProjectTweetDTO toBuilderTweet(ProjectTweet tweet, boolean withRaw, Project project, String projectPath, UserProto.User user) {
+        return ProjectTweetDTO.builder()
+                .id(tweet.getId())
+                .project_id(tweet.getProjectId())
+                .owner_id(tweet.getOwnerId())
+                .content(tweet.getContent())
+                .created_at(tweet.getCreatedAt().getTime())
+                .updated_at(tweet.getUpdatedAt().getTime())
+                .comments(tweet.getComments())
+                .comment_list(new ArrayList<>())
+                .raw(withRaw ? tweet.getRaw() : null)
+                .slateRaw(tweet.getSlateRaw())
+                .editable(StringUtils.isNotBlank(tweet.getRaw()))
+                .path(Objects.isNull(user) ? StringUtils.EMPTY : projectServiceHelper.tweetPath(tweet, project, projectPath))
+                .owner(UserUtil.toBuilderUser(user, false))
+                .build();
+
     }
 }

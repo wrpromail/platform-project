@@ -37,7 +37,6 @@ public class ProjectSettingController {
     /**
      * 获取所有的功能设置项
      */
-    @ProjectApiProtector(function = Function.ProjectFunction, action = Action.View)
     @RequestMapping(value = "functions", method = RequestMethod.GET)
     public List<ProjectFunctionDTO> getAllFunctions(@PathVariable Integer projectId) {
         return projectSettingService.getAllFunction(projectId);
