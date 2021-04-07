@@ -166,4 +166,25 @@
     from deploy_tokens
     where id = #{id,jdbcType=INTEGER}
   </select>
+
+  <select id="selectDeployToken" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from deploy_tokens
+    where
+    `project_id` = #{projectId}
+    AND `type` = #{type}
+    AND token_name= #{tokenName}
+    AND deleted_at = #{deletedAt}
+  </select>
+
+  <update id="updateExpired">
+    update deploy_tokens
+    set
+      expired_at = #{expiredAt},
+      updated_at = NOW()
+    where
+    `id` = #{id}
+    and deleted_at =  #{deletedAt}
+  </update>
 </mapper>

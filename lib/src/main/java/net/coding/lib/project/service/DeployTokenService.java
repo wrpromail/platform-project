@@ -5,7 +5,6 @@ import net.coding.common.constants.DeployTokenScopeEnum;
 import net.coding.common.util.BeanUtils;
 import net.coding.common.vendor.CodingStringUtils;
 import net.coding.grpc.client.platform.GlobalKeyGrpcClient;
-import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dao.DeployTokenArtifactsDao;
 import net.coding.lib.project.dao.DeployTokenDepotsDao;
 import net.coding.lib.project.dao.DeployTokensDao;
@@ -20,11 +19,14 @@ import net.coding.lib.project.entity.DeployTokenArtifacts;
 import net.coding.lib.project.entity.DeployTokenDepot;
 import net.coding.lib.project.entity.DeployTokens;
 import net.coding.lib.project.entity.Depot;
+import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.AddDeployTokenForm;
 import net.coding.lib.project.grpc.client.ArtifactRepositoryGrpcClient;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
+import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.parameter.DeployTokenUpdateParameter;
+import net.coding.lib.project.utils.DateUtil;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +36,10 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.validation.Errors;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -48,7 +54,7 @@ import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import proto.platform.globalKey.GlobalKeyProto;
-import proto.platform.team.TeamProto;
+import proto.platform.user.UserProto;
 
 import static net.coding.common.constants.DeployTokenScopeEnum.getWithValue;
 
@@ -89,6 +95,7 @@ public class DeployTokenService {
     private final DeployTokenDepotsDao deployTokenDepotDao;
 
     private final DeployTokenArtifactsDao deployTokenArtifactDao;
+
 
     private static final Timestamp KEY_NEVER_EXPIRE = Timestamp.valueOf("9999-12-31 00:00:00");
 
@@ -308,17 +315,19 @@ public class DeployTokenService {
 
     }
 
-    @Transactional(rollbackFor = Exception.class)
-    public DeployTokenDTO addDeployToken(Integer projectId,
-                                         AddDeployTokenForm form) throws CoreException {
+    public DeployTokenDTO addDeployToken(Integer projectId, UserProto.User user,
+                                         AddDeployTokenForm form, short type) throws CoreException {
 
-        Integer teamId;
-        int userId = 0;
-        if (!Objects.nonNull(SystemContextHolder.get())) {
-            throw CoreException.of(CoreException.ExceptionType.USER_NOT_LOGIN);
-        }
-        teamId = SystemContextHolder.get().getTeamId();
-        userId = SystemContextHolder.get().getId();
+        return toDeployTokenDto(saveDeployToken(projectId, user, form, type), true);
+
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public DeployTokens saveDeployToken(Integer projectId, UserProto.User user,
+                                        AddDeployTokenForm form, short type) throws CoreException {
+
+        Integer teamId = user.getTeamId();
+        int userId = user.getId();
         if (teamId == null) {
             throw CoreException.of(CoreException.ExceptionType.TEAM_NOT_EXIST);
         }
@@ -337,7 +346,7 @@ public class DeployTokenService {
                 .scope(StringUtils.trim(form.getScope()))
                 .applyToAllDepots(form.isApplyToAllDepots())
                 .applyToAllArtifacts(form.isApplyToAllArtifacts())
-                .type((short) 0)
+                .type(type)
                 .enabled(true)
                 .createdAt(init_at)
                 .updatedAt(init_at)
@@ -359,9 +368,10 @@ public class DeployTokenService {
             List<DeployTokenArtifactDTO> artifactScopes = form.getArtifactScopes();
             insertDeployArtifact(deployToken.getId(), artifactScopes);
         }
-        return toDeployTokenDto(deployToken, true);
+        return deployToken;
 
     }
+
 
     private String generateDeployToken() {
         return DigestUtils.sha1Hex(UUID.randomUUID().toString());
@@ -435,5 +445,50 @@ public class DeployTokenService {
         } else {
             return Timestamp.valueOf(expiredAt.trim());
         }
+    }
+
+    public DeployTokens refreshInternalToken(Project project, short tokenType) throws CoreException {
+
+        String tokenName;
+        switch (tokenType) {
+            case DeployTokens.TYPE_CODEDOG:
+                tokenName = DeployTokens.CODEDOG_TOKEN_NAME;
+                break;
+            case DeployTokens.TYPE_QTA:
+                tokenName = DeployTokens.QTA_TOKEN_NAME;
+                break;
+            case DeployTokens.TYPE_QCI:
+                tokenName = DeployTokens.QCI_TOKEN_NAME;
+                break;
+            default:
+                throw CoreException.of(CoreException.ExceptionType.PARAMETER_INVALID);
+        }
+
+        DeployTokens token = deployTokensDao.selectDeployToken(
+                project.getId(),
+                tokenType,
+                tokenName,
+                BeanUtils.getDefaultDeletedAt()
+        );
+        LocalDateTime expiredAt = LocalDateTime.now().plusDays(1);
+        if (token == null) {
+            AddDeployTokenForm form = new AddDeployTokenForm();
+            form.setTokenName(tokenName);
+            form.setExpiredAt(DateUtil.dateTimeToStr(expiredAt, "yyyy-MM-dd HH:mm:ss"));
+            form.setScope(DeployTokenScopeEnum.DEPOT_READ.getValue());
+            UserProto.User user = teamGrpcClient.getTeam(project.getTeamOwnerId()).getData().getOwner();
+            return saveDeployToken(project.getId(), user, form, tokenType);
+        }
+        token.setExpiredAt(Timestamp.valueOf(expiredAt));
+        int result = deployTokensDao.updateExpired(
+                token.getId(),
+                Timestamp.valueOf(expiredAt),
+                BeanUtils.getDefaultDeletedAt()
+        );
+        if (result != 1) {
+            log.error("refresh internal access token failed. id={}", token.getId());
+        }
+
+        return token;
     }
 }
