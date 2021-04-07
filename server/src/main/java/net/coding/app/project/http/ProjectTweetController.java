@@ -86,7 +86,7 @@ public class ProjectTweetController {
             return Result.failed();
         } else {
             UserProto.User user = userGrpcClient.getUserById(projectTweet.getOwnerId());
-            return Result.success(new ProjectTweetDTO(projectTweet, true, project, projectPath, user));
+            return Result.success(projectTweetService.toBuilderTweet(projectTweet, true, project, projectPath, user));
         }
     }
 
@@ -110,7 +110,7 @@ public class ProjectTweetController {
             return Result.failed();
         } else {
             UserProto.User user = userGrpcClient.getUserById(projectTweet.getOwnerId());
-            return Result.success(new ProjectTweetDTO(projectTweet, true, project, projectPath, user));
+            return Result.success(projectTweetService.toBuilderTweet(projectTweet, true, project, projectPath, user));
         }
     }
 
@@ -134,7 +134,7 @@ public class ProjectTweetController {
         }
         String projectPath = projectGrpcClient.getProjectPath(project.getId());
         UserProto.User user = userGrpcClient.getUserById(projectTweet.getOwnerId());
-        return Result.success(new ProjectTweetDTO(projectTweet, withRaw, project, projectPath, user));
+        return Result.success(projectTweetService.toBuilderTweet(projectTweet, withRaw, project, projectPath, user));
     }
 
     @ApiOperation(value = "获取最近一条公告", notes = "项目概览中的公告，目前返回的是list,改成只包含最近公告的list,lastId参数不用了")
@@ -155,7 +155,7 @@ public class ProjectTweetController {
         } else {
             List<ProjectTweetDTO> dtos = new ArrayList<>();
             UserProto.User user = userGrpcClient.getUserById(projectTweet.getOwnerId());
-            dtos.add(new ProjectTweetDTO(projectTweet, withRaw, project, projectPath, user));
+            dtos.add(projectTweetService.toBuilderTweet(projectTweet, withRaw, project, projectPath, user));
             return Result.success(dtos);
         }
     }
@@ -187,7 +187,7 @@ public class ProjectTweetController {
         Map<Integer, UserProto.User> userMap = userGrpcClient.findUserByIds(userId).stream().collect(Collectors.toMap(UserProto.User::getId, user -> user));
         for (ProjectTweet projectNotice : projectNoticeList) {
             if (projectNotice != null) {
-                ProjectTweetDTO dto = new ProjectTweetDTO(projectNotice, withRaw, project, projectPath, userMap.get(projectNotice.getOwnerId()));
+                ProjectTweetDTO dto = projectTweetService.toBuilderTweet(projectNotice, withRaw, project, projectPath, userMap.get(projectNotice.getOwnerId()));
                 dtoList.add(dto);
             }
         }
@@ -208,4 +208,7 @@ public class ProjectTweetController {
         Integer userId = SystemContextHolder.get() != null ? SystemContextHolder.get().getId() : 0;
         return Result.of(projectTweetService.delete(id, userId, project) > 0);
     }
+
+
+
 }

@@ -6,6 +6,7 @@ import com.github.pagehelper.PageRowBounds;
 
 import net.coding.common.util.BeanUtils;
 import net.coding.common.util.ResultPage;
+import net.coding.common.util.TextUtils;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dao.ProjectDao;
@@ -26,6 +27,7 @@ import net.coding.lib.project.hook.trigger.CreateMemberEventTriggerTrigger;
 import net.coding.lib.project.hook.trigger.DeleteMemberEventTriggerTrigger;
 import net.coding.lib.project.hook.trigger.UpdateMemberRoleEventTriggerTrigger;
 import net.coding.lib.project.pager.ResultPageFactor;
+import net.coding.lib.project.utils.UserUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -139,14 +141,19 @@ public class ProjectMemberService {
                         .created_at(projectMember.getCreatedAt().getTime())
                         .last_visit_at(projectMember.getLastVisitAt().getTime()).build()));
         if (!CollectionUtils.isEmpty(projectMembers)) {
-            projectMembers.stream().forEach(projectMemberDTO ->
-                    projectMemberDTO.setUser(new UserDTO(userGrpcClient.getUserById(projectMemberDTO.getUser_id())
-                    )));
-            projectMembers.stream().forEach(projectMemberDTO ->
-                    projectMemberDTO.setRoles(
-                            toRoleDTO(
-                                    advancedRoleServiceGrpcClient.findUserRolesInProject(projectMemberDTO.getUser().getId(),
-                                            projectMemberDTO.getUser().getTeamId(), projectId))));
+            projectMembers.stream().forEach(projectMemberDTO -> {
+                        UserProto.User user = userGrpcClient.getUserById(projectMemberDTO.getUser_id());
+                        projectMemberDTO.setUser(UserUtil.toBuilderUser(user, true)
+                        );
+                    }
+            );
+            projectMembers.stream().forEach(projectMemberDTO -> {
+                List<AclProto.Role> roles = advancedRoleServiceGrpcClient.findUserRolesInProject(
+                        projectMemberDTO.getUser().getId(),
+                        projectMemberDTO.getUser().getTeamId(), projectId
+                );
+                projectMemberDTO.setRoles(toRoleDTO(roles));
+            });
         }
         return new ResultPageFactor<ProjectMemberDTO>().def(pager, projectMembers);
 
@@ -321,7 +328,7 @@ public class ProjectMemberService {
             if (null == user) {
                 continue;
             }
-            if (project.getType().equals(PROJECT_PRIVATE) && !this.isMember(user, project.getId())) {
+            if (project.getType().equals(PROJECT_PRIVATE) && !isMember(user, project.getId())) {
                 continue;
             }
             if (Objects.equals(user.getId(), targetOwnerId)) {
