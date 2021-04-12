@@ -4,8 +4,8 @@
   <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ProjectPreference">
     <id column="id" jdbcType="INTEGER" property="id" />
     <result column="project_id" jdbcType="INTEGER" property="projectId" />
-    <result column="type" jdbcType="INTEGER" property="type" />
-    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="type" jdbcType="TINYINT" property="type" />
+    <result column="status" jdbcType="TINYINT" property="status" />
     <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
     <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
     <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt" />
@@ -16,7 +16,7 @@
   </sql>
 
   <select id="getById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
-    select 
+    select
     <include refid="Base_Column_List" />
     from project_preferences
     where id = #{id,jdbcType=INTEGER}

@@ -68,12 +68,12 @@ public class ProjectPreference implements Serializable {
     /**
      * 偏好设置类型
      */
-    private Integer type;
+    private Short type;
 
     /**
      * 偏好设置状态
      */
-    private Integer status;
+    private Short status;
 
     /**
      * 创建时间
