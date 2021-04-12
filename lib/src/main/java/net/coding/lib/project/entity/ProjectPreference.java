@@ -28,6 +28,8 @@ public class ProjectPreference implements Serializable {
     /** 未受保护的分支. */
     public static final Short PREFERENCE_TYPE_UNPROTECTED_BRANCH_MERGE_REQUEST = 2;
 
+    public static final Short PREFERENCE_TYPE_SERVICE_HOOK_ENABLED = 3;
+
 
     /*-------------------------------- 偏好设置状态常量 --------------------------------*/
     /* 通用. */

@@ -31,46 +31,19 @@
 
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="net.coding.lib.project.entity.ProjectPreference" useGeneratedKeys="true">
     insert into project_preferences
-    <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="projectId != null">
-        project_id,
-      </if>
-      <if test="type != null">
+        (project_id,
         `type`,
-      </if>
-      <if test="status != null">
         `status`,
-      </if>
-      <if test="createdAt != null">
         created_at,
-      </if>
-      <if test="updatedAt != null">
         updated_at,
-      </if>
-      <if test="deletedAt != null">
-        deleted_at,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="projectId != null">
-        #{projectId,jdbcType=INTEGER},
-      </if>
-      <if test="type != null">
+        deleted_at)
+    values
+        (#{projectId,jdbcType=INTEGER},
         #{type,jdbcType=TINYINT},
-      </if>
-      <if test="status != null">
         #{status,jdbcType=TINYINT},
-      </if>
-      <if test="createdAt != null">
-        #{createdAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updatedAt != null">
-        #{updatedAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="deletedAt != null">
-        #{deletedAt,jdbcType=TIMESTAMP},
-      </if>
-    </trim>
+        NOW(),
+        NOW(),
+        #{deletedAt,jdbcType=TIMESTAMP})
   </insert>
 
   <update id="update" parameterType="net.coding.lib.project.entity.ProjectPreference">
