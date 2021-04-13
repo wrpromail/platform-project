@@ -112,8 +112,8 @@ public class ProjectPreferenceService {
                 .entrySet()
                 .stream()
                 .map((entry) -> ProjectPreference.builder().projectId(projectId)
-                        .type(Integer.valueOf(entry.getKey()))
-                        .status(Integer.valueOf(entry.getValue())).build())
+                        .type(entry.getKey())
+                        .status(entry.getValue()).build())
                 .collect(Collectors.toList());
         projectPreferenceDao.insertIntegration(preferences);
     }
