@@ -22,6 +22,10 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Objects;
@@ -62,14 +66,16 @@ public class ProjectTweetService {
         teamId = SystemContextHolder.get().getTeamId();
         content = updateAndCheckContent(content, project, teamId);
         if (doCheck) {
-            ProjectTweet lastTweet = getLastTweetInTenMinutes(userId);
+            ProjectTweet lastTweet = getLastTweetInTenMinutes(userId, project.getId());
             if (lastTweet != null) {
                 // 十分钟内不能创建相同的项目公告
                 if (lastTweet.getContent().trim().equalsIgnoreCase(content.trim())) {
                     throw CoreException.of(PROJECT_TWEET_REPEAT);
                 }
                 // 十秒钟之内不能再次发布项目公告
-                if (lastTweet.getCreatedAt().after(new Date(System.currentTimeMillis() - 10_000))) {
+                if (lastTweet.getCreatedAt().after(
+                        Date.from(LocalDateTime.now().minusSeconds(10).atZone(ZoneId.systemDefault()).toInstant())
+                )) {
                     throw CoreException.of(PROJECT_TWEET_FAST);
                 }
             }
@@ -95,10 +101,11 @@ public class ProjectTweetService {
         return record;
     }
 
-    public ProjectTweet getLastTweetInTenMinutes(Integer userId) {
+    public ProjectTweet getLastTweetInTenMinutes(Integer userId, Integer projectId) {
         ProjectTweet projectTweet = ProjectTweet.builder()
                 .ownerId(userId)
-                .updatedAt(new Date(System.currentTimeMillis() - 10 * 60 * 1000))
+                .projectId(projectId)
+                .updatedAt(Date.from(LocalDateTime.now().minusMinutes(10).atZone(ZoneId.systemDefault()).toInstant()))
                 .build();
         return projectTweetDao.getProjectTweet(projectTweet);
     }
