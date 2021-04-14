@@ -5,7 +5,7 @@ import java.util.Arrays;
 public enum ProjectPreferenceEnum {
     PREFERENCE_TYPE_PROJECT_TWEET("1"),
     PREFERENCE_TYPE_UNPROTECTED_BRANCH_MERGE_REQUEST("2"),
-    PREFERENCE_TYPE_SERVICE_HOOK_ENABLED("3");
+    PREFERENCE_TYPE_SERVICE_HOOK_ENABLED("10"); //历史数据中含有1-9的数据，所以新建的类型从10开始
     private String code;
 
     public String getCode() {
