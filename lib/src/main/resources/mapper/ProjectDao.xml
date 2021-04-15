@@ -28,9 +28,9 @@
   </resultMap>
 
   <sql id="Base_Column_List">
-    id, owner_id, created_at, updated_at, deleted_at, `status`, recommended, depot_shared, 
-    `type`, max_member, `name`, name_pinyin, display_name, description, icon, `plan`, 
-    team_owner_id, user_owner_id, start_date, end_date, project_file_quota, invisible, 
+    id, owner_id, created_at, updated_at, deleted_at, `status`, recommended, depot_shared,
+    `type`, max_member, `name`, name_pinyin, display_name, description, icon, `plan`,
+    team_owner_id, user_owner_id, start_date, end_date, project_file_quota, invisible,
     `label`
   </sql>
 
@@ -117,5 +117,17 @@
       </if>
     </where>
     order by p.id desc
+  </select>
+
+  <select id="getProjectsByIds" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from projects
+    where
+        id in
+    <foreach item = "item" index = "index" collection = "list" open = "(" close = ")" separator=",">
+        #{item}
+    </foreach>
+    and (deleted_at=#{deletedAt} or deleted_at=#{archivedAt})
   </select>
 </mapper>

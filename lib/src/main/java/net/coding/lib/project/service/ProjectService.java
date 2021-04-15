@@ -1,12 +1,14 @@
 package net.coding.lib.project.service;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 
 import net.coding.common.cache.evict.constant.CacheType;
 import net.coding.common.cache.evict.constant.TableMapping;
 import net.coding.common.cache.evict.definition.MappingSerialize;
 import net.coding.common.cache.evict.manager.EvictCacheManager;
 import net.coding.common.redis.api.JedisManager;
+import net.coding.common.util.BeanUtils;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.lib.project.dao.ProjectGroupProjectDao;
 import net.coding.lib.project.dao.TeamProjectDao;
@@ -41,8 +43,10 @@ import net.coding.proto.CredentialProto;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.validation.Errors;
 
 import java.sql.Date;
@@ -57,6 +61,7 @@ import java.util.regex.Pattern;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import one.util.streamex.StreamEx;
 import proto.platform.team.TeamProto;
 import proto.platform.user.UserProto;
 
@@ -442,6 +447,19 @@ public class ProjectService {
             handleUnReadCache(projectId, currentUser.getId());
         }
         return result;
+    }
+
+    public List<Project> getContainArchivedProjects(Integer teamId) {
+        List<TeamProject> teamProjects = teamProjectDao.getContainArchivedProjects(teamId, BeanUtils.getDefaultDeletedAt(), BeanUtils.getDefaultArchivedAt());
+        if (CollectionUtils.isEmpty(teamProjects)) {
+            return Lists.newArrayList();
+        }
+        return StreamEx.of(
+                projectDao.getProjectsByIds(
+                        StreamEx.of(teamProjects).map(TeamProject::getProjectId).nonNull().toList(),
+                        BeanUtils.getDefaultDeletedAt(),
+                        BeanUtils.getDefaultArchivedAt()
+                )).nonNull().toList();
     }
 
     public ProjectDTO buildProjectDTO(Project project) {
