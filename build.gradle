@@ -2,7 +2,7 @@ task wrapper(type: Wrapper) {
     gradleVersion = "3.2"
 }
 
-System.setProperty("BASE_IMAGE", "codingcorp-docker.pkg.coding.net/registry/build/ubuntu-tracing:20210126")
+System.setProperty("BASE_IMAGE", "codingcorp-docker.pkg.coding.net/registry/build/ubuntu-tracing:20210513")
 buildscript {
     repositories {
         mavenLocal()
@@ -19,7 +19,7 @@ buildscript {
     }
 
     dependencies {
-        classpath "net.coding.common:coding-plugin-collection:tracing-v1"
+        classpath "net.coding.common:coding-plugin-collection:tracing-v1.1.15"
     }
 }
 

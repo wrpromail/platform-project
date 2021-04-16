@@ -18,6 +18,7 @@ import net.coding.lib.project.service.credential.ProjectCredentialService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -106,7 +107,7 @@ public class CredentialController {
             @PathVariable(value = "projectId") Integer projectId,
             @Valid @RequestBody CredentialForm form
     ) throws CoreException {
-        return Result.success(projectCredentialService.createCredential(projectId, form));
+        return Result.success(projectCredentialService.addCredential(projectId, form));
     }
 
     @ApiOperation(value = "createAndroidCert", notes = "创建项目 android 凭据")
@@ -123,7 +124,7 @@ public class CredentialController {
         if (form.getFilePassword().getBytes().length > 80) {
             throw CoreException.of(CoreException.ExceptionType.CREDENTIAL_PASSWORD_BYTES_TOO_LONG);
         }
-        return Result.success(projectCredentialService.createCredential(projectId, form));
+        return Result.success(projectCredentialService.addCredential(projectId, form));
     }
 
     @ApiOperation(value = "createServerlessCert", notes = "创建项目腾讯云凭据")
@@ -137,7 +138,7 @@ public class CredentialController {
             @PathVariable(value = "projectId") Integer projectId,
             @Valid @RequestBody TencentServerlessCredentialForm form
     ) throws Exception {
-        return Result.success(projectCredentialService.createCredential(projectId, form));
+        return Result.success(projectCredentialService.addCredential(projectId, form));
     }
 
     @ApiOperation(value = "updateCredential", notes = "更新项目凭据")
@@ -189,5 +190,20 @@ public class CredentialController {
             @Valid @RequestBody TencentServerlessCredentialForm form
     ) throws Exception {
         return Result.success(projectCredentialService.updateCredential(projectId, id, form));
+    }
+
+    @ApiOperation(value = "showHiddenInfo", notes = "查看隐藏的密码/密钥信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "projectId", value = "项目 ID（必填）", paramType = "integer", required = true),
+            @ApiImplicitParam(name = "id", value = "凭据 ID（必填）", paramType = "integer", required = true)
+    })
+    @ProtectedAPI(authMethod = AUTH_TYPE_DEFAULT)
+    @ProjectApiProtector(function = Function.ProjectServiceConn, action = Action.View)
+    @RequestMapping(value = "/{id}/showHiddenInfo", method = RequestMethod.GET)
+    public Result showHiddenInfo(
+            @PathVariable(value = "projectId") Integer projectId,
+            @PathVariable("id") int id
+    ) throws CoreException {
+        return Result.success(projectCredentialService.showHiddenInfo(id,projectId));
     }
 }

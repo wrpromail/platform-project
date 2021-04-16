@@ -17,15 +17,20 @@ import net.coding.common.util.ResultPage;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.lib.project.dao.ProjectGroupProjectDao;
 import net.coding.lib.project.dao.TeamProjectDao;
+import net.coding.lib.project.entity.Credential;
 import net.coding.lib.project.entity.ProjectGroupProject;
 import net.coding.lib.project.entity.TeamProject;
 import net.coding.lib.project.enums.CacheTypeEnum;
-import net.coding.lib.project.grpc.client.CredentialGRpcClient;
+import net.coding.lib.project.enums.ConnGenerateByEnums;
+import net.coding.lib.project.enums.CredentialScopeEnums;
+import net.coding.lib.project.enums.CredentialTypeEnums;
+import net.coding.lib.project.form.credential.CredentialForm;
 import net.coding.lib.project.metrics.ProjectCreateMetrics;
 import net.coding.lib.project.parameter.BaseCredentialParameter;
 import net.coding.lib.project.parameter.ProjectCreateParameter;
 import net.coding.lib.project.parameter.ProjectQueryParameter;
 import net.coding.lib.project.parameter.ProjectUpdateParameter;
+import net.coding.lib.project.service.credential.ProjectCredentialService;
 import net.coding.lib.project.service.download.CodingSettings;
 import net.coding.common.storage.support.Storage;
 import net.coding.common.storage.support.bean.ImageInfo;
@@ -43,7 +48,6 @@ import net.coding.lib.project.form.UpdateProjectForm;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
 import net.coding.lib.project.helper.ProjectServiceHelper;
 import net.coding.lib.project.utils.DateUtil;
-import net.coding.proto.CredentialProto;
 
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -118,7 +122,7 @@ public class ProjectService {
 
     private final ProjectPreferenceService projectPreferenceService;
 
-    private final CredentialGRpcClient credentialGRpcClient;
+    private final ProjectCredentialService projectCredentialService;
 
     private final String TABLE_NAME = "projects";
 
@@ -313,7 +317,7 @@ public class ProjectService {
         Project project = initializeProject(parameter, notifyOwner);
         ProjectCreateMetrics.setInitProjectData(System.currentTimeMillis() - prevTime);
 
-        CredentialProto.Credential credential = createCredential(project, parameter);
+        Credential credential = createCredential(project, parameter);
 
         projectServiceHelper.postProjectCreateEvent(project, parameter, credential);
 
@@ -398,17 +402,16 @@ public class ProjectService {
         return project;
     }
 
-    private CredentialProto.Credential createCredential(Project project, ProjectCreateParameter parameter) {
+    private Credential createCredential(Project project, ProjectCreateParameter parameter) throws CoreException {
         BaseCredentialParameter credentialParameter = parameter.getBaseCredentialParameter();
         if (credentialParameter == null || StringUtils.isBlank(credentialParameter.getType())) {
             return null;
         }
-        credentialParameter.setTeamId(parameter.getTeamId());
-        credentialParameter.setProjectId(project.getId());
-        credentialParameter.setCreatorId(parameter.getUserId());
+        projectCredentialService.validParam(parameter.getTeamId(), project.getId(), parameter.getUserGk());
         try {
-            int connId = credentialGRpcClient.createCredential(parameter.getUserGk(), true, credentialParameter);
-            return credentialGRpcClient.getById(connId, false);
+            CredentialForm credentialForm = buildForm(credentialParameter,parameter,project.getId());
+            int connId = projectCredentialService.createCredential(credentialForm, true);
+            return projectCredentialService.get(connId, false);
         } catch (Exception e) {
             log.warn("create credential failed", e);
         }
@@ -618,4 +621,23 @@ public class ProjectService {
         EvictCacheManager.evictTableCache(TABLE_NAME, CacheType.bean, "getArchiveProjectByTeamIdAndName", "team", project.getTeamOwnerId(), "name", project.getName());
     }
 
+    public CredentialForm buildForm(
+            BaseCredentialParameter credentialParameter,
+            ProjectCreateParameter parameter,
+            Integer projectId
+    ) {
+        return CredentialForm.builder()
+                .type(parameter.getType())
+                .scope(credentialParameter.getScope())
+                .connGenerateBy(ConnGenerateByEnums.valueOf(credentialParameter.getConnGenerateBy().name()))
+                .id(credentialParameter.getId())
+                .teamId(parameter.getTeamId())
+                .projectId(projectId)
+                .creatorId(parameter.getUserId())
+                .credentialId(credentialParameter.getCredentialId())
+                .name(credentialParameter.getName())
+                .description(credentialParameter.getDescription())
+                .allSelect(credentialParameter.isAllSelect())
+                .build();
+    }
 }

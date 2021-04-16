@@ -21,6 +21,7 @@ import net.coding.grpc.client.activity.ActivityGrpcClient;
 import net.coding.grpc.client.pinyin.PinyinClient;
 import net.coding.grpc.client.platform.LoggingGrpcClient;
 import net.coding.grpc.client.platform.UserServiceGrpcClient;
+import net.coding.lib.project.entity.Credential;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.entity.ProjectPreference;
@@ -39,7 +40,6 @@ import net.coding.lib.project.service.ProjectPreferenceService;
 import net.coding.lib.project.utils.DateUtil;
 import net.coding.lib.project.utils.ResourceUtil;
 import net.coding.lib.project.utils.TextUtil;
-import net.coding.proto.CredentialProto;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Document;
@@ -103,8 +103,7 @@ public class ProjectServiceHelper {
 
     public String checkContent(String content) {
         // 包含限制词
-        String profanity = profanityWordService.checkContent(content);
-        return profanity;
+        return profanityWordService.checkContent(content);
     }
 
     public String getPinYin(String displayName, String name) {
@@ -123,7 +122,7 @@ public class ProjectServiceHelper {
     public void notifyMembers(List<Integer> userIds, Integer userId, Project project, ProjectTweet tweet) {
         // 检查偏好设置中的开关是否开启
         ProjectPreference projectPreference = projectPreferenceService.getByProjectIdAndType(project.getId(), PREFERENCE_TYPE_PROJECT_TWEET);
-        Short preferenceStatus = projectPreference != null ? projectPreference.getStatus().shortValue() : null;
+        Short preferenceStatus = projectPreference != null ? projectPreference.getStatus() : null;
         if (Objects.equals(preferenceStatus, PREFERENCE_STATUS_TRUE)) {
             if (userIds.size() > 0) {
                 String userLink = userGrpcClient.getUserHtmlLinkById(userId);
@@ -161,7 +160,7 @@ public class ProjectServiceHelper {
     public void notifyUpdateMembers(List<Integer> userIds, Integer userId, Project project, ProjectTweet tweet) {
         // 检查偏好设置中的开关是否开启
         ProjectPreference projectPreference = projectPreferenceService.getByProjectIdAndType(project.getId(), PREFERENCE_TYPE_PROJECT_TWEET);
-        Short preferenceStatus = projectPreference != null ? projectPreference.getStatus().shortValue() : null;
+        Short preferenceStatus = projectPreference != null ? projectPreference.getStatus() : null;
         if (Objects.equals(preferenceStatus, PREFERENCE_STATUS_TRUE)) {
             if (userIds.size() > 0) {
                 String userLink = userGrpcClient.getUserHtmlLinkById(userId);
@@ -505,13 +504,13 @@ public class ProjectServiceHelper {
 
     public void postProjectCreateEvent(Project project,
                                        ProjectCreateParameter parameter,
-                                       CredentialProto.Credential credential) {
+                                       Credential credential) {
         Map<String, String> initMap = new HashMap<>();
         initMap.put("createSvnLayout", parameter.getCreateSvnLayout());
         initMap.put("credential", Optional.ofNullable(credential)
-                .map(CredentialProto.Credential::getCredentialId).orElse(""));
+                .map(Credential::getCredentialId).orElse(""));
         initMap.put("credentialType", Optional.ofNullable(credential)
-                .map(c -> c.getType().name()).orElse(""));
+                .map(Credential::getType).orElse(""));
         Boolean gitEnabled = parameter.getGitEnabled();
         if (gitEnabled) {
             initMap.put("readme", parameter.getGitReadmeEnabled());

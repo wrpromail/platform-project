@@ -9,7 +9,7 @@ import lombok.Data;
 @Builder
 @ApiModel(value = "项目凭据关联任务")
 public class ConnectionTaskDTO {
-    
+
     @ApiModelProperty(value = "主键 id")
     private Integer id;
     @ApiModelProperty(value = "类型")
