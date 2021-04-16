@@ -4,19 +4,21 @@ import com.google.common.collect.ImmutableList;
 
 import com.github.pagehelper.PageRowBounds;
 
+import net.coding.common.cache.evict.constant.CacheType;
+import net.coding.common.cache.evict.manager.EvictCacheManager;
+import net.coding.common.json.Json;
 import net.coding.common.util.BeanUtils;
 import net.coding.common.util.ResultPage;
-import net.coding.common.util.TextUtils;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dao.ProjectDao;
 import net.coding.lib.project.dao.ProjectMemberDao;
 import net.coding.lib.project.dto.ProjectMemberDTO;
 import net.coding.lib.project.dto.RoleDTO;
-import net.coding.lib.project.dto.UserDTO;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.entity.ProjectTweet;
+import net.coding.lib.project.enums.CacheTypeEnum;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.AddMemberForm;
 import net.coding.lib.project.grpc.client.IssueServiceGrpcClient;
@@ -78,8 +80,6 @@ public class ProjectMemberService {
 
     private final IssueServiceGrpcClient issueServiceGrpcClient;
 
-    private final short MEMBER_TYPE = 80;
-
     private final CreateMemberEventTriggerTrigger createMemberEventTrigger;
     private final DeleteMemberEventTriggerTrigger deleteMemberEventTrigger;
     private final UpdateMemberRoleEventTriggerTrigger updateMemberRoleEventTriggerTrigger;
@@ -115,6 +115,7 @@ public class ProjectMemberService {
                             project.getId(),
                             currentUserId
                     );
+            handleCache(projectMember, CacheTypeEnum.UPDATE);
         }
         return result > 0;
     }
@@ -133,7 +134,7 @@ public class ProjectMemberService {
         }
         List<ProjectMember> projectMemberList = projectMemberDao.getProjectMembers(projectId, keyWord, pager);
         List<ProjectMemberDTO> projectMembers = new ArrayList<>();
-        projectMemberList.stream().forEach(projectMember ->
+        projectMemberList.forEach(projectMember ->
                 projectMembers.add(ProjectMemberDTO.builder()
                         .id(projectMember.getId())
                         .project_id(projectMember.getProjectId())
@@ -141,13 +142,13 @@ public class ProjectMemberService {
                         .created_at(projectMember.getCreatedAt().getTime())
                         .last_visit_at(projectMember.getLastVisitAt().getTime()).build()));
         if (!CollectionUtils.isEmpty(projectMembers)) {
-            projectMembers.stream().forEach(projectMemberDTO -> {
+            projectMembers.forEach(projectMemberDTO -> {
                         UserProto.User user = userGrpcClient.getUserById(projectMemberDTO.getUser_id());
                         projectMemberDTO.setUser(UserUtil.toBuilderUser(user, true)
                         );
                     }
             );
-            projectMembers.stream().forEach(projectMemberDTO -> {
+            projectMembers.forEach(projectMemberDTO -> {
                 List<AclProto.Role> roles = advancedRoleServiceGrpcClient.findUserRolesInProject(
                         projectMemberDTO.getUser().getId(),
                         projectMemberDTO.getUser().getTeamId(), projectId
@@ -164,7 +165,7 @@ public class ProjectMemberService {
         try {
             List<AdvancedRoleProto.RoleMemberCount> roleMemberCounts =
                     advancedRoleServiceGrpcClient.findMemberCountByProjectId(projectId);
-            roleMemberCounts.stream().forEach(roleMemberCount -> roleDTOList.add(toRoleMemberDTO(roleMemberCount)));
+            roleMemberCounts.forEach(roleMemberCount -> roleDTOList.add(toRoleMemberDTO(roleMemberCount)));
         } catch (Exception e) {
             log.error("advancedRoleServiceGrpcClient findMemberCountByProjectId is error{} ", e.getMessage());
         }
@@ -182,6 +183,7 @@ public class ProjectMemberService {
         }
         ProjectMember projectMember = projectMemberDao.getProjectMemberByUserAndProject(currentUser.getId(),
                 projectId, BeanUtils.getDefaultDeletedAt());
+        short MEMBER_TYPE = 80;
         if (projectMember == null || projectMember.getType() <= MEMBER_TYPE) {
             throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
         }
@@ -221,38 +223,38 @@ public class ProjectMemberService {
         try {
             Optional<AdvancedRoleProto.FindProjectRoleByRoleAndProjectResponse> response =
                     advancedRoleServiceGrpcClient.findProjectRoleByRoleAndProject(project.getId(), type);
-            response.ifPresent(res -> {
-                targetUserIds.forEach(userId -> {
-                    AtomicInteger insertRole = new AtomicInteger(0);
-                    try {
-                        advancedRoleServiceGrpcClient.insertProjectRoleRecord(
+            response.ifPresent(res -> targetUserIds.forEach(userId -> {
+                        AtomicInteger insertRole = new AtomicInteger(0);
+                        try {
+                            advancedRoleServiceGrpcClient.insertProjectRoleRecord(
+                                    project.getId(),
+                                    res.getRole(),
+                                    project.getTeamOwnerId(),
+                                    userId
+                            );
+                        } catch (Exception e) {
+                            log.error("advancedRoleServiceGrpcClient insertProjectRoleRecord is error{} ", e.getMessage());
+                        }
+                        insertRole.set(res.getRole().getId());
+                        //发送消息
+                        ProjectMember projectMember = getByProjectIdAndUserId(project.getId(), userId);
+                        projectServiceHelper.postAddMembersEvent(
+                                insertRole,
+                                currentUserId,
                                 project.getId(),
-                                res.getRole(),
-                                project.getTeamOwnerId(),
-                                userId
+                                projectMember,
+                                userId,
+                                isInvite
                         );
-                    } catch (Exception e) {
-                        log.error("advancedRoleServiceGrpcClient insertProjectRoleRecord is error{} ", e.getMessage());
-                    }
-                    insertRole.set(res.getRole().getId());
-                    //发送消息
-                    ProjectMember projectMember = getByProjectIdAndUserId(project.getId(), userId);
-                    projectServiceHelper.postAddMembersEvent(
-                            insertRole,
-                            currentUserId,
-                            project.getId(),
-                            projectMember,
-                            userId,
-                            isInvite
-                    );
-                    createMemberEventTrigger.trigger(
-                            ImmutableList.of(String.valueOf(res.getRole().getId())),
-                            projectMember,
-                            project.getId(),
-                            currentUserId
-                    );
-                });
-            });
+                        createMemberEventTrigger.trigger(
+                                ImmutableList.of(String.valueOf(res.getRole().getId())),
+                                projectMember,
+                                project.getId(),
+                                currentUserId
+                        );
+                        handleCache(projectMember, CacheTypeEnum.CREATE);
+                    })
+            );
         } catch (Exception e) {
             log.error("advancedRoleServiceGrpcClient findProjectRoleByRoleAndProject is error{} ", e.getMessage());
         }
@@ -263,7 +265,7 @@ public class ProjectMemberService {
 
     private List<RoleDTO> toRoleDTO(List<AclProto.Role> roles) {
         List<RoleDTO> list = new ArrayList<>();
-        roles.stream().forEach(role -> list.add(RoleDTO.builder()
+        roles.forEach(role -> list.add(RoleDTO.builder()
                 .name(role.getName())
                 .roleId(role.getId()).build()));
         return list;
@@ -394,11 +396,26 @@ public class ProjectMemberService {
             advancedRoleServiceGrpcClient.removeUserRoleRecordsInProject(projectId, targetUserId);
             projectServiceHelper.postDeleteMemberEvent(currentUser.getId(), projectId, member);
             deleteMemberEventTrigger.trigger(roleIdList, member, projectId, currentUser.getId());
+            handleCache(member, CacheTypeEnum.DELETE);
         }
 
     }
 
     public boolean updateVisitTime(Integer projectMemberId) {
         return projectMemberDao.updateVisitTime(projectMemberId, BeanUtils.getDefaultDeletedAt()) == 1;
+    }
+
+    public void handleCache(ProjectMember pm, CacheTypeEnum type) {
+        log.info("清除项目成员相关缓存信息 projectMember : {}", Json.toJson(pm));
+        String TABLE_NAME = "project_members";
+        if (type == CacheTypeEnum.UPDATE || type == CacheTypeEnum.DELETE) {
+            EvictCacheManager.evictTableCache(TABLE_NAME, CacheType.bean, "userId", pm.getUserId(), "projectId", pm.getProjectId());
+        }
+        // 项目成员变动时，清除getProjectMembersWithArchived（）方法的缓存
+        EvictCacheManager.evictTableCache(TABLE_NAME, CacheType.list, "getProjectMembersWithArchived", pm.getProjectId(), pm.getType());
+        // 清除成员统计缓存
+        EvictCacheManager.evictTableCache(TABLE_NAME, CacheType.count, "countProjectMembers:", pm.getProjectId());
+        EvictCacheManager.evictTableCache(TABLE_NAME, CacheType.count, "countProjects:", pm.getUserId());
+        EvictCacheManager.evictTableCache(TABLE_NAME, CacheType.list, "getProjectMembersByUser", pm.getUserId());
     }
 }
