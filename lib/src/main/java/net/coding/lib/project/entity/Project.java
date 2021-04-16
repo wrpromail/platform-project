@@ -101,6 +101,7 @@ public class Project implements Serializable {
     /**
      * 版本
      */
+    @Builder.Default
     private Short plan = ProjectConstants.PLAN_FREE;
 
     /**

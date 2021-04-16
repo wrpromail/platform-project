@@ -1,0 +1,41 @@
+syntax = 'proto3';
+
+package proto;
+
+import "google/protobuf/timestamp.proto";
+
+option java_generic_services = true;
+option java_package = "proto.ci";
+option java_outer_classname = "CiCommonProto";
+
+enum Code {
+    SUCCESS = 0;
+    BAD_REQUEST = 1;
+    PERMISSION_DENIED = 2;
+    NOT_FOUND = 3;
+    INTERVAL_ERROR = 4;
+}
+
+message Response {
+    Code code = 1;
+    string key = 2;
+    string message = 3;
+}
+
+message Result {
+    int32 code = 1;
+    string key = 2;
+    string message = 3;
+}
+
+message ResultWithId {
+    Result result = 1;
+    uint32 id = 2;
+}
+
+message Pager {
+    int32 page = 1;
+    int32 pageSize = 2;
+    int32 totalPage = 3;
+    int64 totalRow = 4;
+}

@@ -44,8 +44,8 @@ message DeployTokenDepotDTO {
 message User {
   int32 id = 1;
   string name = 2;
-  string avatar = 3;
-  int32 team_id = 4;
+  string avatar = 3;  //头像地址
+  int32 team_id = 4;  //所属团队ID
   string htmlUrl = 5;
   string url = 6;
 }
@@ -74,9 +74,9 @@ message DeployToken {
   bool apply_to_all_depots = 15;
   bool apply_to_all_artifacts = 16;
   repeated DeployTokenArtifact deploy_token_artifacts = 17;
-  User creator = 18;
-  User associated = 19;
-  int32 associatedId = 20;
+  User creator = 18;        //创建人信息
+  User associated = 19;     //指派人信息
+  int32 associatedId = 20;  //指标人id
 }
 
 message RefreshInternalAccessTokenRequest {

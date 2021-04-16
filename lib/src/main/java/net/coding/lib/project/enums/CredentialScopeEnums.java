@@ -1,5 +1,7 @@
 package net.coding.lib.project.enums;
 
+import java.util.Arrays;
+
 /**
  * Project 是项目范围内公开，Private 是个人私有
  */
@@ -18,21 +20,9 @@ public enum CredentialScopeEnums {
     }
 
     public static CredentialScopeEnums of(int code) {
-        for (CredentialScopeEnums cs : CredentialScopeEnums.values()) {
-            if (cs.code == code) {
-                return cs;
-            }
-        }
-        return PROJECT;
+        return Arrays.stream(CredentialScopeEnums.values())
+                .filter(s -> s.getCode() == code)
+                .findFirst()
+                .orElse(PROJECT);
     }
-
-    public static CredentialScopeEnums nameOf(String name) {
-        for (CredentialScopeEnums cs : CredentialScopeEnums.values()) {
-            if (cs.name().equals(name)) {
-                return cs;
-            }
-        }
-        return PROJECT;
-    }
-
 }

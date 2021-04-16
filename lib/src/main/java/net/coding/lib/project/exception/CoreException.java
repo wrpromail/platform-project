@@ -56,7 +56,6 @@ public class CoreException extends Exception {
     public enum ExceptionType {
         USER_NOT_LOGIN(1000, "user_not_login"),
         DEFAULT_FAIL_EXCEPTION(1, "default_fail_exception"),
-        CSRF_VALIDATE_FAILED(801, "csrf_validate_failed"),
 
         // common
         PARAMETER_INVALID(900, "param_error"),
@@ -214,7 +213,16 @@ public class CoreException extends Exception {
         DEPLOY_TOKEN_NAME_EMPTY(7299, "deploy_token_name_empty"),
         DEPLOY_TOKEN_DISABLED(7300, "deploy_token_disabled"),
         DEPLOY_TOKEN_EXPIRED(7301, "deploy_token_expired"),
-        ENTERPRISE_NOT_EXISTS(5003, "enterprise_not_exists");
+        ENTERPRISE_NOT_EXISTS(5003, "enterprise_not_exists"),
+        //项目凭据
+        CREDENTIAL_INSERT_ERROR(6601, "credential_insert_error"),
+        CREDENTIAL_NOT_EXIST(6602, "credential_not_exist"),
+        CREDENTIAL_DELETE_ERROR(6603, "credential_delete_error"),
+        CREDENTIAL_UPDATE_ERROR(6604, "credential_update_error"),
+        CREDENTIAL_TYPE_INVALID(6605, "credential_type_invalid"),
+        CREDENTIAL_TASK_TYPE_INVALID(6606, "credential_task_type_invalid"),
+        CREDENTIAL_PASSWORD_BYTES_TOO_LONG(6607, "credential_password_bytes_too_long"),
+        CI_JOB_NOT_FOUND(6301, "ci_job_not_found");
         private final int errorCode;
         private final String resourceKey;
         private Object[] args;
