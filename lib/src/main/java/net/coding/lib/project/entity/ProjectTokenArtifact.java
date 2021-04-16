@@ -10,13 +10,13 @@ import lombok.NoArgsConstructor;
 
 /**
  * deploy_token_artifacts
- * @author 
+ * @author
  */
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DeployTokenArtifacts implements Serializable {
+public class ProjectTokenArtifact implements Serializable {
     private Integer id;
 
     /**

@@ -11,7 +11,7 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 @AllArgsConstructor
 @Accessors(chain = true)
-public class DeployTokenArtifactDTO {
+public class ProjectTokenArtifactDTO {
 
     private Integer artifactId;
     private String scope;

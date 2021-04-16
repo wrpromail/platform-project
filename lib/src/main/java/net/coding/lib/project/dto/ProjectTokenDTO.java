@@ -8,14 +8,14 @@ import lombok.Data;
 
 @Data
 @Builder
-public class DeployTokenDTO {
+public class ProjectTokenDTO {
     private Integer id;
     private Integer projectId;
     private Integer creatorId;
     private String tokenName;
     private String userName;
     private String token;
-    private List<DeployTokenScopeDTO> scopes;
+    private List<ProjectTokenScopeDTO> scopes;
     private boolean applyToAllDepots;
     private List<DepotScopeDTO> depotScopes;
     private boolean applyToAllArtifacts;

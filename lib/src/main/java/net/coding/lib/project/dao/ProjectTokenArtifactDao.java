@@ -1,6 +1,6 @@
 package net.coding.lib.project.dao;
 
-import net.coding.lib.project.entity.DeployTokenArtifacts;
+import net.coding.lib.project.entity.ProjectTokenArtifact;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -9,17 +9,17 @@ import java.sql.Timestamp;
 import java.util.List;
 
 @Mapper
-public interface DeployTokenArtifactsDao {
+public interface ProjectTokenArtifactDao {
 
-    DeployTokenArtifacts selectByPrimaryKey(Integer id);
+    ProjectTokenArtifact selectByPrimaryKey(Integer id);
 
-    List<DeployTokenArtifacts> getDeployTokenArtifacts(
+    List<ProjectTokenArtifact> getProjectTokenArtifacts(
             @Param("deployTokenId") Integer deployTokenId,
             @Param("deletedAt") Timestamp deletedAt);
 
-    int deleteByDeployTokenArtifacts(
+    int deleteByProjectTokenArtifacts(
             @Param("deployTokenId") Integer deployTokenId,
             @Param("deletedAt") Timestamp deletedAt);
 
-    int insert(DeployTokenArtifacts deployTokenArtifacts);
+    int insert(ProjectTokenArtifact projectTokenArtifact);
 }

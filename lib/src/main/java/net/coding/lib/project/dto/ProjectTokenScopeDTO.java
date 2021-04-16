@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class DeployTokenScopeDTO {
+public class ProjectTokenScopeDTO {
     private String value;
     private String text;
 }

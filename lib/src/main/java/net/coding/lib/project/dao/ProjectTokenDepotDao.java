@@ -1,6 +1,6 @@
 package net.coding.lib.project.dao;
 
-import net.coding.lib.project.entity.DeployTokenDepot;
+import net.coding.lib.project.entity.ProjectTokenDepot;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -14,16 +14,16 @@ import java.util.List;
  * @Version 1.0
  */
 @Mapper
-public interface DeployTokenDepotsDao {
-    List<DeployTokenDepot> getDeployTokenDepot(
+public interface ProjectTokenDepotDao {
+    List<ProjectTokenDepot> getProjectTokenDepot(
             @Param("deployTokenId") Integer deployTokenId,
             @Param("deletedAt")
                     Timestamp deletedAt);
 
-    int deleteByDeployTokenDepot(
+    int deleteByProjectTokenDepot(
             @Param("deployTokenId") Integer deployTokenId,
             @Param("deletedAt") Timestamp deletedAt);
 
-    int insert(DeployTokenDepot deployTokenDepot);
+    int insert(ProjectTokenDepot deployTokenDepot);
 
 }

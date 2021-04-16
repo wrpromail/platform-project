@@ -29,5 +29,5 @@ public class ArtifactScopeDTO {
     /**
      * 制品库权限
      */
-    private List<DeployTokenScopeDTO> scopes;
+    private List<ProjectTokenScopeDTO> scopes;
 }

@@ -11,14 +11,14 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 /**
- * @ClassName: DeployTokenDepot
+ * @ClassName: ProjectTokenDepot
  * @description: TODO
  * @author: pual(xuyi)
  * @create: 2020-05-29 15:13
  **/
 @Data
 @Builder
-public class DeployTokenDepot implements Serializable {
+public class ProjectTokenDepot implements Serializable {
 
     private static final long serialVersionUID = 2194847159560364113L;
     private Integer id;
