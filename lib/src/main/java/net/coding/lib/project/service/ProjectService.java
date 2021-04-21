@@ -459,7 +459,12 @@ public class ProjectService {
                         StreamEx.of(teamProjects).map(TeamProject::getProjectId).nonNull().toList(),
                         BeanUtils.getDefaultDeletedAt(),
                         BeanUtils.getDefaultArchivedAt()
-                )).nonNull().toList();
+                )
+        ).nonNull().toList();
+    }
+
+    public ProjectDTO getProjectByNameAndTeamId(String projectName, Integer teamOwnerId) {
+        return buildProjectDTO(getByNameAndTeamId(projectName, teamOwnerId));
     }
 
     public ProjectDTO buildProjectDTO(Project project) {
@@ -467,7 +472,8 @@ public class ProjectService {
             return null;
         }
 
-        return ProjectDTO.builder().id(Optional.ofNullable(project.getId()).orElse(0))
+        return ProjectDTO.builder()
+                .id(Optional.ofNullable(project.getId()).orElse(0))
                 .description(TextUtils.htmlEscape(project.getDescription()))
                 .name(project.getName())
                 .display_name(project.getDisplayName())

@@ -2,6 +2,7 @@ package net.coding.app.project.http;
 
 import net.coding.app.project.constant.GatewayHeader;
 import net.coding.common.annotation.EnterpriseApiProtector;
+import net.coding.common.annotation.ProjectApiProtector;
 import net.coding.common.annotation.ProtectedAPI;
 import net.coding.common.annotation.enums.Action;
 import net.coding.common.annotation.enums.Function;
@@ -110,5 +111,15 @@ public class ProjectController {
     public boolean visitProject(@PathVariable("projectId") int projectId) throws
             CoreException {
         return projectService.updateVisitProject(projectId);
+    }
+
+    @ApiOperation(value = "query_project_by_name", notes = "项目名称查询项目信息")
+    @ProtectedAPI
+    @EnterpriseApiProtector(function = Function.EnterpriseProject, action = Action.View)
+    @ProjectApiProtector(function = Function.ProjectMember, action = Action.View)
+    @RequestMapping(value = {"/{projectName}"}, method = RequestMethod.GET)
+    public ProjectDTO queryProjectByName(@RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
+                                         @PathVariable("projectName") String projectName) {
+        return projectService.getProjectByNameAndTeamId(projectName, teamId);
     }
 }

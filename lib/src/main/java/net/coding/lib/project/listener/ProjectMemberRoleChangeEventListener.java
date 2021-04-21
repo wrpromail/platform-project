@@ -5,6 +5,7 @@ import com.google.common.eventbus.Subscribe;
 import net.coding.common.base.gson.JSON;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
+import net.coding.lib.project.enums.CacheTypeEnum;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.listener.event.ProjectMemberRoleChangeEvent;
@@ -62,6 +63,7 @@ public class ProjectMemberRoleChangeEventListener {
 
             ProjectMember projectMember = projectMemberService.getByProjectIdAndUserId(event.getProjectId(), event.getTargetUserId());
             if (Objects.nonNull(projectMember)) {
+                projectMemberService.handleCache(projectMember, CacheTypeEnum.UPDATE);
                 projectMemberService.updateProjectMemberType
                         (
                                 event.getCurrentUserId(),
