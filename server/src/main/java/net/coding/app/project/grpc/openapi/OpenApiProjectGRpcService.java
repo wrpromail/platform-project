@@ -3,11 +3,13 @@ package net.coding.app.project.grpc.openapi;
 import net.coding.app.project.utils.ProtoConvertUtils;
 import net.coding.common.i18n.utils.LocaleMessageSource;
 import net.coding.grpc.client.permission.AclServiceGrpcClient;
+import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.grpc.client.platform.TeamServiceGrpcClient;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.enums.ProjectLabelEnums;
 import net.coding.lib.project.enums.RegisterSourceEnum;
+import net.coding.lib.project.enums.RoleType;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.UpdateProjectForm;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
@@ -27,6 +29,7 @@ import java.util.Optional;
 import io.grpc.stub.StreamObserver;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import proto.acl.AclProto;
 import proto.open.api.CodeProto;
 import proto.open.api.ResultProto;
 import proto.open.api.project.ProjectProto;
@@ -35,7 +38,6 @@ import proto.platform.permission.PermissionProto;
 import proto.platform.team.TeamProto;
 import proto.platform.user.UserProto;
 
-import static net.coding.common.constants.RoleConstants.ADMIN;
 import static proto.open.api.CodeProto.Code.INVALID_PARAMETER;
 import static proto.open.api.CodeProto.Code.NOT_FOUND;
 import static proto.open.api.CodeProto.Code.SUCCESS;
@@ -65,6 +67,8 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
     private final UserGrpcClient userGrpcClient;
 
     private final AclServiceGrpcClient aclServiceGrpcClient;
+
+    private final AdvancedRoleServiceGrpcClient advancedRoleServiceGrpcClient;
 
     private final LocaleMessageSource localeMessageSource;
 
@@ -115,39 +119,53 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
             ProjectProto.DescribeUserProjectsRequest request,
             StreamObserver<ProjectProto.DescribeProjectsResponse> responseObserver) {
         try {
+            Integer currentUserId = request.getUser().getId();
+            Integer currentTeamId = request.getUser().getTeamId();
+
             boolean isMember = teamServiceGrpcClient.isMember(
-                    request.getUser().getTeamId(),
+                    currentTeamId,
                     request.getUserId());
             if (!isMember) {
                 throw CoreException.of(CoreException.ExceptionType.TEAM_MEMBER_NOT_EXISTS);
             }
+
+            List<AclProto.Role> roles =
+                    advancedRoleServiceGrpcClient.findUserRolesInEnterprise(currentTeamId, currentUserId);
+            if (CollectionUtils.isEmpty(roles)) {
+                throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
+            }
+            //管理员可查询团队内其他成员所在项目，普通成员只能查询自己
+            if (roles.stream().anyMatch(r -> RoleType.valueOf(r.getType()) == RoleType.EnterpriseMember)
+                    && currentUserId != request.getUserId()) {
+                throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
+            }
             List<Project> projects = projectService.getProjects(
                     ProjectQueryParameter.builder()
                             .userId(request.getUserId())
-                            .teamId(request.getUser().getTeamId())
+                            .teamId(currentTeamId)
                             .projectName(request.getProjectName())
                             .build()
             );
-                DescribeProjectsResponse(responseObserver, SUCCESS,
-                        SUCCESS.name().toLowerCase(), projects);
-            } catch (CoreException e) {
-                log.error("RpcService describeUserProjects error CoreException ", e);
-                DescribeProjectsResponse(responseObserver, NOT_FOUND,
-                        localeMessageSource.getMessage(e.getKey()), null);
-            } catch (Exception e) {
-                log.error("rpcService describeUserProjects error Exception ", e);
-                DescribeProjectsResponse(responseObserver, INVALID_PARAMETER,
-                        INVALID_PARAMETER.name().toLowerCase(), null);
-            }
+            DescribeProjectsResponse(responseObserver, SUCCESS,
+                    SUCCESS.name().toLowerCase(), projects);
+        } catch (CoreException e) {
+            log.error("RpcService describeUserProjects error CoreException ", e);
+            DescribeProjectsResponse(responseObserver, NOT_FOUND,
+                    localeMessageSource.getMessage(e.getKey()), null);
+        } catch (Exception e) {
+            log.error("rpcService describeUserProjects error Exception ", e);
+            DescribeProjectsResponse(responseObserver, INVALID_PARAMETER,
+                    INVALID_PARAMETER.name().toLowerCase(), null);
         }
+    }
 
-        @Override
-        public void describeOneProject(
-                ProjectProto.DescribeOneProjectRequest request,
-                StreamObserver<ProjectProto.DescribeOneProjectResponse> responseObserver) {
-            try {
-                Project project = projectService.getById(request.getProjectId());
-                if (project == null) {
+    @Override
+    public void describeOneProject(
+            ProjectProto.DescribeOneProjectRequest request,
+            StreamObserver<ProjectProto.DescribeOneProjectResponse> responseObserver) {
+        try {
+            Project project = projectService.getById(request.getProjectId());
+            if (project == null) {
                 throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
             }
             ProjectMember projectMember = projectMemberService.getByProjectIdAndUserId(
@@ -214,7 +232,6 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
             StreamObserver<ResultProto.CommonResult> responseObserver) {
         try {
             UserProto.User currentUser = userGrpcClient.getUserById(request.getUser().getId());
-
             //验证用户接口权限
             boolean hasPermissionInProject = aclServiceGrpcClient.hasPermissionInProject(
                     PermissionProto.Permission.newBuilder()
