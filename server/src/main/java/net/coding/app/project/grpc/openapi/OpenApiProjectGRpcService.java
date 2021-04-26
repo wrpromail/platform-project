@@ -121,22 +121,23 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
         try {
             Integer currentUserId = request.getUser().getId();
             Integer currentTeamId = request.getUser().getTeamId();
-
             boolean isMember = teamServiceGrpcClient.isMember(
                     currentTeamId,
                     request.getUserId());
             if (!isMember) {
                 throw CoreException.of(CoreException.ExceptionType.TEAM_MEMBER_NOT_EXISTS);
             }
-
-            List<AclProto.Role> roles =
-                    advancedRoleServiceGrpcClient.findUserRolesInEnterprise(currentTeamId, currentUserId);
-            if (CollectionUtils.isEmpty(roles)) {
-                throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
-            }
-            //管理员可查询团队内其他成员所在项目，普通成员只能查询自己
-            if (roles.stream().anyMatch(r -> RoleType.valueOf(r.getType()) == RoleType.EnterpriseMember)
-                    && currentUserId != request.getUserId()) {
+            //验证用户接口权限
+            boolean hasPermissionInProject = aclServiceGrpcClient.hasPermissionInEnterprise(
+                    PermissionProto.Permission.newBuilder()
+                            .setFunction(PermissionProto.Function.EnterpriseProject)
+                            .setAction(PermissionProto.Action.View)
+                            .build(),
+                    currentUserId,
+                    currentTeamId
+            );
+            //有权限可以查询其他成员所在项目，否则只能查询自己
+            if (!hasPermissionInProject && currentUserId != request.getUserId()) {
                 throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
             }
             List<Project> projects = projectService.getProjects(
