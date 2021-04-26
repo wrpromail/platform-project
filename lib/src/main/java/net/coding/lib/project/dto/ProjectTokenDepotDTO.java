@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DeployTokenDepotDTO {
+public class ProjectTokenDepotDTO {
 
     private String depotId;
     private String scope;

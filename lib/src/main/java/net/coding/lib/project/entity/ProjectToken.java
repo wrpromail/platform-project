@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DeployTokens implements Serializable {
+public class ProjectToken implements Serializable {
     private Integer id;
 
     /**
@@ -25,6 +25,11 @@ public class DeployTokens implements Serializable {
      * 创建人编号
      */
     private Integer creatorId;
+
+    /**
+     * 指派人
+     */
+    private Integer associatedId;
 
     /**
      * 令牌名称
@@ -87,9 +92,15 @@ public class DeployTokens implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    public static final short TYPE_CODEDOG = 5;
-    public static final short TYPE_QTA = 6;
-    public static final short TYPE_QCI = 7;
+    public static final short TYPE_USER = 0;                 // 用户生成
+    public static final short TYPE_SYSTEM_CI = 1;            // 系统生成，用于 CI，对用户不可见
+    public static final short TYPE_SYSTEM_AUTO_DEPLOY = 2;   // 系统生成，用于自动部署，对用户不可见
+    public static final short TYPE_SYSTEM_ARTIFACT = 3;      // 系统生成，用于生成制品库令牌，对用户不可见
+    public static final short TYPE_ARTIFACT_SCANNING = 4;    // 系统生成，用于制品扫描的项目令牌，对用户不可见
+    public static final short TYPE_CODEDOG = 5;              // 系统生成，用于 codedog，对用户不可见
+    public static final short TYPE_QTA = 6;                  // 系统生成，用于 QTA，对用户不可见
+    public static final short TYPE_QCI = 7;                  // 系统生成，用于 QCI，对用户不可见
+    public static final short TYPE_HIDDEN = 8;               // 系统生成，对用户不可见
     public static final String CODEDOG_TOKEN_NAME = "CODEDOG_AUTO_GEN";
     public static final String QTA_TOKEN_NAME = "QTA_AUTO_GEN";
     public static final String QCI_TOKEN_NAME = "QCI_AUTO_GEN";

@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="net.coding.lib.project.dao.DeployTokensDao">
-  <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.DeployTokens">
+<mapper namespace="net.coding.lib.project.dao.ProjectTokenDao">
+  <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ProjectToken">
     <id column="id" jdbcType="INTEGER" property="id" />
     <result column="project_id" jdbcType="INTEGER" property="projectId" />
     <result column="creator_id" jdbcType="INTEGER" property="creatorId" />
+    <result column="associated_id" jdbcType="INTEGER" property="associatedId" />
     <result column="token_name" jdbcType="VARCHAR" property="tokenName" />
     <result column="global_key_id" jdbcType="INTEGER" property="globalKeyId" />
     <result column="token" jdbcType="VARCHAR" property="token" />
@@ -20,11 +21,11 @@
     <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt" />
   </resultMap>
   <sql id="Base_Column_List">
-    id, project_id, creator_id, token_name, global_key_id, token, `scope`, expired_at, 
-    enabled, `type`, apply_to_all_depots, apply_to_all_artifacts, created_at, last_activity_at, 
-    updated_at, deleted_at
+    id, project_id, creator_id, token_name, global_key_id, token, `scope`, expired_at,
+    enabled, `type`, apply_to_all_depots, apply_to_all_artifacts, created_at, last_activity_at,
+    updated_at, deleted_at,associated_id
   </sql>
-  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="net.coding.lib.project.entity.DeployTokens" useGeneratedKeys="true">
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="net.coding.lib.project.entity.ProjectToken" useGeneratedKeys="true">
     insert into deploy_tokens
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="projectId != null">
@@ -32,6 +33,9 @@
       </if>
       <if test="creatorId != null">
         creator_id,
+      </if>
+      <if test="associatedId != null and associatedId != 0 ">
+        associated_id,
       </if>
       <if test="tokenName != null">
         token_name,
@@ -80,6 +84,9 @@
       <if test="creatorId != null">
         #{creatorId,jdbcType=INTEGER},
       </if>
+      <if test="associatedId != null and associatedId != 0 ">
+        #{associatedId,jdbcType=INTEGER},
+      </if>
       <if test="tokenName != null">
         #{tokenName,jdbcType=VARCHAR},
       </if>
@@ -122,14 +129,14 @@
     </trim>
   </insert>
 
-  <update id="deleteDeployTokens">
+  <update id="deleteProjectToken">
       update deploy_tokens
       set deleted_at=NOW()
       where id = #{id}
       LIMIT 1
     </update>
 
-  <update id="updateEnableDeployToken">
+  <update id="updateEnableProjectToken">
     update deploy_tokens
     set
         enabled = #{enabled,jdbcType=BOOLEAN},
@@ -149,7 +156,7 @@
   </update>
 
 
-  <select id="selectByDeployTokens"  resultMap="BaseResultMap">
+  <select id="selectByProjectToken" resultMap="BaseResultMap">
     select
     <include refid="Base_Column_List" />
     from deploy_tokens
@@ -165,9 +172,10 @@
     <include refid="Base_Column_List" />
     from deploy_tokens
     where id = #{id,jdbcType=INTEGER}
+    AND deleted_at = '1970-01-01 00:00:00'
   </select>
 
-  <select id="selectDeployToken" resultMap="BaseResultMap">
+  <select id="selectProjectToken" resultMap="BaseResultMap">
     select
     <include refid="Base_Column_List" />
     from deploy_tokens
@@ -177,7 +185,34 @@
     AND token_name= #{tokenName}
     AND deleted_at = #{deletedAt}
   </select>
+  <select id="selectByToken" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from deploy_tokens
+    where
+        token= #{token}
+    AND deleted_at = #{deletedAt}
+  </select>
 
+  <select id="selectByTokenAndProjectId" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from deploy_tokens
+    where
+        token= #{token}
+    AND deleted_at = #{deletedAt}
+    AND project_id = #{projectId}
+  </select>
+
+  <select id="selectByTokenAndGkId" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from deploy_tokens
+    where
+    token= #{token}
+    AND deleted_at = #{deletedAt}
+    AND global_key_id = #{gkId}
+  </select>
   <update id="updateExpired">
     update deploy_tokens
     set
@@ -186,5 +221,15 @@
     where
     `id` = #{id}
     and deleted_at =  #{deletedAt}
+  </update>
+
+  <update id="updateScopeById">
+    update deploy_tokens
+    set
+      scope = #{scope},
+      updated_at = NOW()
+    where
+      `id` = #{id}
+      and deleted_at =  #{deletedAt}
   </update>
 </mapper>

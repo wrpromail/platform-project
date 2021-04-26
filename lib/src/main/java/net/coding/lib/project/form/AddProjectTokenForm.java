@@ -4,8 +4,8 @@ import com.google.common.collect.Sets;
 
 import net.coding.common.base.form.BaseForm;
 import net.coding.common.constants.DeployTokenScopeEnum;
-import net.coding.lib.project.dto.DeployTokenArtifactDTO;
-import net.coding.lib.project.dto.DeployTokenDepotDTO;
+import net.coding.lib.project.dto.ProjectTokenArtifactDTO;
+import net.coding.lib.project.dto.ProjectTokenDepotDTO;
 
 
 import org.apache.commons.collections.CollectionUtils;
@@ -26,12 +26,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AddDeployTokenForm extends BaseForm {
+public class AddProjectTokenForm extends BaseForm {
 
     private String tokenName;
     private String expiredAt;
-    private List<DeployTokenDepotDTO> depotScopes;
-    private List<DeployTokenArtifactDTO> artifactScopes;
+    private List<ProjectTokenDepotDTO> depotScopes;
+    private List<ProjectTokenArtifactDTO> artifactScopes;
     private String scope;
     @Builder.Default
     private boolean applyToAllDepots = true;

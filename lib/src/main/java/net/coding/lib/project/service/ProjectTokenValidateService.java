@@ -3,34 +3,19 @@ package net.coding.lib.project.service;
 import com.google.common.collect.Sets;
 
 import net.coding.common.constants.DeployTokenScopeEnum;
-import net.coding.grpc.client.platform.TeamProjectServiceGrpcClient;
-import net.coding.lib.project.dao.ProjectDao;
-import net.coding.lib.project.dto.DeployTokenArtifactDTO;
-import net.coding.lib.project.entity.Project;
+import net.coding.lib.project.dto.ProjectTokenArtifactDTO;
 import net.coding.lib.project.exception.CoreException;
-import net.coding.lib.project.form.AddDeployTokenForm;
-import net.coding.lib.project.form.UpdateProjectForm;
+import net.coding.lib.project.form.AddProjectTokenForm;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.Errors;
-import org.springframework.validation.ValidationUtils;
 
-import java.sql.Date;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import proto.platform.team.project.TeamProjectProto;
-
-import static net.coding.common.base.validator.ValidationConstants.PROJECT_DISPLAY_NAME_MIN_LENGTH;
-import static net.coding.common.base.validator.ValidationConstants.PROJECT_NAME_CLOUD_MAX_LENGTH;
-import static net.coding.common.constants.CommonConstants.DATA_REGEX;
-import static net.coding.common.constants.ProjectConstants.PROJECT_NAME_REGEX;
 
 /**
  * @Author liuying
@@ -40,7 +25,7 @@ import static net.coding.common.constants.ProjectConstants.PROJECT_NAME_REGEX;
 @Service
 @Slf4j
 @AllArgsConstructor
-public class DeployTokenValidateService {
+public class ProjectTokenValidateService {
 
     private static final String DEPLOY_TOKEN_SCOPE_DELIMITER = ",";
 
@@ -51,7 +36,7 @@ public class DeployTokenValidateService {
     );
 
 
-    public void validate(AddDeployTokenForm form) throws CoreException {
+    public void validate(AddProjectTokenForm form) throws CoreException {
         if (StringUtils.isBlank(form.getTokenName())) {
             throw CoreException.of(CoreException.ExceptionType.DEPLOY_TOKEN_NAME_EMPTY);
         }
@@ -78,7 +63,7 @@ public class DeployTokenValidateService {
         // artifactScopes 中不应该存在非制品库权限
         if (CollectionUtils.isNotEmpty(form.getArtifactScopes())) {
             Stream<String> stream = form.getArtifactScopes().stream()
-                    .map(DeployTokenArtifactDTO::getScope)
+                    .map(ProjectTokenArtifactDTO::getScope)
                     .filter(org.apache.commons.lang3.StringUtils::isNotBlank)
                     .flatMap(scope -> Stream.of(scope.split(DEPLOY_TOKEN_SCOPE_DELIMITER)));
             if (stream.anyMatch(scope -> !ARTIFACT_SCOPE_SET.contains(scope))) {

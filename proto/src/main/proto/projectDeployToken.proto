@@ -3,32 +3,220 @@ syntax = "proto3";
 package proto;
 
 import "code.proto";
+import "google/protobuf/timestamp.proto";
 
 option java_generic_services = true;
 option java_package = "net.coding.proto.platform.project";
 option java_outer_classname = "ProjectDeployTokenProto";
 
+enum DeployTokenType {
+  TYPE_USER = 0; // 用户生成
+  TYPE_SYSTEM_CI = 1; // 系统生成，用于 CI，对用户不可见
+  TYPE_SYSTEM_AUTO_DEPLOY = 2; // 系统生成，用于自动部署，对用户不可见
+  TYPE_SYSTEM_ARTIFACT = 3; // 系统生成，用于生成制品库令牌，对用户不可见
+  TYPE_ARTIFACT_SCANNING = 4; // 系统生成，用于制品扫描的项目令牌，对用户不可见
+  TYPE_CODEDOG = 5; // 系统生成，用于 codedog，对用户不可见
+  TYPE_QTA = 6; // 系统生成，用于 QTA，对用户不可见
+  TYPE_QCI = 7; // 系统生成，用于 QCI，对用户不可见
+  TYPE_HIDDEN = 8; // 系统生成，对用户不可见
+}
 
 enum InternalAccessType {
-    UNKNOWN = 0;
-    CODEDOG = 1;
-    QTA = 2;
-    QCI = 3;
+  UNKNOWN = 0;
+  CODEDOG = 1;
+  QTA = 2;
+  QCI = 3;
+}
+
+message AddDeployTokenForm {
+  string tokenName = 1;
+  string expiredAt = 2;
+  repeated DeployTokenDepotDTO depotScopes = 3;
+  string scope = 4;
+  bool applyToAllDepots = 5;
+}
+
+message DeployTokenDepotDTO {
+  string depotId = 1;
+  string scope = 2;
+}
+
+message User {
+  int32 id = 1;
+  string name = 2;
+  string avatar = 3;
+  int32 team_id = 4;
+  string htmlUrl = 5;
+  string url = 6;
+}
+
+message DeployTokenArtifact {
+  int32 deploy_token_id = 1;
+  int32 artifact_id = 2;
+  string artifact_scope = 3;
+}
+
+message DeployToken {
+  int32 id = 1;
+  int32 project_id = 2;
+  int32 creator_id = 3;
+  string token_name = 4;
+  int32 global_key_id = 5;
+  string token = 6;
+  string scope = 7;
+  bool enabled = 8;
+  int32 type = 9;
+  google.protobuf.Timestamp expired_at = 10;
+  google.protobuf.Timestamp last_activity_at = 11;
+  google.protobuf.Timestamp created_at = 12;
+  google.protobuf.Timestamp updated_at = 13;
+  google.protobuf.Timestamp deleted_at = 14;
+  bool apply_to_all_depots = 15;
+  bool apply_to_all_artifacts = 16;
+  repeated DeployTokenArtifact deploy_token_artifacts = 17;
+  User creator = 18;
+  User associated = 19;
+  int32 associatedId = 20;
 }
 
 message RefreshInternalAccessTokenRequest {
-    int32 projectId = 1; //项目Id
-    InternalAccessType accessType = 2; //类型
+  int32 projectId = 1; //项目Id
+  InternalAccessType accessType = 2; //类型
+}
+
+message AddDeployTokenRequest {
+  uint32 projectId = 1;
+  uint32 userId = 2;
+  int32 deployType = 3;
+  AddDeployTokenForm addDeployTokenForm = 4;
+  int32 associatedId = 5;
+}
+
+message GetDeployTokenByIdRequest{
+  int32 id = 1;
+}
+
+message GetDeployTokenByIdResponse{
+  proto.common.Code code = 1;
+  string message = 2;
+  DeployToken data = 3;
 }
 
 message RefreshInternalAccessTokenResponse {
-    proto.common.Code code = 1;
-    string message = 2;
-    string accessGK = 3;
-    string token = 4;
-    int64 expiredAt = 5;
+  proto.common.Code code = 1;
+  string message = 2;
+  string accessGK = 3;
+  string token = 4;
+  int64 expiredAt = 5;
+}
+
+message AddDeployTokenResponse {
+  int32 code = 1;
+  string errKey = 2;
+  DeployToken data = 3;
+}
+
+message DeleteDeployTokenRequest {
+  uint32 projectId = 1;
+  uint32 userId = 2;
+  uint32 deployTokenId = 3;
+}
+
+message DeleteDeployTokenResponse {
+  int32 code = 1;
+  string errKey = 2;
+  bool result = 3;
+}
+
+message GetProjectByTokenRequest {
+  string deployToken = 1;
+}
+
+message GetProjectByTokenResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  uint32 projectId = 3;
+  string projectName = 4;
+  string teamHost = 5;
+}
+
+message CheckPermissionRequest {
+  uint32 tokenId = 1;
+  string token = 2;
+  uint32 projectId = 3;
+  repeated string supportScope = 4;
+}
+
+message CheckPermissionResponse {
+  int32 code = 1;
+  string errKey = 2;
+  string msg = 3;
+  bool result = 4;
+}
+
+message CheckCiAgentPermissionRequest {
+  string deployToken = 1;
+}
+
+message CheckCiAgentPermissionResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  bool hasTokenPermission = 3;
+}
+
+message DeployTokenByTokenAndTeamGKAndProjectNameRequest {
+  string token = 1;
+  string team_gk = 2;
+  string project_name = 3;
+}
+
+message DeployTokenResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  DeployToken data = 3;
+}
+
+message GetDeployTokenByTokenAndGlobalKeyRequest {
+  string token = 1;
+  string team_global_key = 2;
+}
+
+message GetDeployTokenRequest {
+  string token = 1;
+}
+
+message GetUserDeployTokensByProjectIdRequest {
+  uint32 projectId = 1;
+}
+
+message GetUserDeployTokensByProjectIdResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated DeployToken tokens = 3;
+}
+
+message ObtainDefaultTokenKeyRequest {
+  uint32 projectId = 1;
+  int32 deployTokenType = 2;
+}
+message ObtainDefaultTokenKeyResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  string globalKey = 3;
+  string token = 4;
 }
 
 service ProjectDeployTokenService {
-    rpc refreshInternalAccessToken (RefreshInternalAccessTokenRequest) returns (RefreshInternalAccessTokenResponse);
+  rpc refreshInternalAccessToken (RefreshInternalAccessTokenRequest) returns (RefreshInternalAccessTokenResponse);
+  rpc AddDeployToken (AddDeployTokenRequest) returns (AddDeployTokenResponse);
+  rpc GetDeployTokenById(GetDeployTokenByIdRequest) returns (GetDeployTokenByIdResponse);
+  rpc DeleteDeployToken (DeleteDeployTokenRequest) returns (DeleteDeployTokenResponse);
+  rpc GetProjectByToken (GetProjectByTokenRequest) returns (GetProjectByTokenResponse);
+  rpc CheckPermission (CheckPermissionRequest) returns (CheckPermissionResponse);
+  rpc CheckCiAgentPermission (CheckCiAgentPermissionRequest) returns (CheckCiAgentPermissionResponse);
+  rpc GetDeployTokenByTokenAndTeamGKAndProjectName (DeployTokenByTokenAndTeamGKAndProjectNameRequest) returns (DeployTokenResponse);
+  rpc GetDeployTokenByTokenAndGlobalKey (GetDeployTokenByTokenAndGlobalKeyRequest) returns (DeployTokenResponse);
+  rpc GetDeployToken (GetDeployTokenRequest) returns (DeployTokenResponse);
+  rpc GetUserDeployTokensByProjectId (GetUserDeployTokensByProjectIdRequest) returns (GetUserDeployTokensByProjectIdResponse);
+  rpc ObtainDefaultTokenKey (ObtainDefaultTokenKeyRequest) returns (ObtainDefaultTokenKeyResponse);
 }

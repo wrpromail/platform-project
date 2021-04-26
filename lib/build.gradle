@@ -33,10 +33,10 @@ dependencies {
     compile "net.coding.common:dto:${commonVersion}"
     compile "net.coding.common:verification:${commonVersion}"
     compile 'net.coding.service.hook:definition:20210331.1'
-    compile("net.coding.proto:platform:20210330.2") {
+    compile("net.coding.proto:platform:20210426.3") {
         exclude(group: "net.coding.common")
     }
-    compile("net.coding.grpc.client:platform:20210330.2") {
+    compile("net.coding.grpc.client:platform:20210426.3") {
         exclude(group: "net.coding.common")
     }
     compile ("net.coding.grpc.client:activity:20201102.2") {

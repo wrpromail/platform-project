@@ -8,11 +8,11 @@ import net.coding.common.constants.DeployTokenScopeEnum;
 import net.coding.common.constants.TwoFactorAuthConstants;
 import net.coding.common.util.Result;
 import net.coding.lib.project.common.SystemContextHolder;
-import net.coding.lib.project.dto.DeployTokenScopeDTO;
-import net.coding.lib.project.entity.DeployTokens;
+import net.coding.lib.project.dto.ProjectTokenScopeDTO;
+import net.coding.lib.project.entity.ProjectToken;
 import net.coding.lib.project.exception.CoreException;
-import net.coding.lib.project.form.AddDeployTokenForm;
-import net.coding.lib.project.service.DeployTokenService;
+import net.coding.lib.project.form.AddProjectTokenForm;
+import net.coding.lib.project.service.ProjectTokenService;
 
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -43,40 +43,40 @@ import proto.platform.user.UserProto;
 @Api(value = "项目令牌", tags = "项目令牌")
 @AllArgsConstructor
 @RequestMapping(value = "/api/platform/project/{projectId}/deploy-tokens")
-public class DeployTokenController {
+public class ProjectTokenController {
 
-    private final DeployTokenService deployTokenService;
+    private final ProjectTokenService projectTokenService;
 
     @ProtectedAPI
     @RequestMapping(value = "", method = RequestMethod.POST)
     @ProjectApiProtector(function = Function.ProjectDeployToken, action = Action.Create)
-    public Result addDeployToken(
+    public Result addProjectToken(
             @PathVariable Integer projectId,
-            @Valid AddDeployTokenForm form
+            @Valid AddProjectTokenForm form
     ) throws CoreException {
 
-        deployTokenService.validateCreateForm(form);
+        projectTokenService.validateCreateForm(form);
         UserProto.User user = SystemContextHolder.get();
         if (!Objects.nonNull(user)) {
             throw CoreException.of(CoreException.ExceptionType.USER_NOT_LOGIN);
         }
-        return Result.success(deployTokenService.addDeployToken(projectId, user, form, (short) 0));
+        return Result.success(projectTokenService.addDeployToken(projectId, user, form, (short) 0));
     }
 
     @ProtectedAPI
     @RequestMapping(value = "/{id}/scope", method = RequestMethod.PUT)
     @ProjectApiProtector(function = Function.ProjectDeployToken, action = Action.Update)
-    public boolean modifyDeployTokenScope(
+    public boolean modifyProjectTokenScope(
             @PathVariable Integer projectId,
             @PathVariable Integer id,
-            @ModelAttribute AddDeployTokenForm form,
+            @ModelAttribute AddProjectTokenForm form,
             Errors errors
     ) throws CoreException {
-        deployTokenService.validateUpdateForm(form);
+        projectTokenService.validateUpdateForm(form);
         if (errors.hasErrors()) {
             throw CoreException.of(errors);
         }
-        return deployTokenService.modifyDeployTokenScope(projectId, id, form);
+        return projectTokenService.modifyProjectTokenScope(projectId, id, form);
     }
 
 
@@ -87,8 +87,8 @@ public class DeployTokenController {
     @ProtectedAPI
     @RequestMapping(value = "", method = RequestMethod.GET)
     @ProjectApiProtector(function = Function.ProjectDeployToken, action = Action.View)
-    public Result getDeployTokens(@PathVariable Integer projectId) {
-        return Result.success(deployTokenService.getUserDeployTokens(projectId));
+    public Result getProjectTokens(@PathVariable Integer projectId) {
+        return Result.success(projectTokenService.getUserProjectToken(projectId));
     }
 
     /**
@@ -97,11 +97,11 @@ public class DeployTokenController {
     @ProtectedAPI(authMethod = TwoFactorAuthConstants.AUTH_TYPE_DEFAULT)
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     @ProjectApiProtector(function = Function.ProjectDeployToken, action = Action.Delete)
-    public boolean deleteDeployToken(
+    public boolean deleteProjectToken(
             @PathVariable Integer projectId,
             @PathVariable Integer id
     ) throws CoreException {
-        return deployTokenService.deleteDeployToken(projectId, id);
+        return projectTokenService.deleteProjectToken(projectId, id);
     }
 
     /**
@@ -115,7 +115,7 @@ public class DeployTokenController {
             @PathVariable Integer id,
             boolean enableFlag
     ) throws CoreException {
-        return deployTokenService.enableDeployToken(projectId, id, enableFlag);
+        return projectTokenService.enableProjectToken(projectId, id, enableFlag);
     }
 
     /**
@@ -127,8 +127,8 @@ public class DeployTokenController {
     @ProjectApiProtector(function = Function.ProjectDeployToken, action = Action.View)
     public Result getToken(@PathVariable Integer projectId, @PathVariable Integer id
     ) throws CoreException {
-        DeployTokens deployToken = deployTokenService.getDeployToken(projectId, id);
-        return Result.success(deployToken.getToken());
+        ProjectToken projectToken = projectTokenService.getProjectToken(projectId, id);
+        return Result.success(projectToken.getToken());
     }
 
     /**
@@ -139,7 +139,7 @@ public class DeployTokenController {
     @ProjectApiProtector(function = Function.ProjectDeployToken, action = Action.View)
     public Result getScopes() {
         return Result.success(Stream.of(DeployTokenScopeEnum.values())
-                .map(e -> DeployTokenScopeDTO.builder().value(e.getValue()).text(e.getText()).build())
+                .map(e -> ProjectTokenScopeDTO.builder().value(e.getValue()).text(e.getText()).build())
                 .collect(Collectors.toList()));
     }
 

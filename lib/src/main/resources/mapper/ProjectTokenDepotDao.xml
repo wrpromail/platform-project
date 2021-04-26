@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="net.coding.lib.project.dao.DeployTokenArtifactsDao">
-  <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.DeployTokenArtifacts">
+<mapper namespace="net.coding.lib.project.dao.ProjectTokenDepotDao">
+  <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ProjectTokenDepot">
     <id column="id" jdbcType="INTEGER" property="id" />
     <result column="deploy_token_id" jdbcType="INTEGER" property="deployTokenId" />
-    <result column="artifact_id" jdbcType="INTEGER" property="artifactId" />
-    <result column="artifact_scope" jdbcType="VARCHAR" property="artifactScope" />
+    <result column="depot_id" jdbcType="INTEGER" property="depotId" />
+    <result column="depot_scope" jdbcType="VARCHAR" property="depotScope" />
     <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
     <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
     <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt" />
   </resultMap>
   <sql id="Base_Column_List">
-    id, deploy_token_id, artifact_id, artifact_scope, updated_at, created_at, deleted_at
+    id, deploy_token_id, depot_id, depot_scope, updated_at, created_at, deleted_at
   </sql>
 
-  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="net.coding.lib.project.entity.DeployTokenArtifacts" useGeneratedKeys="true">
-    insert into deploy_token_artifacts
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="net.coding.lib.project.entity.ProjectTokenDepot" useGeneratedKeys="true">
+    insert into deploy_token_depots
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="deployTokenId != null">
         deploy_token_id,
       </if>
-      <if test="artifactId != null">
-        artifact_id,
+      <if test="depotId != null">
+        depot_id,
       </if>
-      <if test="artifactScope != null">
-        artifact_scope,
+      <if test="depotScope != null">
+        depot_scope,
       </if>
       <if test="updatedAt != null">
         updated_at,
@@ -40,11 +40,11 @@
       <if test="deployTokenId != null">
         #{deployTokenId,jdbcType=INTEGER},
       </if>
-      <if test="artifactId != null">
-        #{artifactId,jdbcType=INTEGER},
+      <if test="depotId != null">
+        #{depotId,jdbcType=INTEGER},
       </if>
-      <if test="artifactScope != null">
-        #{artifactScope,jdbcType=VARCHAR},
+      <if test="depotScope != null">
+        #{depotScope,jdbcType=VARCHAR},
       </if>
       <if test="updatedAt != null">
         #{updatedAt,jdbcType=TIMESTAMP},
@@ -58,24 +58,17 @@
     </trim>
   </insert>
 
-  <update id="deleteByDeployTokenArtifacts" >
-    update deploy_token_artifacts
-    set deleted_at=NOW()
+  <update id="deleteByProjectTokenDepot">
+    update  deploy_token_depots set deleted_at = NOW()
     where  deploy_token_id = #{deployTokenId}
-    and deleted_at = #{deletedAt}
+    and deleted_at =  #{deletedAt}
   </update>
 
-  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
-    select
-    <include refid="Base_Column_List" />
-    from deploy_token_artifacts
-    where id = #{id,jdbcType=INTEGER}
-  </select>
+  <select id="getProjectTokenDepot" resultMap="BaseResultMap">
 
-  <select id="getDeployTokenArtifacts" resultMap="BaseResultMap">
     select
     <include refid="Base_Column_List" />
-    from deploy_token_artifacts
+    from deploy_token_depots
     <where>
       deploy_token_id = #{deployTokenId}
       and deleted_at = #{deletedAt}
