@@ -410,12 +410,6 @@ public class ProjectService {
      * 删除项目
      */
     public void delete(Integer userId, Integer teamId, Integer projectId) throws CoreException {
-        ProjectMember projectMember = projectMemberService.getByProjectIdAndUserId(
-                projectId,
-                userId);
-        if (projectMember == null) {
-            throw CoreException.of(CoreException.ExceptionType.PROJECT_MEMBER_NOT_EXISTS);
-        }
         Project project = getByIdAndTeamId(projectId, teamId);
         if (project == null) {
             throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
