@@ -1,11 +1,17 @@
 package net.coding.app.project.http;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+
 import java.util.List;
 import java.util.stream.Collectors;
+
 import javax.validation.Valid;
+
 import lombok.AllArgsConstructor;
+
 import net.coding.app.project.constant.GatewayHeader;
 import net.coding.common.annotation.ProjectApiProtector;
 import net.coding.common.annotation.ProtectedAPI;
@@ -16,6 +22,7 @@ import net.coding.lib.project.dao.MergeRequestLabelDao;
 import net.coding.lib.project.dto.ProjectLabelDTO;
 import net.coding.lib.project.form.ProjectLabelForm;
 import net.coding.lib.project.service.ProjectLabelService;
+
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,7 +38,10 @@ public class ProjectLableController {
     private final ProjectLabelService projectLabelService;
     private final MergeRequestLabelDao mrLabelDao;
 
-    @ApiOperation(value = "列表", tags = "列表")
+    @ApiOperation(value = "项目标签列表", notes = "项目标签列表")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "projectId", value = "项目 ID（必填）", paramType = "integer", required = true)
+    })
     @ProtectedAPI
     @RequestMapping(value = "", method = RequestMethod.GET)
     public List<ProjectLabelDTO> getAllLabelByProject(
@@ -52,7 +62,11 @@ public class ProjectLableController {
                 .collect(Collectors.toList());
     }
 
-    @ApiOperation(value = "创建标签", tags = "创建标签")
+    @ApiOperation(value = "创建标签", notes = "创建标签")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "projectId", value = "项目 ID（必填）", paramType = "integer", required = true),
+            @ApiImplicitParam(name = "form", value = "项目表单（必填）", paramType = "form", required = true)
+    })
     @ProtectedAPI
     @RequestMapping(value = "", method = RequestMethod.POST)
     public int createLabel(
@@ -64,7 +78,12 @@ public class ProjectLableController {
         return projectLabelService.createLabel(userId, form);
     }
 
-    @ApiOperation(value = "编辑标签", tags = "编辑标签")
+    @ApiOperation(value = "编辑标签", notes = "编辑标签")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "projectId", value = "项目 ID（必填）", paramType = "integer", required = true),
+            @ApiImplicitParam(name = "labelId", value = "项目标签 ID（必填）", paramType = "integer", required = true),
+            @ApiImplicitParam(name = "form", value = "项目表单（必填）", paramType = "form", required = true)
+    })
     @ProjectApiProtector(function = Function.ProjectLabel, action = Action.Update)
     @ProtectedAPI
     @RequestMapping(value = "{labelId}", method = RequestMethod.PUT)
@@ -78,7 +97,11 @@ public class ProjectLableController {
         return projectLabelService.updateLabel(userId, labelId, form);
     }
 
-    @ApiOperation(value = "删除标签", tags = "删除标签")
+    @ApiOperation(value = "删除标签", notes = "删除标签")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "projectId", value = "项目 ID（必填）", paramType = "integer", required = true),
+            @ApiImplicitParam(name = "labelId", value = "项目标签 ID（必填）", paramType = "integer", required = true)
+    })
     @ProjectApiProtector(function = Function.ProjectLabel, action = Action.Delete)
     @ProtectedAPI
     @RequestMapping(value = "{labelId}", method = RequestMethod.DELETE)
