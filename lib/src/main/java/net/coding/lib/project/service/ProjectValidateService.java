@@ -97,7 +97,7 @@ public class ProjectValidateService {
 
     }
 
-    public void validateCreateProject(ProjectCreateParameter parameter,String email) throws CoreException {
+    public void validateCreateProject(ProjectCreateParameter parameter, String email) throws CoreException {
         if (StringUtils.isBlank(parameter.getName())) {
             throw CoreException.of(PROJECT_NAME_IS_EMPTY);
         }
@@ -126,16 +126,6 @@ public class ProjectValidateService {
             throw CoreException.of(PROJECT_TYPE_INVALID);
         }
 
-        //todo http 请求时 需注意
-/*        if (!"true".equalsIgnoreCase(parameter.getGitReadmeEnabled())) {
-            gitReadmeEnabled = "false";
-        }
-        if (!"true".equalsIgnoreCase(parameter.getCreateSvnLayout())) {
-            createSvnLayout = "false";
-        }
-        if (parameter.getShared() != ENABLE_SHARED) {
-            shared = DISABLE_SHARED;
-        }*/
         if (!"git".equalsIgnoreCase(parameter.getVcsType())
                 && !"svn".equalsIgnoreCase(parameter.getVcsType())
                 && !"hg".equalsIgnoreCase(parameter.getVcsType())) {
@@ -144,10 +134,8 @@ public class ProjectValidateService {
         if ("svn".equalsIgnoreCase(parameter.getVcsType()) && StringUtils.isBlank(email)) {
             throw CoreException.of(CoreException.ExceptionType.USER_EMAIL_NOT_BIND);
         }
-        if (StringUtils.isNotEmpty(parameter.getTemplate())
-                && DemoProjectTemplateEnums.string2enum(parameter.getTemplate()) == null) {
-            throw CoreException.of(PARAMETER_INVALID);
-        }
+
+        validateTemplate(parameter.getTemplate());
     }
 
     public static boolean checkProjectName(String projectName) {
@@ -266,7 +254,7 @@ public class ProjectValidateService {
         return false;
     }
 
-    public static boolean checkCloudProjectName(String projectName) {
+    public boolean checkCloudProjectName(String projectName) {
         return !(!projectName.matches(PROJECT_NAME_CLOUD_REGEX) || projectName.endsWith(".git"));
     }
 
@@ -275,4 +263,10 @@ public class ProjectValidateService {
                 && EnumUtils.isValidEnum(ProjectTemplateEnums.class, projectTemplate);
     }
 
+    public void validateTemplate(String template) throws CoreException {
+        if (StringUtils.isNotEmpty(template)
+                && DemoProjectTemplateEnums.string2enum(template) == null) {
+            throw CoreException.of(PARAMETER_INVALID);
+        }
+    }
 }

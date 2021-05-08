@@ -239,7 +239,7 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
         } catch (CoreException e) {
             log.error("RpcService createProjectWithTemplate error CoreException ", e);
             createProjectWithTemplateResponse(responseObserver, NOT_FOUND,
-                    e.getMessage(), 0);
+                    e.getMsg(), 0);
         } catch (Exception e) {
             log.error("rpcService createProjectWithTemplate error Exception ", e);
             createProjectWithTemplateResponse(responseObserver, INVALID_PARAMETER,
@@ -259,7 +259,7 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
         } catch (CoreException e) {
             log.error("RpcService createCodingProject error CoreException ", e);
             createProjectWithTemplateResponse(responseObserver, NOT_FOUND,
-                    e.getMessage(), 0);
+                    e.getMsg(), 0);
         } catch (Exception e) {
             log.error("rpcService createCodingProject error Exception ", e);
             createProjectWithTemplateResponse(responseObserver, INVALID_PARAMETER,

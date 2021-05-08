@@ -134,18 +134,45 @@ public class ProjectSettingService {
     public ProjectSetting updateProjectTaskHide(Integer projectId, boolean hide) {
         ProjectSetting projectSetting = findProjectSetting(projectId, ProjectSetting.Code.TASK_HIDE.getCode());
         if (null == projectSetting) {
-            projectSetting = new ProjectSetting();
-            projectSetting.setProjectId(projectId);
-            projectSetting.setCode(ProjectSetting.Code.TASK_HIDE.getCode());
-            projectSetting.setValue(hide ? ProjectSetting.valueTrue : ProjectSetting.valueFalse);
-            projectSetting.setDescription(ProjectSetting.Code.TASK_HIDE.getDescription());
-
+            projectSetting = ProjectSetting.builder()
+                    .projectId(projectId)
+                    .code(ProjectSetting.Code.TASK_HIDE.getCode())
+                    .value(hide ? ProjectSetting.valueTrue : ProjectSetting.valueFalse)
+                    .description(ProjectSetting.Code.TASK_HIDE.getDescription())
+                    .createdAt(new Timestamp(System.currentTimeMillis()))
+                    .updatedAt(new Timestamp(System.currentTimeMillis()))
+                    .deletedAt(BeanUtils.getDefaultDeletedAt())
+                    .build();
             projectSettingsDao.insert(projectSetting);
         } else {
             projectSetting.setValue(hide ? ProjectSetting.valueTrue : ProjectSetting.valueFalse);
             projectSettingsDao.update(projectSetting);
         }
 
+        CacheManager.evict(CACHE_REGION, "getAllFunction:" + projectId);
+
+        return projectSetting;
+    }
+
+    /**
+     * 更新模版开关
+     */
+    public ProjectSetting updateProjectSetting(Integer projectId, String code, String value) {
+        ProjectSetting projectSetting = findProjectSetting(projectId, code);
+        if (projectSetting == null) {
+            projectSetting = ProjectSetting.builder()
+                    .projectId(projectId)
+                    .code(code)
+                    .description(value)
+                    .createdAt(new Timestamp(System.currentTimeMillis()))
+                    .updatedAt(new Timestamp(System.currentTimeMillis()))
+                    .deletedAt(BeanUtils.getDefaultDeletedAt())
+                    .build();
+            projectSettingsDao.insert(projectSetting);
+        } else {
+            projectSetting.setValue(value);
+            projectSettingsDao.update(projectSetting);
+        }
         CacheManager.evict(CACHE_REGION, "getAllFunction:" + projectId);
 
         return projectSetting;

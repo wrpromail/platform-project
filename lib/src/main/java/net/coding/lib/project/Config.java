@@ -13,6 +13,9 @@ import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+
 import tk.mybatis.spring.annotation.MapperScan;
 
 import static okhttp3.logging.HttpLoggingInterceptor.Level.BODY;
@@ -42,5 +45,10 @@ public class Config {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.setRequestFactory(new OkHttp3ClientHttpRequestFactory());
         return restTemplate;
+    }
+
+    @Bean
+    public TransactionTemplate transactionTemplate(PlatformTransactionManager platformTransactionManager) {
+        return new TransactionTemplate(platformTransactionManager);
     }
 }
