@@ -14,6 +14,7 @@ import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dao.ProjectDao;
 import net.coding.lib.project.dao.ProjectMemberDao;
 import net.coding.lib.project.dto.ProjectMemberDTO;
+import net.coding.lib.project.dto.ProjectTeamMemberDTO;
 import net.coding.lib.project.dto.RoleDTO;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
@@ -128,7 +129,7 @@ public class ProjectMemberService {
         return projectMemberDao.getByProjectIdAndUserId(projectId, userId, Timestamp.valueOf(BeanUtils.NOT_DELETED_AT));
     }
 
-    public ResultPage<ProjectMemberDTO> getProjectMembers(Integer projectId, String keyWord, PageRowBounds pager) throws CoreException {
+    public ResultPage<ProjectMemberDTO> getProjectMembers(Integer projectId, String keyWord, PageRowBounds pager) {
         if (Objects.isNull(projectDao.getProjectById(projectId))) {
             CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
         }
@@ -258,10 +259,19 @@ public class ProjectMemberService {
         } catch (Exception e) {
             log.error("advancedRoleServiceGrpcClient findProjectRoleByRoleAndProject is error{} ", e.getMessage());
         }
-
-
     }
 
+    public ResultPage<ProjectTeamMemberDTO> getMemberWithProjectAndTeam(
+            Integer projectId,
+            String keyWord,
+            PageRowBounds pager
+    ) throws CoreException {
+        if (Objects.isNull(projectDao.getProjectById(projectId))) {
+            throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
+        }
+        List<ProjectTeamMemberDTO> members = projectMemberDao.getMemberWithProjectAndTeam(projectId, keyWord, pager);
+        return new ResultPageFactor<ProjectTeamMemberDTO>().def(pager, members);
+    }
 
     private List<RoleDTO> toRoleDTO(List<AclProto.Role> roles) {
         List<RoleDTO> list = new ArrayList<>();

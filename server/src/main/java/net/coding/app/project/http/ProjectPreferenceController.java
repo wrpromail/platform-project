@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -27,6 +31,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @RestController
 @RequestMapping("/api/platform/project")
 @AllArgsConstructor
+@Api(value = "项目偏好", tags = "项目偏好")
 public class ProjectPreferenceController {
 
     private final ProjectPreferenceService projectPreferenceService;
@@ -38,6 +43,10 @@ public class ProjectPreferenceController {
      * @param projectId 项目编号
      * @return 项目偏好设置的列表
      */
+    @ApiOperation(value = "项目偏好设置的列表", notes = "项目偏好设置的列表")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "projectId", value = "项目 ID（必填）", paramType = "integer", required = true)
+    })
     @ProtectedAPI
     @RequestMapping(value = "/{projectId}/preference/get", method = GET)
     public List<ProjectPreferenceDTO> getProjectPreferences(
@@ -55,6 +64,12 @@ public class ProjectPreferenceController {
      * @param type      偏好设置类型
      * @param status    偏好设置状态
      */
+    @ApiOperation(value = "项目偏好设置", notes = "项目偏好设置")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "projectId", value = "项目 ID（必填）", paramType = "integer", required = true),
+            @ApiImplicitParam(name = "type", value = "类型", paramType = "integer", required = true),
+            @ApiImplicitParam(name = "status", value = "开关状态 0 ：关；1 ：开", paramType = "integer", required = true)
+    })
     @ProtectedAPI
     @RequestMapping(value = "/{projectId}/preference/toggle", method = POST)
     public Result toggleProjectPreference(

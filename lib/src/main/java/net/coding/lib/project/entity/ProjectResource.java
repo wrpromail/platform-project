@@ -3,6 +3,8 @@ package net.coding.lib.project.entity;
 import java.io.Serializable;
 import java.util.Date;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,66 +14,47 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@ApiModel(value = "项目资源")
 public class ProjectResource implements Serializable {
 
     private static final long serialVersionUID = 1000000000002L;
 
-    /**
-     * 编号
-     */
+    @ApiModelProperty(value = "主键 ID ")
     private Integer id;
 
+    @ApiModelProperty(value = "项目 ID ")
     private Integer projectId;
 
-    /**
-     * 删除时间
-     */
+    @ApiModelProperty(value = "删除时间")
     private Date deletedAt;
 
-    /**
-     * 资源类型
-     */
+    @ApiModelProperty(value = "资源类型")
     private String targetType;
 
-    /**
-     * 资源编号
-     */
+    @ApiModelProperty(value = "资源编号")
     private Integer targetId;
 
-    /**
-     * 资源序号
-     */
+    @ApiModelProperty(value = "资源序号")
     private Integer code;
 
+    @ApiModelProperty(value = "标题")
     private String title;
 
-    /**
-     * 创建时间
-     */
+    @ApiModelProperty(value = "创建时间")
     private Date createdAt;
 
-    /**
-     * 创建人
-     */
+    @ApiModelProperty(value = "创建人")
     private Integer createdBy;
 
-    /**
-     * 修改时间
-     */
+    @ApiModelProperty(value = "修改时间")
     private Date updatedAt;
 
-    /**
-     * 修改人
-     */
+    @ApiModelProperty(value = "修改人")
     private Integer updatedBy;
 
-    /**
-     * 删除人
-     */
+    @ApiModelProperty(value = "删除人")
     private Integer deletedBy;
 
-    /**
-     * 资源地址
-     */
+    @ApiModelProperty(value = "资源地址")
     private String resourceUrl;
 }
