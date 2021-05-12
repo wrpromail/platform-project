@@ -29,6 +29,7 @@ import net.coding.lib.project.hook.trigger.CreateMemberEventTriggerTrigger;
 import net.coding.lib.project.hook.trigger.DeleteMemberEventTriggerTrigger;
 import net.coding.lib.project.hook.trigger.UpdateMemberRoleEventTriggerTrigger;
 import net.coding.lib.project.pager.ResultPageFactor;
+import net.coding.lib.project.service.download.CodingSettings;
 import net.coding.lib.project.utils.UserUtil;
 
 import org.apache.commons.lang3.StringUtils;
@@ -81,7 +82,7 @@ public class ProjectMemberService {
     private final CreateMemberEventTriggerTrigger createMemberEventTrigger;
     private final DeleteMemberEventTriggerTrigger deleteMemberEventTrigger;
     private final UpdateMemberRoleEventTriggerTrigger updateMemberRoleEventTriggerTrigger;
-
+    private final CodingSettings codingSettings;
 
     public ProjectMember getById(Integer id) {
         return projectMemberDao.getById(id);
@@ -353,7 +354,11 @@ public class ProjectMemberService {
         if (Objects.isNull(user) || Objects.isNull(projectId)) {
             return false;
         }
-        if (projectGrpcClient.isProjectRobotUser(user.getGlobalKey())) {
+        boolean flag = StringUtils.equals(
+                user.getGlobalKey(),
+                codingSettings.getEnterprise().getTokenUser()
+        );
+        if (flag) {
             return true;
         }
         return getByProjectIdAndUserId(projectId, user.getId()) != null;
