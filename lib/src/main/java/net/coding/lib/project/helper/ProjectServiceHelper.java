@@ -59,6 +59,7 @@ import lombok.extern.slf4j.Slf4j;
 import proto.notification.NotificationProto;
 import proto.platform.logging.loggingProto;
 import proto.platform.project.ProjectProto;
+import proto.platform.team.TeamProto;
 
 import static net.coding.common.constants.ProjectConstants.ACTION_CREATE;
 import static net.coding.common.constants.ProjectConstants.ACTION_DELETE;
@@ -459,6 +460,32 @@ public class ProjectServiceHelper {
         sentProjectMemberNotification(userIds, message, projectId);
     }
 
+    public void postMemberQuitEvent(Project project, ProjectMember projectMember) {
+        asyncEventBus.post(
+                ProjectMemberDeleteEvent.builder()
+                        .projectId(project.getId())
+                        .userId(projectMember.getUserId())
+                        .build()
+        );
+        asyncEventBus.post(
+                ActivityEvent.builder()
+                        .creatorId(projectMember.getUserId())
+                        .type(net.coding.e.lib.core.bean.ProjectMember.class)
+                        .targetId(projectMember.getId())
+                        .projectId(projectMember.getProjectId())
+                        .action(net.coding.e.lib.core.bean.ProjectMember.ACTION_QUIT)
+                        .content("")
+                        .build()
+        );
+        TeamProto.Team team = teamGrpcClient.getTeam(project.getId()).getData();
+        List<Integer> userIds = new ArrayList<>();
+        userIds.add( team.getOwner().getId());
+        String userLink = userGrpcClient.getUserHtmlLinkById(projectMember.getUserId());
+        String projectHtmlUrl = projectHtmlLink(project.getId());
+        String message = ResourceUtil.ui("notification_member_quit",
+                userLink, projectHtmlUrl);
+        sentProjectMemberNotification(userIds, message, project.getId());
+    }
 
     private void sentProjectMemberNotification(List<Integer> userIds, String message, Integer projectId) {
         notificationGrpcClient.send(NotificationProto.NotificationSendRequest.newBuilder()

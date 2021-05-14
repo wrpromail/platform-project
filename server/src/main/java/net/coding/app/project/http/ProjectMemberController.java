@@ -102,7 +102,6 @@ public class ProjectMemberController {
     })
     @ApiResponses(value = {@ApiResponse(code = 200, message = "Success", response = ProjectTeamMemberDTO.class)})
     @ProtectedAPI
-    @EnterpriseApiProtector(function = Function.EnterpriseProject, action = Action.View)
     @RequestMapping(value = "/with/team-member", method = RequestMethod.GET)
     public Result memberList(
             @PathVariable(value = "projectId") Integer projectId,
@@ -110,5 +109,16 @@ public class ProjectMemberController {
             @PagerResolve PageRowBounds pager
     ) throws CoreException {
         return Result.success(projectMemberService.getMemberWithProjectAndTeam(projectId, keyWord, pager));
+    }
+
+    @ApiOperation(value = "quit", notes = "退出当前项目")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "projectId", value = "项目 ID（必填）", paramType = "integer", required = true)
+    })
+    @ApiResponses(value = {@ApiResponse(code = 200, message = "Success", response = boolean.class)})
+    @ProtectedAPI(oauthScope = OAuthConstants.Scope.PROJECT_MEMBERS)
+    @RequestMapping(value = {"/quit"}, method = RequestMethod.POST)
+    public Result quit(@PathVariable("projectId") int projectId) throws CoreException {
+        return Result.of(projectMemberService.quit(projectId) == 1);
     }
 }
