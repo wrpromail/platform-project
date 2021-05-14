@@ -3,12 +3,17 @@ package net.coding.lib.project.service;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+
 import net.coding.common.cache.evict.constant.CacheType;
 import net.coding.common.cache.evict.constant.TableMapping;
 import net.coding.common.cache.evict.definition.MappingSerialize;
 import net.coding.common.cache.evict.manager.EvictCacheManager;
 import net.coding.common.redis.api.JedisManager;
 import net.coding.common.util.BeanUtils;
+import net.coding.common.util.LimitedPager;
+import net.coding.common.util.ResultPage;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.lib.project.dao.ProjectGroupProjectDao;
 import net.coding.lib.project.dao.TeamProjectDao;
@@ -43,7 +48,6 @@ import net.coding.proto.CredentialProto;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -144,8 +148,14 @@ public class ProjectService {
     }
 
 
-    public List<Project> getProjects(ProjectQueryParameter parameter) {
-        return projectDao.findByProjects(parameter);
+    public List<Project> getUserProjects(ProjectQueryParameter parameter) {
+        return projectDao.getUserProjects(parameter);
+    }
+
+    public ResultPage<Project> getProjects(ProjectQueryParameter parameter, LimitedPager pager) {
+        PageInfo<Project> pageInfo = PageHelper.startPage(pager.getPage(), pager.getPageSize())
+                .doSelectPageInfo(() -> projectDao.getProjects(parameter));
+        return new ResultPage<>(pageInfo.getList(), pager.getPage(), pager.getPageSize(), pageInfo.getTotal());
     }
 
     public void validateUpDate(UpdateProjectForm updateProjectForm, Errors errors) throws CoreException {
