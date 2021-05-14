@@ -22,7 +22,6 @@ import net.coding.lib.project.entity.ProjectTweet;
 import net.coding.lib.project.enums.CacheTypeEnum;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.AddMemberForm;
-import net.coding.lib.project.grpc.client.IssueServiceGrpcClient;
 import net.coding.lib.project.grpc.client.ProjectGrpcClient;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.helper.ProjectServiceHelper;
@@ -78,8 +77,6 @@ public class ProjectMemberService {
     private final ProjectServiceHelper projectServiceHelper;
 
     private final ProjectGrpcClient projectGrpcClient;
-
-    private final IssueServiceGrpcClient issueServiceGrpcClient;
 
     private final CreateMemberEventTriggerTrigger createMemberEventTrigger;
     private final DeleteMemberEventTriggerTrigger deleteMemberEventTrigger;
@@ -392,11 +389,6 @@ public class ProjectMemberService {
         if ((currentMember.getType().compareTo(member.getType()) <= 0) || member.getType().equals(OWNER)) {
             throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
         }
-
-        int progressIssueCount = issueServiceGrpcClient.countUsingProjectIssuesByProjectAndUser(projectId, targetUserId);
-        if (progressIssueCount > 0) {
-            throw CoreException.of(CoreException.ExceptionType.DELETE_MEMBER_FAIL_HAVE_PROGRESS_ISSUE);
-        }
         int result = projectMemberDao.deleteMember(projectId, targetUserId, BeanUtils.getDefaultDeletedAt());
         if (result > 0) {
             List<String> roleIdList = advancedRoleServiceGrpcClient.findUserRolesInProject
@@ -409,6 +401,32 @@ public class ProjectMemberService {
             handleCache(member, CacheTypeEnum.DELETE);
         }
 
+    }
+
+    public int quit(Integer projectId) throws CoreException {
+        Project project = projectDao.getProjectById(projectId);
+        if (null == project) {
+            throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
+        }
+        UserProto.User currentUser = SystemContextHolder.get();
+        if(null == currentUser){
+            throw CoreException.of(CoreException.ExceptionType.USER_NOT_LOGIN);
+        }
+        if (!isMember(currentUser, project.getId())) {
+            throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
+        }
+        ProjectMember targetProjectMember = getByProjectIdAndUserId(project.getId(), currentUser.getId());
+        if (targetProjectMember == null) {
+            throw CoreException.of(CoreException.ExceptionType.PARAMETER_INVALID);
+        }
+        Integer userId = targetProjectMember.getUserId();
+        int result = projectMemberDao.deleteMember(project.getId(), userId, BeanUtils.getDefaultDeletedAt());
+        if (result > 0) {
+            advancedRoleServiceGrpcClient.removeUserRoleRecordsInProject(project.getId(), userId);
+            projectServiceHelper.postMemberQuitEvent(project, targetProjectMember);
+            handleCache(targetProjectMember, CacheTypeEnum.DELETE);
+        }
+        return result;
     }
 
     public boolean updateVisitTime(Integer projectMemberId) {

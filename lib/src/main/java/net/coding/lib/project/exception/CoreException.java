@@ -214,10 +214,7 @@ public class CoreException extends Exception {
         DEPLOY_TOKEN_NAME_EMPTY(7299, "deploy_token_name_empty"),
         DEPLOY_TOKEN_DISABLED(7300, "deploy_token_disabled"),
         DEPLOY_TOKEN_EXPIRED(7301, "deploy_token_expired"),
-        ENTERPRISE_NOT_EXISTS(5003, "enterprise_not_exists"),
-        DELETE_MEMBER_FAIL_HAVE_PROGRESS_ISSUE(8096, "delete_member_fail_have_progress_issue"), // 删除项目用户
-        ;
-
+        ENTERPRISE_NOT_EXISTS(5003, "enterprise_not_exists");
         private final int errorCode;
         private final String resourceKey;
         private Object[] args;
