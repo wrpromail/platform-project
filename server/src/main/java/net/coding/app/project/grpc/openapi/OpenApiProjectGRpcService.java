@@ -2,14 +2,14 @@ package net.coding.app.project.grpc.openapi;
 
 import net.coding.app.project.utils.ProtoConvertUtils;
 import net.coding.common.i18n.utils.LocaleMessageSource;
+import net.coding.common.util.LimitedPager;
+import net.coding.common.util.ResultPage;
 import net.coding.grpc.client.permission.AclServiceGrpcClient;
-import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.grpc.client.platform.TeamServiceGrpcClient;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.enums.ProjectLabelEnums;
 import net.coding.lib.project.enums.RegisterSourceEnum;
-import net.coding.lib.project.enums.RoleType;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.UpdateProjectForm;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
@@ -23,13 +23,13 @@ import org.apache.commons.collections.CollectionUtils;
 import org.lognet.springboot.grpc.GRpcService;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 
 import io.grpc.stub.StreamObserver;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import proto.acl.AclProto;
 import proto.open.api.CodeProto;
 import proto.open.api.ResultProto;
 import proto.open.api.project.ProjectProto;
@@ -38,6 +38,7 @@ import proto.platform.permission.PermissionProto;
 import proto.platform.team.TeamProto;
 import proto.platform.user.UserProto;
 
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PERMISSION_DENIED;
 import static proto.open.api.CodeProto.Code.INVALID_PARAMETER;
 import static proto.open.api.CodeProto.Code.NOT_FOUND;
 import static proto.open.api.CodeProto.Code.SUCCESS;
@@ -68,9 +69,48 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
 
     private final AclServiceGrpcClient aclServiceGrpcClient;
 
-    private final AdvancedRoleServiceGrpcClient advancedRoleServiceGrpcClient;
-
     private final LocaleMessageSource localeMessageSource;
+
+
+    @Override
+    public void describeCodingProjects(
+            ProjectProto.DescribeCodingProjectsRequest request,
+            StreamObserver<ProjectProto.DescribeCodingProjectsResponse> responseObserver) {
+        try {
+            Integer currentUserId = request.getUser().getId();
+            Integer currentTeamId = request.getUser().getTeamId();
+            //验证用户接口权限
+            boolean hasPermissionInProject = aclServiceGrpcClient.hasPermissionInEnterprise(
+                    PermissionProto.Permission.newBuilder()
+                            .setFunction(PermissionProto.Function.EnterpriseProject)
+                            .setAction(PermissionProto.Action.View)
+                            .build(),
+                    currentUserId,
+                    currentTeamId
+            );
+            //有权限可以查询其他成员所在项目，否则只能查询自己
+            if (!hasPermissionInProject) {
+                throw CoreException.of(PERMISSION_DENIED);
+            }
+            LimitedPager pager = new LimitedPager(request.getPageNumber(), request.getPageSize());
+            ResultPage<Project> resultPage = projectService.getProjects(
+                    ProjectQueryParameter.builder()
+                            .teamId(currentTeamId)
+                            .projectName(request.getProjectName())
+                            .build(),
+                    pager);
+            describeCodingProjectsResponse(responseObserver, SUCCESS,
+                    SUCCESS.name().toLowerCase(), resultPage);
+        } catch (CoreException e) {
+            log.error("RpcService describeCodingProjects error CoreException ", e);
+            describeCodingProjectsResponse(responseObserver, NOT_FOUND,
+                    localeMessageSource.getMessage(e.getKey()), null);
+        } catch (Exception e) {
+            log.error("rpcService describeCodingProjects error Exception ", e);
+            describeCodingProjectsResponse(responseObserver, INVALID_PARAMETER,
+                    INVALID_PARAMETER.name().toLowerCase(), null);
+        }
+    }
 
     /**
      * 查询项目列表 根据label查询
@@ -93,12 +133,11 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
                 }
                 userId = response.getData().getOwner().getId();
             }
-            List<Project> projects = projectService.getProjects(
+            List<Project> projects = projectService.getUserProjects(
                     ProjectQueryParameter.builder()
                             .userId(userId)
                             .teamId(request.getUser().getTeamId())
                             .label(request.getLabel())
-                            .invisible(0)
                             .build()
             );
             DescribeProjectsResponse(responseObserver, SUCCESS,
@@ -138,13 +177,14 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
             );
             //有权限可以查询其他成员所在项目，否则只能查询自己
             if (!hasPermissionInProject && currentUserId != request.getUserId()) {
-                throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
+                throw CoreException.of(PERMISSION_DENIED);
             }
-            List<Project> projects = projectService.getProjects(
+            List<Project> projects = projectService.getUserProjects(
                     ProjectQueryParameter.builder()
                             .userId(request.getUserId())
                             .teamId(currentTeamId)
                             .projectName(request.getProjectName())
+                            .invisible(0)
                             .build()
             );
             DescribeProjectsResponse(responseObserver, SUCCESS,
@@ -244,7 +284,7 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
                     currentUser.getId()
             );
             if (!hasPermissionInProject) {
-                throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
+                throw CoreException.of(PERMISSION_DENIED);
             }
             projectService.delete(currentUser.getId(), currentUser.getTeamId(), request.getProjectId());
             CommonResponse(responseObserver, SUCCESS, SUCCESS.name().toLowerCase());
@@ -281,7 +321,7 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
                     currentUser.getId()
             );
             if (!hasPermissionInProject) {
-                throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
+                throw CoreException.of(PERMISSION_DENIED);
             }
 
             int result = projectService.update(
@@ -307,6 +347,33 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
             CommonResponse(responseObserver, INVALID_PARAMETER,
                     INVALID_PARAMETER.name().toLowerCase());
         }
+    }
+
+    private void describeCodingProjectsResponse(
+            StreamObserver<ProjectProto.DescribeCodingProjectsResponse> responseObserver,
+            CodeProto.Code code,
+            String message,
+            ResultPage<Project> resultPage) {
+        ResultProto.Result result = ResultProto.Result.newBuilder()
+                .setCode(code.getNumber())
+                .setId(0)
+                .setMessage(message)
+                .build();
+        ProjectProto.DescribeCodingProjectsResponse.Builder builder = ProjectProto
+                .DescribeCodingProjectsResponse.newBuilder()
+                .setResult(result);
+
+        if (Objects.nonNull(resultPage)) {
+            ProjectProto.ProjectsData data = ProjectProto.ProjectsData.newBuilder()
+                    .setPageNumber(resultPage.getPage())
+                    .setPageSize(resultPage.getPageSize())
+                    .setTotalCount((int) resultPage.getTotalRow())
+                    .addAllProjectList(protoConvertUtils.describeProjectsToProtoList(resultPage.getList()))
+                    .build();
+            builder.setData(data);
+        }
+        responseObserver.onNext(builder.build());
+        responseObserver.onCompleted();
     }
 
     private void DescribeProjectsResponse(

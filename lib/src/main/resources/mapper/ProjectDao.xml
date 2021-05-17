@@ -1,33 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="net.coding.lib.project.dao.ProjectDao">
-  <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.Project">
-    <id column="id" jdbcType="INTEGER" property="id" />
-    <result column="owner_id" jdbcType="INTEGER" property="ownerId" />
-    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
-    <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
-    <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt" />
-    <result column="status" jdbcType="SMALLINT" property="status" />
-    <result column="recommended" jdbcType="SMALLINT" property="recommended" />
-    <result column="depot_shared" jdbcType="TINYINT" property="depotShared" />
-    <result column="type" jdbcType="TINYINT" property="type" />
-    <result column="max_member" jdbcType="SMALLINT" property="maxMember" />
-    <result column="name" jdbcType="VARCHAR" property="name" />
-    <result column="name_pinyin" jdbcType="VARCHAR" property="namePinyin" />
-    <result column="display_name" jdbcType="VARCHAR" property="displayName" />
-    <result column="description" jdbcType="VARCHAR" property="description" />
-    <result column="icon" jdbcType="VARCHAR" property="icon" />
-    <result column="plan" jdbcType="TINYINT" property="plan" />
-    <result column="team_owner_id" jdbcType="INTEGER" property="teamOwnerId" />
-    <result column="user_owner_id" jdbcType="INTEGER" property="userOwnerId" />
-    <result column="start_date" jdbcType="DATE" property="startDate" />
-    <result column="end_date" jdbcType="DATE" property="endDate" />
-    <result column="project_file_quota" jdbcType="INTEGER" property="projectFileQuota" />
-    <result column="invisible" jdbcType="BOOLEAN" property="invisible" />
-    <result column="label" jdbcType="VARCHAR" property="label" />
-  </resultMap>
+    <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.Project">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="owner_id" jdbcType="INTEGER" property="ownerId"/>
+        <result column="created_at" jdbcType="TIMESTAMP" property="createdAt"/>
+        <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt"/>
+        <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt"/>
+        <result column="status" jdbcType="SMALLINT" property="status"/>
+        <result column="recommended" jdbcType="SMALLINT" property="recommended"/>
+        <result column="depot_shared" jdbcType="TINYINT" property="depotShared"/>
+        <result column="type" jdbcType="TINYINT" property="type"/>
+        <result column="max_member" jdbcType="SMALLINT" property="maxMember"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="name_pinyin" jdbcType="VARCHAR" property="namePinyin"/>
+        <result column="display_name" jdbcType="VARCHAR" property="displayName"/>
+        <result column="description" jdbcType="VARCHAR" property="description"/>
+        <result column="icon" jdbcType="VARCHAR" property="icon"/>
+        <result column="plan" jdbcType="TINYINT" property="plan"/>
+        <result column="team_owner_id" jdbcType="INTEGER" property="teamOwnerId"/>
+        <result column="user_owner_id" jdbcType="INTEGER" property="userOwnerId"/>
+        <result column="start_date" jdbcType="DATE" property="startDate"/>
+        <result column="end_date" jdbcType="DATE" property="endDate"/>
+        <result column="project_file_quota" jdbcType="INTEGER" property="projectFileQuota"/>
+        <result column="invisible" jdbcType="BOOLEAN" property="invisible"/>
+        <result column="label" jdbcType="VARCHAR" property="label"/>
+    </resultMap>
 
-  <sql id="Base_Column_List">
+    <sql id="Base_Column_List">
     id, owner_id, created_at, updated_at, deleted_at, `status`, recommended, depot_shared,
     `type`, max_member, `name`, name_pinyin, display_name, description, icon, `plan`,
     team_owner_id, user_owner_id, start_date, end_date, project_file_quota, invisible,
@@ -35,48 +36,49 @@
   </sql>
 
 
-  <select id="getProjectByNameAndTeamId"  resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM projects
-    where
-         `name` = #{name,jdbcType=VARCHAR}
-      AND team_owner_id=#{teamOwnerId ,jdbcType=INTEGER}
-      AND deleted_at = '1970-01-01 00:00:00'
-  </select>
+    <select id="getProjectByNameAndTeamId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM projects
+        where
+        `name` = #{name,jdbcType=VARCHAR}
+        AND team_owner_id=#{teamOwnerId ,jdbcType=INTEGER}
+        AND deleted_at = '1970-01-01 00:00:00'
+    </select>
 
-  <select id="getProjectByDisplayNameAndTeamId"  resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM projects
-    where
-    `display_name` = #{displayName,jdbcType=VARCHAR}
-    AND team_owner_id=#{teamOwnerId ,jdbcType=INTEGER}
-    AND deleted_at = '1970-01-01 00:00:00'
-  </select>
+    <select id="getProjectByDisplayNameAndTeamId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM projects
+        where
+        `display_name` = #{displayName,jdbcType=VARCHAR}
+        AND team_owner_id=#{teamOwnerId ,jdbcType=INTEGER}
+        AND deleted_at = '1970-01-01 00:00:00'
+    </select>
 
-  <select id="getProjectByIdAndTeamId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM projects
-    where
-    `id` = #{id}
-    AND team_owner_id=#{teamOwnerId}
-    AND deleted_at = '1970-01-01 00:00:00'
-    LIMIT 1
-  </select>
-  <select id="getProjectById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM projects
-    where
-          id = #{id}
-      AND deleted_at = '1970-01-01 00:00:00'
-    LIMIT 1
-  </select>
+    <select id="getProjectByIdAndTeamId" parameterType="java.lang.Integer"
+            resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM projects
+        where
+        `id` = #{id}
+        AND team_owner_id=#{teamOwnerId}
+        AND deleted_at = '1970-01-01 00:00:00'
+        LIMIT 1
+    </select>
+    <select id="getProjectById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM projects
+        where
+        id = #{id}
+        AND deleted_at = '1970-01-01 00:00:00'
+        LIMIT 1
+    </select>
 
 
-  <update id="updateBasicInfo" >
+    <update id="updateBasicInfo">
     update projects
     set
       `name` = #{name,jdbcType=VARCHAR},
@@ -89,7 +91,7 @@
     where id = #{id,jdbcType=INTEGER}
   </update>
 
-  <update id="updateIcon" >
+    <update id="updateIcon">
     update projects
     set
       icon = #{icon,jdbcType=VARCHAR},
@@ -97,37 +99,54 @@
     where id = #{id,jdbcType=INTEGER}
   </update>
 
-  <select id="findByProjects" resultMap="BaseResultMap">
-    SELECT p.*
-    FROM projects p LEFT JOIN project_members pm
-    ON pm.project_id = p.id
-    <where>
-      p.deleted_at = '1970-01-01 00:00:00'
-      AND pm.deleted_at = '1970-01-01 00:00:00'
-      AND pm.user_id = #{userId}
-      AND p.team_owner_id = #{teamId}
-      <if test="projectName != null and projectName != ''">
-        AND p.`name` = #{projectName}
-      </if>
-      <if test="label != null and label != ''">
-        AND p.label = #{label}
-      </if>
-      <if test="invisible != null and invisible != ''">
-        AND p.invisible = #{invisible}
-      </if>
-    </where>
-    order by p.id desc
-  </select>
+    <select id="getUserProjects" resultMap="BaseResultMap">
+        SELECT p.*
+        FROM projects p LEFT JOIN project_members pm
+        ON pm.project_id = p.id
+        <where>
+            p.deleted_at = '1970-01-01 00:00:00'
+            AND pm.deleted_at = '1970-01-01 00:00:00'
+            AND pm.user_id = #{userId}
+            AND p.team_owner_id = #{teamId}
+            <if test="projectName != null and projectName != ''">
+                AND p.`name` = #{projectName}
+            </if>
+            <if test="label != null and label != ''">
+                AND p.label = #{label}
+            </if>
+            <if test="invisible != null">
+                AND p.invisible = #{invisible}
+            </if>
+        </where>
+        order by p.id desc
+    </select>
 
-  <select id="getProjectsByIds" resultMap="BaseResultMap">
-    select
-    <include refid="Base_Column_List" />
-    from projects
-    where
+    <select id="getProjects" resultMap="BaseResultMap">
+        SELECT p.*
+        FROM projects p LEFT JOIN project_members pm
+        ON pm.project_id = p.id
+        <where>
+            p.deleted_at = '1970-01-01 00:00:00'
+            AND pm.deleted_at = '1970-01-01 00:00:00'
+            AND p.team_owner_id = #{teamId}
+            AND p.invisible = 0
+            <if test="projectName != null and projectName != ''">
+                AND p.`name` = #{projectName}
+            </if>
+
+        </where>
+        order by p.id desc
+    </select>
+
+    <select id="getProjectsByIds" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from projects
+        where
         id in
-    <foreach item = "item" index = "index" collection = "list" open = "(" close = ")" separator=",">
-        #{item}
-    </foreach>
-    and (deleted_at=#{deletedAt} or deleted_at=#{archivedAt})
-  </select>
+        <foreach item="item" index="index" collection="list" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+        and (deleted_at=#{deletedAt} or deleted_at=#{archivedAt})
+    </select>
 </mapper>
