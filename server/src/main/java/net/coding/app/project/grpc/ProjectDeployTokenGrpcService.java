@@ -88,16 +88,13 @@ public class ProjectDeployTokenGrpcService extends ProjectDeployTokenServiceGrpc
             }
             UserProto.User associated;
             if (request.getAssociatedId() > 0) {
-                associated = userGrpcClient.getUserById(request.getUserId());
+                associated = getUser(request.getAssociatedId());
                 if (associated == null) {
-                    log.warn("associated not exist userId {}", request.getAssociatedId());
+                    log.warn("associated not exist associatedId {}", request.getAssociatedId());
                     throw CoreException.of(CoreException.ExceptionType.USER_NOT_EXISTS);
                 }
-                ProjectMember projectMember = projectMemberService.getByProjectIdAndUserId(
-                        request.getProjectId(),
-                        request.getAssociatedId()
-                );
-                if (projectMember == null) {
+                boolean isMember = projectMemberService.isMember(associated, request.getProjectId());
+                if (!isMember) {
                     log.warn("Member not exist userId {},projectId {}", request.getAssociatedId(), request.getProjectId());
                     throw CoreException.of(CoreException.ExceptionType.PROJECT_MEMBER_NOT_EXISTS);
                 }
