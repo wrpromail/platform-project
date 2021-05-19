@@ -214,7 +214,7 @@
           OR project_member.alias LIKE CONCAT('%',#{keyWord},'%')
         )
       </if>
-      order by project_member.id desc
+      order by project_member.id desc,u.id desc
     </select>
 
   <update id="updateProjectMemberType">

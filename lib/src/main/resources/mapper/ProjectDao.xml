@@ -123,11 +123,9 @@
 
     <select id="getProjects" resultMap="BaseResultMap">
         SELECT p.*
-        FROM projects p LEFT JOIN project_members pm
-        ON pm.project_id = p.id
+        FROM projects p
         <where>
             p.deleted_at = '1970-01-01 00:00:00'
-            AND pm.deleted_at = '1970-01-01 00:00:00'
             AND p.team_owner_id = #{teamId}
             AND p.invisible = 0
             <if test="projectName != null and projectName != ''">
