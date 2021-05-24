@@ -9,6 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
 
 @Data
+@SuperBuilder
 @EqualsAndHashCode(callSuper = false)
 public class AndroidCredentialForm extends BaseCredentialForm {
     private String content;

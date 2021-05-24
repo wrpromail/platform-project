@@ -2,7 +2,6 @@ package net.coding.app.project.http;
 
 import com.github.pagehelper.PageRowBounds;
 
-import net.coding.common.annotation.EnterpriseApiProtector;
 import net.coding.common.annotation.ProjectApiProtector;
 import net.coding.common.annotation.ProtectedAPI;
 import net.coding.common.annotation.enums.Action;
@@ -116,7 +115,6 @@ public class ProjectMemberController {
             @ApiImplicitParam(name = "projectId", value = "项目 ID（必填）", paramType = "integer", required = true)
     })
     @ApiResponses(value = {@ApiResponse(code = 200, message = "Success", response = boolean.class)})
-    @ProtectedAPI(oauthScope = OAuthConstants.Scope.PROJECT_MEMBERS)
     @RequestMapping(value = {"/quit"}, method = RequestMethod.POST)
     public Result quit(@PathVariable("projectId") int projectId) throws CoreException {
         return Result.of(projectMemberService.quit(projectId) == 1);

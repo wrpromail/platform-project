@@ -26,6 +26,26 @@ public interface ProjectCredentialDao {
             @Param("deletedAt") Timestamp deletedAt
     );
 
+    List<Credential> getByProjectIdAndGenerateBy(
+            @Param("projectId") Integer projectId,
+            @Param("generateBy") String generateBy,
+            @Param("deletedAt") Timestamp deletedAt
+    );
+
+    List<Credential> listByProjectAndUser(
+            @Param("projectId") Integer projectId,
+            @Param("userId") Integer userId,
+            @Param("allSelect") boolean allSelect,
+            @Param("deletedAt") Timestamp deletedAt
+    );
+
+    List<Credential> getCredential(
+            @Param("projectId") Integer projectId,
+            @Param("userId") Integer userId,
+            @Param("id") Integer id,
+            @Param("deletedAt") Timestamp deletedAt
+    );
+
     int updateByPrimaryKeySelective(Credential credential);
 
     int updateBaseInfo(Credential credential);
@@ -42,6 +62,19 @@ public interface ProjectCredentialDao {
     int updateSecretKey(
             @Param("id") Integer id,
             @Param("secretKey") String secretKey,
+            @Param("deletedAt") Timestamp deletedAt
+    );
+
+    Credential getByCredentialId(
+            @Param("credentialId") String credentialId,
+            @Param("deletedAt") Timestamp deletedAt
+    );
+
+
+    int updateUsernamePassword(Credential credential);
+
+    List<Credential> getByIds(
+            @Param("list") List<Integer> id,
             @Param("deletedAt") Timestamp deletedAt
     );
 }

@@ -6,6 +6,7 @@ import com.github.pagehelper.PageRowBounds;
 
 import net.coding.common.cache.evict.constant.CacheType;
 import net.coding.common.cache.evict.manager.EvictCacheManager;
+import net.coding.common.config.CodingSettings;
 import net.coding.common.json.Json;
 import net.coding.common.util.BeanUtils;
 import net.coding.common.util.ResultPage;
@@ -29,7 +30,6 @@ import net.coding.lib.project.hook.trigger.CreateMemberEventTriggerTrigger;
 import net.coding.lib.project.hook.trigger.DeleteMemberEventTriggerTrigger;
 import net.coding.lib.project.hook.trigger.UpdateMemberRoleEventTriggerTrigger;
 import net.coding.lib.project.pager.ResultPageFactor;
-import net.coding.lib.project.service.download.CodingSettings;
 import net.coding.lib.project.utils.UserUtil;
 
 import org.apache.commons.lang3.StringUtils;

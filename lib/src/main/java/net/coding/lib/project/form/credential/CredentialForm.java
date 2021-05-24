@@ -7,8 +7,10 @@ import javax.validation.Valid;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.SuperBuilder;
 
 @Data
+@SuperBuilder
 @EqualsAndHashCode(callSuper = false)
 public class CredentialForm extends BaseCredentialForm {
 

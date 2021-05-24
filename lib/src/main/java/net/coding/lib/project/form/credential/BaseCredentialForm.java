@@ -1,6 +1,5 @@
 package net.coding.lib.project.form.credential;
 
-import net.coding.common.base.form.BaseForm;
 import net.coding.common.base.validator.EnumValid;
 import net.coding.common.base.validator.StringEnumeration;
 import net.coding.lib.project.dto.ConnectionTaskDTO;
@@ -15,12 +14,12 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
 
 @Data
+@SuperBuilder
 @EqualsAndHashCode(callSuper = false)
 public abstract class BaseCredentialForm {
     private int id;

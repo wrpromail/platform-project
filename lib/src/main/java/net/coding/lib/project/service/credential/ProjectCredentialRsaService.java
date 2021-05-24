@@ -3,6 +3,7 @@ package net.coding.lib.project.service.credential;
 import net.coding.lib.project.entity.AndroidCredential;
 import net.coding.lib.project.entity.Credential;
 import net.coding.lib.project.enums.CredentialTypeEnums;
+import net.coding.lib.project.service.download.CodingSettings;
 import net.coding.lib.project.utils.XRsaUtil;
 
 import org.apache.commons.lang3.StringUtils;
@@ -10,12 +11,15 @@ import org.springframework.stereotype.Service;
 
 import java.util.function.Consumer;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class ProjectCredentialRsaService {
-    private boolean version2 = false;
+    private final CodingSettings codingSettings;
+
     public void encrypt(Credential credential) {
         CredentialTypeEnums credentialType = CredentialTypeEnums.valueOf(credential.getType());
         if (credentialType == CredentialTypeEnums.PASSWORD ||
@@ -32,7 +36,7 @@ public class ProjectCredentialRsaService {
         if (text == null) {
             return StringUtils.EMPTY;
         }
-        if (version2) {
+        if (codingSettings.getApp().getCredential().isVersion2()) {
             return XRsaUtil.publicEncrypt4OAEPv2(text);
         }
         return XRsaUtil.publicEncrypt4Oaep(text);
@@ -52,6 +56,17 @@ public class ProjectCredentialRsaService {
     }
     public void decrypt(Credential credential) {
         decrypt(credential, null);
+    }
+
+    public void decrypt(AndroidCredential androidCert) {
+        String password = androidCert.getFilePassword();
+        String aliasPassword = androidCert.getAliasPassword();
+        if (StringUtils.isNotBlank(password)) {
+            androidCert.setFilePassword(decrypt(password.trim()));
+        }
+        if (StringUtils.isNotBlank(aliasPassword)) {
+            androidCert.setAliasPassword(decrypt(aliasPassword.trim()));
+        }
     }
 
     private void decrypt(Credential credential, Consumer<Credential> failHandler) {
@@ -79,7 +94,7 @@ public class ProjectCredentialRsaService {
         if (StringUtils.isBlank(text)) {
             return null;
         }
-        if (version2) {
+        if (codingSettings.getApp().getCredential().isVersion2()) {
             return XRsaUtil.privateDecrypt4OAEPv2(text.trim());
         }
         return XRsaUtil.privateDecrypt4Oaep(text.trim());

@@ -1,5 +1,7 @@
 package net.coding.lib.project.service.credential;
 
+import com.google.gson.Gson;
+
 import com.github.pagehelper.PageRowBounds;
 
 import net.coding.common.util.BeanUtils;
@@ -8,6 +10,7 @@ import net.coding.common.util.StringUtils;
 import net.coding.common.vendor.qcloud.utilities.Base64;
 import net.coding.common.vendor.qcloud.utilities.SHA1;
 import net.coding.lib.project.common.SystemContextHolder;
+import net.coding.lib.project.dao.ProjectDao;
 import net.coding.lib.project.dao.credentail.AndroidCredentialDao;
 import net.coding.lib.project.dao.credentail.ProjectCredentialDao;
 import net.coding.lib.project.dao.credentail.ProjectCredentialTaskDao;
@@ -28,14 +31,17 @@ import net.coding.lib.project.form.credential.BaseCredentialForm;
 import net.coding.lib.project.form.credential.CredentialForm;
 import net.coding.lib.project.form.credential.TencentServerlessCredentialForm;
 import net.coding.lib.project.grpc.client.OauthServiceGrpcClient;
+import net.coding.lib.project.grpc.client.TeamGrpcClient;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.pager.ResultPageFactor;
-import net.coding.lib.project.service.ProjectService;
+import net.coding.lib.project.service.ProjectMemberService;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -43,14 +49,16 @@ import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import proto.common.CodeProto;
 import proto.platform.oauth.OauthProto;
+import proto.platform.team.TeamProto;
 import proto.platform.user.UserProto;
 
 @Slf4j
 @AllArgsConstructor
 @Service
 public class ProjectCredentialService {
-    private final ProjectService projectService;
+    private final ProjectDao projectDao;
     private final ProjectCredentialDao projectCredentialDao;
     private final ProjectCredentialTaskDao projectCredentialTaskDao;
     private final AndroidCredentialDao androidCredentialDao;
@@ -60,6 +68,9 @@ public class ProjectCredentialService {
     private final ProjectCredentialRsaService credentialRsaService;
     private final OauthServiceGrpcClient oauthServiceGrpcClient;
     private final TencentServerlessCredentialService tencentServerlessCredentialService;
+    private final TeamGrpcClient teamGrpcClient;
+    private final ProjectMemberService projectMemberService;
+    private final Gson gson;
 
     public ResultPage<CredentialDTO> list(
             Integer projectId,
@@ -94,6 +105,12 @@ public class ProjectCredentialService {
         return new ResultPageFactor<CredentialDTO>().def(pager, list);
     }
 
+    public List<Credential> list(Integer projectId, Integer userId, Integer id) {
+        return Optional.ofNullable(
+                projectCredentialDao.getCredential(projectId, userId, id, BeanUtils.getDefaultDeletedAt())
+        ).orElse(new ArrayList<>());
+    }
+
     @Transactional(rollbackFor = Exception.class)
     public void delete(Integer id, Integer projectId) throws CoreException {
         getProject(projectId);
@@ -112,7 +129,7 @@ public class ProjectCredentialService {
     }
 
     public CredentialDTO getCredential(Integer projectId, int id) {
-        Credential credential = get(id, projectId, true);
+        Credential credential = get(id, true);
         CredentialDTO credentialDTO = toBuildCredentialDTO(credential);
         //获取关联task 信息
         List<ConnectionTaskDTO> connectionTaskDTOs =
@@ -162,25 +179,51 @@ public class ProjectCredentialService {
         }
     }
 
-    public Credential get(int credentialId, int projectId) {
+    public Credential get(int id, int projectId) {
         Optional<Credential> credential = Optional.ofNullable(
                 projectCredentialDao.get(
-                        credentialId,
+                        id,
                         projectId,
                         BeanUtils.getDefaultDeletedAt()
                 )
         );
-
         return credential.orElse(null);
     }
 
-    public Credential get(int id, int projectId, boolean decrypt) {
-        Credential credential = get(id, projectId);
-        credential = this.extendCredential(credential);
-        if (decrypt) {
-            credentialRsaService.decrypt(credential);
+    public Credential getById(int id) {
+        Optional<Credential> credential = Optional.ofNullable(
+                projectCredentialDao.selectByPrimaryKey(
+                        id,
+                        BeanUtils.getDefaultDeletedAt()
+                )
+        );
+        return credential.orElse(null);
+    }
+
+    public Credential get(int id, boolean decrypt) {
+        Credential credential = getById(id);
+        if (credential != null) {
+            credential = this.extendCredential(credential);
+            if (decrypt) {
+                credentialRsaService.decrypt(credential);
+            }
         }
         return credential;
+    }
+
+    public Credential getByCredential(String credentialId, boolean decrypt) {
+        Credential credential = getByCredentialId(credentialId);
+        if (credential != null) {
+            credential = this.extendCredential(credential);
+            if (decrypt) {
+                credentialRsaService.decrypt(credential);
+            }
+        }
+        return credential;
+    }
+
+    public Credential getByCredentialId(String credentialId) {
+        return projectCredentialDao.getByCredentialId(credentialId, BeanUtils.getDefaultDeletedAt());
     }
 
     private Credential extendCredential(Credential credential) {
@@ -315,6 +358,51 @@ public class ProjectCredentialService {
         return credential.getId();
     }
 
+    public int updateUsernamePassword(Credential credential) {
+        return projectCredentialDao.updateUsernamePassword(credential);
+    }
+
+    public String showHiddenInfo(int id, int projectId) throws CoreException {
+        Credential credential = get(id, projectId);
+        CredentialTypeEnums credentialType = CredentialTypeEnums.valueOf(credential.getType());
+        // ssh 的 private_key
+        if (credentialType == CredentialTypeEnums.SSH ||
+                credentialType == CredentialTypeEnums.SSH_TOKEN) {
+            return credential.getPrivateKey();
+        }
+        // username 的 password
+        if (credentialType == CredentialTypeEnums.USERNAME_PASSWORD) {
+            credentialRsaService.decrypt(credential);
+            return credential.getPassword();
+        }
+        if (credentialType == CredentialTypeEnums.APP_ID_SECRET_KEY) {
+            return credential.getSecretKey();
+        }
+        // android 的证书密码
+        if (credentialType == CredentialTypeEnums.ANDROID_CERTIFICATE) {
+            AndroidCredential androidCredential =
+                    androidCredentialDao.getByConnId(id, BeanUtils.getDefaultDeletedAt());
+            credentialRsaService.decrypt(androidCredential);
+            return androidCredential.getFilePassword();
+        }
+        if (credentialType == CredentialTypeEnums.TENCENT_SERVERLESS) {
+            TencentServerlessCredential tencentCredential =
+                    tencentServerlessCredentialsDao.getByConnId(id, BeanUtils.getDefaultDeletedAt());
+            TencentServerlessCredentialForm.TencentServerlessCredentialRaw raw =
+                    new TencentServerlessCredentialForm.TencentServerlessCredentialRaw();
+            raw.setAppid(tencentCredential.getAppId());
+            raw.setExpired(tencentCredential.getExpired());
+            raw.setSecret_id(tencentCredential.getSecretId());
+            raw.setSecret_key(tencentCredential.getSecretKey());
+            raw.setSignature(tencentCredential.getSignature());
+            raw.setToken(tencentCredential.getToken());
+            raw.setUuid(tencentCredential.getUuid());
+            return gson.toJson(raw);
+        }
+        throw CoreException.of(CoreException.ExceptionType.CREDENTIAL_TYPE_INVALID);
+    }
+
+
     public TencentServerlessCredential toBuildTencentServerlessCredential(
             TencentServerlessCredentialForm form
     ) {
@@ -335,6 +423,15 @@ public class ProjectCredentialService {
             builder.uuid(form.getRawSlsCredential().getUuid());
         }
         return builder.build();
+    }
+
+    public List<Credential> listByProjectAndUser(int projectId, int userId, boolean allSelect) {
+        return projectCredentialDao.listByProjectAndUser(
+                projectId,
+                userId,
+                allSelect,
+                BeanUtils.getDefaultDeletedAt()
+        );
     }
 
     public TencentServerlessCredential toBuildTencentServerlessCredential(
@@ -488,12 +585,16 @@ public class ProjectCredentialService {
         return builder.build();
     }
 
-    public int createCredential(Integer projectId, BaseCredentialForm baseForm) throws CoreException {
+    public int addCredential(Integer projectId, BaseCredentialForm baseForm) throws CoreException {
         Project project = getProject(projectId);
         baseForm.setProjectId(projectId);
         UserProto.User currentUser = getUser();
         baseForm.setCreatorId(currentUser.getId());
         baseForm.setTeamId(project.getTeamOwnerId());
+        return createCredential(baseForm);
+    }
+
+    public int createCredential(BaseCredentialForm baseForm) throws CoreException {
         int credId = createCredential(baseForm, true);
         if (credId != 0) {
             projectCredentialTaskService.batchToggleTaskPermission(
@@ -505,12 +606,25 @@ public class ProjectCredentialService {
         return credId;
     }
 
+    public List<Credential> listByIds(List<Integer> ids, boolean decrypt) {
+        List<Credential> credentials = projectCredentialDao.getByIds(ids, BeanUtils.getDefaultDeletedAt());
+        credentials.stream()
+                .map(this::extendCredential)
+                .filter(credential -> decrypt)
+                .forEach(credentialRsaService::decrypt);
+        return credentials;
+    }
+
     private Project getProject(Integer projectId) throws CoreException {
-        Project project = projectService.getById(projectId);
+        Project project = projectDao.getProjectById(projectId);
         if (project == null) {
             throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
         }
         return project;
+    }
+
+    public List<Credential> getByProjectIdAndGenerateBy(Integer projectId, String generateBy) {
+        return projectCredentialDao.getByProjectIdAndGenerateBy(projectId, generateBy, BeanUtils.getDefaultDeletedAt());
     }
 
     private UserProto.User getUser() throws CoreException {
@@ -553,5 +667,27 @@ public class ProjectCredentialService {
                 .updated_at(credential.getUpdatedAt().getTime())
                 .allSelect(credential.isAllSelect())
                 .build();
+    }
+
+    public void validParam(Integer teamId, Integer projectId, String userGK) throws CoreException {
+        TeamProto.GetTeamResponse response = teamGrpcClient.getTeam(teamId);
+
+        if (response == null || CodeProto.Code.SUCCESS != response.getCode()
+                || ObjectUtils.isEmpty(response.getData())) {
+
+            throw CoreException.of(CoreException.ExceptionType.TEAM_NOT_EXIST);
+        }
+        Project project = projectDao.getProjectById(projectId);
+        if (project == null) {
+            throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
+        }
+        UserProto.User user = userGrpcClient.getUserByGlobalKey(userGK);
+        if (user == null) {
+            throw CoreException.of(CoreException.ExceptionType.USER_NOT_EXISTS);
+        }
+        boolean flag = projectMemberService.isMember(user, projectId);
+        if (!flag) {
+            throw CoreException.of(CoreException.ExceptionType.PROJECT_MEMBER_NOT_EXISTS);
+        }
     }
 }
