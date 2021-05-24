@@ -1,0 +1,26 @@
+syntax = 'proto3';
+
+import "CiCommon.proto";
+import "google/protobuf/timestamp.proto";
+package proto;
+option java_generic_services = true;
+option java_package = "proto.ci";
+option java_outer_classname = "CiJobProto";
+
+message CiJob {
+  uint32 id = 1;
+  string name = 2;
+}
+
+message ListByProjectRequest {
+  uint32 projectId = 1;
+  int32 len = 2;
+}
+
+message ListByProjectResponse {
+  Result result = 1;
+  repeated CiJob ciJobs = 2;
+}
+service CiJobService {
+  rpc listByProject (ListByProjectRequest) returns (ListByProjectResponse);
+}

@@ -12,6 +12,7 @@ import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 
@@ -26,6 +27,7 @@ import static net.coding.common.base.validator.ValidationConstants.PROJECT_NAME_
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper=false)
 public class UpdateProjectForm extends BaseForm {
 
     @NotNull(message = "param_error")

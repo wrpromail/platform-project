@@ -1,6 +1,8 @@
 package net.coding.lib.project.form;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import net.coding.common.base.form.BaseForm;
 import net.coding.common.util.TextUtils;
 
@@ -17,6 +19,7 @@ import static net.coding.common.base.validator.ValidationConstants.TWEET_LIMIT_C
 import static net.coding.common.base.validator.ValidationConstants.TWEET_LIMIT_IMAGES;
 
 @Data
+@EqualsAndHashCode(callSuper=false)
 public class CreateTweetForm extends BaseForm {
 
     private String content;

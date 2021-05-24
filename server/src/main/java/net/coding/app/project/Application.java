@@ -7,6 +7,8 @@ import net.coding.common.verification.VerificationAutoConfiguration;
 import org.lognet.springboot.grpc.autoconfigure.GRpcAutoConfiguration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
@@ -19,7 +21,6 @@ import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.ApiSelectorBuilder;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
-import sun.nio.ch.Net;
 
 import static springfox.documentation.builders.PathSelectors.regex;
 
@@ -50,7 +51,13 @@ import static springfox.documentation.builders.PathSelectors.regex;
         net.coding.service.hook.definition.ServiceHookConfigurer.class
 
 })
-@ImportAutoConfiguration({GRpcAutoConfiguration.class, VerificationAutoConfiguration.class})
+@ImportAutoConfiguration(
+        {
+                GRpcAutoConfiguration.class,
+                VerificationAutoConfiguration.class,
+                GsonAutoConfiguration.class
+        }
+)
 @EnableScheduling
 @EnableSwagger2
 public class Application {
