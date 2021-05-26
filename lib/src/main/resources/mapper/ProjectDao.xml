@@ -147,4 +147,16 @@
         </foreach>
         and (deleted_at=#{deletedAt} or deleted_at=#{archivedAt})
     </select>
+
+    <select id="getByIds" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from projects
+        where
+        id in
+        <foreach item="item" index="index" collection="list" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+        and deleted_at=#{deletedAt}
+    </select>
 </mapper>

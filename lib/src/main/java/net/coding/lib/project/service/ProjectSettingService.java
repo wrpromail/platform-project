@@ -9,23 +9,21 @@ import net.coding.common.util.BeanUtils;
 import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dao.ProjectSettingsDao;
 import net.coding.lib.project.dto.ProjectFunctionDTO;
-import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectSetting;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.helper.ProjectServiceHelper;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.annotation.Resource;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,11 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 import static net.coding.lib.project.entity.ProjectSetting.TOTAL_PROJECT_FUNCTION;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PARAMETER_INVALID;
 
-/**
- * @Author liuying
- * @Date 2021/1/5 11:02 上午
- * @Version 1.0
- */
 @Service
 @Slf4j
 @AllArgsConstructor
@@ -160,6 +153,20 @@ public class ProjectSettingService {
         return projectSettingsDao.findProjectSetting(projectSetting);
     }
 
+    public List<ProjectSetting> findProjectSettings(Integer projectId, List<String> functions) {
+        if (Objects.isNull(projectId) || CollectionUtils.isEmpty(functions)) {
+            return Collections.emptyList();
+        }
+        return projectSettingsDao.findProjectSettings(projectId, functions, BeanUtils.getDefaultDeletedAt());
+    }
+
+    public List<ProjectSetting> findProjectsSetting(List<Integer> projectIds, String function) {
+        if (StringUtils.isEmpty(function) || CollectionUtils.isEmpty(projectIds)) {
+            return Collections.emptyList();
+        }
+        return projectSettingsDao.findProjectsSetting(projectIds, function, BeanUtils.getDefaultDeletedAt());
+    }
+
     public boolean saveOrUpdateProjectSetting(ProjectSetting projectSetting) {
         if (Objects.isNull(projectSetting.getId())) {
             return projectSettingsDao.insert(projectSetting) > 0;
@@ -169,6 +176,10 @@ public class ProjectSettingService {
             return true;
         }
         return false;
+    }
+
+    public ProjectSetting get(Integer id) {
+        return projectSettingsDao.get(id, BeanUtils.getDefaultDeletedAt());
     }
 
     public Boolean getPDDefaultValue(ProjectSetting.Code function) {

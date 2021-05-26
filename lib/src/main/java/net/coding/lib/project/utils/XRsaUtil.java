@@ -57,7 +57,7 @@ public class XRsaUtil {
             );
             privateKey = (RSAPrivateKey) keyFactory.generatePrivate(pkcs8KeySpec);
         } catch (Exception e) {
-            throw new RuntimeException("Unsupported key", e);
+            log.warn("RSA key is empty");
         }
     }
 

@@ -2,7 +2,6 @@ package net.coding.app.project.grpc;
 
 
 import net.coding.exchange.dto.team.Team;
-import net.coding.grpc.client.permission.AclServiceGrpcClient;
 import net.coding.grpc.client.platform.GlobalKeyGrpcClient;
 import net.coding.grpc.client.platform.TeamServiceGrpcClient;
 import net.coding.lib.project.dto.ProjectTokenDepotDTO;
@@ -10,7 +9,6 @@ import net.coding.lib.project.dto.ProjectTokenKeyDTO;
 import net.coding.lib.project.entity.ProjectTokenArtifact;
 import net.coding.lib.project.entity.ProjectToken;
 import net.coding.lib.project.entity.Project;
-import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.exception.AppException;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.AddProjectTokenForm;
@@ -40,7 +38,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import proto.common.CodeProto;
 import proto.platform.globalKey.GlobalKeyProto;
-import proto.platform.permission.PermissionProto;
 import proto.platform.user.UserProto;
 
 import static net.coding.common.util.DateTimeUtils.toTimestamp;
@@ -60,7 +57,6 @@ public class ProjectDeployTokenGrpcService extends ProjectDeployTokenServiceGrpc
     private final GlobalKeyGrpcClient globalKeyGrpcClient;
     private final UserGrpcClient userGrpcClient;
     private final ProjectMemberService projectMemberService;
-    private final AclServiceGrpcClient aclServiceGrpcClient;
     private final TeamGrpcClient teamGrpcClient;
     private final TeamServiceGrpcClient teamServiceGrpcClient;
     private final ProjectTokenArtifactService projectTokenArtifactService;
@@ -154,24 +150,6 @@ public class ProjectDeployTokenGrpcService extends ProjectDeployTokenServiceGrpc
             if (project == null) {
                 log.warn("Project not exist projectId {}", request.getProjectId());
                 throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
-            }
-            UserProto.User user = getUser(request.getUserId());
-            if (user == null) {
-                log.warn("CurrentUser not exist userId {}", request.getUserId());
-                throw CoreException.of(CoreException.ExceptionType.USER_NOT_EXISTS);
-            }
-            //验证用户接口权限
-            boolean hasPermissionInProject = aclServiceGrpcClient.hasPermissionInProject(
-                    PermissionProto.Permission.newBuilder()
-                            .setFunction(PermissionProto.Function.ProjectDeployToken)
-                            .setAction(PermissionProto.Action.Delete)
-                            .build(),
-                    request.getProjectId(),
-                    user.getGlobalKey(),
-                    user.getId()
-            );
-            if (!hasPermissionInProject) {
-                throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
             }
             boolean result = projectTokenService.deleteProjectToken(request.getProjectId(), request.getDeployTokenId());
             builder.setCode(CodeProto.Code.SUCCESS_VALUE)

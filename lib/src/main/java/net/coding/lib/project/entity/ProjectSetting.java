@@ -5,6 +5,7 @@ import com.google.common.collect.Sets;
 import net.coding.common.base.bean.BaseBean;
 
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
@@ -15,12 +16,12 @@ import lombok.NoArgsConstructor;
 
 import static net.coding.common.i18n.utils.LocaleMessageSourceUtil.getMessage;
 
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProjectSetting extends BaseBean {
+public class ProjectSetting {
 
     public final static String valueTrue = "1";
     public final static String valueFalse = "0";
@@ -30,6 +31,7 @@ public class ProjectSetting extends BaseBean {
 
     private static final long serialVersionUID = -1973992627485106043L;
 
+    private Integer id;
     private Integer projectId;
 
     private String code;
@@ -137,6 +139,13 @@ public class ProjectSetting extends BaseBean {
 
         public String getOaDefaultValue() {
             return oaDefaultValue;
+        }
+
+        public static net.coding.e.lib.core.bean.ProjectSetting.Code getByCode(String code) {
+            return  Arrays.stream(net.coding.e.lib.core.bean.ProjectSetting.Code.values()).
+                    filter(c -> c.getCode().equals(code))
+                    .findFirst()
+                    .orElse(null);
         }
     }
 

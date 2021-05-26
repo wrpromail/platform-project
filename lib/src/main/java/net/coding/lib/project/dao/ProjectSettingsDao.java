@@ -3,7 +3,10 @@ package net.coding.lib.project.dao;
 import net.coding.lib.project.entity.ProjectSetting;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
+import java.sql.Timestamp;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,4 +23,20 @@ public interface ProjectSettingsDao {
 
     int update(ProjectSetting projectSetting);
 
+    List<ProjectSetting> findProjectSettings(
+            @Param("projectId") Integer projectId,
+            @Param("list") List<String> functions,
+            @Param("deletedAt") Timestamp deletedAt
+    );
+
+    List<ProjectSetting> findProjectsSetting(
+            @Param("list") List<Integer> projectIds,
+            @Param("code") String  function,
+            @Param("deletedAt") Timestamp deletedAt
+    );
+
+    ProjectSetting get(
+            @Param("id") Integer id,
+            @Param("deletedAt") Timestamp deletedAt
+    );
 }

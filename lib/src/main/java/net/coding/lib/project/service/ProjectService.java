@@ -22,8 +22,6 @@ import net.coding.lib.project.entity.ProjectGroupProject;
 import net.coding.lib.project.entity.TeamProject;
 import net.coding.lib.project.enums.CacheTypeEnum;
 import net.coding.lib.project.enums.ConnGenerateByEnums;
-import net.coding.lib.project.enums.CredentialScopeEnums;
-import net.coding.lib.project.enums.CredentialTypeEnums;
 import net.coding.lib.project.form.credential.CredentialForm;
 import net.coding.lib.project.metrics.ProjectCreateMetrics;
 import net.coding.lib.project.parameter.BaseCredentialParameter;
@@ -409,7 +407,7 @@ public class ProjectService {
         }
         projectCredentialService.validParam(parameter.getTeamId(), project.getId(), parameter.getUserGk());
         try {
-            CredentialForm credentialForm = buildForm(credentialParameter,parameter,project.getId());
+            CredentialForm credentialForm = buildForm(credentialParameter, parameter, project.getId());
             int connId = projectCredentialService.createCredential(credentialForm, true);
             return projectCredentialService.get(connId, false);
         } catch (Exception e) {
@@ -472,6 +470,13 @@ public class ProjectService {
 
     public ProjectDTO getProjectByNameAndTeamId(String projectName, Integer teamOwnerId) {
         return buildProjectDTO(getByNameAndTeamId(projectName, teamOwnerId));
+    }
+
+    public List<Project> getByIds(List<Integer> ids) {
+        if(CollectionUtils.isEmpty(ids)){
+            return Collections.emptyList();
+        }
+        return projectDao.getByIds(ids, BeanUtils.getDefaultDeletedAt());
     }
 
     public ProjectDTO buildProjectDTO(Project project) {
