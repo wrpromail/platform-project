@@ -470,26 +470,25 @@ public class ProjectService {
     public void initProjectSetting(Integer projectId, ProjectCreateParameter parameter) throws CoreException {
         ProjectTemplateEnums projectTemplateEnums = ProjectTemplateEnums.valueOf(parameter.getProjectTemplate());
         DemoProjectTemplateEnums demoProjectTemplateEnums = DemoProjectTemplateEnums.string2enum(parameter.getTemplate());
+        projectSettingService.updateProjectSetting(projectId, PROJECT_TEMPLATE_TYPE.getCode(), parameter.getProjectTemplate());
+
+        if (ProjectTemplateEnums.DEMO_BEGIN.equals(projectTemplateEnums)) {
+            projectSettingService.updateProjectSetting(projectId, DEMO_TEMPLATE_TYPE.getCode(), parameter.getTemplate());
+        }
+        Set<ProjectSetting.Code> ownFunctions = projectTemplateEnums.getFunctions(demoProjectTemplateEnums);
+        if (Objects.isNull(ownFunctions)) {
+            throw CoreException.of(PARAMETER_INVALID);
+        }
+        List<CreateProjectForm.ProjectFunction> FunctionModule =
+                Optional.ofNullable(parameter.getFunctionModule()).orElseGet(ArrayList::new);
+        // 根据模版类型初始化部分项目开关
+        ProjectSetting.TOTAL_PROJECT_FUNCTION.stream()
+                .filter(e -> !ownFunctions.contains(e))
+                .filter(e -> !FunctionModule.contains(CreateProjectForm.ProjectFunction.codeOf(e.getCode())))
+                .forEach(e -> projectSettingService.updateProjectSetting(projectId, e.getCode(), ProjectSetting.valueFalse));
         // demo模版初始化数据
         if (!TemplateEnums.getTencentServerless().contains(parameter.getTemplate())
                 && Objects.nonNull(demoProjectTemplateEnums)) {
-            projectSettingService.updateProjectSetting(projectId, PROJECT_TEMPLATE_TYPE.getCode(), parameter.getProjectTemplate());
-
-            if (ProjectTemplateEnums.DEMO_BEGIN.equals(projectTemplateEnums)) {
-                projectSettingService.updateProjectSetting(projectId, DEMO_TEMPLATE_TYPE.getCode(), parameter.getTemplate());
-            }
-            Set<ProjectSetting.Code> ownFunctions = projectTemplateEnums.getFunctions(demoProjectTemplateEnums);
-            if (Objects.isNull(ownFunctions)) {
-                throw CoreException.of(PARAMETER_INVALID);
-            }
-            List<CreateProjectForm.ProjectFunction> FunctionModule =
-                    Optional.ofNullable(parameter.getFunctionModule()).orElseGet(ArrayList::new);
-            // 根据模版类型初始化部分项目开关
-            ProjectSetting.TOTAL_PROJECT_FUNCTION.stream()
-                    .filter(e -> !ownFunctions.contains(e))
-                    .filter(e -> !FunctionModule.contains(CreateProjectForm.ProjectFunction.codeOf(e.getCode())))
-                    .forEach(e -> projectSettingService.updateProjectSetting(projectId, e.getCode(), ProjectSetting.valueFalse));
-
             agileTemplateGRpcClient.dataInitByProjectTemplate(projectId, parameter.getUserId(),
                     parameter.getProjectTemplate(),
                     parameter.getTemplate());
@@ -552,7 +551,7 @@ public class ProjectService {
     }
 
     public List<Project> getByIds(List<Integer> ids) {
-        if(CollectionUtils.isEmpty(ids)){
+        if (CollectionUtils.isEmpty(ids)) {
             return Collections.emptyList();
         }
         return projectDao.getByIds(ids, BeanUtils.getDefaultDeletedAt());

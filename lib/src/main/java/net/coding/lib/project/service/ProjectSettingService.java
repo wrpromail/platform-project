@@ -156,7 +156,7 @@ public class ProjectSettingService {
             projectSetting = ProjectSetting.builder()
                     .projectId(projectId)
                     .code(code)
-                    .description(value)
+                    .value(value)
                     .createdAt(new Timestamp(System.currentTimeMillis()))
                     .updatedAt(new Timestamp(System.currentTimeMillis()))
                     .deletedAt(BeanUtils.getDefaultDeletedAt())
