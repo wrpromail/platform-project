@@ -159,6 +159,7 @@ public class CoreException extends Exception {
         PROJECT_TEMPLATE_NOT_EXIST(1171, "project_template_not_exist"),
         PROJECT_ARCHIVED_ONLY_ADMIN(1172, "project_archived_only_admin"),
         PROJECT_NAME_IS_EMPTY(1173, "project_name_not_empty"),
+        PROJECT_NOT_EXIST_OR_ARCHIVED(1174, "project_not_exist_or_archived"),
 
 
         //group相关的以 15开头

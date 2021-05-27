@@ -118,8 +118,7 @@ message AddDeployTokenResponse {
 
 message DeleteDeployTokenRequest {
   uint32 projectId = 1;
-  uint32 userId = 2;
-  uint32 deployTokenId = 3;
+  uint32 deployTokenId = 2;
 }
 
 message DeleteDeployTokenResponse {

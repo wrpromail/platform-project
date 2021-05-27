@@ -34,7 +34,14 @@ public interface ProjectDao extends tk.mybatis.mapper.common.Mapper<Project> {
 
     Integer updateIcon(@Param("id") Integer id, @Param("icon") String icon);
 
-    List<Project> getProjectsByIds(@Param("list") List<Integer> id,
-                                   @Param("deletedAt") Timestamp deletedAt,
-                                   @Param("archivedAt") Timestamp archivedAt);
+    List<Project> getProjectsByIds(
+            @Param("list") List<Integer> id,
+            @Param("deletedAt") Timestamp deletedAt,
+            @Param("archivedAt") Timestamp archivedAt
+    );
+
+    List<Project> getByIds(
+            @Param("list") List<Integer> id,
+            @Param("deletedAt") Timestamp deletedAt
+    );
 }

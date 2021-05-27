@@ -24,6 +24,40 @@
     AND deleted_at = '1970-01-01 00:00:00'
     LIMIT 1
   </select>
+  <select id="findProjectSettings" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM project_settings
+    where
+    project_id = #{projectId}
+    AND deleted_at = '1970-01-01 00:00:00'
+    AND code in
+    <foreach item="item" index="index" collection="list" open="(" close=")" separator=",">
+    #{item}
+    </foreach>
+  </select>
+
+  <select id="findProjectsSetting" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM project_settings
+    where
+    code = #{code}
+    AND deleted_at = '1970-01-01 00:00:00'
+    AND project_id in
+    <foreach item="item" index="index" collection="list" open="(" close=")" separator=",">
+      #{item}
+    </foreach>
+  </select>
+
+  <select id="get" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    FROM project_settings
+    where
+    id = #{id}
+    AND deleted_at = #{deletedAt}
+  </select>
 
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="net.coding.lib.project.entity.ProjectSetting" useGeneratedKeys="true">
     insert into project_settings
@@ -77,12 +111,23 @@
 
   <update id="update" parameterType="net.coding.lib.project.entity.ProjectSetting">
     update project_settings
-    set
-        project_id = #{projectId,jdbcType=INTEGER},
-        code = #{code,jdbcType=VARCHAR},
+    <set>
+    <if test="projectId != null">
+      project_id = #{projectId},
+    </if>
+      <if test="code != null">
+        code = #{code},
+      </if>
+      <if test="value != null">
         `value` = #{value,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null">
         description = #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="updatedAt != null">
         updated_at = #{updatedAt,jdbcType=TIMESTAMP}
+      </if>
+    </set>
     where id = #{id,jdbcType=INTEGER}
   </update>
 
