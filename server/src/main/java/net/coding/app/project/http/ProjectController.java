@@ -15,7 +15,9 @@ import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dto.ProjectDTO;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.exception.CoreException;
+import net.coding.lib.project.form.CreateProjectForm;
 import net.coding.lib.project.form.UpdateProjectForm;
+import net.coding.lib.project.parameter.ProjectCreateParameter;
 import net.coding.lib.project.service.ProjectService;
 import net.coding.lib.project.service.ProjectValidateService;
 
@@ -34,11 +36,8 @@ import javax.validation.Valid;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
+import proto.platform.user.UserProto;
 
-
-/**
- * create by liuying
- */
 @RestController
 @Api(value = "项目", tags = "项目")
 @AllArgsConstructor
@@ -49,6 +48,30 @@ public class ProjectController {
 
     private final ProjectValidateService projectValidateService;
 
+    @ApiOperation(value = "create_project", notes = "创建项目")
+    @ProtectedAPI(oauthScope = OAuthConstants.Scope.PROJECT)
+    @EnterpriseApiProtector(function = Function.EnterpriseProject, action = Action.Create)
+    @RequestMapping(value = "/create", method = RequestMethod.POST)
+    public String createProject(@RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
+                                @Valid CreateProjectForm form) throws Exception {
+        UserProto.User user = SystemContextHolder.get();
+        if (Objects.isNull(user)) {
+            throw CoreException.of(CoreException.ExceptionType.USER_NOT_LOGIN);
+        }
+        Project project = projectService.createProject(ProjectCreateParameter.builder()
+                .userId(user.getId())
+                .teamId(teamId)
+                .name(form.getName().replace(" ", "-"))
+                .displayName(form.getDisplayName())
+                .description(form.getDescription())
+                .icon(form.getIcon())
+                .groupId(form.getGroupId())
+                .projectTemplate(form.getProjectTemplate())
+                .template(form.getTemplate())
+                .functionModule(form.getFunctionModule())
+                .build());
+        return getProjectPath(project);
+    }
 
     @ApiOperation(value = "update_project_icon", notes = "更新项目图标")
     @ProtectedAPI(oauthScope = OAuthConstants.Scope.PROJECT)
@@ -121,5 +144,9 @@ public class ProjectController {
     public ProjectDTO queryProjectByName(@RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
                                          @PathVariable("projectName") String projectName) {
         return projectService.getProjectByNameAndTeamId(projectName, teamId);
+    }
+
+    private String getProjectPath(Project project) {
+        return "/p/" + project.getName();
     }
 }

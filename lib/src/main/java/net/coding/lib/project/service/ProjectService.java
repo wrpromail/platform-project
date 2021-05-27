@@ -1,6 +1,5 @@
 package net.coding.lib.project.service;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
 import com.github.pagehelper.PageHelper;
@@ -12,17 +11,27 @@ import net.coding.common.cache.evict.definition.MappingSerialize;
 import net.coding.common.cache.evict.manager.EvictCacheManager;
 import net.coding.common.redis.api.JedisManager;
 import net.coding.common.util.BeanUtils;
+import net.coding.exchange.dto.team.Team;
 import net.coding.common.util.LimitedPager;
 import net.coding.common.util.ResultPage;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
+import net.coding.grpc.client.platform.TeamServiceGrpcClient;
+import net.coding.lib.project.dao.ProjectGroupDao;
 import net.coding.lib.project.dao.ProjectGroupProjectDao;
 import net.coding.lib.project.dao.TeamProjectDao;
 import net.coding.lib.project.entity.Credential;
+import net.coding.lib.project.entity.ProjectGroup;
 import net.coding.lib.project.entity.ProjectGroupProject;
+import net.coding.lib.project.entity.ProjectSetting;
 import net.coding.lib.project.entity.TeamProject;
 import net.coding.lib.project.enums.CacheTypeEnum;
 import net.coding.lib.project.enums.ConnGenerateByEnums;
 import net.coding.lib.project.form.credential.CredentialForm;
+import net.coding.lib.project.enums.DemoProjectTemplateEnums;
+import net.coding.lib.project.enums.ProjectTemplateEnums;
+import net.coding.lib.project.enums.TemplateEnums;
+import net.coding.lib.project.form.CreateProjectForm;
+import net.coding.lib.project.grpc.client.AgileTemplateGRpcClient;
 import net.coding.lib.project.metrics.ProjectCreateMetrics;
 import net.coding.lib.project.parameter.BaseCredentialParameter;
 import net.coding.lib.project.parameter.ProjectCreateParameter;
@@ -43,7 +52,6 @@ import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.UpdateProjectForm;
-import net.coding.lib.project.grpc.client.TeamGrpcClient;
 import net.coding.lib.project.helper.ProjectServiceHelper;
 import net.coding.lib.project.utils.DateUtil;
 
@@ -52,10 +60,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.validation.Errors;
 
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -63,12 +73,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import one.util.streamex.StreamEx;
-import proto.platform.team.TeamProto;
 import proto.platform.user.UserProto;
 
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_ICON_LIMIT_SIZE;
@@ -83,8 +94,14 @@ import static net.coding.common.constants.RoleConstants.MEMBER;
 import static net.coding.common.constants.RoleConstants.MEMBER_NO_CODE;
 import static net.coding.common.constants.RoleConstants.OWNER;
 import static net.coding.common.constants.RoleConstants.VISITOR;
+import static net.coding.lib.project.entity.ProjectSetting.Code.DEMO_TEMPLATE_TYPE;
+import static net.coding.lib.project.entity.ProjectSetting.Code.PROJECT_TEMPLATE_TYPE;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.CONTENT_INCLUDE_SENSITIVE_WORDS;
-import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_CREATION_ERROR;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PARAMETER_INVALID;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_DISPLAY_NAME_EXISTS;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NAME_ERROR;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NAME_EXISTS;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_TEMPLATE_NOT_EXIST;
 
 
 @Service
@@ -98,7 +115,7 @@ public class ProjectService {
 
     private final RoleServiceGrpcClient roleServiceGrpcClient;
 
-    private final TeamGrpcClient teamGrpcClient;
+    private final TeamServiceGrpcClient teamServiceGrpcClient;
 
     private final ProjectServiceHelper projectServiceHelper;
 
@@ -127,6 +144,12 @@ public class ProjectService {
     private final String ICON_REGX_STR = ".+\\.(jpg|bmp|gif|png|jpeg)$";
 
     private final JedisManager jedisManager;
+
+    private final ProjectGroupDao projectGroupDao;
+
+    protected final TransactionTemplate transactionTemplate;
+
+    private final AgileTemplateGRpcClient agileTemplateGRpcClient;
 
 
     public Project getById(Integer id) {
@@ -163,7 +186,7 @@ public class ProjectService {
     public void validateUpDate(UpdateProjectForm updateProjectForm, Errors errors) throws CoreException {
         Project project = getById(projectValidateService.getId(updateProjectForm.getId()));
         if (project == null) {
-            throw CoreException.of(CoreException.ExceptionType.PARAMETER_INVALID);
+            throw CoreException.of(PARAMETER_INVALID);
         }
         projectValidateService.validate(project, updateProjectForm, errors);
     }
@@ -171,7 +194,7 @@ public class ProjectService {
     public int update(UpdateProjectForm form) throws CoreException {
         Project project = getById(projectValidateService.getId(form.getId()));
         if (project == null) {
-            throw CoreException.of(CoreException.ExceptionType.PARAMETER_INVALID);
+            throw CoreException.of(PARAMETER_INVALID);
         }
         String nameProfanityWord = projectServiceHelper.checkContent(form.getName());
         if (StringUtils.isNotEmpty(nameProfanityWord)) {
@@ -297,7 +320,56 @@ public class ProjectService {
         return buildProjectDTO(project);
     }
 
-    public int createProject(ProjectCreateParameter parameter, boolean notifyOwner) throws Exception {
+    public Project createProject(ProjectCreateParameter parameter) throws Exception {
+        Team team = teamServiceGrpcClient.getTeam(parameter.getTeamId());
+        if (Objects.isNull(team)) {
+            throw CoreException.of(CoreException.ExceptionType.TEAM_NOT_EXIST);
+        }
+        if (!teamServiceGrpcClient.isMember(team.getId(), parameter.getUserId())) {
+            throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
+        }
+        parameter.setTeamOwnerId(team.getOwner_id());
+        parameter.setShouldInitDepot((shouldInitDepot(parameter.getProjectTemplate(), parameter.getTemplate())));
+        //校验创建项目相关参数
+        validateCreateProjectParameter(parameter);
+
+        long prevTime = System.currentTimeMillis();
+
+        Project project = initializeProject(parameter);
+
+        ProjectCreateMetrics.setInitProjectData(System.currentTimeMillis() - prevTime);
+
+        Credential credential = createCredential(project, parameter);
+
+        projectServiceHelper.postProjectCreateEvent(project, parameter, credential);
+        // 根据模板类型控制功能开关的初始化
+        initProjectSetting(project.getId(), parameter);
+        return project;
+    }
+
+    public void validateCreateProjectParameter(ProjectCreateParameter parameter) throws CoreException {
+        if (!projectValidateService.validateProjectTemplate(parameter.getProjectTemplate())) {
+            throw CoreException.of(PROJECT_TEMPLATE_NOT_EXIST);
+        }
+        projectValidateService.validateTemplate(parameter.getTemplate());
+        // 校验项目分组
+        if (Objects.nonNull(parameter.getGroupId())) {
+            ProjectGroup projectGroup = projectGroupDao.selectByPrimaryKey(parameter.getGroupId());
+            if (Objects.isNull(projectGroup) || !projectGroup.getOwnerId().equals(parameter.getUserId())) {
+                throw CoreException.of(PARAMETER_INVALID);
+            }
+        }
+        if (!projectValidateService.checkCloudProjectName(parameter.getName())) {
+            throw CoreException.of(PROJECT_NAME_ERROR);
+        }
+        Project existProjectDisplayName = getByDisplayNameAndTeamId(parameter.getDisplayName(), parameter.getTeamId());
+        if (Objects.nonNull(existProjectDisplayName)) {
+            throw CoreException.of(PROJECT_DISPLAY_NAME_EXISTS);
+        }
+        Project existProjectName = getByNameAndTeamId(parameter.getName(), parameter.getTeamId());
+        if (Objects.nonNull(existProjectName)) {
+            throw CoreException.of(PROJECT_NAME_EXISTS);
+        }
         String nameProfanityWord = profanityWordService.checkContent(parameter.getName());
         if (StringUtils.isNotEmpty(nameProfanityWord)) {
             throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, nameProfanityWord);
@@ -310,77 +382,56 @@ public class ProjectService {
         if (StringUtils.isNotEmpty(descriptionProfanityWord)) {
             throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, descriptionProfanityWord);
         }
-
-        long prevTime = System.currentTimeMillis();
-        Project project = initializeProject(parameter, notifyOwner);
-        ProjectCreateMetrics.setInitProjectData(System.currentTimeMillis() - prevTime);
-
-        Credential credential = createCredential(project, parameter);
-
-        projectServiceHelper.postProjectCreateEvent(project, parameter, credential);
-
-        return project.getId();
+        if (1024 < parameter.getDescription().length()) {
+            throw CoreException.of(CoreException.ExceptionType.PROJECT_DESCRIPTION_TOO_LONG);
+        }
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public Project initializeProject(ProjectCreateParameter parameter, boolean notifyOwner) throws Exception {
-        TeamProto.GetTeamResponse response =
-                teamGrpcClient.getTeam(parameter.getTeamId());
-        if (response == null || response.getData() == null) {
-            throw CoreException.of(CoreException.ExceptionType.TEAM_NOT_EXIST);
-        }
-        // 描述的转义改为在输出时处理
-        String targetDescription = Strings.nullToEmpty(parameter.getDescription());
-        if (1024 < targetDescription.length()) {
-            throw CoreException.of(CoreException.ExceptionType.PROJECT_DESCRIPTION_TOO_LONG);
-        }
-        int r = RandomUtils.nextInt(14) + 1;
-        String icon = StringUtils.defaultIfBlank(parameter.getIcon(),
-                "/static/project_icon/scenery-version-2-" + r + ".svg");
-        Project project = Project.builder()
-                .userOwnerId(0)
-                .ownerId(0)
-                .teamOwnerId(parameter.getTeamId())
-                .type(NumberUtils.toInt(parameter.getType()))
-                .depotShared(parameter.getShared() == 1)
-                .name(parameter.getName())
-                .displayName(parameter.getDisplayName())
-                .namePinyin(projectServiceHelper.getPinYin(
-                        parameter.getDisplayName(),
-                        parameter.getName()))
-                .maxMember(INFINITY_MEMBER)
-                .description(targetDescription)
-                .icon(icon)
-                .startDate(parameter.getStartDate())
-                .endDate(parameter.getEndDate())
-                .invisible(parameter.getInvisible())
-                .label(parameter.getLabel())
-                .build();
-        int result = projectDao.insertSelective(project);
-        if (result <= 0) {
-            throw CoreException.of(PROJECT_CREATION_ERROR);
-        }
-
-        TeamProject teamProject = TeamProject.builder()
-                .projectId(project.getId())
-                .teamId(parameter.getTeamId())
-                .build();
-        teamProjectDao.insertSelective(teamProject);
-
-        // 项目分组
-        if (parameter.getGroupId() != null && parameter.getGroupId() > 0) {
-            ProjectGroupProject projectGroupProject = ProjectGroupProject.builder()
-                    .ownerId(parameter.getUserId())
-                    .projectGroupId(parameter.getGroupId())
-                    .projectId(project.getId())
+    public Project initializeProject(ProjectCreateParameter parameter) throws Exception {
+        Project project = transactionTemplate.execute(status -> {
+            String icon = StringUtils.defaultIfBlank(parameter.getIcon(),
+                    "/static/project_icon/scenery-version-2-" +
+                            RandomUtils.nextInt(14) + 1 + ".svg");
+            Project insertProject = Project.builder()
+                    .userOwnerId(0)
+                    .ownerId(0)
+                    .teamOwnerId(parameter.getTeamId())
+                    .type(NumberUtils.toInt(parameter.getType()))
+                    .depotShared(parameter.getShared() == 1)
+                    .name(parameter.getName())
+                    .displayName(parameter.getDisplayName())
+                    .namePinyin(projectServiceHelper.getPinYin(
+                            parameter.getDisplayName(),
+                            parameter.getName()))
+                    .maxMember(INFINITY_MEMBER)
+                    .description(parameter.getDescription())
+                    .icon(icon)
+                    .invisible(parameter.getInvisible())
+                    .label(StringUtils.defaultString(parameter.getLabel()))
                     .build();
-            projectGroupProjectDao.insertSelective(projectGroupProject);
+            projectDao.insertSelective(insertProject);
+            teamProjectDao.insertSelective(TeamProject.builder()
+                    .projectId(insertProject.getId())
+                    .teamId(parameter.getTeamId())
+                    .build());
+            // 项目分组
+            if (parameter.getGroupId() != null && parameter.getGroupId() > 0) {
+                projectGroupProjectDao.insertSelective(ProjectGroupProject.builder()
+                        .ownerId(parameter.getUserId())
+                        .projectGroupId(parameter.getGroupId())
+                        .projectId(insertProject.getId())
+                        .build());
+            }
+            return insertProject;
+        });
+        if (Objects.isNull(project)) {
+            throw CoreException.of(CoreException.ExceptionType.PROJECT_CREATION_ERROR);
         }
-
         // 通知 企业所有者
-        if (notifyOwner && !project.getInvisible()) {
+        if (!project.getInvisible()) {
             projectServiceHelper.sendCreateProjectNotification(
-                    response.getData().getOwner().getId(),
+                    parameter.getTeamOwnerId(),
                     parameter.getUserId(),
                     project);
         }
@@ -416,6 +467,34 @@ public class ProjectService {
         return null;
     }
 
+    public void initProjectSetting(Integer projectId, ProjectCreateParameter parameter) throws CoreException {
+        ProjectTemplateEnums projectTemplateEnums = ProjectTemplateEnums.valueOf(parameter.getProjectTemplate());
+        DemoProjectTemplateEnums demoProjectTemplateEnums = DemoProjectTemplateEnums.string2enum(parameter.getTemplate());
+        // demo模版初始化数据
+        if (!TemplateEnums.getTencentServerless().contains(parameter.getTemplate())
+                && Objects.nonNull(demoProjectTemplateEnums)) {
+            projectSettingService.updateProjectSetting(projectId, PROJECT_TEMPLATE_TYPE.getCode(), parameter.getProjectTemplate());
+
+            if (ProjectTemplateEnums.DEMO_BEGIN.equals(projectTemplateEnums)) {
+                projectSettingService.updateProjectSetting(projectId, DEMO_TEMPLATE_TYPE.getCode(), parameter.getTemplate());
+            }
+            Set<ProjectSetting.Code> ownFunctions = projectTemplateEnums.getFunctions(demoProjectTemplateEnums);
+            if (Objects.isNull(ownFunctions)) {
+                throw CoreException.of(PARAMETER_INVALID);
+            }
+            List<CreateProjectForm.ProjectFunction> FunctionModule =
+                    Optional.ofNullable(parameter.getFunctionModule()).orElseGet(ArrayList::new);
+            // 根据模版类型初始化部分项目开关
+            ProjectSetting.TOTAL_PROJECT_FUNCTION.stream()
+                    .filter(e -> !ownFunctions.contains(e))
+                    .filter(e -> !FunctionModule.contains(CreateProjectForm.ProjectFunction.codeOf(e.getCode())))
+                    .forEach(e -> projectSettingService.updateProjectSetting(projectId, e.getCode(), ProjectSetting.valueFalse));
+
+            agileTemplateGRpcClient.dataInitByProjectTemplate(projectId, parameter.getUserId(),
+                    parameter.getProjectTemplate(),
+                    parameter.getTemplate());
+        }
+    }
 
     /**
      * 删除项目
@@ -511,8 +590,8 @@ public class ProjectService {
 
         // enterprise: do not allow none team projects
         if (codingSettings.getEnterprise().getEnable()) {
-            TeamProto.GetTeamResponse team = teamGrpcClient.getTeam(project.getTeamOwnerId());
-            if (team == null || team.getData().getLock() || team.getData().getAdminLoacked() || team.getData().getId() != user.getTeamId()) {
+            Team team = teamServiceGrpcClient.getTeam(project.getTeamOwnerId());
+            if (team == null || team.getLocked() || team.getAdmin_locked() || team.getId() != user.getTeamId()) {
                 return GUEST;
             }
         }
@@ -644,5 +723,23 @@ public class ProjectService {
                 .description(credentialParameter.getDescription())
                 .allSelect(credentialParameter.isAllSelect())
                 .build();
+    }
+
+    private boolean shouldInitDepot(String projectTemplate, String template) {
+        switch (ProjectTemplateEnums.valueOf(projectTemplate)) {
+            case PROJECT_MANAGE:
+            case DEV_OPS:
+            case CODE_HOST:
+            case CHOICE_DEMAND:
+                return false;
+            case DEMO_BEGIN:
+                if (DemoProjectTemplateEnums.AGILE.name().equalsIgnoreCase(template)
+                        || DemoProjectTemplateEnums.TESTING.name().equalsIgnoreCase(template)
+                        || DemoProjectTemplateEnums.CLASSIC.name().equalsIgnoreCase(template)) {
+                    return false;
+                }
+            default:
+                return true;
+        }
     }
 }

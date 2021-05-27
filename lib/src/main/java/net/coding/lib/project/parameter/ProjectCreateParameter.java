@@ -1,10 +1,9 @@
 package net.coding.lib.project.parameter;
 
-import net.coding.exchange.dto.user.User;
+import net.coding.lib.project.form.CreateProjectForm;
 
-import java.util.Date;
+import java.util.List;
 
-import io.swagger.models.auth.In;
 import lombok.Builder;
 import lombok.Data;
 
@@ -20,6 +19,11 @@ public class ProjectCreateParameter {
     private Integer userId;
 
     private String userGk;
+
+    /**
+     * 团队所有者Id
+     */
+    private Integer teamOwnerId;
 
     /**
      * 项目分组id
@@ -48,7 +52,8 @@ public class ProjectCreateParameter {
     /**
      * 是否项目隐藏 true false 0、未隐藏  1、隐藏
      */
-    private Boolean invisible;
+    @Builder.Default
+    private Boolean invisible = Boolean.FALSE;
 
     /**
      * 标签
@@ -58,27 +63,24 @@ public class ProjectCreateParameter {
     /**
      * type
      */
-    private String type;
-    private Boolean gitEnabled;
-    private String gitReadmeEnabled;
-    private String gitIgnore;
-    private String gitLicense;
-    private String createSvnLayout;
-    private String vcsType;
-    private Integer shared;
+    @Builder.Default
+    private String type = "2";
+    @Builder.Default
+    private Boolean gitEnabled = Boolean.TRUE;
+    @Builder.Default
+    private String gitReadmeEnabled = Boolean.FALSE.toString();
+    @Builder.Default
+    private String gitIgnore = "no";
+    @Builder.Default
+    private String gitLicense = "no";
+    @Builder.Default
+    private String createSvnLayout = "no";
+    @Builder.Default
+    private String vcsType = "git";
+    @Builder.Default
+    private Integer shared = 0;
     private String template;
-    private String importFrom;
-
-    /**
-     * 开始日期
-     */
-    private Date startDate;
-
-    /**
-     * 完成日期
-     */
-    private Date endDate;
-
+    private String projectTemplate;
 
     /**
      * 是否初始化项目，默认true
@@ -86,8 +88,8 @@ public class ProjectCreateParameter {
     @Builder.Default
     private Boolean shouldInitDepot = Boolean.TRUE;
 
-    private User currentUser;
-
     private BaseCredentialParameter baseCredentialParameter;
+
+    private List<CreateProjectForm.ProjectFunction> functionModule;
 
 }

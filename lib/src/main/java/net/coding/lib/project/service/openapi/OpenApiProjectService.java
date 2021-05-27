@@ -97,21 +97,17 @@ public class OpenApiProjectService {
                 .userId(currentUser.getId())
                 .userGk(currentUser.getGlobalKey())
                 .teamId(currentUser.getTeamId())
+                .projectTemplate(request.getProjectTemplate())
                 .build();
         projectValidateService.validateCreateProject(parameter, currentUser.getEmail());
-        Integer projectId = projectService.createProject(parameter, true);
-        // 创立项目后根据模板类型控制一些开关的初始化
-        agileTemplateGRpcClient.dataInitByProjectTemplate(projectId, currentUser.getId(),
-                request.getProjectTemplate(),
-                parameter.getTemplate());
+        Project project = projectService.createProject(parameter);
         //Serverless 项目 创建项目后自动把主账号拉到项目中
         if (ProjectLabelEnums.SLS.name().equals(request.getLabel())
                 && request.getUser().getId() != currentTeam.getData().getOwner().getId()) {
-            Project project = projectService.getById(projectId);
             projectMemberService.doAddMember(parameter.getUserId(),
                     Collections.singletonList(currentTeam.getData().getOwner().getId()),
                     ADMIN, project, false);
         }
-        return projectId;
+        return project.getId();
     }
 }
