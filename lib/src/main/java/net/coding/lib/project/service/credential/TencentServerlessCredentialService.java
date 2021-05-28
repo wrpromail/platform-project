@@ -93,15 +93,18 @@ public class TencentServerlessCredentialService {
     }
 
     private TencentServerlessCredentialForm.TencentServerlessCredentialRaw requestFlush(TencentServerlessCredential serverlessCredential) {
+        String responseText="{}";
         String url = String.format(
                 "http://%s%s?uuid=%s&expired=%d&signature=%s&appid=%s&os=Linux",
                 API_BASE_URL, REFRESH_TOKEN_PATH, serverlessCredential.getUuid(),
                 serverlessCredential.getExpired(), serverlessCredential.getSignature(),
                 serverlessCredential.getAppId()
         );
-        String responseText = restTemplate.getForObject(url, String.class);
+        try {
+            responseText = restTemplate.getForObject(url, String.class);
+        }catch (Exception e){
+            log.error("Http get request fail {} ", e.getMessage());
+        }
         return JSON.fromJson(responseText, TencentServerlessCredentialForm.TencentServerlessCredentialRaw.class);
     }
-
-
 }
