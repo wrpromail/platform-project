@@ -2,16 +2,16 @@ syntax = "proto3";
 
 package proto;
 
-
+import "code.proto";
 option java_generic_services = true;
 option java_package = "net.coding.proto.platform.project";
 option java_outer_classname = "ProjectLabelProto";
 
-message  GetLabelsByProjectIdRequest {
+message GetLabelsByProjectIdRequest {
   int32 projectId = 1;
 }
 message GetLabelsByProjectIdResponse {
-  repeated ProjectLabel list = 1;
+  repeated ProjectLabel list = 3;
 }
 message ProjectLabel {
   int32 id = 1;
@@ -30,9 +30,43 @@ message CreateLabelResponse {
   int32 id = 1;
 }
 
+message GetLabelByIdRequest {
+  int32 id = 1;
+}
+
+message GetLabelByIdListRequest {
+  repeated int32 id = 1;
+}
+
+message GetLabelByProjectAndNameRequest {
+  int32 projectId = 1;
+  string name = 2;
+}
+
+message GetLabelByIdResponse{
+  proto.common.Code code = 1;
+  string message = 2;
+  ProjectLabel projectLabel = 3;
+}
+
+message GetLabelByIdListResponse{
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated ProjectLabel projectLabel = 3;
+}
+
+message GetLabelByProjectAndNameResponse{
+  proto.common.Code code = 1;
+  string message = 2;
+  ProjectLabel projectLabel = 3;
+}
+
 service ProjectLabelService {
   // 获取项目下的标签列表
   rpc getLabelsByProjectId (GetLabelsByProjectIdRequest) returns (GetLabelsByProjectIdResponse);
+  rpc getLabelById (GetLabelByIdRequest) returns (GetLabelByIdResponse);
+  rpc getLabelByIdList (GetLabelByIdListRequest) returns (GetLabelByIdListResponse);
+  rpc getLabelByProjectAndName (GetLabelByProjectAndNameRequest) returns (GetLabelByProjectAndNameResponse);
   rpc createLabel (CreateLabelRequest) returns (CreateLabelResponse);
 
 }

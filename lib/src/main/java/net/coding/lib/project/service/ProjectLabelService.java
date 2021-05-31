@@ -1,9 +1,13 @@
 package net.coding.lib.project.service;
 
 import com.google.common.eventbus.AsyncEventBus;
+
+import java.util.Collections;
 import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import net.coding.common.base.event.ActivityEvent;
 import net.coding.e.proto.ActivitiesProto.SendActivitiesRequest;
 import net.coding.grpc.client.activity.ActivityGrpcClient;
@@ -13,9 +17,11 @@ import net.coding.lib.project.entity.ProjectLabel;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.exception.CoreRuntimeException;
 import net.coding.lib.project.form.ProjectLabelForm;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 @Slf4j
 @AllArgsConstructor
@@ -34,6 +40,10 @@ public class ProjectLabelService {
         return projectLabelDao.findByProjectId(projectId);
     }
 
+    public ProjectLabel findById(Integer id) {
+        return projectLabelDao.findById(id);
+    }
+
     /**
      * 新建标签并发送动态.
      *
@@ -41,10 +51,9 @@ public class ProjectLabelService {
      */
     @Transactional(rollbackFor = Exception.class)
     public int createLabel(Integer userId, ProjectLabelForm form) {
-
-        ProjectLabel origin = projectLabelDao.getByNameAndProject(form.getName(), form.getProjectId());
+        ProjectLabel origin = getByNameAndProject(form.getName(), form.getProjectId());
         if (origin != null) {
-            throw new CoreRuntimeException(CoreException.ExceptionType.LABEL_EXIST);
+            return origin.getId();
         }
         ProjectLabel projectLabel = new ProjectLabel();
         projectLabel.setProjectId(form.getProjectId());
@@ -73,6 +82,7 @@ public class ProjectLabelService {
         );
         return newLabelId;
     }
+
     /**
      * 更新标签并发送动态.
      */
@@ -83,7 +93,7 @@ public class ProjectLabelService {
         if (projectLabel == null) {
             throw new CoreRuntimeException(CoreException.ExceptionType.PERMISSION_DENIED);
         }
-        ProjectLabel origin = projectLabelDao.getByNameAndProject(form.getName(), form.getProjectId());
+        ProjectLabel origin = getByNameAndProject(form.getName(), form.getProjectId());
         if (origin != null && !projectLabel.getId().equals(origin.getId())) {
             throw new CoreRuntimeException(CoreException.ExceptionType.LABEL_EXIST);
         }
@@ -138,5 +148,19 @@ public class ProjectLabelService {
                 .setContent(StringUtils.EMPTY)
                 .build());
         return ok > 0;
+    }
+
+    public List<ProjectLabel> getByIds(List<Integer> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return Collections.emptyList();
+        }
+        return projectLabelDao.findByIds(ids);
+    }
+
+    public ProjectLabel getByNameAndProject(String name, Integer projectId) {
+        if (StringUtils.isEmpty(name) || projectId == null) {
+            return null;
+        }
+        return projectLabelDao.getByNameAndProject(name, projectId);
     }
 }

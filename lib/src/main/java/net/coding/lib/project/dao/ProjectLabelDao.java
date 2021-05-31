@@ -69,4 +69,14 @@ public class ProjectLabelDao {
         return mapper.updateByPrimaryKeySelective(label);
     }
 
+    public List<ProjectLabel> findByIds(List<Integer> ids) {
+        Example example = Example.builder(entityClass).where(
+                WeekendSqls.<ProjectLabel>custom()
+                        .andIn(ProjectLabel::getId,ids)
+                        .andEqualTo(ProjectLabel::getDeletedAt,
+                                Timestamp.valueOf(BaseDao.NOT_DELETED))
+        ).build();
+        return mapper.selectByExample(example);
+    }
+
 }
