@@ -234,12 +234,15 @@ public class ProjectSettingGrpcService extends ProjectSettingServiceGrpc.Project
                     // 不存在setting的项目id，填充默认值。
                     willBatchSelectProjectSetting.removeAll(existSettingProjectIds);
                     if (CollectionUtils.isNotEmpty(willBatchSelectProjectSetting)) {
-                        String defaultValue = ProjectSetting.Code.getByCode(code).getDefaultValue();
-                        willBatchSelectProjectSetting.forEach(
-                                projectId -> projectSettingMessages.add(
-                                        toBuilderSetting(projectId, code, defaultValue, 0)
-                                )
-                        );
+                        net.coding.e.lib.core.bean.ProjectSetting.Code defaultCode = ProjectSetting.Code.getByCode(code);
+                        if (defaultCode != null) {
+                            String defaultValue = defaultCode.getDefaultValue();
+                            willBatchSelectProjectSetting.forEach(
+                                    projectId -> projectSettingMessages.add(
+                                            toBuilderSetting(projectId, code, defaultValue, 0)
+                                    )
+                            );
+                        }
                     }
                 }
             }
@@ -248,7 +251,8 @@ public class ProjectSettingGrpcService extends ProjectSettingServiceGrpc.Project
         } catch (Exception e) {
             log.error("RpcService getProjectSettingById error {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
-                    .setMessage(e.getMessage());
+                    //npe e.getMessage is null
+                    .setMessage(e.getMessage() == null ? "" : e.getMessage());
         }
         responseObserver.onNext(builder.build());
         responseObserver.onCompleted();
