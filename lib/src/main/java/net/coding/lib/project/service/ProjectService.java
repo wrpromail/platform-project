@@ -390,9 +390,9 @@ public class ProjectService {
     @Transactional(rollbackFor = Exception.class)
     public Project initializeProject(ProjectCreateParameter parameter) throws Exception {
         Project project = transactionTemplate.execute(status -> {
+            int r = RandomUtils.nextInt(14) + 1;
             String icon = StringUtils.defaultIfBlank(parameter.getIcon(),
-                    "/static/project_icon/scenery-version-2-" +
-                            RandomUtils.nextInt(14) + 1 + ".svg");
+                    "/static/project_icon/scenery-version-2-" + r + ".svg");
             Project insertProject = Project.builder()
                     .userOwnerId(0)
                     .ownerId(0)
