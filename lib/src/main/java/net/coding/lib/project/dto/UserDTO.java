@@ -27,7 +27,7 @@ public class UserDTO {
     private String email;
     private Integer id;//not null
     private Integer email_validation;
-    private Short phone_validation;
+    private Integer phone_validation;
     private Integer account_type;//用户来源类型 0：coding用户；1：腾讯云用户
     private Integer teamId;
 
