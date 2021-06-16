@@ -127,9 +127,9 @@ public class ProjectMemberService {
         return projectMemberDao.getByProjectIdAndUserId(projectId, userId, Timestamp.valueOf(BeanUtils.NOT_DELETED_AT));
     }
 
-    public ResultPage<ProjectMemberDTO> getProjectMembers(Integer projectId, String keyWord, PageRowBounds pager) {
+    public ResultPage<ProjectMemberDTO> getProjectMembers(Integer projectId, String keyWord, PageRowBounds pager) throws CoreException {
         if (Objects.isNull(projectDao.getProjectById(projectId))) {
-            CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
+            throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
         }
         List<ProjectMember> projectMemberList = projectMemberDao.getProjectMembers(projectId, keyWord, pager);
         List<ProjectMemberDTO> projectMembers = new ArrayList<>();

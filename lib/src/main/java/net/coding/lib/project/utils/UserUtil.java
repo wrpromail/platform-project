@@ -24,6 +24,7 @@ public class UserUtil {
         builder.status(Optional.ofNullable(user.getStatus()).orElse(1));
         builder.id(Optional.ofNullable(user.getId()).orElse(0));
         builder.email_validation(user.getEmailValidation());
+        builder.phone_validation(user.getPhoneValidation());
         builder.account_type(user.getAccountType());
         if (showSensitive) {
             builder.email(user.getEmail());

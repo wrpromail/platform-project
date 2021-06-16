@@ -1,5 +1,6 @@
 package net.coding.app.project.grpc.openapi;
 
+import net.coding.e.proto.CommonProto;
 import net.coding.grpc.client.permission.AclServiceGrpcClient;
 import net.coding.lib.project.dto.ConnectionTaskDTO;
 import net.coding.lib.project.entity.Credential;
@@ -10,21 +11,18 @@ import net.coding.lib.project.enums.CredentialTypeEnums;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.credential.CredentialForm;
 import net.coding.lib.project.grpc.client.CiJobGrpcClient;
-import net.coding.lib.project.grpc.client.TeamGrpcClient;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.service.ProjectService;
 import net.coding.lib.project.service.credential.ProjectCredentialService;
+import net.coding.proto.open.api.project.credential.ProjectCredentialProto;
+import net.coding.proto.open.api.project.credential.ProjectCredentialServiceGrpc;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.lognet.springboot.grpc.GRpcService;
-import org.springframework.util.ObjectUtils;
 
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -35,31 +33,29 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import proto.ci.CiJobProto;
 import proto.open.api.CodeProto;
-import proto.open.api.ResultProto;
-import proto.open.api.credential.CredentialProto;
-import proto.open.api.credential.CredentialServiceGrpc;
 import proto.platform.permission.PermissionProto;
-import proto.platform.team.TeamProto;
 import proto.platform.user.UserProto;
 
 import static proto.open.api.CodeProto.Code.INTERNAL_ERROR;
+import static proto.open.api.CodeProto.Code.INVALID_PARAMETER;
 import static proto.open.api.CodeProto.Code.SUCCESS;
 
 @Slf4j
 @GRpcService
 @AllArgsConstructor
-public class OpenApiCredentialGrpcService extends CredentialServiceGrpc.CredentialServiceImplBase {
+public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServiceGrpc.ProjectCredentialServiceImplBase {
+    public static final String CREDENTIAL_TYPE_NOT_SUPPORT = "credential type not support";
+    public static final String PRIVATE_KEY_BLANK = "private key is required for SSH";
     private final UserGrpcClient userGrpcClient;
     private final ProjectService projectService;
     private final AclServiceGrpcClient aclServiceGrpcClient;
     private final ProjectCredentialService credentialService;
-    private final TeamGrpcClient teamGrpcClient;
     private final CiJobGrpcClient ciJobGrpcClient;
 
     @Override
     public void describeProjectCredentials(
-            CredentialProto.DescribeProjectCredentialsRequest request,
-            StreamObserver<CredentialProto.DescribeProjectCredentialsResponse> responseObserver
+            ProjectCredentialProto.DescribeProjectCredentialsRequest request,
+            StreamObserver<ProjectCredentialProto.DescribeProjectCredentialsResponse> responseObserver
     ) {
         try {
             valid(request.getUser().getId(), request.getProjectId());
@@ -74,6 +70,7 @@ public class OpenApiCredentialGrpcService extends CredentialServiceGrpc.Credenti
                     credentials
             );
         } catch (Exception e) {
+            log.error("RpcService describeProjectCredentials error {}", e.getMessage());
             if (e instanceof CoreException) {
                 describeProjectCredentialsResponse(
                         responseObserver,
@@ -81,8 +78,8 @@ public class OpenApiCredentialGrpcService extends CredentialServiceGrpc.Credenti
                         e.getMessage(),
                         null
                 );
+                return;
             }
-            log.error("RpcService describeProjectCredentials error {}", e.getMessage());
             describeProjectCredentialsResponse(
                     responseObserver,
                     INTERNAL_ERROR,
@@ -96,19 +93,44 @@ public class OpenApiCredentialGrpcService extends CredentialServiceGrpc.Credenti
 
     @Override
     public void createProjectCredential(
-            CredentialProto.CreateProjectCredentialRequest request,
-            StreamObserver<CredentialProto.CreateProjectCredentialResponse> responseObserver
+            ProjectCredentialProto.CreateProjectCredentialRequest request,
+            StreamObserver<ProjectCredentialProto.CreateProjectCredentialResponse> responseObserver
     ) {
         try {
-            Map<String, Integer> map = valid(request.getUser().getId(), request.getProjectId());
+            valid(request.getUser().getId(), request.getProjectId());
+            CredentialTypeEnums credentialType = Optional.ofNullable(CredentialTypeEnums
+                    .of(request.getCredentialType().name()))
+                    .orElse(CredentialTypeEnums.USERNAME_PASSWORD);
+
+            // 支持的类型判断
+            if (credentialType != CredentialTypeEnums.USERNAME_PASSWORD
+                    && credentialType != CredentialTypeEnums.SSH) {
+                createCredentialsResponse(responseObserver,
+                        INVALID_PARAMETER,
+                        CREDENTIAL_TYPE_NOT_SUPPORT,
+                        null
+                );
+                return;
+            }
+            // ssh 类型时，private_key 不能为空
+            if (credentialType == CredentialTypeEnums.SSH
+                    && StringUtils.isBlank(request.getPrivateKey())) {
+                createCredentialsResponse(responseObserver,
+                        INVALID_PARAMETER,
+                        PRIVATE_KEY_BLANK,
+                        null
+                );
+                return;
+            }
             CredentialForm form = CredentialForm.builder()
-                    .teamId(MapUtils.getIntValue(map, "teamId"))
+                    .teamId(request.getUser().getTeamId())
                     .projectId(request.getProjectId())
-                    .creatorId(MapUtils.getIntValue(map, "userId"))
+                    .creatorId(request.getUser().getId())
                     .name(request.getName())
                     .username(request.getUsername())
                     .password(request.getPassword())
-                    .type(CredentialTypeEnums.USERNAME_PASSWORD.name())
+                    .type(credentialType.name())
+                    .privateKey(request.getPrivateKey())
                     .scope(CredentialScopeEnums.PROJECT.getCode())
                     .allSelect(true)
                     .build();
@@ -124,7 +146,7 @@ public class OpenApiCredentialGrpcService extends CredentialServiceGrpc.Credenti
             form.setTaskDTOS(taskDTOList);
             int credentialId = credentialService.createCredential(form);
             Credential credential = credentialService.get(credentialId, false);
-            describeCreateCredentialsResponse(
+            createCredentialsResponse(
                     responseObserver,
                     SUCCESS,
                     SUCCESS.name().toLowerCase(),
@@ -132,7 +154,7 @@ public class OpenApiCredentialGrpcService extends CredentialServiceGrpc.Credenti
             );
         } catch (Exception e) {
             if (e instanceof CoreException) {
-                describeCreateCredentialsResponse(
+                createCredentialsResponse(
                         responseObserver,
                         INTERNAL_ERROR,
                         e.getMessage(),
@@ -140,7 +162,7 @@ public class OpenApiCredentialGrpcService extends CredentialServiceGrpc.Credenti
                 );
             }
             log.error("RpcService createProjectCredential error {}", e.getMessage());
-            describeCreateCredentialsResponse(
+            createCredentialsResponse(
                     responseObserver,
                     INTERNAL_ERROR,
                     INTERNAL_ERROR.name().toLowerCase(),
@@ -150,16 +172,16 @@ public class OpenApiCredentialGrpcService extends CredentialServiceGrpc.Credenti
     }
 
     private void describeProjectCredentialsResponse(
-            StreamObserver<CredentialProto.DescribeProjectCredentialsResponse> responseObserver,
+            StreamObserver<ProjectCredentialProto.DescribeProjectCredentialsResponse> responseObserver,
             CodeProto.Code code,
             String message,
             List<Credential> credentials) {
-        ResultProto.Result result = ResultProto.Result.newBuilder()
+        CommonProto.Result result = CommonProto.Result.newBuilder()
                 .setCode(code.getNumber())
                 .setId(0)
                 .setMessage(message)
                 .build();
-        CredentialProto.DescribeProjectCredentialsResponse.Builder builder = CredentialProto
+        ProjectCredentialProto.DescribeProjectCredentialsResponse.Builder builder = ProjectCredentialProto
                 .DescribeProjectCredentialsResponse.newBuilder()
                 .setResult(result);
 
@@ -171,17 +193,17 @@ public class OpenApiCredentialGrpcService extends CredentialServiceGrpc.Credenti
     }
 
 
-    private void describeCreateCredentialsResponse(
-            StreamObserver<CredentialProto.CreateProjectCredentialResponse> responseObserver,
+    private void createCredentialsResponse(
+            StreamObserver<ProjectCredentialProto.CreateProjectCredentialResponse> responseObserver,
             CodeProto.Code code,
             String message,
             Credential credential) {
-        ResultProto.Result result = ResultProto.Result.newBuilder()
+        CommonProto.Result result = CommonProto.Result.newBuilder()
                 .setCode(code.getNumber())
                 .setId(0)
                 .setMessage(message)
                 .build();
-        CredentialProto.CreateProjectCredentialResponse.Builder builder = CredentialProto
+        ProjectCredentialProto.CreateProjectCredentialResponse.Builder builder = ProjectCredentialProto
                 .CreateProjectCredentialResponse.newBuilder()
                 .setResult(result);
 
@@ -192,13 +214,13 @@ public class OpenApiCredentialGrpcService extends CredentialServiceGrpc.Credenti
         responseObserver.onCompleted();
     }
 
-    public CredentialProto.DescribeProjectCredentialsResponseData getData(List<Credential> credentials) {
-        return CredentialProto.DescribeProjectCredentialsResponseData.newBuilder()
+    public ProjectCredentialProto.DescribeProjectCredentialsResponseData getData(List<Credential> credentials) {
+        return ProjectCredentialProto.DescribeProjectCredentialsResponseData.newBuilder()
                 .addAllCredentialList(toBuilderCredentials(credentials))
                 .build();
     }
 
-    public List<CredentialProto.Credential> toBuilderCredentials(List<Credential> credentials) {
+    public List<ProjectCredentialProto.Credential> toBuilderCredentials(List<Credential> credentials) {
         return Optional.ofNullable(credentials)
                 .orElse(Collections.emptyList())
                 .stream()
@@ -207,23 +229,23 @@ public class OpenApiCredentialGrpcService extends CredentialServiceGrpc.Credenti
                 .collect(Collectors.toList());
     }
 
-    public CredentialProto.CreateProjectCredentialResponseData getData(Credential credential) {
-        return CredentialProto.CreateProjectCredentialResponseData.newBuilder()
+    public ProjectCredentialProto.CreateProjectCredentialResponseData getData(Credential credential) {
+        return ProjectCredentialProto.CreateProjectCredentialResponseData.newBuilder()
                 .setCredential(toBuilderCredential(credential))
                 .build();
     }
 
-    public CredentialProto.Credential toBuilderCredential(Credential credential) {
+    public ProjectCredentialProto.Credential toBuilderCredential(Credential credential) {
         if (credential == null) {
             return null;
         }
-        return CredentialProto.Credential.newBuilder()
+        return ProjectCredentialProto.Credential.newBuilder()
                 .setCredentialId(credential.getCredentialId())
                 .setName(StringUtils.defaultString(credential.getName()))
                 .build();
     }
 
-    private Map<String, Integer> valid(Integer userId, Integer projectId) throws CoreException {
+    private void valid(Integer userId, Integer projectId) throws CoreException {
         UserProto.User currentUser = userGrpcClient.getUserById(userId);
         if (currentUser == null) {
             throw CoreException.of(CoreException.ExceptionType.USER_NOT_EXISTS);
@@ -249,16 +271,5 @@ public class OpenApiCredentialGrpcService extends CredentialServiceGrpc.Credenti
         if (!hasPermissionInProject) {
             throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
         }
-        TeamProto.GetTeamResponse response = teamGrpcClient.getTeam(project.getTeamOwnerId());
-        if (response == null
-                || !response.getCode().equals(proto.common.CodeProto.Code.SUCCESS)
-                || ObjectUtils.isEmpty(response.getData())
-        ) {
-            throw CoreException.of(CoreException.ExceptionType.TEAM_NOT_EXIST);
-        }
-        Map<String, Integer> map = new HashMap<>();
-        map.put("userId", currentUser.getId());
-        map.put("teamId", response.getData().getId());
-        return map;
     }
 }

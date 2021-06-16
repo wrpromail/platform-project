@@ -63,8 +63,8 @@ dependencies {
     compile "net.coding.proto:wiki:20201113.1"
     compile "net.coding.proto:artifact:20210112.1"
     compile "net.coding.proto:permission:20201230.1"
-    compile "net.coding.proto:open-api:20210524.1"
-    compile "net.coding.proto:platform-open-api:d6264549d30e0bb007b5e458324717bc2f94fbdf"
+    compile "net.coding.proto:open-api:20210615.2"
+    compile "net.coding.proto:platform-open-api:20210616.1"
     compile("tk.mybatis:mapper-spring-boot-starter:2.1.5")
 
 }
