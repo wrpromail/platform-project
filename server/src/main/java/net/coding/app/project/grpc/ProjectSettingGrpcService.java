@@ -17,6 +17,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import io.grpc.stub.StreamObserver;
@@ -49,7 +50,13 @@ public class ProjectSettingGrpcService extends ProjectSettingServiceGrpc.Project
             }
             ProjectSetting projectSetting = projectSettingService.findProjectSetting(projectId, code);
             if (projectSetting == null) {
-                builder.setCode(CodeProto.Code.NOT_FOUND);
+                String defaultValue = projectSettingService.getCodeDefaultValue(code);
+                if (defaultValue == null) {
+                    builder.setCode(CodeProto.Code.NOT_FOUND);
+                } else {
+                    builder.setCode(CodeProto.Code.SUCCESS);
+                    builder.setValue(defaultValue);
+                }
             } else {
                 builder.setCode(CodeProto.Code.SUCCESS);
                 builder.setValue(projectSetting.getValue());
@@ -79,6 +86,19 @@ public class ProjectSettingGrpcService extends ProjectSettingServiceGrpc.Project
                 throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST_OR_ARCHIVED);
             }
             List<ProjectSetting> projectSettings = projectSettingService.findProjectSettings(projectId, codes);
+            List<String> findCodes = projectSettings.stream().map(ProjectSetting::getCode).collect(Collectors.toList());
+            codes.stream().filter(c -> !findCodes.contains(c)).forEach(c -> {
+                String defaultValue = projectSettingService.getCodeDefaultValue(c);
+                if (defaultValue != null) {
+                    ProjectSetting projectSetting = new ProjectSetting();
+                    projectSetting.setCode(c);
+                    projectSetting.setProjectId(projectId);
+                    projectSetting.setValue(defaultValue);
+                    projectSetting.setId(0);
+                    projectSettings.add(projectSetting);
+                }
+            });
+
             if (CollectionUtils.isEmpty(projectSettings)) {
                 builder.setCode(CodeProto.Code.NOT_FOUND);
             } else {
