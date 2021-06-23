@@ -32,6 +32,53 @@ message ContainArchivedProjectsGetResponse {
   repeated Project project = 3;
 }
 
+enum ProjectTemplate {
+  DEV_OPS = 0; // devOps
+  DEMO_BEGIN = 1; // 范例项目
+  CHOICE_DEMAND = 2; // 按需选择
+}
+
+message CreateProjectRequest {
+  int32 userId = 1;
+  string name = 2;
+  string displayName = 3;
+  string description = 4;
+  ProjectTemplate projectTemplate = 5; //目前只支持DEV_OPS
+}
+
+message CreateProjectResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  Project project = 3;
+}
+
+message DeleteProjectRequest {
+  int32 userId = 1;
+  int32 projectId = 2;
+}
+
+message DeleteProjectResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+}
+
+message ExistProjectByNameRequest {
+  int32 teamId = 1;
+  string projectName = 2;
+}
+
+message ExistProjectByNameResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  bool isExist = 3;
+}
+
 service ProjectService {
   rpc ContainArchivedProjectsGet(ContainArchivedProjectsGetRequest) returns (ContainArchivedProjectsGetResponse);
+  //  创建项目
+  rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse);
+  //  删除项目
+  rpc DeleteProject(DeleteProjectRequest) returns (DeleteProjectResponse);
+  //  查询项目名称是否存在
+  rpc ExistProjectByName(ExistProjectByNameRequest) returns (ExistProjectByNameResponse);
 }
