@@ -85,18 +85,28 @@ public class OpenApiProjectMemberGRpcService extends ProjectMemberServiceGrpc.Pr
                 }
                 currentUser = userGrpcClient.getUserById(response.getData().getOwner().getId());
             }
-            //验证用户接口权限
-            boolean hasPermissionInProject = aclServiceGrpcClient.hasPermissionInProject(
+            boolean hasPermissionInEnterprise = aclServiceGrpcClient.hasPermissionInEnterprise(
                     PermissionProto.Permission.newBuilder()
-                            .setFunction(PermissionProto.Function.ProjectMember)
-                            .setAction(PermissionProto.Action.Create)
+                            .setFunction(PermissionProto.Function.EnterpriseProject)
+                            .setAction(PermissionProto.Action.View)
                             .build(),
-                    request.getProjectId(),
-                    currentUser.getGlobalKey(),
-                    currentUser.getId()
+                    currentUser.getId(),
+                    currentUser.getTeamId()
             );
-            if (!hasPermissionInProject) {
-                throw CoreException.of(PERMISSION_DENIED);
+            if (!hasPermissionInEnterprise) {
+                //验证用户接口权限
+                boolean hasPermissionInProject = aclServiceGrpcClient.hasPermissionInProject(
+                        PermissionProto.Permission.newBuilder()
+                                .setFunction(PermissionProto.Function.ProjectMember)
+                                .setAction(PermissionProto.Action.Create)
+                                .build(),
+                        request.getProjectId(),
+                        currentUser.getGlobalKey(),
+                        currentUser.getId()
+                );
+                if (!hasPermissionInProject) {
+                    throw CoreException.of(PERMISSION_DENIED);
+                }
             }
             if ((request.getType() != ADMIN && request.getType() != MEMBER)) {
                 throw CoreException.of(PERMISSION_DENIED);
