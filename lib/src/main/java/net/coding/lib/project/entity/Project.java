@@ -2,6 +2,7 @@ package net.coding.lib.project.entity;
 
 import net.coding.common.constants.ProjectConstants;
 import net.coding.common.util.BeanUtils;
+import net.coding.lib.project.enums.PmTypeEnums;
 import net.coding.lib.project.utils.DateUtil;
 
 import java.io.Serializable;
@@ -35,7 +36,8 @@ public class Project implements Serializable {
     /**
      * 项目所有者ID，这个字段需要删掉
      */
-    private Integer ownerId;
+    @Builder.Default
+    private Integer ownerId = 0;
 
     /**
      * 创建时间
@@ -68,7 +70,8 @@ public class Project implements Serializable {
     @Builder.Default
     private Boolean depotShared = false;
 
-    private Integer type;
+    @Builder.Default
+    private Integer type = 0;
 
     @Builder.Default
     private Integer maxMember = 10;
@@ -112,7 +115,8 @@ public class Project implements Serializable {
     /**
      * 项目所属用户ID
      */
-    private Integer userOwnerId;
+    @Builder.Default
+    private Integer userOwnerId = 0;
 
     /**
      * 开始日期
@@ -139,4 +143,10 @@ public class Project implements Serializable {
      * 标签
      */
     private String label;
+
+    /**
+     * 0 项目 / 1 项目集
+     */
+    @Builder.Default
+    private Integer pmType = PmTypeEnums.PROJECT.getType();
 }

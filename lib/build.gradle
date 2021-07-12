@@ -1,5 +1,5 @@
 ext {
-    commonVersion = '20210202.1'
+    commonVersion = '20210720.1'
 
 }
 dependencies {
@@ -44,7 +44,7 @@ dependencies {
     compile ("net.coding.grpc.client:activity:20201102.2") {
         exclude(group: "net.coding.common")
     }
-    compile ('net.coding.grpc.client:platform-template:20201102.1') {
+    compile ('net.coding.client:platform-template:20210820.1') {
         exclude(group: "net.coding.common")
     }
     compile ("net.coding.grpc.client:depot:20210204.1") {
@@ -53,7 +53,7 @@ dependencies {
     compile ("net.coding.grpc.client:pinyin:20201230.1") {
         exclude(group: "net.coding.common")
     }
-    compile ("net.coding.grpc.client:permission:20201230.1") {
+    compile ("net.coding.grpc.client:permission:20210830.1") {
         exclude(group: "net.coding.common")
     }
     compile 'net.coding.proto:storage:20201027.1'
@@ -62,9 +62,11 @@ dependencies {
     compile 'net.coding.proto:file:20201109.2'
     compile "net.coding.proto:wiki:20201113.1"
     compile "net.coding.proto:artifact:20210112.1"
-    compile "net.coding.proto:permission:20201230.1"
+    compile "net.coding.proto:permission:20210830.1"
     compile "net.coding.proto:open-api:20210615.2"
     compile "net.coding.proto:platform-open-api:20210803.1"
+    compile "net.coding.grpc.client:collaboration:20210827.1"
+    compile "net.coding.platform.framework:degradation:1.1.1"
     compile("tk.mybatis:mapper-spring-boot-starter:2.1.5")
 
 }

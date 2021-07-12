@@ -26,13 +26,14 @@
         <result column="project_file_quota" jdbcType="INTEGER" property="projectFileQuota"/>
         <result column="invisible" jdbcType="BOOLEAN" property="invisible"/>
         <result column="label" jdbcType="VARCHAR" property="label"/>
+        <result column="pm_type" jdbcType="TINYINT" property="pmType"/>
     </resultMap>
 
     <sql id="Base_Column_List">
     id, owner_id, created_at, updated_at, deleted_at, `status`, recommended, depot_shared,
     `type`, max_member, `name`, name_pinyin, display_name, description, icon, `plan`,
     team_owner_id, user_owner_id, start_date, end_date, project_file_quota, invisible,
-    `label`
+    `label`,pm_type
   </sql>
 
 
@@ -67,6 +68,27 @@
         AND deleted_at = '1970-01-01 00:00:00'
         LIMIT 1
     </select>
+
+    <select id="getProjectArchiveByIdAndTeamId" parameterType="java.lang.Integer"
+            resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM projects
+        where id = #{id}
+        and team_owner_id = #{teamOwnerId}
+        and deleted_at = '1990-01-01 00:00:00'
+    </select>
+
+    <select id="getProjectNotDeleteByIdAndTeamId" parameterType="java.lang.Integer"
+            resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM projects
+        where id = #{id}
+        and team_owner_id = #{teamOwnerId}
+        and (deleted_at = '1970-01-01 00:00:00' or deleted_at = '1990-01-01 00:00:00')
+    </select>
+
     <select id="getProjectById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
@@ -105,9 +127,11 @@
         ON pm.project_id = p.id
         <where>
             p.deleted_at = '1970-01-01 00:00:00'
-            AND pm.deleted_at = '1970-01-01 00:00:00'
-            AND pm.user_id = #{userId}
             AND p.team_owner_id = #{teamId}
+            <if test="userId != null">
+                AND pm.deleted_at = '1970-01-01 00:00:00'
+                AND pm.user_id = #{userId}
+            </if>
             <if test="projectName != null and projectName != ''">
                 AND p.`name` = #{projectName}
             </if>
@@ -118,6 +142,7 @@
                 AND p.invisible = #{invisible}
             </if>
         </where>
+        group by p.id
         order by p.id desc
     </select>
 
@@ -159,4 +184,5 @@
         </foreach>
         and deleted_at=#{deletedAt}
     </select>
+
 </mapper>

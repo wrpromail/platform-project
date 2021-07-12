@@ -16,6 +16,7 @@ import org.apache.ibatis.session.RowBounds;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Set;
 
 @Mapper
 public interface ProjectMemberDao {
@@ -23,7 +24,7 @@ public interface ProjectMemberDao {
     int insert(ProjectMember record);
 
     int insertList(
-            @Param("list") List<Integer> userIds,
+            @Param("list") Set<Integer> userIds,
             @Param("record") ProjectMember record
     );
 

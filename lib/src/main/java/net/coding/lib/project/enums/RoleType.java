@@ -2,7 +2,6 @@ package net.coding.lib.project.enums;
 
 /**
  * @author liwenqiu@coding.net
- *
  */
 
 public enum RoleType {
@@ -28,6 +27,15 @@ public enum RoleType {
     // 产品经理
     ProductManager,
     // 运维
-    ProjectOperation
+    ProjectOperation,
+
+    // 项目集负责人
+    ProgramOwner,
+    // 项目集管理员
+    ProgramAdmin,
+    // 项目集成员
+    ProgramMember,
+    // 项目集-项目成员
+    ProgramProjectMember
 
 }

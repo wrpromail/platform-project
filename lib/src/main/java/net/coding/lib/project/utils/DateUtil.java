@@ -4,10 +4,10 @@ import net.coding.lib.project.entity.ResourceReference;
 
 import java.sql.Timestamp;
 import java.text.DateFormat;
-import java.text.MessageFormat;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -317,6 +317,15 @@ public class DateUtil {
         ZoneId zoneId = ZoneId.systemDefault();
         LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, zoneId);
         return formatter.format(localDateTime);
+    }
+
+    public static String formatDateToStr(Date date) {
+        DateTimeFormatter dateFormat = DateTimeFormatter.ISO_DATE;
+        if (date != null) {
+            LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            return localDate.format(dateFormat);
+        }
+        return null;
     }
 
     public static Long DateToTime(Date date) {

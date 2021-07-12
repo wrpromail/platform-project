@@ -2,6 +2,7 @@ package net.coding.app.project.http;
 
 import com.github.pagehelper.PageRowBounds;
 
+import net.coding.app.project.constant.GatewayHeader;
 import net.coding.common.annotation.ProjectApiProtector;
 import net.coding.common.annotation.ProtectedAPI;
 import net.coding.common.annotation.enums.Action;
@@ -17,6 +18,7 @@ import net.coding.lib.project.pager.PagerResolve;
 import net.coding.lib.project.service.ProjectMemberService;
 
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -86,10 +88,11 @@ public class ProjectMemberController {
     @ProjectApiProtector(function = Function.ProjectMember, action = Action.Delete)
     @RequestMapping(value = "/{targetUserId}", method = RequestMethod.DELETE)
     public Result delMember(
+            @RequestHeader(GatewayHeader.USER_ID) Integer userId,
             @PathVariable("targetUserId") int targetUserId,
             @PathVariable("projectId") int projectId
     ) throws CoreException {
-        projectMemberService.delMember(projectId, targetUserId);
+        projectMemberService.delMember(userId, projectId, targetUserId);
         return Result.success();
 
     }

@@ -9,6 +9,7 @@ import net.coding.lib.project.enums.CacheTypeEnum;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.listener.event.ProjectMemberRoleChangeEvent;
+import net.coding.lib.project.service.ProjectHandCacheService;
 import net.coding.lib.project.service.ProjectMemberService;
 import net.coding.lib.project.service.ProjectService;
 
@@ -35,6 +36,8 @@ public class ProjectMemberRoleChangeEventListener {
     private final ProjectMemberService projectMemberService;
 
     private final UserGrpcClient userGrpcClient;
+
+    private final ProjectHandCacheService projectHandCacheService;
 
     @Subscribe
     @Transactional
@@ -63,7 +66,7 @@ public class ProjectMemberRoleChangeEventListener {
 
             ProjectMember projectMember = projectMemberService.getByProjectIdAndUserId(event.getProjectId(), event.getTargetUserId());
             if (Objects.nonNull(projectMember)) {
-                projectMemberService.handleCache(projectMember, CacheTypeEnum.UPDATE);
+                projectHandCacheService.handleProjectMemberCache(projectMember, CacheTypeEnum.UPDATE);
                 projectMemberService.updateProjectMemberType
                         (
                                 event.getCurrentUserId(),
@@ -82,7 +85,7 @@ public class ProjectMemberRoleChangeEventListener {
                         );
             }
         } catch (CoreException ex) {
-            log.info("ProjectMemberRoleChangeEventListener Error, projectId = {}, targetUserId = {}, currentUserId = {}",
+            log.error("ProjectMemberRoleChangeEventListener Error, projectId = {}, targetUserId = {}, currentUserId = {}",
                     event.getProjectId(),
                     event.getTargetUserId(),
                     event.getCurrentUserId());

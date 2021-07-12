@@ -160,7 +160,8 @@ public class CoreException extends Exception {
         PROJECT_ARCHIVED_ONLY_ADMIN(1172, "project_archived_only_admin"),
         PROJECT_NAME_IS_EMPTY(1173, "project_name_not_empty"),
         PROJECT_NOT_EXIST_OR_ARCHIVED(1174, "project_not_exist_or_archived"),
-
+        PROJECT_START_DATE_NOT_EMPTY(1175, "project_start_date_not_empty"),
+        PROJECT_END_DATE_NOT_EMPTY(1176, "project_end_date_not_empty"),
 
         //group相关的以 15开头
         GROUP_NOT_EXIST(1500, "group_not_exist"),
@@ -224,6 +225,7 @@ public class CoreException extends Exception {
         CREDENTIAL_TASK_TYPE_INVALID(6606, "credential_task_type_invalid"),
         CREDENTIAL_PASSWORD_BYTES_TOO_LONG(6607, "credential_password_bytes_too_long"),
         CI_JOB_NOT_FOUND(6301, "ci_job_not_found");
+
         private final int errorCode;
         private final String resourceKey;
         private Object[] args;
