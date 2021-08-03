@@ -143,6 +143,7 @@ public class OpenApiProjectMemberTwoGRpcService extends ProjectMemberServiceGrpc
                 .setEmailValidation(ObjectUtils.defaultIfNull(user.getEmail_validation(), 0))
                 .setPhone(TextUtils.htmlEscape(user.getPhone()))
                 .setPhoneValidation(ObjectUtils.defaultIfNull(user.getPhone_validation(), 0))
+                .setGlobalKey(user.getGlobal_key())
                 .build();
     }
 }
