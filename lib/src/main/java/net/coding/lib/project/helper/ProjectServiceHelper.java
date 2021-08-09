@@ -28,7 +28,6 @@ import net.coding.lib.project.entity.ProjectPreference;
 import net.coding.lib.project.entity.ProjectSetting;
 import net.coding.lib.project.entity.ProjectTweet;
 import net.coding.lib.project.enums.ActivityEnums;
-import net.coding.lib.project.event.NotificationEvent;
 import net.coding.lib.project.grpc.client.NotificationGrpcClient;
 import net.coding.lib.project.grpc.client.ProjectGrpcClient;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
@@ -57,6 +56,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import proto.notification.NotificationProto;
+import proto.notification.NotificationProto.TargetType;
 import proto.platform.logging.loggingProto;
 import proto.platform.project.ProjectProto;
 import proto.platform.team.TeamProto;
@@ -132,12 +132,12 @@ public class ProjectServiceHelper {
                         userLink, projectHtmlUrl, this.getTweetHtmlLink(tweet, project, projectPath));
 
                 // 站内通知
-                asyncEventBus.post(NotificationEvent.builder()
-                        .userIds(userIds)
-                        .content(message)
-                        .targetType(tweet.getClass().getSimpleName())
-                        .targetId(tweet.getId().toString())
-                        .baseSettingClass(AtSetting.class)
+                notificationGrpcClient.send(NotificationProto.NotificationSendRequest.newBuilder()
+                        .addAllUserId(userIds)
+                        .setContent(StringUtils.defaultIfBlank(message, StringUtils.EMPTY))
+                        .setTargetType(TargetType.ProjectTweet)
+                        .setTargetId(tweet.getId().toString())
+                        .setSetting(NotificationProto.Setting.AtSetting)
                         .build());
             }
         }
@@ -171,7 +171,7 @@ public class ProjectServiceHelper {
 
                 notificationGrpcClient.send(NotificationProto.NotificationSendRequest.newBuilder()
                         .addAllUserId(userIds)
-                        .setContent(Optional.ofNullable(message).orElse(null))
+                        .setContent(StringUtils.defaultIfBlank(message, StringUtils.EMPTY))
                         .setTargetType(NotificationProto.TargetType.Project)
                         .setTargetId(tweet.getId().toString())
                         .setSetting(NotificationProto.Setting.AtSetting)
@@ -238,14 +238,13 @@ public class ProjectServiceHelper {
         }
 
         // 站内通知
-        asyncEventBus.post(NotificationEvent.builder()
-                .userIds(userIds)
-                .content(notification)
-                .targetType(tweet.getClass().getSimpleName())
-                .targetId(tweet.getId().toString())
-                .baseSettingClass(AtSetting.class)
+        notificationGrpcClient.send(NotificationProto.NotificationSendRequest.newBuilder()
+                .addAllUserId(userIds)
+                .setContent(StringUtils.defaultIfBlank(notification, StringUtils.EMPTY))
+                .setTargetType(NotificationProto.TargetType.ProjectTweet)
+                .setTargetId(tweet.getId().toString())
+                .setSetting(NotificationProto.Setting.AtSetting)
                 .build());
-
         // TODO: 等移动端做了项目内冒泡后加上，且推送格式要修改
         // task: https://coding.net/u/wzw/p/coding/task/74923
     }

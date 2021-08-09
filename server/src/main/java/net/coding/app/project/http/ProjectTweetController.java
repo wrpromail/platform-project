@@ -3,12 +3,16 @@ package net.coding.app.project.http;
 import com.github.pagehelper.PageInfo;
 
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NOT_EXIST;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.TWEET_NOT_EXISTS;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import net.coding.app.project.constant.GatewayHeader;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestHeader;
 import proto.platform.user.UserProto;
 
 import java.util.ArrayList;
@@ -65,20 +69,41 @@ public class ProjectTweetController {
     @Autowired
     private UserGrpcClient userGrpcClient;
 
+    /**
+     * 检测项目权限，团队权限
+     * id : 公告id
+     */
+    @ModelAttribute
+    public void preCheckPermission(
+            @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
+            @PathVariable("projectId") Integer projectId,
+            @PathVariable(value = "tweetId", required = false) Integer tweetId,
+            Model model
+    ) throws CoreException {
+        Project project = projectService.getById(projectId);
+        if (project == null || !teamId.equals(project.getTeamOwnerId())) {
+            throw CoreException.of(PROJECT_NOT_EXIST);
+        }
+        if (Objects.nonNull(tweetId)) {
+            ProjectTweet projectTweet = projectTweetService.getById(tweetId);
+            if (projectTweet == null || !projectTweet.getProjectId().equals(projectId)) {
+                throw CoreException.of(TWEET_NOT_EXISTS);
+            }
+            model.addAttribute("projectTweet", projectTweet);
+        }
+        model.addAttribute("project", project);
+    }
+
     @ApiOperation(value = "创建公告", notes = "原api:/api/project/{project_id}/tweet post")
     @ProtectedAPI
     @ProjectApiProtector(function = Function.ProjectNotice, action = Action.Create)
     @RequestMapping(value = "", method = POST)
     public Result createProjectTweet (
-            @PathVariable("projectId") Integer projectId,
+            @ModelAttribute("project") Project project,
             @Valid CreateTweetForm form,
             Errors errors) throws CoreException {
         if (!form.validate(errors)) {
             throw CoreException.of(errors);
-        }
-        Project project = projectService.getById(projectId);
-        if (project == null) {
-            throw CoreException.of(PROJECT_NOT_EXIST);
         }
         String projectPath = projectGrpcClient.getProjectPath(project.getId());
         ProjectTweet projectTweet = projectTweetService.insert(form.getContent(), form.getSlateRaw(),true, project);
@@ -93,19 +118,16 @@ public class ProjectTweetController {
     @ApiOperation(value = "编辑公告", notes = "原api:/api/project/{project_id}/tweet/{tweet_id} put")
     @ProtectedAPI
     @ProjectApiProtector(function = Function.ProjectNotice, action = Action.Update)
-    @RequestMapping(value = "{id}", method = PUT)
+    @RequestMapping(value = "{tweetId}", method = PUT)
     public Result updateProjectTweet(
-            @PathVariable("projectId") Integer projectId,
-            @PathVariable("id") Integer id,
+            @ModelAttribute("project") Project project,
+            @ModelAttribute("projectTweet") ProjectTweet projectTweet,
             @RequestParam("raw") String raw,
             @RequestParam(value = "slateRaw",required = false,defaultValue = "") String slateRaw
             ) throws CoreException {
-        Project project = projectService.getById(projectId);
-        if (project == null) {
-            throw CoreException.of(PROJECT_NOT_EXIST);
-        }
+
         String projectPath = projectGrpcClient.getProjectPath(project.getId());
-        ProjectTweet projectTweet = projectTweetService.update(id, raw, slateRaw, project);
+        projectTweet = projectTweetService.update(projectTweet, raw, slateRaw, project);
         if (projectTweet == null) {
             return Result.failed();
         } else {
@@ -119,19 +141,12 @@ public class ProjectTweetController {
      */
     @ApiOperation(value = "公告详情", notes = "原api:/api/project/{project_id}/tweet/{tweet_id} get")
     @ProtectedAPI
-    @RequestMapping(value = "{id}", method = GET)
+    @RequestMapping(value = "{tweetId}", method = GET)
     public Result getById(
-            @PathVariable("projectId") Integer projectId,
-            @PathVariable("id") Integer tweetId,
+            @ModelAttribute("project") Project project,
+            @ModelAttribute("projectTweet") ProjectTweet projectTweet,
+            @PathVariable("tweetId") Integer tweetId,
             @RequestParam(value = "withRaw", defaultValue = "false") boolean withRaw) throws CoreException {
-        Project project = projectService.getById(projectId);
-        if (project == null) {
-            throw CoreException.of(PROJECT_NOT_EXIST);
-        }
-        ProjectTweet projectTweet = projectTweetService.getById(tweetId);
-        if (projectTweet == null) {
-            throw CoreException.of(CoreException.ExceptionType.PROJECT_TWEET_NOT_EXISTS);
-        }
         String projectPath = projectGrpcClient.getProjectPath(project.getId());
         UserProto.User user = userGrpcClient.getUserById(projectTweet.getOwnerId());
         return Result.success(projectTweetService.toBuilderTweet(projectTweet, withRaw, project, projectPath, user));
@@ -141,14 +156,10 @@ public class ProjectTweetController {
     @ProtectedAPI
     @RequestMapping(value = "last", method = GET)
     public Result getLast (
-            @PathVariable("projectId") Integer projectId,
-            @RequestParam(value = "withRaw", defaultValue = "false") boolean withRaw) throws CoreException {
-        Project project = projectService.getById(projectId);
-        if (project == null) {
-            throw CoreException.of(PROJECT_NOT_EXIST);
-        }
+            @ModelAttribute("project") Project project,
+            @RequestParam(value = "withRaw", defaultValue = "false") boolean withRaw) {
         String projectPath = projectGrpcClient.getProjectPath(project.getId());
-        ProjectTweet projectTweet = projectTweetService.getLast(projectId);
+        ProjectTweet projectTweet = projectTweetService.getLast(project.getId());
         if (Objects.isNull(projectTweet)) {
             // 返回空列表而不是失败
             return Result.success();
@@ -164,13 +175,9 @@ public class ProjectTweetController {
     @ProtectedAPI
     @RequestMapping(value = "", method = GET)
     public ResultPage<ProjectTweetDTO> getProjectNotices (
-            @PathVariable("projectId") Integer projectId,
+            @ModelAttribute("project") Project project,
             @ModelAttribute LimitedPager pager,
-            @RequestParam(value = "withRaw", defaultValue = "false") boolean withRaw) throws CoreException {
-        Project project = projectService.getById(projectId);
-        if (project == null) {
-            throw CoreException.of(PROJECT_NOT_EXIST);
-        }
+            @RequestParam(value = "withRaw", defaultValue = "false") boolean withRaw) {
         Integer page = pager.getPage();
         Integer pageSize = pager.getPageSize();
         if(page == null || page <= 0) {
@@ -180,7 +187,7 @@ public class ProjectTweetController {
             pageSize = 20;
         }
         String projectPath = projectGrpcClient.getProjectPath(project.getId());
-        PageInfo<ProjectTweet > pageResult = projectTweetService.findList(projectId, page, pageSize);
+        PageInfo<ProjectTweet > pageResult = projectTweetService.findList(project.getId(), page, pageSize);
         List<ProjectTweet> projectNoticeList = pageResult.getList();
         List<ProjectTweetDTO> dtoList = new ArrayList<>(projectNoticeList.size());
         List<Integer> userId = projectNoticeList.stream().map(ProjectTweet::getOwnerId).distinct().collect(Collectors.toList());
@@ -197,16 +204,13 @@ public class ProjectTweetController {
     @ApiOperation(value = "删除公告", notes = "原api:/api/project/{project_id}/tweet/{tweet_id} delete")
     @ProtectedAPI
     @ProjectApiProtector(function = Function.ProjectNotice, action = Action.Update)
-    @RequestMapping(value = "{id}", method = DELETE)
+    @RequestMapping(value = "{tweetId}", method = DELETE)
     public Result deleteProjectTweet(
-            @PathVariable("projectId") Integer projectId,
-            @PathVariable("id") Integer id) throws CoreException {
-        Project project = projectService.getById(projectId);
-        if (project == null) {
-            throw CoreException.of(PROJECT_NOT_EXIST);
-        }
+            @ModelAttribute("project") Project project,
+            @ModelAttribute("projectTweet") ProjectTweet projectTweet
+    ) {
         Integer userId = SystemContextHolder.get() != null ? SystemContextHolder.get().getId() : 0;
-        return Result.of(projectTweetService.delete(id, userId, project) > 0);
+        return Result.of(projectTweetService.delete(projectTweet, userId, project) > 0);
     }
 
 
