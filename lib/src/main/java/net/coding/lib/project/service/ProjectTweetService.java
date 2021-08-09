@@ -12,6 +12,7 @@ import net.coding.lib.project.entity.ProjectTweet;
 import net.coding.lib.project.enums.ActivityEnums;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.helper.ProjectServiceHelper;
+import net.coding.lib.project.infra.TextModerationService;
 import net.coding.lib.project.utils.DateUtil;
 import net.coding.lib.project.utils.TextUtil;
 import net.coding.lib.project.utils.UserUtil;
@@ -22,8 +23,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -48,13 +47,12 @@ public class ProjectTweetService {
 
     private final ProjectServiceHelper projectServiceHelper;
 
-    private final ProfanityWordService profanityWordService;
     private final ProjectMemberService projectMemberService;
 
     private final TemplateGrpcClient templateGrpcClient;
 
     private final ProjectResourceLinkService projectResourceLinkService;
-
+    private final TextModerationService textModerationService;
     public ProjectTweet insert(String content, String slateRaw, boolean doCheck, Project project) throws CoreException {
         String raw = content;
         Integer userId = 0;
@@ -188,7 +186,7 @@ public class ProjectTweetService {
             throw CoreException.of(TWEET_IMAGE_LIMIT_N, TWEET_LIMIT_IMAGES);
         }
         // 包含限制词
-        String profanity = profanityWordService.checkContent(newContent);
+        String profanity = textModerationService.checkContent(newContent);
         if (StringUtils.isNotEmpty(profanity)) {
             throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, profanity);
         }

@@ -13,7 +13,6 @@ import net.coding.common.util.TextUtils;
 import net.coding.e.proto.ActivitiesProto;
 import net.coding.exchange.dto.user.User;
 import net.coding.grpc.client.activity.ActivityGrpcClient;
-import net.coding.grpc.client.pinyin.PinyinClient;
 import net.coding.grpc.client.platform.LoggingGrpcClient;
 import net.coding.grpc.client.platform.UserServiceGrpcClient;
 import net.coding.lib.project.entity.Credential;
@@ -29,12 +28,12 @@ import net.coding.lib.project.grpc.client.TeamGrpcClient;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.metrics.ProjectCreateMetrics;
 import net.coding.lib.project.parameter.ProjectCreateParameter;
-import net.coding.lib.project.service.ProfanityWordService;
 import net.coding.lib.project.service.ProjectPreferenceService;
 import net.coding.lib.project.utils.DateUtil;
 import net.coding.lib.project.utils.ResourceUtil;
 import net.coding.lib.project.utils.TextUtil;
 
+import net.coding.platform.degradation.annotation.Degradation;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Component;
@@ -54,7 +53,6 @@ import proto.platform.logging.loggingProto;
 import proto.platform.project.ProjectProto;
 
 import static net.coding.common.constants.ProjectConstants.ACTION_CREATE;
-import static net.coding.grpc.client.pinyin.PinyinClient.DEFAULT_SEPARATOR;
 import static net.coding.lib.project.entity.ProjectPreference.PREFERENCE_STATUS_TRUE;
 import static net.coding.lib.project.entity.ProjectPreference.PREFERENCE_TYPE_PROJECT_TWEET;
 import static net.coding.lib.project.enums.ProgramProjectEventEnums.createProject;
@@ -66,8 +64,6 @@ import static org.apache.logging.log4j.util.Strings.EMPTY;
 public class ProjectServiceHelper {
 
     private final UserGrpcClient userGrpcClient;
-
-    private final ProfanityWordService profanityWordService;
 
     private final ProjectPreferenceService projectPreferenceService;
 
@@ -81,32 +77,16 @@ public class ProjectServiceHelper {
 
     private final NotificationGrpcClient notificationGrpcClient;
 
-    private final PinyinClient pinyinClient;
-
     private final LoggingGrpcClient loggingGrpcClient;
 
     private final LocaleMessageSource localeMessageSource;
 
     private final UserServiceGrpcClient userServiceGrpcClient;
 
-    public String checkContent(String content) {
-        // 包含限制词
-        return profanityWordService.checkContent(content);
-    }
-
-    public String getPinYin(String displayName, String name) {
-        return pinyinClient.combined(
-                StringUtils.defaultIfBlank(
-                        displayName,
-                        name
-                ),
-                DEFAULT_SEPARATOR
-        );
-    }
-
     /**
      * 通知项目内所有人创建了一条冒泡，创建者自身及被 @ 的人除外
      */
+    @Degradation
     public void notifyMembers(List<Integer> userIds, Integer userId, Project project, ProjectTweet tweet) {
         // 检查偏好设置中的开关是否开启
         ProjectPreference projectPreference = projectPreferenceService.getByProjectIdAndType(project.getId(), PREFERENCE_TYPE_PROJECT_TWEET);
@@ -145,6 +125,7 @@ public class ProjectServiceHelper {
     /**
      * 通知项目内所有人创建了一条冒泡，创建者自身及被 @ 的人除外
      */
+    @Degradation
     public void notifyUpdateMembers(List<Integer> userIds, Integer userId, Project project, ProjectTweet tweet) {
         // 检查偏好设置中的开关是否开启
         ProjectPreference projectPreference = projectPreferenceService.getByProjectIdAndType(project.getId(), PREFERENCE_TYPE_PROJECT_TWEET);
@@ -196,6 +177,7 @@ public class ProjectServiceHelper {
     /**
      * 处理content中的@通知 user: 发送者
      */
+    @Degradation
     public void notifyAtMembers(
             Set<Integer> userIds,
             Integer userId,
@@ -237,6 +219,7 @@ public class ProjectServiceHelper {
         // task: https://coding.net/u/wzw/p/coding/task/74923
     }
 
+    @Degradation
     public void postProjectTweetCreateActivity(Project project, ProjectTweet tweet, Integer userId, ActivityEnums activityEnums, Short action, String actionStr) {
         try {
             Map<String, String> mapInfo = new HashMap<>(1 << 2);
@@ -358,7 +341,7 @@ public class ProjectServiceHelper {
                 .build()
         );
     }
-
+    @Degradation
     public void sendCreateProjectNotification(Integer ownerId, Integer userId, Project project,
                                               ProgramProjectEventEnums eventEnums) {
         notificationGrpcClient.send(
