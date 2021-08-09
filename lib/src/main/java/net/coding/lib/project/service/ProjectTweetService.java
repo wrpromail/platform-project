@@ -82,7 +82,8 @@ public class ProjectTweetService {
         }
         ProjectTweet record = ProjectTweet.builder()
                 .projectId(project.getId())
-                .ownerId(userId).content(content)
+                .ownerId(userId)
+                .content(content)
                 .raw(raw)
                 .slateRaw(StringUtils.defaultIfEmpty(slateRaw, ""))
                 .createdAt(DateUtil.getCurrentDate())
@@ -110,14 +111,7 @@ public class ProjectTweetService {
         return projectTweetDao.getProjectTweet(projectTweet);
     }
 
-    public ProjectTweet update(Integer id, String raw, String slateRaw, Project project) throws CoreException {
-        ProjectTweet tweet = projectTweetDao.getById(id);
-        if (tweet == null) {
-            throw CoreException.of(TWEET_NOT_EXISTS);
-        }
-        if (!Objects.equals(tweet.getProjectId(), project.getId())) {
-            return null;
-        }
+    public ProjectTweet update(ProjectTweet tweet, String raw, String slateRaw, Project project) throws CoreException {
         Integer userId = 0;
         Integer teamId = 0;
         if (Objects.nonNull(SystemContextHolder.get())) {
@@ -144,16 +138,9 @@ public class ProjectTweetService {
         return tweet;
     }
 
-    public int delete(Integer id, Integer userId, Project project) {
-        ProjectTweet tweet = projectTweetDao.getById(id);
-        if (tweet == null) {
-            return -1;
-        }
-        if (!Objects.equals(tweet.getProjectId(), project.getId())) {
-            return -1;
-        }
+    public int delete(ProjectTweet tweet, Integer userId, Project project) {
         ProjectTweet projectTweet = ProjectTweet.builder()
-                .id(id)
+                .id(tweet.getId())
                 .deletedAt(DateUtil.getCurrentDate())
                 .build();
         Integer result = projectTweetDao.update(projectTweet);

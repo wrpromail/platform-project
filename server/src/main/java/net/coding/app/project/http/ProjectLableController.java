@@ -1,11 +1,15 @@
 package net.coding.app.project.http;
 
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NOT_EXIST;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.TWEET_NOT_EXISTS;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
@@ -20,9 +24,18 @@ import net.coding.common.annotation.enums.Function;
 import net.coding.common.util.TextUtils;
 import net.coding.lib.project.dao.MergeRequestLabelDao;
 import net.coding.lib.project.dto.ProjectLabelDTO;
+import net.coding.lib.project.entity.Project;
+import net.coding.lib.project.entity.ProjectLabel;
+import net.coding.lib.project.entity.ProjectTweet;
+import net.coding.lib.project.exception.CoreException;
+import net.coding.lib.project.exception.CoreRuntimeException;
 import net.coding.lib.project.form.ProjectLabelForm;
 import net.coding.lib.project.service.ProjectLabelService;
 
+import net.coding.lib.project.service.ProjectService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,6 +50,33 @@ public class ProjectLableController {
 
     private final ProjectLabelService projectLabelService;
     private final MergeRequestLabelDao mrLabelDao;
+    private final ProjectService projectService;
+
+
+    /**
+     * 检测项目权限，团队权限
+     * id : 项目label id
+     */
+    @ModelAttribute
+    public void preCheckPermission(
+            @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
+            @PathVariable("projectId") Integer projectId,
+            @PathVariable(value = "labelId", required = false) Integer id,
+            Model model
+    ) throws CoreException {
+        Project project = projectService.getById(projectId);
+        if (project == null || !teamId.equals(project.getTeamOwnerId())) {
+            throw CoreException.of(PROJECT_NOT_EXIST);
+        }
+        if (Objects.nonNull(id)) {
+            ProjectLabel projectLabel = projectLabelService.findById(id);
+            if (projectLabel == null || !projectLabel.getProjectId().equals(projectId)) {
+                throw new CoreRuntimeException(CoreException.ExceptionType.PERMISSION_DENIED);
+            }
+            model.addAttribute("projectLabel", projectLabel);
+        }
+        model.addAttribute("project", project);
+    }
 
     @ApiOperation(value = "项目标签列表", notes = "项目标签列表")
     @ApiImplicitParams({
@@ -45,9 +85,9 @@ public class ProjectLableController {
     @ProtectedAPI
     @RequestMapping(value = "", method = RequestMethod.GET)
     public List<ProjectLabelDTO> getAllLabelByProject(
-            @PathVariable("projectId") Integer projectId
-    ) {
-        return projectLabelService.getAllLabelByProject(projectId)
+            @ModelAttribute("project") Project project
+    ) throws CoreException {
+        return projectLabelService.getAllLabelByProject(project.getId())
                 .stream()
                 .map(item ->
                         ProjectLabelDTO.builder()
@@ -70,11 +110,11 @@ public class ProjectLableController {
     @ProtectedAPI
     @RequestMapping(value = "", method = RequestMethod.POST)
     public int createLabel(
+            @ModelAttribute("project") Project project,
             @RequestHeader(name = GatewayHeader.USER_ID) Integer userId,
-            @PathVariable("projectId") Integer projectId,
             @Valid ProjectLabelForm form
     ) {
-        form.setProjectId(projectId);
+        form.setProjectId(project.getId());
         return projectLabelService.createLabel(userId, form);
     }
 
@@ -88,12 +128,12 @@ public class ProjectLableController {
     @ProtectedAPI
     @RequestMapping(value = "{labelId}", method = RequestMethod.PUT)
     public Boolean updateLabel(
-            @PathVariable("projectId") Integer projectId,
+            @ModelAttribute("project") Project project,
             @RequestHeader(name = GatewayHeader.USER_ID) Integer userId,
             @PathVariable("labelId") Integer labelId,
             @Valid ProjectLabelForm form
     ) {
-        form.setProjectId(projectId);
+        form.setProjectId(project.getId());
         return projectLabelService.updateLabel(userId, labelId, form);
     }
 
@@ -106,11 +146,11 @@ public class ProjectLableController {
     @ProtectedAPI
     @RequestMapping(value = "{labelId}", method = RequestMethod.DELETE)
     public Boolean deleteLabel(
+            @ModelAttribute("project") Project project,
             @RequestHeader(name = GatewayHeader.USER_ID) Integer userId,
-            @PathVariable("projectId") Integer projectId,
             @PathVariable("labelId") Integer labelId
     ) {
-        return projectLabelService.deleteLabel(userId, labelId, projectId);
+        return projectLabelService.deleteLabel(userId, labelId, project.getId());
     }
 
 }
