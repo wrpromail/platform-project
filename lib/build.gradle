@@ -68,7 +68,7 @@ dependencies {
     compile "net.coding.proto:permission:20210830.1"
     compile "net.coding.proto:open-api:20210615.2"
     compile "net.coding.proto:platform-open-api:20210803.1"
-    compile "net.coding.grpc.client:collaboration:20210827.1"
+    compile "net.coding.grpc.client:collaboration:20210917.1"
     compile "net.coding.platform.framework:degradation:1.1.1"
     compile("tk.mybatis:mapper-spring-boot-starter:2.1.5")
 

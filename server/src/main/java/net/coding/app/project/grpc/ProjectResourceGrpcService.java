@@ -73,13 +73,13 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
     @Override
     public void addProjectResource(ProjectResourceProto.AddProjectResourceRequest request,
                                    StreamObserver<ProjectResourceProto.ProjectResourceResponse> response) {
-        if(request.getProjectId() <= 0 || request.getTargetId() <= 0 || StringUtils.isEmpty(request.getTargetType())) {
+        if (request.getProjectId() <= 0 || request.getTargetId() <= 0 || StringUtils.isEmpty(request.getTargetType())) {
             GrpcUtil.projectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "addProjectResource parameters error", null, response);
             return;
         }
         String lockKey = "addProjectResource_" + request.getProjectId() + "_" + request.getTargetId() + "_" + request.getTargetType();
         try {
-            if(redissonLockUtil.tryLock(lockKey, TimeUnit.MILLISECONDS, 1000, 2000)) {
+            if (redissonLockUtil.tryLock(lockKey, TimeUnit.MILLISECONDS, 1000, 2000)) {
                 Project project = projectService.getById(request.getProjectId());
                 if (Objects.isNull(project)) {
                     GrpcUtil.projectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "addProjectResource project not exists", null, response);
@@ -93,7 +93,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 record.setCreatedBy(request.getUserId());
                 String projectPath = projectGrpcClient.getProjectPath(record.getProjectId());
                 ProjectResource resource = projectResourceServiceHelper.addProjectResource(record, projectPath);
-                if(Objects.nonNull(resource.getId()) && resource.getId().compareTo(0) > 0) {
+                if (Objects.nonNull(resource.getId()) && resource.getId().compareTo(0) > 0) {
                     GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "add success", GrpcUtil.getProjectResource(resource), response);
                 } else {
                     GrpcUtil.projectResourceResponse(CodeProto.Code.INTERNAL_ERROR, "addProjectResource add error", null, response);
@@ -111,7 +111,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
     public void updateProjectResource(ProjectResourceProto.OperateProjectResourceRequest request,
                                       StreamObserver<ProjectResourceProto.ProjectResourceResponse> response) {
         try {
-            if(request.getProjectId() <= 0 || request.getTargetId() <= 0 || StringUtils.isEmpty(request.getTargetType())) {
+            if (request.getProjectId() <= 0 || request.getTargetId() <= 0 || StringUtils.isEmpty(request.getTargetType())) {
                 GrpcUtil.projectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "updateProjectResource parameters error", null, response);
                 return;
             }
@@ -125,7 +125,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
             String projectPath = projectGrpcClient.getProjectPath(record.getProjectId());
             record.setResourceUrl(projectResourceLinkService.getResourceLink(record, projectPath));
             ProjectResource resource = projectResourceService.updateProjectResource(record);
-            if(Objects.nonNull(resource)) {
+            if (Objects.nonNull(resource)) {
                 GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "update success", GrpcUtil.getProjectResource(resource), response);
             } else {
                 GrpcUtil.projectResourceResponse(CodeProto.Code.INTERNAL_ERROR, "updateProjectResource server error", null, response);
@@ -154,9 +154,9 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
 
     @Override
     public void findProjectResourceList(ProjectResourceProto.FindProjectResourceRequest request,
-                                      StreamObserver<ProjectResourceProto.FindProjectResourceResponse> response) {
+                                        StreamObserver<ProjectResourceProto.FindProjectResourceResponse> response) {
         try {
-            if(request.getProjectId() <= 0) {
+            if (request.getProjectId() <= 0) {
                 GrpcUtil.findProjectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "parameters project error",
                         null, null, response);
                 return;
@@ -178,7 +178,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                     .setTotalPage(totalPage)
                     .setTotalRow(totalRow)
                     .build();
-            if(projectResourceList.size() > 0) {
+            if (projectResourceList.size() > 0) {
                 String projectPath = projectGrpcClient.getProjectPath(request.getProjectId());
                 projectResourceList.stream().forEach(projectResource -> {
                     projectResource.setResourceUrl(projectResourceLinkService.getResourceLink(projectResource, projectPath));
@@ -198,14 +198,14 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
 
     @Override
     public void batchProjectResourceList(ProjectResourceProto.BatchProjectResourceRequest request,
-                                          StreamObserver<ProjectResourceProto.BatchProjectResourceResponse> response) {
+                                         StreamObserver<ProjectResourceProto.BatchProjectResourceResponse> response) {
         try {
-            if(request.getProjectId() <= 0 || CollectionUtils.isEmpty(request.getCodeList())) {
+            if (request.getProjectId() <= 0 || CollectionUtils.isEmpty(request.getCodeList())) {
                 GrpcUtil.batchProjectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "batchProjectResourceList parameters error", null, response);
                 return;
             }
             List<ProjectResource> projectResourceList = projectResourceService.batchProjectResourceList(request.getProjectId(), request.getCodeList());
-            if(Objects.nonNull(projectResourceList) && projectResourceList.size() > 0) {
+            if (Objects.nonNull(projectResourceList) && projectResourceList.size() > 0) {
                 String projectPath = projectGrpcClient.getProjectPath(request.getProjectId());
                 projectResourceList.stream().forEach(projectResource -> {
                     projectResource.setResourceUrl(projectResourceLinkService.getResourceLink(projectResource, projectPath));
@@ -225,7 +225,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
     @Override
     public void generateCodes(ProjectResourceProto.GenerateRequest request, StreamObserver<ProjectResourceProto.MultiCodeResponse> response) {
         try {
-            if(request.getProjectId() <= 0 || request.getCodeAmount() <= 0) {
+            if (request.getProjectId() <= 0 || request.getCodeAmount() <= 0) {
                 GrpcUtil.multiCodeResponse(CodeProto.Code.INVALID_PARAMETER, "generateCodes parameters error", null, response);
                 return;
             }
@@ -249,7 +249,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
             GrpcUtil.projectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "relateResource project not exists", null, response);
             return;
         }
-        if(request.getCode() <= 0) {
+        if (request.getCode() <= 0) {
             GrpcUtil.projectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "parameters code error", null, response);
             return;
         }
@@ -273,8 +273,12 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 record.setCreatedBy(request.getUserId());
                 record.setCode(request.getCode());
                 record.setResourceUrl(request.getResourceUrl());
+                if (StringUtils.isBlank(record.getResourceUrl())) {
+                    String projectPath = projectGrpcClient.getProjectPath(record.getProjectId());
+                    record.setResourceUrl(projectResourceLinkService.getResourceLink(record, projectPath));
+                }
                 ProjectResource result = projectResourceService.relateProjectResource(record);
-                if(Objects.nonNull(result)) {
+                if (Objects.nonNull(result)) {
                     GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "relateResource success", GrpcUtil.getProjectResource(result), response);
                 } else {
                     GrpcUtil.projectResourceResponse(CodeProto.Code.NOT_FOUND, "relateResource faild", null, response);
@@ -289,7 +293,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
     @Override
     public void batchRelateResource(ProjectResourceProto.BatchRelateResourceRequest request,
                                     StreamObserver<ProjectResourceProto.ProjectResourceCommonResponse> response) {
-        if(CollectionUtils.isEmpty(request.getOperateProjectResourceRequestList())) {
+        if (CollectionUtils.isEmpty(request.getOperateProjectResourceRequestList())) {
             GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "batchRelateResource param error", response);
             return;
         }
@@ -303,11 +307,11 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                     GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "batchRelateResource projectId disaccord", response);
                     return;
                 }
-                if(projectResource.getCode() <= 0) {
+                if (projectResource.getCode() <= 0) {
                     GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "parameters code error", response);
                     return;
                 }
-                if(codeMap.containsKey(projectResource.getCode())) {
+                if (codeMap.containsKey(projectResource.getCode())) {
                     GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "parameters code error", response);
                     return;
                 } else {
@@ -343,14 +347,14 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
 
     @Override
     public void getByProjectAndTypeAndTarget(ProjectResourceProto.ProjectAndTypeAndTargetRequest request,
-                                                  StreamObserver<ProjectResourceProto.ProjectResourceResponse> response) {
+                                             StreamObserver<ProjectResourceProto.ProjectResourceResponse> response) {
         try {
             if (request.getProjectId() <= 0 || request.getTargetId() <= 0 || StringUtils.isEmpty(request.getTargetType())) {
                 GrpcUtil.projectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "generateCodes parameters error", null, response);
                 return;
             }
             ProjectResource resource = projectResourceService.getByProjectIdAndTypeAndTarget(request.getProjectId(), request.getTargetId(), request.getTargetType());
-            if(Objects.nonNull(resource)) {
+            if (Objects.nonNull(resource)) {
                 String projectPath = projectGrpcClient.getProjectPath(request.getProjectId());
                 resource.setResourceUrl(projectResourceLinkService.getResourceLink(resource, projectPath));
                 GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "getByProjectAndTypeAndTarget success", GrpcUtil.getProjectResource(resource), response);
@@ -365,14 +369,14 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
 
     @Override
     public void getProjectResourceByCode(ProjectResourceProto.GetProjectResourceRequest request,
-                                              StreamObserver<ProjectResourceProto.ProjectResourceResponse> response) {
+                                         StreamObserver<ProjectResourceProto.ProjectResourceResponse> response) {
         try {
             if (request.getProjectId() <= 0 || request.getCode() <= 0) {
                 GrpcUtil.projectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "getProjectResourceByCode parameters error", null, response);
                 return;
             }
             ProjectResource resource = projectResourceService.getByProjectIdAndCode(request.getProjectId(), request.getCode());
-            if(Objects.nonNull(resource)) {
+            if (Objects.nonNull(resource)) {
                 String projectPath = projectGrpcClient.getProjectPath(request.getProjectId());
                 resource.setResourceUrl(projectResourceLinkService.getResourceLink(resource, projectPath));
                 GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "getProjectResourceByCode success", GrpcUtil.getProjectResource(resource), response);
@@ -402,7 +406,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
 //            GrpcUtil.getResourceLinkResponse(CodeProto.Code.SUCCESS, "getProjectResourceByCode success", url, response);
 
             ProjectResource projectResource = projectResourceService.getById(request.getProjectResourceId());
-            if(Objects.isNull(projectResource)) {
+            if (Objects.isNull(projectResource)) {
                 GrpcUtil.getResourceLinkResponse(CodeProto.Code.INVALID_PARAMETER, "projectResource not exists", null, response);
                 return;
             }
@@ -448,7 +452,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
         }
         String lockKey = "addProjectResourceSequence_" + request.getProjectId();
         try {
-            if(redissonLockUtil.tryLock(lockKey, TimeUnit.MILLISECONDS, 1000, 2000)) {
+            if (redissonLockUtil.tryLock(lockKey, TimeUnit.MILLISECONDS, 1000, 2000)) {
                 ProjectResourceSequence item = projectResourceSequenceService.getByProjectId(request.getProjectId());
                 if (Objects.nonNull(item)) {
                     GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "addProjectResourceSequence projectId has exists", response);
@@ -478,7 +482,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 return;
             }
             ProjectResource projectResource = projectResourceService.getById(request.getProjectResourceId());
-            if(Objects.isNull(projectResource)) {
+            if (Objects.isNull(projectResource)) {
                 GrpcUtil.projectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "projectResource not exists", null, response);
                 return;
             }
@@ -493,15 +497,15 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
 
     @Override
     public void batchListByProjectAndTypeAndTargets(ProjectResourceProto.PorjectAndTypeAndTargetsRequest request,
-                                                        StreamObserver<ProjectResourceProto.BatchProjectResourceResponse> response) {
+                                                    StreamObserver<ProjectResourceProto.BatchProjectResourceResponse> response) {
         try {
-            if(request.getProjectId() <= 0 || request.getTargetType() == null || CollectionUtils.isEmpty(request.getTargetIdList())) {
+            if (request.getProjectId() <= 0 || request.getTargetType() == null || CollectionUtils.isEmpty(request.getTargetIdList())) {
                 GrpcUtil.batchProjectResourceResponse(CodeProto.Code.INVALID_PARAMETER,
                         "batchListByProjectAndTypeAndTargets parameters error", null, response);
                 return;
             }
             List<ProjectResource> projectResourceList = projectResourceService.batchListByProjectAndTypeAndTargets(request.getProjectId(), request.getTargetIdList(), request.getTargetType());
-            if(!CollectionUtils.isEmpty(projectResourceList)) {
+            if (!CollectionUtils.isEmpty(projectResourceList)) {
                 String projectPath = projectGrpcClient.getProjectPath(request.getProjectId());
                 projectResourceList.forEach(projectResource -> {
                     projectResource.setResourceUrl(projectResourceLinkService.getResourceLink(projectResource, projectPath));
@@ -521,15 +525,15 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
 
     @Override
     public void batchListByTypeAndTargets(ProjectResourceProto.TypeAndTargetsRequest request,
-                                                                StreamObserver<ProjectResourceProto.BatchProjectResourceResponse> response) {
+                                          StreamObserver<ProjectResourceProto.BatchProjectResourceResponse> response) {
         try {
-            if(request.getTargetType() == null || request.getTargetIdList().size() <= 0) {
+            if (request.getTargetType() == null || request.getTargetIdList().size() <= 0) {
                 GrpcUtil.batchProjectResourceResponse(CodeProto.Code.INVALID_PARAMETER,
                         "batchListByTypeAndTargets parameters error", null, response);
                 return;
             }
             List<ProjectResource> projectResourceList = projectResourceService.batchListByTypeAndTargets(request.getTargetType(), request.getTargetIdList());
-            if(!CollectionUtils.isEmpty(projectResourceList)) {
+            if (!CollectionUtils.isEmpty(projectResourceList)) {
                 projectResourceList.forEach(projectResource -> {
                     String projectPath = projectGrpcClient.getProjectPath(projectResource.getProjectId());
                     projectResource.setResourceUrl(projectResourceLinkService.getResourceLink(projectResource, projectPath));
@@ -556,7 +560,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 return;
             }
             ProjectResource resource = projectResourceService.getProjectResourceWithDeleted(request.getProjectId(), request.getCode());
-            if(Objects.nonNull(resource)) {
+            if (Objects.nonNull(resource)) {
                 String projectPath = projectGrpcClient.getProjectPath(request.getProjectId());
                 resource.setResourceUrl(projectResourceLinkService.getResourceLink(resource, projectPath));
                 GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "getProjectResourceWithDeleted success", GrpcUtil.getProjectResource(resource), response);
@@ -579,7 +583,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 return;
             }
             List<ProjectResourceDTO> result = projectResourceServiceHelper.getResourceReferenceMutually(request.getProjectId(), request.getCode(), request.getUserId());
-            if(!CollectionUtils.isEmpty(result)) {
+            if (!CollectionUtils.isEmpty(result)) {
                 GrpcUtil.FindProjectResourceMutuallyResponse(CodeProto.Code.SUCCESS, "findProjectResourceMutuallyList success", result, response);
             } else {
                 GrpcUtil.FindProjectResourceMutuallyResponse(CodeProto.Code.NOT_FOUND, "findProjectResourceMutuallyList not found", null, response);
@@ -587,7 +591,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
         } catch (Exception ex) {
             log.error("getProjectResourceWithDeleted fail, parameter is " + request.toString(), ex);
             GrpcUtil.FindProjectResourceMutuallyResponse(CodeProto.Code.INTERNAL_ERROR,
-                    "findProjectResourceMutuallyList service error",null, response);
+                    "findProjectResourceMutuallyList service error", null, response);
         }
     }
 

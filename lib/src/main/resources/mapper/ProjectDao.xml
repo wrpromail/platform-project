@@ -36,6 +36,70 @@
     `label`,pm_type
   </sql>
 
+    <select id="getProjectPages" resultMap="BaseResultMap">
+        select p.* from team_projects tp
+        inner join projects p on p.id = tp.project_id
+        <if test="queryType == 'JOINED' or queryType == 'MANAGED'">
+            inner join project_members pm on pm.project_id = tp.project_id
+            left join project_group_projects pgp on pgp.project_id = tp.project_id
+            and pgp.owner_id = pm.user_id and pgp.deleted_at = '1970-01-01 00:00:00'
+        </if>
+        <if test="sortKey != null and sortKey == 'VISIT'">
+            left join project_recent_views prv on tp.team_id = prv.team_id
+            and pm.project_id =prv.project_id and pm.user_id = prv.user_id
+            and prv.deleted_at ='1970-01-01 00:00:00'
+        </if>
+        where tp.team_id = #{teamId} and tp.deleted_at = #{deletedAt}
+        and p.invisible = 0 and p.pm_type = 0
+        and p.deleted_at = #{deletedAt}
+        <if test="queryType == 'JOINED' or queryType == 'MANAGED'">
+            and pm.deleted_at = #{deletedAt} and pm.user_id = #{userId}
+            <if test="queryType == 'MANAGED'">
+                and pm.type &gt;= 90
+            </if>
+            <if test="queryType == 'JOINED'">
+                and pm.id &gt; 0
+            </if>
+        </if>
+        <if test="keyword != null and keyword != ''">
+            and (
+            p.name like CONCAT('%',#{keyword},'%')
+            or p.name_pinyin like CONCAT('%',#{keyword},'%')
+            or p.display_name like CONCAT('%',#{keyword},'%')
+            )
+        </if>
+        <if test="(queryType == 'JOINED' or queryType == 'MANAGED') and groupId != null">
+            <choose>
+                <when test="groupId == 0">
+                    and pgp.project_group_id is null
+                </when>
+                <otherwise>
+                    and pgp.project_group_id = #{groupId}
+                </otherwise>
+            </choose>
+        </if>
+        group by p.id
+        order by
+        <if test="sortKey != null and sortKey == 'CREATE'">
+            p.created_at
+        </if>
+        <if test="sortKey != null and sortKey == 'ARCHIVED'">
+            p.updated_at
+        </if>
+        <if test="sortKey != null and sortKey == 'VISIT'">
+            prv.updated_at
+        </if>
+        <if test="sortKey != null and sortKey == 'NAME'">
+            convert(p.display_name using gbk)
+        </if>
+        <if test="sortValue != null and sortValue == 'DESC'">
+            desc ,
+        </if>
+        <if test="sortValue != null and sortValue == 'ASC'">
+            asc ,
+        </if>
+        p.id desc
+    </select>
 
     <select id="getProjectByNameAndTeamId" resultMap="BaseResultMap">
         SELECT
@@ -128,6 +192,7 @@
         <where>
             p.deleted_at = '1970-01-01 00:00:00'
             AND p.team_owner_id = #{teamId}
+            AND p.pm_type = 0
             <if test="userId != null">
                 AND pm.deleted_at = '1970-01-01 00:00:00'
                 AND pm.user_id = #{userId}

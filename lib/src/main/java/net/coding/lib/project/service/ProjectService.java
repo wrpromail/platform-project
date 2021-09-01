@@ -19,8 +19,8 @@ import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.grpc.client.platform.TeamServiceGrpcClient;
 import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dao.ProjectDao;
-import net.coding.lib.project.dao.ProjectGroupDao;
 import net.coding.lib.project.dao.ProjectGroupProjectDao;
+import net.coding.lib.project.dao.ProjectRecentViewDao;
 import net.coding.lib.project.dao.TeamProjectDao;
 import net.coding.lib.project.dto.ProjectDTO;
 import net.coding.lib.project.entity.Credential;
@@ -28,6 +28,7 @@ import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectGroup;
 import net.coding.lib.project.entity.ProjectGroupProject;
 import net.coding.lib.project.entity.ProjectMember;
+import net.coding.lib.project.entity.ProjectRecentView;
 import net.coding.lib.project.entity.ProjectSetting;
 import net.coding.lib.project.entity.TeamProject;
 import net.coding.lib.project.enums.CacheTypeEnum;
@@ -38,6 +39,7 @@ import net.coding.lib.project.enums.ProjectTemplateEnums;
 import net.coding.lib.project.enums.TemplateEnums;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.CreateProjectForm;
+import net.coding.lib.project.form.QueryProgramForm;
 import net.coding.lib.project.form.UpdateProjectForm;
 import net.coding.lib.project.form.credential.CredentialForm;
 import net.coding.lib.project.grpc.client.AgileTemplateGRpcClient;
@@ -47,6 +49,7 @@ import net.coding.lib.project.helper.ProjectServiceHelper;
 import net.coding.lib.project.metrics.ProjectCreateMetrics;
 import net.coding.lib.project.parameter.BaseCredentialParameter;
 import net.coding.lib.project.parameter.ProjectCreateParameter;
+import net.coding.lib.project.parameter.ProjectPageQueryParameter;
 import net.coding.lib.project.parameter.ProjectQueryParameter;
 import net.coding.lib.project.parameter.ProjectUpdateParameter;
 import net.coding.lib.project.service.credential.ProjectCredentialService;
@@ -61,6 +64,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -101,6 +105,7 @@ import static net.coding.lib.project.enums.ProgramProjectEventEnums.ACTION.ACTIO
 import static net.coding.lib.project.enums.ProgramProjectEventEnums.createProject;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.CONTENT_INCLUDE_SENSITIVE_WORDS;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PARAMETER_INVALID;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PERMISSION_DENIED;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_DISPLAY_NAME_EXISTS;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_DISPLAY_NAME_IS_EMPTY;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_DISPLAY_NAME_LENGTH_ERROR;
@@ -126,6 +131,8 @@ public class ProjectService {
 
     private final TeamProjectDao teamProjectDao;
 
+    private final ProjectRecentViewDao projectRecentViewDao;
+
     private final ProjectDTOService projectDTOService;
 
     private final ProjectMemberService projectMemberService;
@@ -148,7 +155,7 @@ public class ProjectService {
 
     private final ProjectCredentialService projectCredentialService;
 
-    private final ProjectGroupDao projectGroupDao;
+    private final ProjectGroupService projectGroupService;
 
     private final TransactionTemplate transactionTemplate;
 
@@ -158,8 +165,14 @@ public class ProjectService {
     private final TextModerationService textModerationService;
     private final PinyinService pinyinService;
 
+    private final ProjectPinService projectPinService;
+
     public Project getById(Integer id) {
         return projectDao.getProjectById(id);
+    }
+
+    public Project getWithArchivedByIdAndTeamId(Integer id, Integer teamOwnerId) {
+        return projectDao.getProjectNotDeleteByIdAndTeamId(id, teamOwnerId);
     }
 
     public Project getByIdAndTeamId(Integer id, Integer teamOwnerId) {
@@ -182,6 +195,27 @@ public class ProjectService {
         PageInfo<Project> pageInfo = PageHelper.startPage(pager.getPage(), pager.getPageSize())
                 .doSelectPageInfo(() -> projectDao.getProjects(parameter));
         return new ResultPage<>(pageInfo.getList(), pager.getPage(), pager.getPageSize(), pageInfo.getTotal());
+    }
+
+    public ResultPage<ProjectDTO> getProjectPages(ProjectPageQueryParameter parameter) throws CoreException {
+        if (parameter.getQueryType().equals(QueryProgramForm.QueryType.ALL.name())) {
+            projectAdaptorFactory.create(PmTypeEnums.PROJECT.getType())
+                    .hasPermissionInEnterprise(parameter.getTeamId(),
+                            parameter.getUserId(),
+                            PmTypeEnums.PROJECT.getType(),
+                            ACTION_VIEW);
+        }
+        validateGroupId(parameter);
+        PageInfo<Project> pageInfo = PageHelper.startPage(parameter.getPage(), parameter.getPageSize())
+                .doSelectPageInfo(() -> projectDao.getProjectPages(parameter));
+        List<ProjectDTO> programDTOList = pageInfo.getList().stream()
+                .map(projectDTOService::toDetailDTO)
+                .peek(p -> {
+                    p.setPin(projectPinService.getByProjectIdAndUserId(p.getId(), parameter.getUserId()).isPresent());
+                    p.setUn_read_activities_count(0);
+                })
+                .collect(Collectors.toList());
+        return new ResultPage<>(programDTOList, parameter.getPage(), parameter.getPageSize(), pageInfo.getTotal());
     }
 
     public Project createProject(ProjectCreateParameter parameter) throws Exception {
@@ -218,7 +252,7 @@ public class ProjectService {
         projectValidateService.validateTemplate(parameter.getTemplate());
         // 校验项目分组
         if (Objects.nonNull(parameter.getGroupId())) {
-            ProjectGroup projectGroup = projectGroupDao.selectByPrimaryKey(parameter.getGroupId());
+            ProjectGroup projectGroup = projectGroupService.getById(parameter.getGroupId());
             if (Objects.isNull(projectGroup) || !projectGroup.getOwnerId().equals(parameter.getUserId())) {
                 throw CoreException.of(PARAMETER_INVALID);
             }
@@ -505,9 +539,28 @@ public class ProjectService {
             throw CoreException.of(RESOURCE_NO_FOUND);
         }
         if (Objects.isNull(projectMemberService.getByProjectIdAndUserId(project.getId(), userId))) {
-            projectAdaptorFactory.create(project.getPmType())
-                    .hasPermissionInEnterprise(teamId, userId, project.getPmType(), ACTION_VIEW);
+            throw CoreException.of(PERMISSION_DENIED);
         }
+        Optional.ofNullable(
+                projectRecentViewDao.selectOne(ProjectRecentView.builder()
+                        .teamId(teamId)
+                        .userId(userId)
+                        .projectId(project.getId())
+                        .deletedAt(BeanUtils.getDefaultDeletedAt())
+                        .build()))
+                .map(projectRecentView -> {
+                    projectRecentView.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+                    return projectRecentViewDao.updateByPrimaryKeySelective(projectRecentView);
+                })
+                .orElseGet(() -> projectRecentViewDao.insertSelective(ProjectRecentView.builder()
+                        .teamId(teamId)
+                        .userId(userId)
+                        .projectId(project.getId())
+                        .createdAt(new Timestamp(System.currentTimeMillis()))
+                        .updatedAt(new Timestamp(System.currentTimeMillis()))
+                        .deletedAt(BeanUtils.getDefaultDeletedAt())
+                        .build()
+                ));
         return projectDTOService.toDetailDTO(project);
     }
 
@@ -691,7 +744,14 @@ public class ProjectService {
     /**
      * 有查询全部项目权限 则所有项目否则参与的项目
      */
-    public List<ProjectDTO> getJoinedProjects(Integer teamId, Integer userId) throws CoreException {
+    public List<ProjectDTO> getJoinedProjectDTOs(Integer teamId, Integer userId) throws CoreException {
+        return StreamEx.of(getJoinedProjects(teamId, userId))
+                .map(projectDTOService::toDetailDTO)
+                .nonNull()
+                .collect(Collectors.toList());
+    }
+
+    public List<Project> getJoinedProjects(Integer teamId, Integer userId) throws CoreException {
         ProjectQueryParameter parameter = ProjectQueryParameter.builder()
                 .teamId(teamId)
                 .invisible(0)
@@ -701,11 +761,7 @@ public class ProjectService {
         if (!hasEnterprisePermission) {
             parameter.setUserId(userId);
         }
-        return StreamEx.of(projectDao.getUserProjects(parameter))
-                .filter(p -> p.getPmType().equals(PmTypeEnums.PROJECT.getType()))
-                .map(projectDTOService::toDetailDTO)
-                .nonNull()
-                .collect(Collectors.toList());
+        return projectDao.getUserProjects(parameter);
     }
 
     public List<Project> getByIds(List<Integer> ids) {
@@ -750,6 +806,24 @@ public class ProjectService {
                 }
             default:
                 return true;
+        }
+    }
+
+    public void validateGroupId(ProjectPageQueryParameter parameter) throws CoreException {
+        if (parameter.getGroupId() != null && parameter.getGroupId() > 0) {
+            ProjectGroup projectGroup = projectGroupService.getById(parameter.getGroupId());
+            if (Objects.isNull(projectGroup)
+                    || (Objects.nonNull(parameter.getUserId())
+                    && !parameter.getUserId().equals(projectGroup.getOwnerId()))) {
+                throw CoreException.of(PARAMETER_INVALID);
+            }
+            if (ProjectGroup.TYPE.ALL.toString().equals(projectGroup.getType())) {
+                // 全部项目，将groupId置空
+                parameter.setGroupId(null);
+            } else if (ProjectGroup.TYPE.NO_GROUP.toString().equals(projectGroup.getType())) {
+                // 未分组项目 置0
+                parameter.setGroupId(ProjectGroup.NO_GROUP_ID);
+            }
         }
     }
 }

@@ -148,7 +148,7 @@ public class ProjectController {
     public List<ProjectDTO> queryJoinedProjects(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
             @RequestHeader(GatewayHeader.USER_ID) Integer userId) throws CoreException {
-        return projectService.getJoinedProjects(teamId, userId);
+        return projectService.getJoinedProjectDTOs(teamId, userId);
     }
 
     private String getProjectPath(Project project) {

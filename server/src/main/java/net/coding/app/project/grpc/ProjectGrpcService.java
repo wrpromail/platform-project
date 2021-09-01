@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import io.grpc.stub.StreamObserver;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import one.util.streamex.StreamEx;
 import proto.common.CodeProto;
 
 import net.coding.proto.platform.project.ProjectProto;
@@ -159,6 +160,32 @@ public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBas
     }
 
     @Override
+    public void getWithArchivedProject(
+            ProjectProto.GetWithArchivedProjectRequest request,
+            StreamObserver<ProjectProto.GetWithArchivedProjectResponse> responseObserver) {
+        try {
+            Project project = projectService.getWithArchivedByIdAndTeamId(request.getProjectId(), request.getTeamId());
+            getWithArchivedProjectResponse(responseObserver, SUCCESS, SUCCESS.name(), project);
+        } catch (Exception e) {
+            log.error("rpcService getWithArchivedProject error Exception ", e);
+            getWithArchivedProjectResponse(responseObserver, INTERNAL_ERROR, e.getMessage(), null);
+        }
+    }
+
+    @Override
+    public void getJoinedProjects(
+            ProjectProto.GetJoinedProjectsRequest request,
+            StreamObserver<ProjectProto.GetJoinedProjectsResponse> responseObserver) {
+        try {
+            List<Project> projects = projectService.getJoinedProjects(request.getTeamId(), request.getUserId());
+            getJoinedProjectsResponse(responseObserver, SUCCESS, SUCCESS.name(), projects);
+        } catch (Exception e) {
+            log.error("rpcService getJoinedProjects error Exception ", e);
+            getJoinedProjectsResponse(responseObserver, INTERNAL_ERROR, e.getMessage(), null);
+        }
+    }
+
+    @Override
     public void containArchivedProjectsGet(
             ProjectProto.ContainArchivedProjectsGetRequest request,
             StreamObserver<ProjectProto.ContainArchivedProjectsGetResponse> responseObserver) {
@@ -177,7 +204,7 @@ public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBas
                 List<Project> projects = projectService.getContainArchivedProjects(request.getTeamId());
                 if (CollectionUtils.isNotEmpty(projects)) {
                     builder.addAllProject(projects.stream()
-                            .map(project -> toProtoProject(project, response.getData()))
+                            .map(this::toProtoProject)
                             .collect(Collectors.toList()));
                     builder.setCode(SUCCESS);
                 } else {
@@ -204,8 +231,7 @@ public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBas
                 .setCode(code)
                 .setMessage(message);
         if (Objects.nonNull(project)) {
-            TeamProto.GetTeamResponse response = teamGrpcClient.getTeam(project.getTeamOwnerId());
-            builder.setProject(toProtoProject(project, response.getData()));
+            builder.setProject(toProtoProject(project));
         }
         responseObserver.onNext(builder.build());
         responseObserver.onCompleted();
@@ -235,8 +261,46 @@ public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBas
         responseObserver.onCompleted();
     }
 
-    private ProjectProto.Project toProtoProject(Project project, TeamProto.Team team) {
-        String htmlUrl = getHtmlUrl(team, project);
+    public void getWithArchivedProjectResponse(
+            StreamObserver<ProjectProto.GetWithArchivedProjectResponse> responseObserver,
+            CodeProto.Code code,
+            String message,
+            Project project) {
+        ProjectProto.GetWithArchivedProjectResponse.Builder builder = ProjectProto.GetWithArchivedProjectResponse.newBuilder()
+                .setCode(code)
+                .setMessage(message);
+        if (Objects.nonNull(project)) {
+            builder.setProject(toProtoProject(project));
+        }
+        responseObserver.onNext(builder.build());
+        responseObserver.onCompleted();
+    }
+
+    public void getJoinedProjectsResponse(
+            StreamObserver<ProjectProto.GetJoinedProjectsResponse> responseObserver,
+            CodeProto.Code code,
+            String message,
+            List<Project> projects) {
+        ProjectProto.GetJoinedProjectsResponse.Builder builder = ProjectProto.GetJoinedProjectsResponse.newBuilder()
+                .setCode(code)
+                .setMessage(message);
+        if (CollectionUtils.isNotEmpty(projects)) {
+            builder.addAllProjects(toProtoProjects(projects));
+        }
+        responseObserver.onNext(builder.build());
+        responseObserver.onCompleted();
+    }
+
+    private List<ProjectProto.Project> toProtoProjects(List<Project> projects) {
+        return StreamEx.of(projects)
+                .nonNull()
+                .map(this::toProtoProject)
+                .nonNull()
+                .collect(Collectors.toList());
+    }
+
+    private ProjectProto.Project toProtoProject(Project project) {
+        String htmlUrl = getHtmlUrl(project);
         String projectPath = getProjectPath(project);
         return ProjectProto.Project.newBuilder()
                 .setId(project.getId())
@@ -253,8 +317,8 @@ public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBas
                 .build();
     }
 
-    private String getHtmlUrl(TeamProto.Team team, Project project) {
-        String hostWithProtocol = teamGrpcClient.getTeamHostWithProtocolByTeamId(team.getId());
+    private String getHtmlUrl(Project project) {
+        String hostWithProtocol = teamGrpcClient.getTeamHostWithProtocolByTeamId(project.getTeamOwnerId());
         return hostWithProtocol + getProjectPath(project);
     }
 

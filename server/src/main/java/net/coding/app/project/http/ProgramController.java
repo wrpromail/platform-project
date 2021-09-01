@@ -90,9 +90,10 @@ public class ProgramController {
     @GetMapping("/list")
     public List<ProgramDTO> queryPrograms(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
-            @RequestHeader(GatewayHeader.USER_ID) Integer userId
+            @RequestHeader(GatewayHeader.USER_ID) Integer userId,
+            @RequestParam(name = "projectId", required = false) Integer projectId
     ) throws CoreException {
-        return programService.getProgramDTOs(teamId, null, userId);
+        return programService.getProgramDTOs(teamId, projectId, userId);
     }
 
     @ApiOperation("项目集-查询关联项目(涉及所有我参与的项目集下关联项目)")
@@ -117,9 +118,10 @@ public class ProgramController {
     public List<ProjectDTO> queryProgramProjects(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
             @RequestHeader(GatewayHeader.USER_ID) Integer userId,
-            @PathVariable Integer programId//项目集Id
+            @PathVariable Integer programId,//项目集Id
+            @RequestParam(defaultValue = "false") Boolean queryJoined
     ) throws CoreException {
-        return programService.getProgramProjectDTOs(teamId, userId, programId);
+        return programService.getProgramProjectDTOs(teamId, userId, programId, queryJoined);
     }
 
     @ApiOperation("项目集-成员所在项目集关联项目列表")

@@ -163,18 +163,18 @@ public class ProgramService {
         if (Objects.isNull(program)) {
             throw CoreException.of(PROJECT_CREATION_ERROR);
         }
-        initProgramWorkflow(currentTeamId, program.getId(), currentUserId,
-                form.getProgramWorkflow(), ObjectUtils.defaultIfNull(form.getWorkflowProgramId(), 0));
         //发通知
         projectServiceHelper.sendCreateProjectNotification(team.getOwner_id(), currentUserId,
                 program, ProgramProjectEventEnums.createProgram);
         //初始化项目集权限
         advancedRoleServiceGrpcClient.initPredefinedRoles(team.getId(), CommonProto.TargetType.PROGRAM,
                 Stream.of(program.getId().longValue()).collect(Collectors.toSet()));
-
+        //初始化项目协同
+        initProgramWorkflow(currentTeamId, currentUserId, program.getId(),
+                form.getProgramWorkflow(), ObjectUtils.defaultIfNull(form.getWorkflowProgramId(), 0));
+        //添加成员
         projectMemberService.doAddMember(currentUserId, Collections.singletonList(currentUserId),
                 ProgramRoleTypeEnum.ProgramOwner.getCode(), program, false);
-
         // 创建项目默认的偏好设置 由于创建项目较慢这里 7 次 insert 把这个转移到异步
         projectPreferenceService.initProjectPreferences(program.getId());
 
@@ -210,7 +210,7 @@ public class ProgramService {
             //我参与的项目
             List<Integer> joinedProjectIds =
                     StreamEx.of(projectService.getJoinedProjects(currentTeamId, currentUserId))
-                            .map(ProjectDTO::getId)
+                            .map(Project::getId)
                             .collect(Collectors.toList());
             //项目集中已存在项目
             List<Integer> programProjectIds =
@@ -279,10 +279,12 @@ public class ProgramService {
                 .teamId(teamId)
                 .projectId(projectId)
                 .build();
-        boolean hasEnterprisePermission = projectAdaptorFactory.create(PmTypeEnums.PROGRAM.getType())
-                .hasEnterprisePermission(teamId, userId, PmTypeEnums.PROGRAM.getType(), ACTION_VIEW);
-        if (!hasEnterprisePermission) {
-            parameter.setUserId(userId);
+        if (userId != null && userId > 0) {
+            boolean hasEnterprisePermission = projectAdaptorFactory.create(PmTypeEnums.PROGRAM.getType())
+                    .hasEnterprisePermission(teamId, userId, PmTypeEnums.PROGRAM.getType(), ACTION_VIEW);
+            if (!hasEnterprisePermission) {
+                parameter.setUserId(userId);
+            }
         }
         return programDao.selectPrograms(parameter);
     }
@@ -315,12 +317,13 @@ public class ProgramService {
     }
 
     public List<ProjectDTO> getProgramProjectDTOs(Integer currentTeamId, Integer currentUserId,
-                                                  Integer programId) throws CoreException {
+                                                  Integer programId, Boolean queryJoined) throws CoreException {
         getProgram(currentTeamId, currentUserId, programId);
         return StreamEx.of(
                 getProgramProjects(ProgramProjectQueryParameter.builder()
                         .teamId(currentTeamId)
                         .programId(programId)
+                        .userId(queryJoined ? currentUserId : 0)
                         .build())
         )
                 .map(projectDTOService::toDetailDTO)

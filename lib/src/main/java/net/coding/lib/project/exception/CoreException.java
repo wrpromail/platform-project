@@ -96,6 +96,7 @@ public class CoreException extends Exception {
         PROJECT_MEMBER_EXISTS(1101, "project_member_exists"),
         PROJECT_MEMBER_NOT_EXISTS(1102, "project_member_not_exists"),
         PROJECT_NAME_EXISTS(1103, "project_name_exists"),
+        PROGRAM_START_AFTER_MILESTONE(1104, "program_start_date_after_milestone"),
         PROJECT_ALREADY_STARS(1106, "project_already_stars"),
         PROJECT_ALREADY_WATCH(1107, "project_already_watch"),
         PROJECT_OWNER_CANNOT_QUIT(1109, "project_owner_can_not_quit"),

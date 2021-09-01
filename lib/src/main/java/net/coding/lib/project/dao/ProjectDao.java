@@ -2,6 +2,7 @@ package net.coding.lib.project.dao;
 
 
 import net.coding.lib.project.entity.Project;
+import net.coding.lib.project.parameter.ProjectPageQueryParameter;
 import net.coding.lib.project.parameter.ProjectQueryParameter;
 import net.coding.lib.project.parameter.ProjectUpdateParameter;
 
@@ -31,8 +32,9 @@ public interface ProjectDao extends tk.mybatis.mapper.common.Mapper<Project> {
     Project getProjectByDisplayNameAndTeamId(@Param("displayName") String displayName,
                                              @Param("teamOwnerId") Integer teamOwnerId);
 
-    List<Project> getUserProjects(ProjectQueryParameter parameter);
+    List<Project> getProjectPages(ProjectPageQueryParameter parameter);
 
+    List<Project> getUserProjects(ProjectQueryParameter parameter);
 
     List<Project> getProjects(ProjectQueryParameter parameter);
 

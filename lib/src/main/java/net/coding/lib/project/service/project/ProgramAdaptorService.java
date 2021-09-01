@@ -21,6 +21,8 @@ import java.sql.Timestamp;
 
 import lombok.extern.slf4j.Slf4j;
 
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PROGRAM_START_AFTER_MILESTONE;
+
 @Slf4j
 @Service
 public class ProgramAdaptorService extends AbstractProjectAdaptorService {
@@ -79,7 +81,7 @@ public class ProgramAdaptorService extends AbstractProjectAdaptorService {
                         new Timestamp(program.getEndDate().getTime()),
                         program.getId());
             } catch (MilestoneException ex) {
-                log.info("CheckProgramTime Error , StartDate = {}, EndDate = {}, ProgramId = {}",
+                log.error("CheckProgramTime Error , StartDate = {}, EndDate = {}, ProgramId = {}",
                         new Timestamp(program.getStartDate().getTime()),
                         new Timestamp(program.getEndDate().getTime()),
                         program.getId(),
@@ -87,7 +89,7 @@ public class ProgramAdaptorService extends AbstractProjectAdaptorService {
                 //21003 开始时间大于里程碑预估完成时间
                 //21004 结束时间小于里程碑预估完成时间
                 if (ex.getCode() == 21003 || ex.getCode() == 21004) {
-                    throw ex;
+                    throw CoreException.of(PROGRAM_START_AFTER_MILESTONE);
                 }
             }
         }
