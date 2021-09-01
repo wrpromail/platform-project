@@ -13,7 +13,7 @@ pipeline {
              try {
                  echo "GIT_TAG: $GIT_TAG"
                 withCredentials([
-                    usernamePassword(credentialsId: env.SAAS_CREDENTIALS_ID, usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PASSWORD'),
+                    usernamePassword(credentialsId: env.BUILD_CREDENTIALS_ID, usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PASSWORD'),
                     usernamePassword(credentialsId: env.BUILD_CREDENTIALS_ID, usernameVariable: 'PUBLISH_REGISTRY_USER', passwordVariable: 'PUBLISH_REGISTRY_PASSWORD'),
                     usernamePassword(credentialsId: env.BUILD_CREDENTIALS_ID, usernameVariable: 'DOCKER_REGISTRY_USER', passwordVariable: 'DOCKER_REGISTRY_PASSWORD'),
                 ]) {
@@ -23,7 +23,7 @@ pipeline {
              }catch (Exception e){
                  echo "No GIT_TAG, use normal build"
                  withCredentials([
-                     usernamePassword(credentialsId: env.SAAS_CREDENTIALS_ID, usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PASSWORD'),
+                     usernamePassword(credentialsId: env.BUILD_CREDENTIALS_ID, usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PASSWORD'),
                      usernamePassword(credentialsId: env.BUILD_CREDENTIALS_ID, usernameVariable: 'PUBLISH_REGISTRY_USER', passwordVariable: 'PUBLISH_REGISTRY_PASSWORD'),
                      usernamePassword(credentialsId: env.BUILD_CREDENTIALS_ID, usernameVariable: 'DOCKER_REGISTRY_USER', passwordVariable: 'DOCKER_REGISTRY_PASSWORD'),
                  ]) {
