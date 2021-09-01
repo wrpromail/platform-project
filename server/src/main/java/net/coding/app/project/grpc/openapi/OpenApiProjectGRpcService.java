@@ -25,6 +25,8 @@ import org.lognet.springboot.grpc.GRpcService;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 import io.grpc.stub.StreamObserver;
@@ -324,7 +326,9 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
                 throw CoreException.of(PERMISSION_DENIED);
             }
 
-            int result = projectService.update(
+            projectService.update(
+                    currentUser.getTeamId(),
+                    currentUser.getId(),
                     UpdateProjectForm.builder()
                             .id(String.valueOf(request.getProjectId()))
                             .name(request.getName())
@@ -334,9 +338,6 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
                             .endDate(request.getEndDate())
                             .build()
             );
-            if (result <= 0) {
-                throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
-            }
             CommonResponse(responseObserver, SUCCESS, SUCCESS.name().toLowerCase());
         } catch (CoreException e) {
             log.error("RpcService modifyProject error CoreException ", e);

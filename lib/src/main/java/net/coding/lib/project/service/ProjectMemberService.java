@@ -4,10 +4,7 @@ import com.google.common.collect.ImmutableList;
 
 import com.github.pagehelper.PageRowBounds;
 
-import net.coding.common.cache.evict.constant.CacheType;
-import net.coding.common.cache.evict.manager.EvictCacheManager;
 import net.coding.common.config.CodingSettings;
-import net.coding.common.json.Json;
 import net.coding.common.util.BeanUtils;
 import net.coding.common.util.ResultPage;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
@@ -23,13 +20,12 @@ import net.coding.lib.project.entity.ProjectTweet;
 import net.coding.lib.project.enums.CacheTypeEnum;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.AddMemberForm;
-import net.coding.lib.project.grpc.client.ProjectGrpcClient;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
-import net.coding.lib.project.helper.ProjectServiceHelper;
 import net.coding.lib.project.hook.trigger.CreateMemberEventTriggerTrigger;
 import net.coding.lib.project.hook.trigger.DeleteMemberEventTriggerTrigger;
 import net.coding.lib.project.hook.trigger.UpdateMemberRoleEventTriggerTrigger;
 import net.coding.lib.project.pager.ResultPageFactor;
+import net.coding.lib.project.service.project.adaptor.ProjectMemberAdaptorFactory;
 import net.coding.lib.project.utils.UserUtil;
 
 import org.apache.commons.lang3.StringUtils;
@@ -43,7 +39,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
@@ -52,11 +47,13 @@ import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import one.util.streamex.StreamEx;
 import proto.acl.AclProto;
 import proto.advanced_role.AdvancedRoleProto;
 import proto.platform.user.UserProto;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static net.coding.common.constants.ProjectConstants.PROJECT_PRIVATE;
 import static net.coding.common.constants.RoleConstants.OWNER;
 
@@ -75,9 +72,9 @@ public class ProjectMemberService {
 
     private final AdvancedRoleServiceGrpcClient advancedRoleServiceGrpcClient;
 
-    private final ProjectServiceHelper projectServiceHelper;
+    private final ProjectHandCacheService projectHandCacheService;
 
-    private final ProjectGrpcClient projectGrpcClient;
+    private final ProjectMemberAdaptorFactory projectMemberAdaptorFactory;
 
     private final CreateMemberEventTriggerTrigger createMemberEventTrigger;
     private final DeleteMemberEventTriggerTrigger deleteMemberEventTrigger;
@@ -114,7 +111,7 @@ public class ProjectMemberService {
                             project.getId(),
                             currentUserId
                     );
-            handleCache(projectMember, CacheTypeEnum.UPDATE);
+            projectHandCacheService.handleProjectMemberCache(projectMember, CacheTypeEnum.UPDATE);
         }
         return result > 0;
     }
@@ -180,12 +177,10 @@ public class ProjectMemberService {
         if (Objects.isNull(project)) {
             throw CoreException.of(CoreException.ExceptionType.PROJECT_NAME_EXISTS);
         }
-        ProjectMember projectMember = projectMemberDao.getProjectMemberByUserAndProject(currentUser.getId(),
-                projectId, BeanUtils.getDefaultDeletedAt());
-        short MEMBER_TYPE = 80;
-        if (projectMember == null || projectMember.getType() <= MEMBER_TYPE) {
-            throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
-        }
+        ProjectMember projectMember = getByProjectIdAndUserId(projectId, currentUser.getId());
+
+        projectMemberAdaptorFactory.create(project.getPmType())
+                .checkAddProjectMemberType(projectMember);
 
         List<Integer> targetUserIds = new ArrayList<>();
         Arrays.stream(addMemberForm.getUsers().split(",")).forEach(targetUserIdStr -> {
@@ -200,62 +195,57 @@ public class ProjectMemberService {
 
     public void doAddMember(Integer currentUserId, List<Integer> targetUserIds,
                             short type, Project project, boolean isInvite) throws CoreException {
-        Timestamp init_at = new Timestamp(System.currentTimeMillis());
-        List<Integer> memberUserIdList = targetUserIds.stream()
-                .filter(targetUserId ->
-                        Objects.isNull(projectMemberDao.getProjectMemberByUserAndProject(
-                                targetUserId, project.getId(), BeanUtils.getDefaultDeletedAt())))
-                .collect(toList());
-        if (CollectionUtils.isEmpty(memberUserIdList)) {
-            return;
-        }
-        ProjectMember targetProjectMember = ProjectMember.builder()
-                .projectId(project.getId())
-                .type(type)
-                .deletedAt(BeanUtils.getDefaultDeletedAt())
-                .createdAt(init_at)
-                .lastVisitAt(init_at)
-                .alias("").build();
-
-        projectMemberDao.insertList(memberUserIdList, targetProjectMember);
-
         try {
-            Optional<AdvancedRoleProto.FindProjectRoleByRoleAndProjectResponse> response =
-                    advancedRoleServiceGrpcClient.findProjectRoleByRoleAndProject(project.getId(), type);
-            response.ifPresent(res -> targetUserIds.forEach(userId -> {
-                        AtomicInteger insertRole = new AtomicInteger(0);
-                        try {
-                            advancedRoleServiceGrpcClient.insertProjectRoleRecord(
-                                    project.getId(),
-                                    res.getRole(),
-                                    project.getTeamOwnerId(),
-                                    userId
-                            );
-                        } catch (Exception e) {
-                            log.error("advancedRoleServiceGrpcClient insertProjectRoleRecord is error{} ", e.getMessage());
-                        }
-                        insertRole.set(res.getRole().getId());
-                        //发送消息
-                        ProjectMember projectMember = getByProjectIdAndUserId(project.getId(), userId);
-                        projectServiceHelper.postAddMembersEvent(
-                                insertRole,
-                                currentUserId,
-                                project.getId(),
-                                projectMember,
-                                userId,
-                                isInvite
-                        );
-                        createMemberEventTrigger.trigger(
-                                ImmutableList.of(String.valueOf(res.getRole().getId())),
-                                projectMember,
-                                project.getId(),
-                                currentUserId
-                        );
-                        handleCache(projectMember, CacheTypeEnum.CREATE);
-                    })
-            );
+            Set<Integer> memberUserIds = projectMemberDao.findListByProjectId(
+                    project.getId(),
+                    Timestamp.valueOf(BeanUtils.NOT_DELETED_AT)
+            )
+                    .stream()
+                    .map(ProjectMember::getUserId)
+                    .collect(toSet());
+
+            projectMemberAdaptorFactory.create(project.getPmType())
+                    .checkExistProjectMember(memberUserIds, targetUserIds, project, type);
+
+            //可添加成员
+            Set<Integer> addUserIds = StreamEx.of(targetUserIds)
+                    .filter(targetUserId -> !memberUserIds.contains(targetUserId))
+                    .collect(toSet());
+            if (CollectionUtils.isEmpty(addUserIds)) {
+                return;
+            }
+            ProjectMember targetProjectMember = ProjectMember.builder()
+                    .projectId(project.getId())
+                    .type(type)
+                    .deletedAt(BeanUtils.getDefaultDeletedAt())
+                    .createdAt(new Timestamp(System.currentTimeMillis()))
+                    .lastVisitAt(new Timestamp(System.currentTimeMillis()))
+                    .alias("").build();
+            projectMemberDao.insertList(addUserIds, targetProjectMember);
+
+            AclProto.Role role = projectMemberAdaptorFactory.create(project.getPmType())
+                    .assignUsersToRoleByRoleType(project, addUserIds, type);
+
+            addUserIds.forEach(userId -> {
+                AtomicInteger insertRole = new AtomicInteger(0);
+                insertRole.set(role.getId());
+                ProjectMember projectMember = projectMemberDao.getByProjectIdAndUserId(project.getId(),
+                        userId, Timestamp.valueOf(BeanUtils.NOT_DELETED_AT));
+                //发送消息
+                projectMemberAdaptorFactory.create(project.getPmType())
+                        .postAddMembersEvent(insertRole, currentUserId, project, projectMember, userId, isInvite);
+
+                createMemberEventTrigger.trigger(
+                        ImmutableList.of(String.valueOf(role.getId())),
+                        projectMember,
+                        project.getId(),
+                        currentUserId
+                );
+                projectHandCacheService.handleProjectMemberCache(projectMember, CacheTypeEnum.CREATE);
+            });
+
         } catch (Exception e) {
-            log.error("advancedRoleServiceGrpcClient findProjectRoleByRoleAndProject is error{} ", e.getMessage());
+            log.error("advancedRoleServiceGrpcClient assignUsersToRoleByRoleType is error{} ", e.getMessage());
         }
     }
 
@@ -275,6 +265,7 @@ public class ProjectMemberService {
         List<RoleDTO> list = new ArrayList<>();
         roles.forEach(role -> list.add(RoleDTO.builder()
                 .name(role.getName())
+                .roleType(role.getType())
                 .roleId(role.getId()).build()));
         return list;
 
@@ -364,46 +355,45 @@ public class ProjectMemberService {
         return getByProjectIdAndUserId(projectId, user.getId()) != null;
     }
 
-    public void delMember(Integer projectId, Integer targetUserId) throws CoreException {
-        UserProto.User currentUser = SystemContextHolder.get();
-        if (currentUser == null) {
-            throw CoreException.of(CoreException.ExceptionType.USER_NOT_LOGIN);
-        }
-        if (currentUser.getId() == targetUserId) {
+    public void delMember(Integer currentUserId, Integer projectId, Integer targetUserId) throws CoreException {
+        if (currentUserId.equals(targetUserId)) {
             throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
         }
         Project project = projectDao.getProjectById(projectId);
         if (null == project) {
             throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
         }
+        projectMemberAdaptorFactory.create(project.getPmType())
+                .checkProjectMemberRoleType(project.getTeamOwnerId(), project.getId(), targetUserId);
 
-        ProjectMember member = getByProjectIdAndUserId(projectId, targetUserId);
+        delMember(currentUserId, project, targetUserId);
+    }
+
+    public void delMember(Integer currentUserId, Project project, Integer targetUserId) throws CoreException {
+        ProjectMember member = getByProjectIdAndUserId(project.getId(), targetUserId);
         if (member == null) {
-            log.error("User {} is not member of project {}", targetUserId, projectId);
+            log.error("User {} is not member of project {}", targetUserId, project.getId());
             throw CoreException.of(CoreException.ExceptionType.PROJECT_MEMBER_NOT_EXISTS);
         }
-        ProjectMember currentMember = getByProjectIdAndUserId(projectId, currentUser.getId());
+        ProjectMember currentMember = getByProjectIdAndUserId(project.getId(), currentUserId);
         if (null == currentMember) {
-            log.error("CurrentUser {} is not member of project {}", currentUser.getId(), projectId);
+            log.error("CurrentUser {} is not member of project {}", currentUserId, project.getId());
             throw CoreException.of(CoreException.ExceptionType.PROJECT_MEMBER_NOT_EXISTS);
         }
-  /*
-         如果当前操作用户的权限低于被操作用户
-         或者被操作用户的权限是ONWER,则权限不足
-         */
-        if ((currentMember.getType().compareTo(member.getType()) <= 0) || member.getType().equals(OWNER)) {
-            throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
-        }
-        int result = projectMemberDao.deleteMember(projectId, targetUserId, BeanUtils.getDefaultDeletedAt());
+        projectMemberAdaptorFactory.create(project.getPmType())
+                .checkDelProjectMemberType(member, currentMember.getType());
+
+        int result = projectMemberDao.deleteMember(project.getId(), targetUserId, BeanUtils.getDefaultDeletedAt());
         if (result > 0) {
             List<String> roleIdList = advancedRoleServiceGrpcClient.findUserRolesInProject
                     (targetUserId,
                             project.getTeamOwnerId(),
-                            projectId).stream().map(role -> String.valueOf(role.getId())).collect(toList());
-            advancedRoleServiceGrpcClient.removeUserRoleRecordsInProject(projectId, targetUserId);
-            projectServiceHelper.postDeleteMemberEvent(currentUser.getId(), projectId, member);
-            deleteMemberEventTrigger.trigger(roleIdList, member, projectId, currentUser.getId());
-            handleCache(member, CacheTypeEnum.DELETE);
+                            project.getId()).stream().map(role -> String.valueOf(role.getId())).collect(toList());
+            advancedRoleServiceGrpcClient.removeUserRoleRecordsInProject(project.getId(), targetUserId);
+            projectMemberAdaptorFactory.create(project.getPmType())
+                    .postDeleteMemberEvent(currentUserId, project, member);
+            deleteMemberEventTrigger.trigger(roleIdList, member, project.getId(), currentUserId);
+            projectHandCacheService.handleProjectMemberCache(member, CacheTypeEnum.DELETE);
         }
 
     }
@@ -414,9 +404,11 @@ public class ProjectMemberService {
             throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
         }
         UserProto.User currentUser = SystemContextHolder.get();
-        if(null == currentUser){
+        if (null == currentUser) {
             throw CoreException.of(CoreException.ExceptionType.USER_NOT_LOGIN);
         }
+        projectMemberAdaptorFactory.create(project.getPmType())
+                .checkProjectMemberRoleType(project.getTeamOwnerId(), project.getId(), currentUser.getId());
         if (!isMember(currentUser, project.getId())) {
             throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
         }
@@ -428,27 +420,14 @@ public class ProjectMemberService {
         int result = projectMemberDao.deleteMember(project.getId(), userId, BeanUtils.getDefaultDeletedAt());
         if (result > 0) {
             advancedRoleServiceGrpcClient.removeUserRoleRecordsInProject(project.getId(), userId);
-            projectServiceHelper.postMemberQuitEvent(project, targetProjectMember);
-            handleCache(targetProjectMember, CacheTypeEnum.DELETE);
+            projectMemberAdaptorFactory.create(project.getPmType())
+                    .postMemberQuitEvent(project, targetProjectMember);
+            projectHandCacheService.handleProjectMemberCache(targetProjectMember, CacheTypeEnum.DELETE);
         }
         return result;
     }
 
     public boolean updateVisitTime(Integer projectMemberId) {
         return projectMemberDao.updateVisitTime(projectMemberId, BeanUtils.getDefaultDeletedAt()) == 1;
-    }
-
-    public void handleCache(ProjectMember pm, CacheTypeEnum type) {
-        log.info("清除项目成员相关缓存信息 projectMember : {}", Json.toJson(pm));
-        String TABLE_NAME = "project_members";
-        if (type == CacheTypeEnum.UPDATE || type == CacheTypeEnum.DELETE) {
-            EvictCacheManager.evictTableCache(TABLE_NAME, CacheType.bean, "userId", pm.getUserId(), "projectId", pm.getProjectId());
-        }
-        // 项目成员变动时，清除getProjectMembersWithArchived（）方法的缓存
-        EvictCacheManager.evictTableCache(TABLE_NAME, CacheType.list, "getProjectMembersWithArchived", pm.getProjectId(), pm.getType());
-        // 清除成员统计缓存
-        EvictCacheManager.evictTableCache(TABLE_NAME, CacheType.count, "countProjectMembers:", pm.getProjectId());
-        EvictCacheManager.evictTableCache(TABLE_NAME, CacheType.count, "countProjects:", pm.getUserId());
-        EvictCacheManager.evictTableCache(TABLE_NAME, CacheType.list, "getProjectMembersByUser", pm.getUserId());
     }
 }

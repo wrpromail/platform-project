@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package proto;
+
+import "code.proto";
+
+option java_generic_services = true;
+option java_package = "net.coding.proto.platform.program";
+option java_outer_classname = "ProgramProto";
+
+message ProgramProject {
+  uint32 id = 1;
+  string name = 2;
+  string displayName = 3;
+  string description = 4;
+  string icon = 5;
+  int64 startDate = 6;
+  int64 endDate = 7;
+  bool archived = 8;
+}
+
+message GetProgramByIdRequest {
+  uint32 teamId = 1;  //团队Id
+  uint32 userId = 2; //操作用户Id
+  uint32 programId = 3;
+}
+
+message GetProgramByIdResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  ProgramProject program = 3;
+}
+
+message GetProgramListRequest {
+  uint32 teamId = 1;
+  uint32 userId = 2;//搜索条件
+  uint32 projectId = 3;//搜索条件
+}
+
+message GetProgramListResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated ProgramProject programList = 3;
+}
+
+message GetProgramProjectListRequest {
+  uint32 teamId = 1;
+  uint32 programId = 2;
+  uint32 userId = 3;//搜索条件
+}
+
+message GetProgramProjectListResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated ProgramProject projectList = 3;
+}
+
+service ProgramService {
+  //根据Id 查询项目集详情
+  rpc GetProgramById(GetProgramByIdRequest) returns (GetProgramByIdResponse);
+  //查询项目集列表
+  rpc GetProgramList(GetProgramListRequest) returns (GetProgramListResponse);
+  //查询项目集下关联项目列表
+  rpc GetProgramProjectList(GetProgramProjectListRequest) returns (GetProgramProjectListResponse);
+}

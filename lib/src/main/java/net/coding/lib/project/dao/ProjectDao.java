@@ -16,17 +16,23 @@ public interface ProjectDao extends tk.mybatis.mapper.common.Mapper<Project> {
 
     Project getProjectById(@Param("id") Integer id);
 
+    Project getProjectByIdAndTeamId(@Param("id") Integer id,
+                                    @Param("teamOwnerId") Integer teamOwnerId);
+
+    Project getProjectNotDeleteByIdAndTeamId(@Param("id") Integer id,
+                                           @Param("teamOwnerId") Integer teamOwnerId);
+
+    Project getProjectArchiveByIdAndTeamId(@Param("id") Integer id,
+                                           @Param("teamOwnerId") Integer teamOwnerId);
+
     Project getProjectByNameAndTeamId(@Param("name") String name,
                                       @Param("teamOwnerId") Integer teamOwnerId);
 
     Project getProjectByDisplayNameAndTeamId(@Param("displayName") String displayName,
                                              @Param("teamOwnerId") Integer teamOwnerId);
 
-
-    Project getProjectByIdAndTeamId(@Param("id") Integer id,
-                                    @Param("teamOwnerId") Integer teamOwnerId);
-
     List<Project> getUserProjects(ProjectQueryParameter parameter);
+
 
     List<Project> getProjects(ProjectQueryParameter parameter);
 

@@ -33,10 +33,7 @@ public class TeamProject {
 
     private Integer teamId;
 
-    @Builder.Default
-    private Date createdAt = DateUtil.getCurrentDate();
-    @Builder.Default
-    private Date updatedAt = DateUtil.getCurrentDate();
-    @Builder.Default
-    private Date deletedAt = DateUtil.strToDate(BeanUtils.NOT_DELETED_AT);
+    private Date createdAt;
+    private Date updatedAt;
+    private Date deletedAt;
 }

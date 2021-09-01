@@ -3,15 +3,10 @@ package net.coding.lib.project.helper;
 
 import com.google.common.eventbus.AsyncEventBus;
 
-import net.coding.common.base.bean.setting.AtSetting;
 import net.coding.common.base.event.ActivityEvent;
 import net.coding.common.base.event.CreateProjectUserEvent;
 import net.coding.common.base.event.ProjectCreateEvent;
-import net.coding.common.base.event.ProjectDeleteEvent;
-import net.coding.common.base.event.ProjectMemberCreateEvent;
-import net.coding.common.base.event.ProjectMemberRoleChangeEvent;
-import net.coding.common.base.event.ProjectMemberDeleteEvent;
-import net.coding.common.base.event.ProjectNameChangeEvent;
+
 import net.coding.common.base.gson.JSON;
 import net.coding.common.i18n.utils.LocaleMessageSource;
 import net.coding.common.util.TextUtils;
@@ -23,11 +18,11 @@ import net.coding.grpc.client.platform.LoggingGrpcClient;
 import net.coding.grpc.client.platform.UserServiceGrpcClient;
 import net.coding.lib.project.entity.Credential;
 import net.coding.lib.project.entity.Project;
-import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.entity.ProjectPreference;
 import net.coding.lib.project.entity.ProjectSetting;
 import net.coding.lib.project.entity.ProjectTweet;
 import net.coding.lib.project.enums.ActivityEnums;
+import net.coding.lib.project.enums.ProgramProjectEventEnums;
 import net.coding.lib.project.grpc.client.NotificationGrpcClient;
 import net.coding.lib.project.grpc.client.ProjectGrpcClient;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
@@ -44,14 +39,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,18 +52,13 @@ import proto.notification.NotificationProto;
 import proto.notification.NotificationProto.TargetType;
 import proto.platform.logging.loggingProto;
 import proto.platform.project.ProjectProto;
-import proto.platform.team.TeamProto;
 
 import static net.coding.common.constants.ProjectConstants.ACTION_CREATE;
-import static net.coding.common.constants.ProjectConstants.ACTION_DELETE;
-import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE;
-import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE_DATE;
-import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE_DESCRIPTION;
-import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE_DISPLAY_NAME;
-import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE_NAME;
 import static net.coding.grpc.client.pinyin.PinyinClient.DEFAULT_SEPARATOR;
 import static net.coding.lib.project.entity.ProjectPreference.PREFERENCE_STATUS_TRUE;
 import static net.coding.lib.project.entity.ProjectPreference.PREFERENCE_TYPE_PROJECT_TWEET;
+import static net.coding.lib.project.enums.ProgramProjectEventEnums.createProject;
+import static org.apache.logging.log4j.util.Strings.EMPTY;
 
 @Component
 @Slf4j
@@ -283,46 +271,6 @@ public class ProjectServiceHelper {
         }
     }
 
-    public void postProjectNameChangeEvent(Project project) {
-        ProjectNameChangeEvent projectNameChangeEvent = ProjectNameChangeEvent.builder().projectId(project.getId()).newName(project.getName()).build();
-        asyncEventBus.post(projectNameChangeEvent);
-    }
-
-    public void postNameActivityEvent(Integer userId, Project project) {
-        ActivityEvent nameActivityEvent = ActivityEvent.builder().creatorId(userId).type(net.coding.e.lib.core.bean.Project.class)
-                .targetId(project.getId()).projectId(project.getId()).action(ACTION_UPDATE_NAME).content(StringUtils.EMPTY).build();
-        asyncEventBus.post(nameActivityEvent);
-    }
-
-    public void postDisplayNameActivityEvent(Integer userId, Project project) {
-        ActivityEvent displayNameActivityEvent = ActivityEvent.builder().creatorId(userId).type(net.coding.e.lib.core.bean.Project.class)
-                .targetId(project.getId()).projectId(project.getId()).action(ACTION_UPDATE_DISPLAY_NAME).content(StringUtils.EMPTY).build();
-        asyncEventBus.post(displayNameActivityEvent);
-    }
-
-    public void postDescriptionActivityEvent(Integer userId, Project project) {
-        ActivityEvent descriptionActivityEvent = ActivityEvent.builder().creatorId(userId).type(net.coding.e.lib.core.bean.Project.class)
-                .targetId(project.getId()).projectId(project.getId()).action(ACTION_UPDATE_DESCRIPTION).content(StringUtils.EMPTY).build();
-        asyncEventBus.post(descriptionActivityEvent);
-    }
-
-    public void postDateActivityEvent(Integer userId, Project project) {
-        ActivityEvent dateActivityEvent = ActivityEvent.builder().creatorId(userId).type(net.coding.e.lib.core.bean.Project.class)
-                .targetId(project.getId()).projectId(project.getId()).action(ACTION_UPDATE_DATE).content(StringUtils.EMPTY).build();
-        asyncEventBus.post(dateActivityEvent);
-    }
-
-    public void postIconActivityEvent(Integer userId, Project project) {
-        ActivityEvent iconActivityEvent = ActivityEvent.builder().creatorId(userId)
-                .type(net.coding.e.lib.core.bean.Project.class)
-                .targetId(project.getId())
-                .projectId(project.getId())
-                .action(ACTION_UPDATE)
-                .content(StringUtils.EMPTY)
-                .build();
-        asyncEventBus.post(iconActivityEvent);
-    }
-
     public void postFunctionActivity(Integer userId, ProjectSetting projectSetting, Short action) {
         ActivityEvent funActivityEvent = ActivityEvent.builder()
                 .creatorId(userId)
@@ -333,39 +281,6 @@ public class ProjectServiceHelper {
                 .content(projectSetting.getCode())
                 .build();
         asyncEventBus.post(funActivityEvent);
-    }
-
-    public void postProjectDeleteEvent(Integer userId, Project project) {
-        asyncEventBus.post(
-                ProjectDeleteEvent.builder()
-                        .teamId(project.getTeamOwnerId())
-                        .userId(userId)
-                        .projectId(project.getId())
-                        .build()
-        );
-
-        asyncEventBus.post(
-                ActivityEvent.builder()
-                        .creatorId(userId)
-                        .type(net.coding.e.lib.core.bean.Project.class)
-                        .targetId(project.getId())
-                        .projectId(project.getId())
-                        .action(ACTION_DELETE)
-                        .content("")
-                        .build()
-        );
-
-        loggingGrpcClient.insertOperationLog(loggingProto.OperationLogInsertRequest.newBuilder()
-                .setUserId(userId)
-                .setTeamId(project.getTeamOwnerId())
-                .setContentName("deleteProject")
-                .setTargetId(project.getId())
-                .setTargetType(project.getClass().getSimpleName())
-                .setAdminAction(false)
-                .setText(localeMessageSource.getMessage("project_deleted",
-                        new Object[]{htmlLink(project)}))
-
-                .build());
     }
 
     public String htmlLink(Project project) {
@@ -379,127 +294,6 @@ public class ProjectServiceHelper {
         sb.append("</a>");
         return sb.toString();
     }
-
-    /**
-     * 添加成员推送消息
-     *
-     * @param operationUserId
-     * @param projectId
-     */
-    public void postAddMembersEvent(AtomicInteger insertRole, Integer operationUserId, Integer projectId, ProjectMember projectMember, Integer userId, boolean isInvite) {
-        asyncEventBus.post(
-                ActivityEvent.builder()
-                        .creatorId(operationUserId)
-                        .type(net.coding.e.lib.core.bean.ProjectMember.class)
-                        .targetId(projectMember.getId())
-                        .projectId(projectId)
-                        .action(ProjectMember.ACTION_ADD_MEMBER)
-                        .content("")
-                        .build()
-
-        );
-        asyncEventBus.post(
-                ProjectMemberCreateEvent.builder()
-                        .projectId(projectId)
-                        .userId(projectMember.getUserId())
-                        .build()
-        );
-        if (insertRole.intValue() > 0) {
-            asyncEventBus.post(ProjectMemberRoleChangeEvent.builder()
-                    .projectId(projectId)
-                    .roleId(insertRole.intValue())
-                    .targetUserId(projectMember.getUserId())
-                    .operate(1)
-                    .build()
-            );
-        }
-        String userLink = userGrpcClient.getUserHtmlLinkById(operationUserId);
-        String projectHtmlUrl = projectHtmlLink(projectId);
-        String message = ResourceUtil.ui("notification_add_member",
-                userLink, projectHtmlUrl);
-        String inviteMessage = ResourceUtil.ui("notification_invite_member",
-                userLink, projectHtmlUrl);
-        if (!userId.equals(operationUserId)) {
-            // 站内通知
-            List<Integer> userIds = new ArrayList<>();
-            userIds.add(userId);
-            sentProjectMemberNotification(userIds, message, projectId);
-            if (isInvite) {
-                sentProjectMemberNotification(userIds, inviteMessage, projectId);
-            }
-        }
-    }
-
-
-    public void postDeleteMemberEvent(Integer currentUserId, Integer projectId, ProjectMember projectMember) {
-        asyncEventBus.post(
-                ProjectMemberDeleteEvent.builder()
-                        .projectId(projectId)
-                        .userId(projectMember.getUserId())
-                        .build()
-        );
-
-        asyncEventBus.post(
-                ActivityEvent.builder()
-                        .creatorId(currentUserId)
-                        .type(net.coding.e.lib.core.bean.ProjectMember.class)
-                        .targetId(projectMember.getId())
-                        .projectId(projectId)
-                        .action(net.coding.e.lib.core.bean.ProjectMember.ACTION_REMOVE_MEMBER)
-                        .content("")
-                        .build()
-        );
-        List<Integer> userIds = new ArrayList<>();
-        userIds.add(projectMember.getUserId());
-        String userLink = userGrpcClient.getUserHtmlLinkById(currentUserId);
-        String projectHtmlUrl = projectHtmlLink(projectId);
-        String message = ResourceUtil.ui("notification_delete_member",
-                userLink, projectHtmlUrl);
-        sentProjectMemberNotification(userIds, message, projectId);
-    }
-
-    public void postMemberQuitEvent(Project project, ProjectMember projectMember) {
-        asyncEventBus.post(
-                ProjectMemberDeleteEvent.builder()
-                        .projectId(project.getId())
-                        .userId(projectMember.getUserId())
-                        .build()
-        );
-        asyncEventBus.post(
-                ActivityEvent.builder()
-                        .creatorId(projectMember.getUserId())
-                        .type(net.coding.e.lib.core.bean.ProjectMember.class)
-                        .targetId(projectMember.getId())
-                        .projectId(projectMember.getProjectId())
-                        .action(net.coding.e.lib.core.bean.ProjectMember.ACTION_QUIT)
-                        .content("")
-                        .build()
-        );
-        TeamProto.Team team = teamGrpcClient.getTeam(project.getId()).getData();
-        List<Integer> userIds = new ArrayList<>();
-        userIds.add( team.getOwner().getId());
-        String userLink = userGrpcClient.getUserHtmlLinkById(projectMember.getUserId());
-        String projectHtmlUrl = projectHtmlLink(project.getId());
-        String message = ResourceUtil.ui("notification_member_quit",
-                userLink, projectHtmlUrl);
-        sentProjectMemberNotification(userIds, message, project.getId());
-    }
-
-    private void sentProjectMemberNotification(List<Integer> userIds, String message, Integer projectId) {
-        notificationGrpcClient.send(NotificationProto.NotificationSendRequest.newBuilder()
-                .addAllUserId(userIds)
-                .setContent(Optional.ofNullable(message).orElse(null))
-                .setTargetType(NotificationProto.TargetType.ProjectMember)
-                .setTargetId(projectId.toString())
-                .setSetting(NotificationProto.Setting.ProjectMemberSetting)
-                .setSkipValidate(false)
-                .setSkipEmail(false)
-                .setSkipSystem(false)
-                .setSkipWechatWorkMessage(true)
-                .setForce(false)
-                .build());
-    }
-
 
     public void postProjectCreateEvent(Project project,
                                        ProjectCreateParameter parameter,
@@ -553,18 +347,8 @@ public class ProjectServiceHelper {
                             .content("")
                             .build()
             );
-            loggingGrpcClient.insertOperationLog(loggingProto.OperationLogInsertRequest.newBuilder()
-                    .setUserId(parameter.getUserId())
-                    .setTeamId(parameter.getTeamId())
-                    .setContentName("createProject")
-                    .setTargetId(project.getId())
-                    .setTargetType(project.getClass().getSimpleName())
-                    .setAdminAction(false)
-                    .setText(localeMessageSource.getMessage("project_created",
-                            new Object[]{""
-                                    , htmlLink(project)}).trim())
-                    .build()
-            );
+
+            insertOperationLog(parameter.getUserId(), parameter.getTeamId(), project, createProject);
         }
 
         asyncEventBus.post(CreateProjectUserEvent.builder()
@@ -575,20 +359,37 @@ public class ProjectServiceHelper {
         );
     }
 
-    public void sendCreateProjectNotification(Integer ownerId, Integer userId, Project project) {
+    public void sendCreateProjectNotification(Integer ownerId, Integer userId, Project project,
+                                              ProgramProjectEventEnums eventEnums) {
         notificationGrpcClient.send(
                 NotificationProto
                         .NotificationSendRequest
                         .newBuilder()
                         .addUserId(ownerId)
                         .setContent(
-                                localeMessageSource.getMessage("project_created",
+                                localeMessageSource.getMessage(eventEnums.getMessage(),
                                         new Object[]{userGrpcClient.getUserHtmlLinkById(userId)
                                                 , htmlLink(project)}))
                         .setTargetType(NotificationProto.TargetType.Project)
                         .setTargetId(String.valueOf(project.getId()))
                         .setSetting(NotificationProto.Setting.ProjectMemberSetting)
                         .build()
+        );
+    }
+
+    public void insertOperationLog(Integer userId, Integer teamId, Project project,
+                                   ProgramProjectEventEnums eventEnums) {
+        loggingGrpcClient.insertOperationLog(loggingProto.OperationLogInsertRequest.newBuilder()
+                .setUserId(userId)
+                .setTeamId(teamId)
+                .setContentName(eventEnums.name())
+                .setTargetId(project.getId())
+                .setTargetType(project.getClass().getSimpleName())
+                .setAdminAction(false)
+                .setText(localeMessageSource.getMessage(eventEnums.getMessage(),
+                        new Object[]{EMPTY
+                                , htmlLink(project)}).trim())
+                .build()
         );
     }
 }

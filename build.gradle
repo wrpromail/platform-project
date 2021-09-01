@@ -2,19 +2,12 @@ task wrapper(type: Wrapper) {
     gradleVersion = "3.2"
 }
 
-System.setProperty("BASE_IMAGE", "devops-docker.pkg.codingcorp.net/registry/build/ubuntu-tracing:20210126")
+System.setProperty("BASE_IMAGE", "devops-docker.pkg.codingcorp.net/registry/build/ubuntu-tracing:20210513")
 buildscript {
     repositories {
         mavenLocal()
         maven {
             url "https://mirrors.cloud.tencent.com/nexus/repository/maven-public/"
-        }
-        maven {
-            url "https://devops-maven.pkg.codingcorp.net/repository/registry/maven-release/"
-            credentials {
-                username = System.getenv('PUBLISH_REGISTRY_USER') ?: 'ptvyg13pcd54'
-                password = System.getenv('PUBLISH_REGISTRY_PASSWORD') ?: 'ecd298c776e9ff972abaecb0247c700499d9c6c0'
-            }
         }
         maven {
             url "https://codingcorp-maven.pkg.coding.net/repository/registry/maven-releases/"
@@ -23,20 +16,17 @@ buildscript {
                 password = System.getenv('REGISTRY_PASSWORD') ?: 'nDZT7n47irtOEkOSj5ps2hhocFwcaP'
             }
         }
+        maven {
+            url "https://devops-maven.pkg.codingcorp.net/repository/registry/maven-release/"
+            credentials {
+                username = System.getenv('PUBLISH_REGISTRY_USER') ?: 'ptvyg13pcd54'
+                password = System.getenv('PUBLISH_REGISTRY_PASSWORD') ?: 'ecd298c776e9ff972abaecb0247c700499d9c6c0'
+            }
+        }
     }
 
     dependencies {
-        classpath "net.coding.common:coding-plugin-collection:1.1.19"
-    }
-}
-
-repositories {
-    maven {
-        url "https://devops-docker.pkg.codingcorp.net/repository/registry/maven-release/"
-        credentials {
-            username = System.getenv('PUBLISH_REGISTRY_USER') ?: 'ptvyg13pcd54'
-            password = System.getenv('PUBLISH_REGISTRY_PASSWORD') ?: 'ecd298c776e9ff972abaecb0247c700499d9c6c0'
-        }
+        classpath "net.coding.common:coding-plugin-collection:1.1.21"
     }
 }
 
@@ -46,5 +36,15 @@ subprojects {
     // 请勿删除，否则后果自负，会导致 mariadb client 版本异常，数据时间写入会有异常
     ext['mariadb.version'] = '2.2.5'
     ext['hikaricp.version'] = '2.4.5'
+
+    repositories {
+        maven {
+            url "https://devops-maven.pkg.codingcorp.net/repository/registry/maven-release/"
+            credentials {
+                username = System.getenv('PUBLISH_REGISTRY_USER') ?: 'ptvyg13pcd54'
+                password = System.getenv('PUBLISH_REGISTRY_PASSWORD') ?: 'ecd298c776e9ff972abaecb0247c700499d9c6c0'
+            }
+        }
+    }
 }
 
