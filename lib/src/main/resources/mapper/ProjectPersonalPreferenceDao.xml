@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.coding.lib.project.dao.ProjectPersonalPreferenceDao">
+    <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ProjectPersonalPreference">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="project_id" jdbcType="INTEGER" property="projectId"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="key" jdbcType="VARCHAR" property="key"/>
+        <result column="value" jdbcType="VARCHAR" property="value"/>
+        <result column="created_at" jdbcType="TIMESTAMP" property="createdAt"/>
+        <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt"/>
+        <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        id
+        ,project_id, user_id, `key`, `value`,created_at,updated_at ,deleted_at
+    </sql>
+    <select id="findByProjectUserKey" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM project_personal_preferences
+        <where>
+            project_id = #{projectId}
+            AND user_id = #{userId}
+            AND `key` = #{key}
+            <if test="deletedAt != null">
+                AND deleted_at = #{deletedAt}
+            </if>
+        </where>
+        LIMIT 1
+    </select>
+
+    <update id="update" parameterType="net.coding.lib.project.entity.ProjectPersonalPreference">
+        update project_personal_preferences
+        <set>
+            <if test="preference.projectId != null">
+                project_id = #{preference.projectId,jdbcType=INTEGER},
+            </if>
+            <if test="preference.userId != null">
+                user_id = #{preference.userId,jdbcType=INTEGER},
+            </if>
+            <if test="preference.key != null">
+                `key` = #{preference.key,jdbcType=VARCHAR},
+            </if>
+            <if test="preference.value != null">
+                `value` = #{preference.value,jdbcType=VARCHAR},
+            </if>
+            <if test="preference.createdAt != null">
+                created_at = #{preference.createdAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="preference.updatedAt != null">
+                updated_at = #{preference.updatedAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="preference.deletedAt != null">
+                deleted_at = #{preference.deletedAt,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{preference.id,jdbcType=INTEGER}
+    </update>
+    <insert id="insert" keyColumn="id" keyProperty="id"
+            parameterType="net.coding.lib.project.entity.ProjectPersonalPreference"
+            useGeneratedKeys="true">
+        insert into project_personal_preferences
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="preference.projectId != null">
+                project_id,
+            </if>
+            <if test="preference.userId != null">
+                user_id,
+            </if>
+            <if test="preference.key != null">
+                `key`,
+            </if>
+            <if test="preference.value != null">
+                `value`,
+            </if>
+            <if test="preference.createdAt != null">
+                created_at,
+            </if>
+            <if test="preference.updatedAt != null">
+                updated_at,
+            </if>
+            <if test="preference.deletedAt != null">
+                deleted_at,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="preference.projectId != null">
+                #{preference.projectId,jdbcType=INTEGER},
+            </if>
+            <if test="preference.userId != null">
+                #{preference.userId,jdbcType=INTEGER},
+            </if>
+            <if test="preference.key != null">
+                #{preference.key,jdbcType=VARCHAR},
+            </if>
+            <if test="preference.value != null">
+                #{preference.value,jdbcType=VARCHAR},
+            </if>
+            <if test="preference.createdAt != null">
+                #{preference.createdAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="preference.updatedAt != null">
+                #{preference.updatedAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="preference.deletedAt != null">
+                #{preference.deletedAt,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+</mapper>

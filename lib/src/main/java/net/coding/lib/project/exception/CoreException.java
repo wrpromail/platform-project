@@ -162,6 +162,7 @@ public class CoreException extends Exception {
         PROJECT_NOT_EXIST_OR_ARCHIVED(1174, "project_not_exist_or_archived"),
         PROJECT_START_DATE_NOT_EMPTY(1175, "project_start_date_not_empty"),
         PROJECT_END_DATE_NOT_EMPTY(1176, "project_end_date_not_empty"),
+        PROJECT_PERSONAL_PREFERENCE_KEYS_NOT_EXIST(1024, "project_personal_preference_keys_not_exist"),
 
         //group相关的以 15开头
         GROUP_NOT_EXIST(1500, "group_not_exist"),
