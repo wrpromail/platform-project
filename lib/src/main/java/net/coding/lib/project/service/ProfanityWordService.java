@@ -1,68 +1,21 @@
 package net.coding.lib.project.service;
 
+import java.lang.reflect.Field;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.coding.common.base.form.BaseForm;
 import net.coding.common.base.validator.IncludeProfanity;
-import net.coding.lib.project.dao.ProfanityWordDao;
-import net.coding.lib.project.entity.ProfanityWord;
-
+import net.coding.lib.project.infra.TextModerationService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.Errors;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.annotation.PostConstruct;
-
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.MINUTES;
 
 @Service
 @Slf4j
 @AllArgsConstructor
 public class ProfanityWordService {
 
-    private static final List<ProfanityWord> list = new ArrayList<>();
-    private static long lastUpdate = System.currentTimeMillis();
-    private static long timeout = MILLISECONDS.convert(1, MINUTES);
-
-    @PostConstruct
-    public void init() {
-        update();
-    }
-
-    private final ProfanityWordDao profanityWordDao;
-
-    public String checkContent(String content) {
-        if (StringUtils.isEmpty(content)) {
-            return "";
-        }
-        checkAndUpdate();
-        for (ProfanityWord profanityWord : list) {
-            if (content.toLowerCase().contains(profanityWord.getWord().toLowerCase()))
-                return profanityWord.getWord();
-        }
-        return "";
-    }
-
-    private void update() {
-        lastUpdate = System.currentTimeMillis();
-        List<ProfanityWord> words = profanityWordDao.findAll();
-        synchronized (list) {
-            list.clear();
-            list.addAll(words);
-        }
-    }
-
-    private void checkAndUpdate() {
-        if (System.currentTimeMillis() - lastUpdate > timeout) {
-            update();
-        }
-    }
+    private final TextModerationService textModerationService;
 
     public void process(Errors errors, BaseForm form) {
 
@@ -87,7 +40,8 @@ public class ProfanityWordService {
      * @return 是否命中敏感词，true：命中，false：没命中
      * @throws IllegalAccessException IllegalAccessException
      */
-    private boolean reject(Errors errors, BaseForm form, Field field) throws IllegalAccessException {
+    private boolean reject(Errors errors, BaseForm form, Field field)
+            throws IllegalAccessException {
         if (field.isAnnotationPresent(IncludeProfanity.class)) {
             IncludeProfanity includeProfanity = field.getAnnotation(IncludeProfanity.class);
             field.setAccessible(true);
@@ -110,6 +64,6 @@ public class ProfanityWordService {
      * @return 命中的敏感词
      */
     public String validate(String word) {
-        return checkContent(word);
+        return textModerationService.checkContent(word);
     }
 }

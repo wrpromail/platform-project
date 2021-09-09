@@ -4,6 +4,7 @@ import net.coding.common.server.BaseConfig;
 import net.coding.common.server.BaseServer;
 import net.coding.common.verification.VerificationAutoConfiguration;
 
+import net.coding.platform.degradation.ServiceDegradationAutoConfiguration;
 import org.lognet.springboot.grpc.autoconfigure.GRpcAutoConfiguration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -49,14 +50,18 @@ import static springfox.documentation.builders.PathSelectors.regex;
         net.coding.grpc.client.platform.Config.class,
         net.coding.grpc.client.permission.Config.class,
         net.coding.service.hook.definition.ServiceHookConfigurer.class,
-        net.coding.e.grpcClient.collaboration.Config.class
+        net.coding.e.grpcClient.collaboration.Config.class,
+        net.coding.service.hook.definition.ServiceHookConfigurer.class,
+        net.coding.grpc.client.platform.infra.text.pinyin.Config.class,
+        net.coding.grpc.client.platform.infra.text.moderation.Config.class,
 
 })
 @ImportAutoConfiguration(
         {
                 GRpcAutoConfiguration.class,
                 VerificationAutoConfiguration.class,
-                GsonAutoConfiguration.class
+                GsonAutoConfiguration.class,
+                ServiceDegradationAutoConfiguration.class,
         }
 )
 @EnableScheduling

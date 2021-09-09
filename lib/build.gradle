@@ -38,6 +38,8 @@ dependencies {
     compile("net.coding.proto:platform:20210426.3") {
         exclude(group: "net.coding.common")
     }
+    compile "net.coding.grpc.client:platform-infra:20210727.1"
+
     compile("net.coding.grpc.client:platform:20210426.3") {
         exclude(group: "net.coding.common")
     }
@@ -56,6 +58,7 @@ dependencies {
     compile ("net.coding.grpc.client:permission:20210830.1") {
         exclude(group: "net.coding.common")
     }
+    compile "net.coding.platform.framework:degradation:20210906.1"
     compile 'net.coding.proto:storage:20201027.1'
     compile "net.coding.proto:issue:20201102.2"
     compile "net.coding.proto:notification:20201030.2"

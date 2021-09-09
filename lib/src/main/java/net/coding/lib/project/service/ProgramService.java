@@ -7,10 +7,7 @@ import net.coding.common.util.BeanUtils;
 import net.coding.common.util.ResultPage;
 import net.coding.common.util.TextUtils;
 import net.coding.e.grpcClient.collaboration.IssueWorkflowGrpcClient;
-import net.coding.e.grpcClient.collaboration.exception.IssueWorkflowParamErrorException;
-import net.coding.e.grpcClient.collaboration.exception.ProgramIssueRelationException;
 import net.coding.exchange.dto.team.Team;
-import net.coding.grpc.client.permission.AclServiceGrpcClient;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.grpc.client.platform.TeamServiceGrpcClient;
 import net.coding.lib.project.dao.ProgramDao;
@@ -33,10 +30,10 @@ import net.coding.lib.project.form.CreateProgramForm;
 import net.coding.lib.project.form.QueryProgramForm;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.helper.ProjectServiceHelper;
+import net.coding.lib.project.infra.PinyinService;
 import net.coding.lib.project.parameter.ProgramProjectQueryParameter;
 import net.coding.lib.project.parameter.ProgramPageQueryParameter;
 import net.coding.lib.project.parameter.ProgramQueryParameter;
-import net.coding.lib.project.parameter.ProjectQueryParameter;
 import net.coding.lib.project.service.project.adaptor.ProjectAdaptorFactory;
 import net.coding.lib.project.utils.DateUtil;
 import net.coding.platform.permission.proto.CommonProto;
@@ -46,7 +43,6 @@ import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.Timestamp;
@@ -114,6 +110,8 @@ public class ProgramService {
 
     private final ProjectDTOService projectDTOService;
 
+    private final PinyinService pinyinService;
+
     public ProgramPathDTO createProgram(Integer currentTeamId, Integer currentUserId, CreateProgramForm form) throws Exception {
         Team team = teamServiceGrpcClient.getTeam(currentTeamId);
         if (Objects.isNull(team)) {
@@ -143,7 +141,7 @@ public class ProgramService {
                     .teamOwnerId(team.getId())
                     .name(form.getName().replace(" ", "-"))
                     .displayName(form.getDisplayName())
-                    .namePinyin(projectServiceHelper.getPinYin(
+                    .namePinyin(pinyinService.getPinYin(
                             form.getDisplayName(),
                             form.getName()))
                     .icon(icon)

@@ -41,6 +41,8 @@ import net.coding.lib.project.form.CreateProjectForm;
 import net.coding.lib.project.form.UpdateProjectForm;
 import net.coding.lib.project.form.credential.CredentialForm;
 import net.coding.lib.project.grpc.client.AgileTemplateGRpcClient;
+import net.coding.lib.project.infra.PinyinService;
+import net.coding.lib.project.infra.TextModerationService;
 import net.coding.lib.project.helper.ProjectServiceHelper;
 import net.coding.lib.project.metrics.ProjectCreateMetrics;
 import net.coding.lib.project.parameter.BaseCredentialParameter;
@@ -128,8 +130,6 @@ public class ProjectService {
 
     private final ProjectMemberService projectMemberService;
 
-    private final ProfanityWordService profanityWordService;
-
     private final ProjectValidateService projectValidateService;
 
     private final ProjectServiceHelper projectServiceHelper;
@@ -155,6 +155,8 @@ public class ProjectService {
     private final AgileTemplateGRpcClient agileTemplateGRpcClient;
 
     private final ProjectAdaptorFactory projectAdaptorFactory;
+    private final TextModerationService textModerationService;
+    private final PinyinService pinyinService;
 
     public Project getById(Integer id) {
         return projectDao.getProjectById(id);
@@ -232,15 +234,15 @@ public class ProjectService {
         if (Objects.nonNull(existProjectName)) {
             throw CoreException.of(PROJECT_NAME_EXISTS);
         }
-        String nameProfanityWord = profanityWordService.checkContent(parameter.getName());
+        String nameProfanityWord = textModerationService.checkContent(parameter.getName());
         if (StringUtils.isNotEmpty(nameProfanityWord)) {
             throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, nameProfanityWord);
         }
-        String displayNameProfanityWord = profanityWordService.checkContent(parameter.getDisplayName());
+        String displayNameProfanityWord = textModerationService.checkContent(parameter.getDisplayName());
         if (StringUtils.isNotEmpty(displayNameProfanityWord)) {
             throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, displayNameProfanityWord);
         }
-        String descriptionProfanityWord = profanityWordService.checkContent(parameter.getDescription());
+        String descriptionProfanityWord = textModerationService.checkContent(parameter.getDescription());
         if (StringUtils.isNotEmpty(descriptionProfanityWord)) {
             throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, descriptionProfanityWord);
         }
@@ -263,7 +265,7 @@ public class ProjectService {
                     .depotShared(parameter.getShared() == 1)
                     .name(parameter.getName())
                     .displayName(parameter.getDisplayName())
-                    .namePinyin(projectServiceHelper.getPinYin(
+                    .namePinyin(pinyinService.getPinYin(
                             parameter.getDisplayName(),
                             parameter.getName()))
                     .maxMember(INFINITY_MEMBER)
@@ -578,7 +580,7 @@ public class ProjectService {
             postDateFlag = true;
         }
 
-        project.setNamePinyin(projectServiceHelper.getPinYin(project.getDisplayName(), project.getName()));
+        project.setNamePinyin(pinyinService.getPinYin(project.getDisplayName(), project.getName()));
         projectDao.updateBasicInfo(ProjectUpdateParameter.builder()
                 .id(project.getId())
                 .description(project.getDescription())
@@ -635,15 +637,15 @@ public class ProjectService {
                     PROJECT_DISPLAY_NAME_MIN_LENGTH, PROJECT_NAME_CLOUD_MAX_LENGTH);
         }
         //敏感词
-        String nameProfanityWord = profanityWordService.checkContent(form.getName());
+        String nameProfanityWord = textModerationService.checkContent(form.getName());
         if (StringUtils.isNotEmpty(nameProfanityWord)) {
             throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, nameProfanityWord);
         }
-        String displayNameProfanityWord = profanityWordService.checkContent(form.getDisplayName());
+        String displayNameProfanityWord = textModerationService.checkContent(form.getDisplayName());
         if (StringUtils.isNotBlank(displayNameProfanityWord)) {
             throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, displayNameProfanityWord);
         }
-        String descriptionProfanityWord = profanityWordService.checkContent(form.getDescription());
+        String descriptionProfanityWord = textModerationService.checkContent(form.getDescription());
         if (StringUtils.isNotEmpty(descriptionProfanityWord)) {
             throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, descriptionProfanityWord);
         }
