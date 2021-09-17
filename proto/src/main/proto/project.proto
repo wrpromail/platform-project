@@ -73,6 +73,28 @@ message ExistProjectByNameResponse {
   bool isExist = 3;
 }
 
+message GetWithArchivedProjectRequest {
+  uint32 teamId = 1;
+  uint32 projectId = 2;
+}
+
+message GetWithArchivedProjectResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  Project project = 3;
+}
+
+message GetJoinedProjectsRequest {
+  uint32 teamId = 1;
+  uint32 userId = 2;
+}
+
+message GetJoinedProjectsResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated Project projects = 3;
+}
+
 service ProjectService {
   rpc ContainArchivedProjectsGet(ContainArchivedProjectsGetRequest) returns (ContainArchivedProjectsGetResponse);
   //  创建项目
@@ -81,4 +103,8 @@ service ProjectService {
   rpc DeleteProject(DeleteProjectRequest) returns (DeleteProjectResponse);
   //  查询项目名称是否存在
   rpc ExistProjectByName(ExistProjectByNameRequest) returns (ExistProjectByNameResponse);
+  //  查询包含归档项目
+  rpc GetWithArchivedProject(GetWithArchivedProjectRequest) returns (GetWithArchivedProjectResponse);
+  //  查询我参与项目列表
+  rpc GetJoinedProjects(GetJoinedProjectsRequest) returns (GetJoinedProjectsResponse);
 }

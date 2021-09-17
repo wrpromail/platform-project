@@ -84,6 +84,8 @@ public class ProjectResourceLinkService {
         put("epic", "epic");
         put("external-link", "_buildExternalLinkUrl");
         put("testing-plan-case-result", "_buildTestingPlanCaseResultUrl");
+        put("work-item", "plan/work-items");
+        put("risk", "risks");
     }};
 
     private static final Set<String> useCodeTypeSet = new HashSet<String>() {{
@@ -91,6 +93,10 @@ public class ProjectResourceLinkService {
         add("wiki");
     }};
 
+    private static final Set<String> programCodeTypeSet = new HashSet<String>() {{
+        add("work-item");
+        add("risk");
+    }};
 
 
     public String linkize(String content, Project project) {
@@ -177,7 +183,7 @@ public class ProjectResourceLinkService {
             return "#";
         }
         Depot depot = depotService.getById(mergeRequest.getDepotId());
-        if(Objects.isNull(depot)) {
+        if (Objects.isNull(depot)) {
             return "#";
         }
         String depotName = depot.getName();
@@ -196,11 +202,11 @@ public class ProjectResourceLinkService {
 
     private String buildReleaseLink(ProjectResource projectResource, String projectPath) {
         Release release = releaseService.getById(projectResource.getTargetId());
-        if(Objects.isNull(release) || release.getTagName().startsWith("release/")) {
+        if (Objects.isNull(release) || release.getTagName().startsWith("release/")) {
             return "#";
         }
         Depot depot = depotService.getById(release.getDepotId());
-        if(Objects.isNull(depot)) {
+        if (Objects.isNull(depot)) {
             return "#";
         }
         String releaseTagName = release.getTagName();
@@ -260,6 +266,14 @@ public class ProjectResourceLinkService {
         return projectPath + "/iterations/" + projectResource.getCode();
     }
 
+    private String buildProgramLink(ProjectResource projectResource, String projectPath, String urlType) {
+        IssueProto.IssueResponse issue = issueServiceGrpcClient.getIssueById(projectResource.getTargetId(), projectResource.getProjectId(), false);
+        if (Objects.isNull(issue.getData()) || 0 != issue.getCode()) {
+            return "#";
+        }
+        return projectPath + "/program/" + urlType + "/" + issue.getData().getCode() + "/detail";
+    }
+
     public String getResourceLink(ProjectResource projectResource, String projectPath) {
         String type = Inflector.underscore(projectResource.getTargetType()).replace('_', '-');
         String urlType = typeToUrlMap.get(type);
@@ -286,6 +300,8 @@ public class ProjectResourceLinkService {
                 return buildEpicLink(projectResource, projectPath);
             } else if ("iteration".equals(urlType)) {
                 return buildIterationLink(projectResource, projectPath);
+            } else if (programCodeTypeSet.contains(type)) {
+                return buildProgramLink(projectResource, projectPath, urlType);
             } else {
                 return projectPath + "/" + urlType + "/" + projectResource.getTargetId();
             }

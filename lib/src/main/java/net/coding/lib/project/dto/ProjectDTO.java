@@ -66,6 +66,12 @@ public class ProjectDTO {
     @ApiModelProperty(value = "成员数")
     public Integer memberCount;
 
+    @ApiModelProperty(value = "星标")
+    private Boolean pin;
+
+    @ApiModelProperty(value = "未读的项目动态数")
+    private Integer un_read_activities_count;
+
     @ApiModelProperty(value = "创建时间")
     public Timestamp created_at;
 

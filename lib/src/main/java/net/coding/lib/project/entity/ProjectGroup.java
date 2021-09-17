@@ -1,23 +1,16 @@
 package net.coding.lib.project.entity;
 
-import net.coding.common.util.BeanUtils;
-import net.coding.lib.project.utils.DateUtil;
 
-import java.sql.Timestamp;
 import java.util.Date;
 
 import javax.persistence.Column;
-import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
@@ -26,6 +19,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Table(name = "project_groups")
 public class ProjectGroup {
+    public static final Integer NO_GROUP_ID = 0;
 
     @Id
     @GeneratedValue(generator = "JDBC")
@@ -52,11 +46,15 @@ public class ProjectGroup {
      */
     private Integer sort;
 
-    @Builder.Default
-    private Date createdAt = DateUtil.getCurrentDate();
-    @Builder.Default
-    private Date updatedAt = DateUtil.getCurrentDate();
-    @Builder.Default
-    private Date deletedAt = DateUtil.strToDate(BeanUtils.NOT_DELETED_AT);
+    private Date createdAt;
+    private Date updatedAt;
+    private Date deletedAt;
+
+
+    public enum TYPE{
+        ALL,
+        NO_GROUP,
+        CUSTOM
+    }
 
 }
