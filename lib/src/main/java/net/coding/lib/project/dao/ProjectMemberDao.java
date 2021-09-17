@@ -46,6 +46,7 @@ public interface ProjectMemberDao {
     List<ProjectMember> getProjectMembers(
             @Param("projectId") Integer projectId,
             @Param("keyWord") String keyWord,
+            @Param("roleId") Integer roleId,
             @Param("page") PageRowBounds page
     );
 

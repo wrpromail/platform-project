@@ -1,223 +1,231 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="net.coding.lib.project.dao.ProjectMemberDao">
-  <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ProjectMember">
-    <id column="id" jdbcType="INTEGER" property="id" />
-    <result column="project_id" jdbcType="INTEGER" property="projectId" />
-    <result column="user_id" jdbcType="INTEGER" property="userId" />
-    <result column="type" jdbcType="TINYINT" property="type" />
-    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
-    <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt" />
-    <result column="last_visit_at" jdbcType="TIMESTAMP" property="lastVisitAt" />
-    <result column="alias" jdbcType="VARCHAR" property="alias" />
-  </resultMap>
-  <sql id="Base_Column_List">
+    <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ProjectMember">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="project_id" jdbcType="INTEGER" property="projectId"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="type" jdbcType="TINYINT" property="type"/>
+        <result column="created_at" jdbcType="TIMESTAMP" property="createdAt"/>
+        <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt"/>
+        <result column="last_visit_at" jdbcType="TIMESTAMP" property="lastVisitAt"/>
+        <result column="alias" jdbcType="VARCHAR" property="alias"/>
+    </resultMap>
+    <sql id="Base_Column_List">
     id, project_id, user_id, `type`, created_at, deleted_at, last_visit_at, `alias`
   </sql>
-  <select id="getById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
-    select
-    <include refid="Base_Column_List" />
-    from project_members
-    where id = #{id,jdbcType=INTEGER}
-  </select>
-
-  <insert id="insertList" keyColumn="id" keyProperty="id">
-    insert into project_members
-    (project_id,
-    user_id,
-    `type`,
-    `alias`,
-    created_at,
-    last_visit_at,
-    deleted_at)
-    values
-    <foreach collection="list" item="item" index="index" separator=",">
-      (#{record.projectId},
-
-      #{item},
-      #{record.type},
-      #{record.alias},
-      #{record.createdAt},
-      #{record.lastVisitAt},
-      #{record.deletedAt})
-    </foreach>
-
-  </insert>
-
-  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="net.coding.lib.project.entity.ProjectMember" useGeneratedKeys="true">
-    insert into project_members
-    <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="projectId != null">
-        project_id,
-      </if>
-      <if test="userId != null">
-        user_id,
-      </if>
-      <if test="type != null">
-        `type`,
-      </if>
-      <if test="createdAt != null">
-        created_at,
-      </if>
-      <if test="deletedAt != null">
-        deleted_at,
-      </if>
-      <if test="lastVisitAt != null">
-        last_visit_at,
-      </if>
-      <if test="alias != null">
-        `alias`,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="projectId != null">
-        #{projectId,jdbcType=INTEGER},
-      </if>
-      <if test="userId != null">
-        #{userId,jdbcType=INTEGER},
-      </if>
-      <if test="type != null">
-        #{type,jdbcType=TINYINT},
-      </if>
-      <if test="createdAt != null">
-        #{createdAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="deletedAt != null">
-        #{deletedAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="lastVisitAt != null">
-        #{lastVisitAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="alias != null">
-        #{alias,jdbcType=VARCHAR},
-      </if>
-    </trim>
-  </insert>
-
-  <update id="update" parameterType="net.coding.lib.project.entity.ProjectMember">
-    update project_members
-    <set>
-      <if test="projectId != null">
-        project_id = #{projectId,jdbcType=INTEGER},
-      </if>
-      <if test="userId != null">
-        user_id = #{userId,jdbcType=INTEGER},
-      </if>
-      <if test="type != null">
-        `type` = #{type,jdbcType=TINYINT},
-      </if>
-      <if test="createdAt != null">
-        created_at = #{createdAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="deletedAt != null">
-        deleted_at = #{deletedAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="lastVisitAt != null">
-        last_visit_at = #{lastVisitAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="alias != null">
-        `alias` = #{alias,jdbcType=VARCHAR},
-      </if>
-    </set>
-    where id = #{id,jdbcType=INTEGER}
-  </update>
-
-
-  <select id="findListByProjectId" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM project_members
-    <where>
-        project_id = #{projectId}
-        AND deleted_at = #{deletedAt}
-    </where>
-    ORDER BY id DESC
-  </select>
-
-  <select id="getByProjectIdAndUserId" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM project_members
-    <where>
-        project_id = #{projectId}
-        AND user_id = #{userId}
-        AND deleted_at = #{deletedAt}
-    </where>
-    Limit 1
-  </select>
-
-  <select id="getProjectMembers"  resultType="net.coding.lib.project.entity.ProjectMember">
-    SELECT pm.project_id project_id,
-           pm.alias alias,
-           pm.id id,
-           pm.user_id user_id,
-           pm.created_at created_at,
-           pm.last_visit_at last_visit_at
-    FROM project_members pm
-    LEFT JOIN users u
-    ON pm.user_id = u.id AND u.deleted_at = '1970-01-01 00:00:00'
-    <where>
-          pm.project_id = #{projectId}
-      AND pm.deleted_at = '1970-01-01 00:00:00'
-      <if test="keyWord != null and keyWord!='' ">
-      AND (u.name LIKE CONCAT('%',#{keyWord},'%')
-      OR u.email LIKE CONCAT('%',#{keyWord},'%')
-      OR u.phone LIKE CONCAT('%',#{keyWord},'%')
-      OR u.name_pinyin LIKE CONCAT('%',#{keyWord},'%')
-      OR pm.alias LIKE CONCAT('%',#{keyWord},'%'))
-      </if>
-    </where>
-    ORDER BY pm.type DESC, pm.created_at ASC, u.name ASC, pm.id ASC
-  </select>
-
-  <select id="getProjectMemberByUserAndProject" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM project_members
-    WHERE deleted_at = #{deletedAt}
-    AND user_id = #{userId}
-    AND project_id = #{projectId}
-
-  </select>
-    <select id="getMemberWithProjectAndTeam"
-            resultType="net.coding.lib.project.dto.ProjectTeamMemberDTO">
-      select u.name name,
-             u.name_pinyin namePinyin,
-             u.avatar avatar,
-             u.id id,
-             UNIX_TIMESTAMP(u.last_logined_at) lastLoginedAt,
-             if(project_member.id,true,false)  isProjectMember
-      from
-        (select tm.user_id
-         from team_members tm,projects p
-         where p.id = #{projectId}
-           and p.team_owner_id=tm.team_id
-           and p.deleted_at='1970-01-01 00:00:00'
-           and tm.deleted_at='1970-01-01 00:00:00'
-        ) team_memeber
-      left join
-        (select pm.alias,user_id,id
-         from project_members pm
-         where pm.project_id = #{projectId}
-           and deleted_at='1970-01-01 00:00:00'
-        ) project_member
-        on project_member.user_id=team_memeber.user_id
-         ,users u
-      where u.id=team_memeber.user_id
-        and u.deleted_at='1970-01-01 00:00:00'
-      <if test="keyWord != null and keyWord!='' ">
-        AND (
-          u.name LIKE CONCAT('%',#{keyWord},'%')
-          OR u.email LIKE CONCAT('%',#{keyWord},'%')
-          OR u.phone LIKE CONCAT('%',#{keyWord},'%')
-          OR u.name_pinyin LIKE CONCAT('%',#{keyWord},'%')
-          OR project_member.alias LIKE CONCAT('%',#{keyWord},'%')
-        )
-      </if>
-      order by project_member.id desc,u.id desc
+    <select id="getById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from project_members
+        where id = #{id,jdbcType=INTEGER}
     </select>
 
-  <update id="updateProjectMemberType">
+    <insert id="insertList" keyColumn="id" keyProperty="id">
+        insert into project_members
+        (project_id,
+        user_id,
+        `type`,
+        `alias`,
+        created_at,
+        last_visit_at,
+        deleted_at)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{record.projectId},
+
+            #{item},
+            #{record.type},
+            #{record.alias},
+            #{record.createdAt},
+            #{record.lastVisitAt},
+            #{record.deletedAt})
+        </foreach>
+
+    </insert>
+
+    <insert id="insert" keyColumn="id" keyProperty="id"
+            parameterType="net.coding.lib.project.entity.ProjectMember" useGeneratedKeys="true">
+        insert into project_members
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="projectId != null">
+                project_id,
+            </if>
+            <if test="userId != null">
+                user_id,
+            </if>
+            <if test="type != null">
+                `type`,
+            </if>
+            <if test="createdAt != null">
+                created_at,
+            </if>
+            <if test="deletedAt != null">
+                deleted_at,
+            </if>
+            <if test="lastVisitAt != null">
+                last_visit_at,
+            </if>
+            <if test="alias != null">
+                `alias`,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="projectId != null">
+                #{projectId,jdbcType=INTEGER},
+            </if>
+            <if test="userId != null">
+                #{userId,jdbcType=INTEGER},
+            </if>
+            <if test="type != null">
+                #{type,jdbcType=TINYINT},
+            </if>
+            <if test="createdAt != null">
+                #{createdAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="deletedAt != null">
+                #{deletedAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="lastVisitAt != null">
+                #{lastVisitAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="alias != null">
+                #{alias,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="net.coding.lib.project.entity.ProjectMember">
+        update project_members
+        <set>
+            <if test="projectId != null">
+                project_id = #{projectId,jdbcType=INTEGER},
+            </if>
+            <if test="userId != null">
+                user_id = #{userId,jdbcType=INTEGER},
+            </if>
+            <if test="type != null">
+                `type` = #{type,jdbcType=TINYINT},
+            </if>
+            <if test="createdAt != null">
+                created_at = #{createdAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="deletedAt != null">
+                deleted_at = #{deletedAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="lastVisitAt != null">
+                last_visit_at = #{lastVisitAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="alias != null">
+                `alias` = #{alias,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+
+    <select id="findListByProjectId" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM project_members
+        <where>
+            project_id = #{projectId}
+            AND deleted_at = #{deletedAt}
+        </where>
+        ORDER BY id DESC
+    </select>
+
+    <select id="getByProjectIdAndUserId" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM project_members
+        <where>
+            project_id = #{projectId}
+            AND user_id = #{userId}
+            AND deleted_at = #{deletedAt}
+        </where>
+        Limit 1
+    </select>
+
+    <select id="getProjectMembers" resultType="net.coding.lib.project.entity.ProjectMember">
+        SELECT pm.project_id project_id,
+        pm.alias alias,
+        pm.id id,
+        pm.user_id user_id,
+        pm.created_at created_at,
+        pm.last_visit_at last_visit_at
+        FROM project_members pm
+        LEFT JOIN users u
+        ON pm.user_id = u.id AND u.deleted_at = '1970-01-01 00:00:00'
+        LEFT JOIN user_roles ur
+        on pm.user_id = ur.user_id AND ur.deleted_at = '1970-01-01 00:00:00'
+        <where>
+            pm.project_id = #{projectId}
+            AND pm.deleted_at = '1970-01-01 00:00:00'
+            <if test="keyWord != null and keyWord!='' ">
+                AND (u.name LIKE CONCAT('%',#{keyWord},'%')
+                OR u.email LIKE CONCAT('%',#{keyWord},'%')
+                OR u.phone LIKE CONCAT('%',#{keyWord},'%')
+                OR u.name_pinyin LIKE CONCAT('%',#{keyWord},'%')
+                OR pm.alias LIKE CONCAT('%',#{keyWord},'%'))
+            </if>
+            <if test="roleId != null and roleId &gt; 0">
+                AND ur.role_id = #{roleId}
+            </if>
+        </where>
+        group by pm.id
+        ORDER BY pm.type DESC, pm.created_at ASC, u.name ASC, pm.id ASC
+    </select>
+
+    <select id="getProjectMemberByUserAndProject" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM project_members
+        WHERE deleted_at = #{deletedAt}
+        AND user_id = #{userId}
+        AND project_id = #{projectId}
+
+    </select>
+    <select id="getMemberWithProjectAndTeam"
+            resultType="net.coding.lib.project.dto.ProjectTeamMemberDTO">
+        select u.name name,
+        u.name_pinyin namePinyin,
+        u.avatar avatar,
+        u.id id,
+        UNIX_TIMESTAMP(u.last_logined_at) lastLoginedAt,
+        if(project_member.id,true,false) isProjectMember
+        from
+        (select tm.user_id
+        from team_members tm,projects p
+        where p.id = #{projectId}
+        and p.team_owner_id=tm.team_id
+        and p.deleted_at='1970-01-01 00:00:00'
+        and tm.deleted_at='1970-01-01 00:00:00'
+        ) team_memeber
+        left join
+        (select pm.alias,user_id,id
+        from project_members pm
+        where pm.project_id = #{projectId}
+        and deleted_at='1970-01-01 00:00:00'
+        ) project_member
+        on project_member.user_id=team_memeber.user_id
+        ,users u
+        where u.id=team_memeber.user_id
+        and u.deleted_at='1970-01-01 00:00:00'
+        <if test="keyWord != null and keyWord!='' ">
+            AND (
+            u.name LIKE CONCAT('%',#{keyWord},'%')
+            OR u.email LIKE CONCAT('%',#{keyWord},'%')
+            OR u.phone LIKE CONCAT('%',#{keyWord},'%')
+            OR u.name_pinyin LIKE CONCAT('%',#{keyWord},'%')
+            OR project_member.alias LIKE CONCAT('%',#{keyWord},'%')
+            )
+        </if>
+        order by project_member.id desc,u.id desc
+    </select>
+
+    <update id="updateProjectMemberType">
     update project_members
     set  `type` = #{type,jdbcType=TINYINT}
     where user_id = #{userId}
@@ -225,7 +233,7 @@
     AND deleted_at = #{deletedAt}
   </update>
 
-  <update id="deleteMember">
+    <update id="deleteMember">
      update project_members
      set deleted_at = NOW()
      where user_id = #{userId}
@@ -233,7 +241,7 @@
      AND deleted_at = #{deletedAt}
   </update>
 
-  <update id="updateVisitTime">
+    <update id="updateVisitTime">
     update project_members
      set last_visit_at = NOW()
      where id = #{id}

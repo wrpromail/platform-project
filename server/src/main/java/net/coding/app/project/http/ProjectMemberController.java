@@ -55,7 +55,7 @@ public class ProjectMemberController {
             @PagerResolve PageRowBounds pager
     ) throws CoreException {
 
-        return Result.success(projectMemberService.getProjectMembers(projectId, keyWord, pager));
+        return Result.success(projectMemberService.getProjectMembers(projectId, keyWord, null, pager));
     }
 
 
