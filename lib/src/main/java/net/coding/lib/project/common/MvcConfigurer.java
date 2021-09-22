@@ -43,4 +43,13 @@ public class MvcConfigurer extends WebMvcConfigurerAdapter {
     }
 
 
+    @Override
+    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+        configurer.favorPathExtension(false)
+                .mediaType("html", MediaType.TEXT_HTML)
+                .mediaType("json", MediaType.APPLICATION_JSON)
+                .mediaType("*", MediaType.ALL);
+    }
+
+
 }
