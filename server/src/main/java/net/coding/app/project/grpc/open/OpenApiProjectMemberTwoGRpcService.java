@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import io.grpc.stub.StreamObserver;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import one.util.streamex.StreamEx;
 import proto.open.api.CodeProto;
 import proto.platform.permission.PermissionProto;
 import proto.platform.user.UserProto;
@@ -81,6 +82,7 @@ public class OpenApiProjectMemberTwoGRpcService extends ProjectMemberServiceGrpc
             ResultPage<ProjectMemberDTO> resultPage = projectMemberService.getProjectMembers(
                     request.getProjectId(),
                     EMPTY,
+                    request.getRoleId(),
                     pager
             );
             describeProjectMembersResponse(responseObserver, SUCCESS,
@@ -132,6 +134,14 @@ public class OpenApiProjectMemberTwoGRpcService extends ProjectMemberServiceGrpc
             return null;
         }
         UserDTO user = projectMemberDTO.getUser();
+        List<ApiUserProto.Role> roles = StreamEx.of(projectMemberDTO.getRoles())
+                .map(roleDTO -> ApiUserProto.Role.newBuilder()
+                        .setRoleId(roleDTO.getRoleId())
+                        .setRoleType(roleDTO.getRoleType())
+                        .setRoleTypeName(roleDTO.getName())
+                        .build()
+                )
+                .collect(Collectors.toList());
         return ApiUserProto.UserData.newBuilder()
                 .setId(user.getId())
                 .setTeamId(user.getTeamId())
@@ -144,6 +154,7 @@ public class OpenApiProjectMemberTwoGRpcService extends ProjectMemberServiceGrpc
                 .setPhone(TextUtils.htmlEscape(user.getPhone()))
                 .setPhoneValidation(ObjectUtils.defaultIfNull(user.getPhone_validation(), 0))
                 .setGlobalKey(user.getGlobal_key())
+                .addAllRoles(roles)
                 .build();
     }
 }
