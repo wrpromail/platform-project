@@ -267,11 +267,7 @@ public class ProjectResourceLinkService {
     }
 
     private String buildProgramLink(ProjectResource projectResource, String projectPath, String urlType) {
-        IssueProto.IssueResponse issue = issueServiceGrpcClient.getIssueById(projectResource.getTargetId(), projectResource.getProjectId(), false);
-        if (Objects.isNull(issue.getData()) || 0 != issue.getCode()) {
-            return "#";
-        }
-        return projectPath + "/program/" + urlType + "/" + issue.getData().getCode() + "/detail";
+        return projectPath + "/program/" + urlType + "/" + projectResource.getCode() + "/detail";
     }
 
     public String getResourceLink(ProjectResource projectResource, String projectPath) {
