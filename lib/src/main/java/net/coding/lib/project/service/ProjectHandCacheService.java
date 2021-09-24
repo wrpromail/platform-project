@@ -28,6 +28,8 @@ public class ProjectHandCacheService {
 
     public void handleProjectCache(Project project, CacheTypeEnum type) {
         if (type == CacheTypeEnum.UPDATE || type == CacheTypeEnum.DELETE) {
+
+            EvictCacheManager.evictTableCache(TABLE_NAME, CacheType.bean, project.getId());
             EvictCacheManager.evictTableCache(TABLE_NAME, CacheType.bean, "user_owner_id", project.getUserOwnerId(), "name", project.getName());
 
             EvictCacheManager.evictTableCache(TABLE_NAME, CacheType.bean, "user_owner_id", project.getUserOwnerId(), "archiveProject");
