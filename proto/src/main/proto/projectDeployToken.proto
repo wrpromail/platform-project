@@ -56,6 +56,12 @@ message DeployTokenArtifact {
   string artifact_scope = 3;
 }
 
+message DeployTokenDepot {
+  int32 deployTokenId = 1;
+  int32 depotId = 2;
+  string depotScope = 3;
+}
+
 message DeployToken {
   int32 id = 1;
   int32 project_id = 2;
@@ -77,6 +83,7 @@ message DeployToken {
   User creator = 18;        //创建人信息
   User associated = 19;     //指派人信息
   int32 associatedId = 20;  //指标人id
+  repeated DeployTokenDepot deployTokenDepots = 21;
 }
 
 message RefreshInternalAccessTokenRequest {
