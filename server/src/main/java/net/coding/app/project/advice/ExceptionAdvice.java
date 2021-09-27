@@ -143,7 +143,7 @@ public class ExceptionAdvice {
     @ExceptionHandler
     @ResponseBody
     public ResponseEntity<ExceptionMessage> handle(Exception exception) {
-        log.error("Exception advice handle exception,  {}", exception.getMessage());
+        log.error("Exception advice handle exception,  {}", exception);
         return ResponseEntity.ok().body(defaultMessage());
     }
 
