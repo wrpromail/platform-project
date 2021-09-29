@@ -40,6 +40,7 @@ message ProjectResourceResponse {
   string message = 2;
   ProjectResource projectResource = 3;
 }
+
 message ProjectResource {
   int32 projectId = 1;
   string title = 2;
@@ -52,6 +53,26 @@ message ProjectResource {
   int64 updatedAt = 9;
   string deletedAt = 10;
 }
+
+message ResourceResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  Resource resource = 3;
+}
+
+message Resource {
+  int32 projectId = 1;
+  string title = 2;
+  int32 targetId = 3;
+  string targetType = 4;
+  string code = 5;
+  int32 id = 6;
+  string url = 7;
+  int64 createdAt = 8;
+  int64 updatedAt = 9;
+  string deletedAt = 10;
+}
+
 
 message GetProjectResourceRequest {
   int32 projectId = 1;
@@ -181,6 +202,47 @@ message BatchUpdateProjectResourceRequest {
   string targetTargetType = 5;
 }
 
+message AddResourceRequest {
+  int32 scopeId = 1;
+  string title = 2;
+  int32 targetId = 3;
+  int32 userId = 4;
+  string targetType = 5;
+  int32 scopeType = 6;//资源类型，项目内：Project：1 ，全局：Team：2
+}
+
+message DeleteResourceRequest {
+  int32 scopeId = 1;
+  string targetType = 2;
+  int32 targetId = 3;
+  int32 userId = 4;
+  int32 scopeType = 5;//资源类型，项目内：Project：1 ，全局：Team：2
+}
+
+message RecoverResourceRequest {
+  int32 scopeId = 1;
+  string targetType = 2;
+  int32 targetId = 3;
+  int32 userId = 4;
+  int32 scopeType = 5;//资源类型，项目内：Project：1 ，全局：Team：2
+}
+
+message UpdateResourceRequest {
+  int32 scopeId = 1;
+  string title = 2;
+  int32 targetId = 3;
+  int32 userId = 4;
+  string targetType = 5;
+  int32 scopeType = 6;//资源类型，项目内：Project：1 ，全局：Team：2
+}
+
+message GetResourceByScopeIdAndCodeRequest{
+  int32 scopeId = 1;
+  int32 scopeType = 2;
+  string code = 3;
+}
+
+
 service ProjectResourceService {
   rpc AddProjectResource (AddProjectResourceRequest) returns (ProjectResourceResponse);
   rpc UpdateProjectResource (OperateProjectResourceRequest) returns (ProjectResourceResponse);
@@ -201,4 +263,9 @@ service ProjectResourceService {
   rpc GetProjectResourceWithDeleted(GetProjectResourceRequest) returns (ProjectResourceResponse);
   rpc FindProjectResourceMutuallyList (FindProjectResourceMutuallyRequest) returns (FindProjectResourceMutuallyResponse);
   rpc BatchUpdateProjectResource (BatchUpdateProjectResourceRequest) returns (ProjectResourceCommonResponse);
+  rpc AddResource (AddResourceRequest) returns (ResourceResponse);
+  rpc UpdateResource (UpdateResourceRequest) returns (ResourceResponse);
+  rpc DeleteResource (DeleteResourceRequest) returns (ProjectResourceCommonResponse);
+  rpc RecoverResource (RecoverResourceRequest) returns (ProjectResourceCommonResponse);
+  rpc GetResourceByScopeIdAndCode (GetResourceByScopeIdAndCodeRequest) returns (ProjectResourceResponse);
 }

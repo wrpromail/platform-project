@@ -43,7 +43,7 @@ public class ExternalLinkGrpcService extends ExternalLinkServiceGrpc.ExternalLin
             record.setCreatedBy(request.getUserId());
             String projectPath = projectGrpcClient.getProjectPath(record.getProjectId());
             ProjectResource resource = projectResourceServiceHelper.addProjectResource(record, projectPath);
-            externalLink.setIid(resource.getCode());
+            externalLink.setIid(Integer.valueOf(resource.getCode()));
             GrpcUtil.addExternalLinkResponse(CodeProto.Code.SUCCESS, "add success", externalLink, response);
         } catch (Exception ex) {
             log.error("addExternalLink fail, parameter is "+ request.toString(), ex);

@@ -59,6 +59,7 @@ public class ProjectSetting {
             Code.FUNCTION_ARTIFACT,
             Code.FUNCTION_WIKI,
             Code.FUNCTION_FILE,
+            Code.FUNCTION_KM,
             Code.FUNCTION_STATISTICS,
             Code.FUNCTION_OLD_TASK,
             Code.FUNCTION_CODE_ANALYSIS,
@@ -104,6 +105,7 @@ public class ProjectSetting {
         FUNCTION_API_DOCS("api_docs", "api_doc", valueTrue, valueTrue),
         FUNCTION_QTA("qta", "test_auto", valueTrue, valueTrue),
         FUNCTION_FILE("file", "file_pan", valueTrue, valueTrue),
+        FUNCTION_KM("knowledge", "knowledge", valueTrue, valueTrue),
 
         AGILE_ITERATION("agile_development_iteration", "agile_develop_iteration", valueTrue, valueTrue),
         AGILE_EPIC("agile_development_epic", "agile_develop_epic", valueFalse, valueFalse),

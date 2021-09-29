@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.coding.lib.project.dao.ResourceSequenceDao">
+
+  <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ResourceSequence">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="scope_type" jdbcType="INTEGER" property="scopeType" />
+    <result column="scope_id" jdbcType="INTEGER" property="scopeId" />
+    <result column="code" jdbcType="INTEGER" property="code" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, scope_id, scope_type, code
+  </sql>
+
+  <update id="generateResourceCode">
+    UPDATE resource_sequences SET `code` = `code` + 1  WHERE scope_id = #{scopeId} AND scope_type = #{scopeType,jdbcType=INTEGER}
+  </update>
+
+  <select id="getByScopeIdAndScopeType"  resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM resource_sequences
+    WHERE scope_id = #{scopeId,jdbcType=INTEGER}
+    AND scope_type = #{scopeType,jdbcType=INTEGER}
+    LIMIT 1
+  </select>
+
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="net.coding.lib.project.entity.ResourceSequence" useGeneratedKeys="true">
+    INSERT INTO resource_sequences
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="scopeId != null">
+        scope_id,
+      </if>
+      <if test="scopeType != null">
+        scope_type,
+      </if>
+      <if test="code != null">
+        code,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="scopeId != null">
+        #{scopeId,jdbcType=INTEGER},
+      </if>
+      <if test="scopeType != null">
+        #{scopeType,jdbcType=INTEGER},
+      </if>
+      <if test="code != null">
+        #{code,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+</mapper>

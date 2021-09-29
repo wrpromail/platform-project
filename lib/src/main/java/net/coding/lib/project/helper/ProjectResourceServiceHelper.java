@@ -8,6 +8,8 @@ import net.coding.lib.project.dto.ProjectResourceDTO;
 import net.coding.lib.project.entity.ProjectResource;
 import net.coding.lib.project.entity.ResourceReference;
 import net.coding.lib.project.enums.ResourceTypeEnum;
+import net.coding.lib.project.enums.ScopeTypeEnum;
+import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.grpc.client.FileServiceGrpcClient;
 import net.coding.lib.project.grpc.client.ProjectGrpcClient;
 import net.coding.lib.project.grpc.client.StorageGrpcClient;
@@ -15,8 +17,10 @@ import net.coding.lib.project.grpc.client.WikiGrpcClient;
 import net.coding.lib.project.service.ProjectResourceLinkService;
 import net.coding.lib.project.service.ProjectResourceSequenceService;
 import net.coding.lib.project.service.ProjectResourceService;
+import net.coding.lib.project.service.ResourceLinkService;
 import net.coding.lib.project.service.ResourceReferenceCommentRelationService;
 import net.coding.lib.project.service.ResourceReferenceService;
+import net.coding.lib.project.service.ResourceSequenceService;
 import net.coding.lib.project.utils.DateUtil;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -69,6 +73,12 @@ public class ProjectResourceServiceHelper {
     @Autowired
     private StorageGrpcClient storageGrpcClient;
 
+    @Autowired
+    private ResourceSequenceService resourceSequenceService;
+
+    @Autowired
+    private ResourceLinkService resourceLinkService;
+
     @Value("${coding-net-public-image:coding-static-bucket-public}")
     private String bucket;
 
@@ -80,7 +90,7 @@ public class ProjectResourceServiceHelper {
             return projectResource;
         }
         int code = projectResourceSequenceService.generateProjectResourceCode(record.getProjectId());
-        record.setCode(code);
+        record.setCode(String.valueOf(code));
         record.setCreatedAt(DateUtil.getCurrentDate());
         record.setUpdatedAt(record.getCreatedAt());
         record.setUpdatedBy(record.getCreatedBy());
@@ -91,14 +101,44 @@ public class ProjectResourceServiceHelper {
     }
 
     @Transactional(rollbackFor = Exception.class)
+    public ProjectResource addResource(ProjectResource record) throws CoreException {
+        ProjectResource projectResource = projectResourceService.getByScopeIdAndScopeTypeAndTypeAndTarget(record.getProjectId(),
+                record.getScopeType(), record.getTargetId(), record.getTargetType());
+        if (Objects.nonNull(projectResource)) {
+            return projectResource;
+        }
+        String resourceLink;
+        String code;
+        if(ScopeTypeEnum.PROJECT.value().equals(record.getScopeType())){
+            String projectPath = projectGrpcClient.getProjectPath(record.getProjectId());
+            code = String.valueOf(projectResourceSequenceService.generateProjectResourceCode(record.getProjectId()));
+            resourceLink = projectResourceLinkService.getResourceLink(record, projectPath);
+        } else if(ScopeTypeEnum.TEAM.value().equals(record.getScopeType())){
+            code = resourceSequenceService.generateResourceCode(record.getProjectId(), record.getScopeType(), record.getTargetType());
+            resourceLink = resourceLinkService.getResourceLink(record);
+        } else {
+            throw CoreException.of(CoreException.ExceptionType.GLOBAL_RESOURCE_SCOPE_TYPE_NOT_EXIST);
+        }
+
+        record.setCode(code);
+        record.setCreatedAt(DateUtil.getCurrentDate());
+        record.setUpdatedAt(record.getCreatedAt());
+        record.setUpdatedBy(record.getCreatedBy());
+        record.setDeletedBy(0);
+        record.setResourceUrl(resourceLink);
+        projectResourceService.insert(record);
+        return record;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
     public void deleteProjectResource(Integer projectId, String targetType, List<Integer> targetIdList, Integer userId) {
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("projectId", projectId);
-        parameters.put("targetType", targetType);
-        parameters.put("targetIds", targetIdList);
-        parameters.put("deletedAt", DateUtil.getCurrentDate());
-        parameters.put("deletedBy", userId);
-        int result = projectResourceService.batchDelete(parameters);
+            Map<String, Object> parameters = new HashMap<>();
+            parameters.put("projectId", projectId);
+            parameters.put("targetType", targetType);
+            parameters.put("targetIds", targetIdList);
+            parameters.put("deletedAt", DateUtil.getCurrentDate());
+            parameters.put("deletedBy", userId);
+            int result = projectResourceService.batchDelete(parameters);
 
         if(Objects.isNull(targetType) || CollectionUtils.isEmpty(targetIdList)) {
             return;
@@ -133,7 +173,7 @@ public class ProjectResourceServiceHelper {
                 .stream()
                 .filter(record -> {
                     if(ResourceTypeEnum.Wiki.getType().equals(record.getTargetType())) {
-                        WikiProto.GetWikiByProjectIdAndIidData wiki = wikiGrpcClient.getWikiByProjectIdAndIidWithoutRecycleBin(record.getTargetProjectId(), record.getTargetIid());
+                        WikiProto.GetWikiByProjectIdAndIidData wiki = wikiGrpcClient.getWikiByProjectIdAndIidWithoutRecycleBin(record.getTargetProjectId(), Integer.valueOf(record.getTargetIid()));
                         if(wiki == null) {
                             return false;
                         }
@@ -147,7 +187,7 @@ public class ProjectResourceServiceHelper {
         resourceReferenceList.forEach(resourceReference -> {
             if(Objects.nonNull(resourceReference)) {
                 Integer projectId = resourceReference.getTargetProjectId();
-                Integer code = resourceReference.getTargetIid();
+                Integer code = Integer.valueOf(resourceReference.getTargetIid());
                 ProjectResource projectResource = projectResourceService.getProjectResourceWithDeleted(projectId, code);
                 if(Objects.nonNull(projectResource)) {
                     ProjectProto.Project project = projectGrpcClient.getProjectById(projectResource.getProjectId());
@@ -179,4 +219,40 @@ public class ProjectResourceServiceHelper {
         return projectResourceDTOList;
     }
 
+    public void deleteResource(int scopeId, int scopeType, String targetType, int targetId, int userId) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("scopeId", scopeId);
+        parameters.put("targetType", targetType);
+        parameters.put("targetId", targetId);
+        parameters.put("scopeType", scopeType);
+        parameters.put("deletedAt", DateUtil.getCurrentDate());
+        parameters.put("deletedBy", userId);
+        int result = projectResourceService.delete(parameters);
+
+        if(result > 0) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("targetScopeType", scopeType);
+            map.put("targetType", targetType);
+            map.put("targetId", targetId);
+            map.put("deletedAt", DateUtil.getCurrentDate());
+            resourceReferenceService.delete(map);
+
+            Map<String, Object> selfMap = new HashMap<>();
+            selfMap.put("selfScopeType", scopeType);
+            selfMap.put("selfType", targetType);
+            selfMap.put("selfId", targetId);
+            selfMap.put("deletedAt", DateUtil.getCurrentDate());
+            resourceReferenceService.delete(selfMap);
+        }
+    }
+
+    public void recoverResource(int scopeId, int scopeType, String targetType, int targetId, int userId) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("scopeId", scopeId);
+        parameters.put("targetType", targetType);
+        parameters.put("targetId", targetId);
+        parameters.put("scopeType", scopeType);
+        parameters.put("deletedAt", DateUtil.strToDate("1970-01-01 00:00:00"));
+        projectResourceService.recoverResource(parameters);
+    }
 }

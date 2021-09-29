@@ -43,6 +43,24 @@ public class GrpcUtil {
         }
     }
 
+    public static void resourceResponse(CodeProto.Code code, String message, ProjectResourceProto.Resource resource, StreamObserver<ProjectResourceProto.ResourceResponse> response) {
+        if(CodeProto.Code.SUCCESS.equals(code)) {
+            ProjectResourceProto.ResourceResponse build = ProjectResourceProto.ResourceResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .setResource(resource)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        } else {
+            ProjectResourceProto.ResourceResponse build = ProjectResourceProto.ResourceResponse.newBuilder()
+                    .setCode(code)
+                    .setMessage(message)
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        }
+    }
     public static void projectResourceCommonResponse(CodeProto.Code code, String message, StreamObserver<ProjectResourceProto.ProjectResourceCommonResponse> response) {
         ProjectResourceProto.ProjectResourceCommonResponse build = ProjectResourceProto.ProjectResourceCommonResponse.newBuilder()
                 .setCode(code)
@@ -59,7 +77,7 @@ public class GrpcUtil {
                 .setTitle(resource.getTitle())
                 .setTargetId(resource.getTargetId())
                 .setTargetType(resource.getTargetType())
-                .setCode(resource.getCode())
+                .setCode(Integer.valueOf(resource.getCode()))
                 .setId(resource.getId())
                 .setUrl(defaultStr(resource.getResourceUrl()))
                 .setCreatedAt(defaultLong(resource.getCreatedAt()))
@@ -67,6 +85,24 @@ public class GrpcUtil {
                 .setDeletedAt(defaultDateStr(resource.getDeletedAt()))
                 .build();
         return projectResource;
+    }
+
+
+    public static ProjectResourceProto.Resource getResource(ProjectResource resource) {
+        ProjectResourceProto.Resource result = ProjectResourceProto.Resource.newBuilder()
+                .setId(resource.getId() != null ? resource.getId() : 0)
+                .setProjectId(resource.getProjectId())
+                .setTitle(resource.getTitle())
+                .setTargetId(resource.getTargetId())
+                .setTargetType(resource.getTargetType())
+                .setCode(resource.getCode())
+                .setId(resource.getId())
+                .setUrl(defaultStr(resource.getResourceUrl()))
+                .setCreatedAt(defaultLong(resource.getCreatedAt()))
+                .setUpdatedAt(defaultLong(resource.getUpdatedAt()))
+                .setDeletedAt(defaultDateStr(resource.getDeletedAt()))
+                .build();
+        return result;
     }
 
     public static List<ProjectResourceProto.ProjectResource> getProjectResourceList(List<ProjectResource> projectResourceList) {
@@ -78,7 +114,7 @@ public class GrpcUtil {
                     .setTitle(resource.getTitle())
                     .setTargetId(resource.getTargetId())
                     .setTargetType(resource.getTargetType())
-                    .setCode(resource.getCode())
+                    .setCode(Integer.valueOf(resource.getCode()))
                     .setId(resource.getId())
                     .setUrl(defaultStr(resource.getResourceUrl()))
                     .setCreatedAt(defaultLong(resource.getCreatedAt()))
@@ -184,7 +220,7 @@ public class GrpcUtil {
                         .setTargetId(record.getTargetId())
                         .setTargetProjectName(record.getTargetProjectName())
                         .setTargetProjectDisplayName(record.getTargetProjectDisplayName())
-                        .setCode(record.getCode())
+                        .setCode(Integer.valueOf(record.getCode()))
                         .setTargetType(record.getTargetType())
                         .setTargetId(record.getTargetId())
                         .setTitle(record.getTitle())
@@ -235,11 +271,11 @@ public class GrpcUtil {
         ResourceReferenceProto.ResourceReference resourceReference = ResourceReferenceProto.ResourceReference.newBuilder()
                 .setSelfId(defaultInt(reference.getSelfId()))
                 .setSelfProjectId(defaultInt(reference.getSelfProjectId()))
-                .setSelfIid(defaultInt(reference.getSelfIid()))
+                .setSelfIid(defaultInt(Integer.valueOf(reference.getSelfIid())))
                 .setSelfType(defaultStr(reference.getSelfType()))
                 .setTargetId(defaultInt(reference.getTargetId()))
                 .setTargetProjectId(defaultInt(reference.getTargetProjectId()))
-                .setTargetIid(defaultInt(reference.getTargetIid()))
+                .setTargetIid(defaultInt(Integer.valueOf(reference.getTargetIid())))
                 .setTargetType(defaultStr(reference.getTargetType()))
                 .setId(defaultInt(reference.getId()))
                 .setCreatedAt(defaultLong(reference.getCreatedAt()))
@@ -283,11 +319,11 @@ public class GrpcUtil {
             ResourceReferenceProto.ResourceReference resourceReference = ResourceReferenceProto.ResourceReference.newBuilder()
                     .setSelfId(defaultInt(reference.getSelfId()))
                     .setSelfProjectId(defaultInt(reference.getSelfProjectId()))
-                    .setSelfIid(defaultInt(reference.getSelfIid()))
+                    .setSelfIid(defaultInt(Integer.valueOf(reference.getSelfIid())))
                     .setSelfType(defaultStr(reference.getSelfType()))
                     .setTargetId(defaultInt(reference.getTargetId()))
                     .setTargetProjectId(defaultInt(reference.getTargetProjectId()))
-                    .setTargetIid(defaultInt(reference.getTargetIid()))
+                    .setTargetIid(defaultInt(Integer.valueOf(reference.getTargetIid())))
                     .setTargetType(defaultStr(reference.getTargetType()))
                     .setId(defaultInt(reference.getId()))
                     .setCreatedAt(defaultLong(reference.getCreatedAt()))

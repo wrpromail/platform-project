@@ -6,12 +6,14 @@ import com.github.pagehelper.PageInfo;
 import net.coding.lib.project.dao.ProjectResourceDao;
 import net.coding.lib.project.entity.ProjectResource;
 import net.coding.lib.project.enums.NotSearchTargetTypeEnum;
+import net.coding.lib.project.enums.ScopeTypeEnum;
 import net.coding.lib.project.utils.DateUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,6 +77,7 @@ public class ProjectResourceService {
         if(Objects.nonNull(targetTypes) && targetTypes.size() > 0) {
             parameters.put("targetTypes", targetTypes);
         }
+        parameters.put("scopeType", ScopeTypeEnum.PROJECT.value());
         //排除不需要搜索的目标类型
         parameters.put("notTargetTypes", NotSearchTargetTypeEnum.getTargetTypes());
         parameters.put("deletedAt", "1970-01-01 00:00:00");
@@ -83,6 +86,25 @@ public class ProjectResourceService {
         return pageInfo;
     }
 
+    public PageInfo<ProjectResource> findGlobalResourceList(Integer teamId, String keyword, List<String> targetTypes, Integer page, Integer pageSize) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("projectId", teamId);
+        if(StringUtils.isNotEmpty(keyword)) {
+            parameters.put("keyword", "%" + keyword + "%");
+        }
+        if(Objects.nonNull(targetTypes) && targetTypes.size() > 0) {
+            parameters.put("targetTypes", targetTypes);
+        }
+        parameters.put("scopeType", ScopeTypeEnum.TEAM.value());
+        //排除不需要搜索的目标类型
+        parameters.put("notTargetTypes", NotSearchTargetTypeEnum.getTargetTypes());
+        parameters.put("deletedAt", "1970-01-01 00:00:00");
+        PageInfo<ProjectResource> pageInfo = PageHelper.startPage(page, pageSize)
+                .doSelectPageInfo(() -> projectResourcesDao.findList(parameters));
+        return pageInfo;
+    }
+
+
     public ProjectResource getByProjectIdAndTypeAndTarget(Integer projectId, Integer targetId, String targetType) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("projectId", projectId);
@@ -90,6 +112,16 @@ public class ProjectResourceService {
         parameters.put("targetType", targetType);
         //parameters.put("deletedAt", "1970-01-01 00:00:00");
         return projectResourcesDao.getByProjectIdAndTypeAndTarget(parameters);
+    }
+
+    public ProjectResource getByScopeIdAndScopeTypeAndTypeAndTarget(Integer scopeId, Integer scopeType, Integer targetId, String targetType) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("scopeId", scopeId);
+        parameters.put("scopeType", scopeType);
+        parameters.put("targetId", targetId);
+        parameters.put("targetType", targetType);
+        //parameters.put("deletedAt", "1970-01-01 00:00:00");
+        return projectResourcesDao.getByScopeIdAndScopeTypeAndTypeAndTarget(parameters);
     }
 
     public List<ProjectResource> batchListByProjectAndTypeAndTargets(Integer projectId, List<Integer> targetIds, String targetType) {
@@ -181,5 +213,49 @@ public class ProjectResourceService {
         parameters.put("updatedAt", DateUtil.getCurrentDate());
         parameters.put("updatedBy", userId);
         return projectResourcesDao.batchUpdateProjectResource(parameters);
+    }
+
+    public int delete(Map<String, Object> parameters) {
+        return projectResourcesDao.delete(parameters);
+    }
+
+    public List<ProjectResource> findResourceList(Integer scopeId, String resourceId, String title, List<String> targetTypes, Integer pageSize, Integer scopeType) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("scopeId", scopeId);
+        if(StringUtils.isNotEmpty(resourceId)) {
+            parameters.put("resourceId", "%" + resourceId + "%");
+        }
+        if(StringUtils.isNotEmpty(title)) {
+            parameters.put("title", "%" + title + "%");
+        }
+        if(Objects.nonNull(targetTypes) && targetTypes.size() > 0) {
+            parameters.put("targetTypes", targetTypes);
+        }
+        parameters.put("scopeType", scopeType);
+        //排除不需要搜索的目标类型
+        parameters.put("notTargetTypes", NotSearchTargetTypeEnum.getTargetTypes());
+        parameters.put("deletedAt", "1970-01-01 00:00:00");
+        parameters.put("pageSize", pageSize);
+        List<ProjectResource> projectResourceList = projectResourcesDao.findListForKm(parameters);
+        return projectResourceList != null ? projectResourceList : new ArrayList<ProjectResource>();
+    }
+
+    public ProjectResource findProjectResourceDetail(Integer scopeId, String code, Integer scopeType) {
+
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("scopeId", scopeId);
+        if(StringUtils.isNotEmpty(code)) {
+            parameters.put("code", code);
+        }
+        if(scopeType != null) {
+            parameters.put("scopeType", scopeType);
+        }
+        parameters.put("deletedAt", "1970-01-01 00:00:00");
+        ProjectResource projectResource = projectResourcesDao.findProjectResourceDetail(parameters);
+        return projectResource;
+    }
+
+    public void recoverResource(Map<String, Object> parameters) {
+        projectResourcesDao.recoverResource(parameters);
     }
 }

@@ -15,7 +15,7 @@ public class ProjectResourceDTO {
 
     private String targetProjectDisplayName;
 
-    private Integer code;
+    private String code;
 
     private String targetType;
 

@@ -1,0 +1,36 @@
+plugins {
+    id 'maven'
+}
+
+dependencies {
+    compile "io.grpc:grpc-protobuf:${grpcVersion}"
+    compile "io.grpc:grpc-stub:${grpcVersion}"
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile "com.google.protobuf:protobuf-java:${protobufVersion}"
+}
+apply plugin: 'com.google.protobuf'
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:${protobufVersion}"
+    }
+    generatedFilesBaseDir = "$projectDir/src/generated"
+    clean {
+        delete generatedFilesBaseDir
+    }
+    plugins {
+        grpc {
+            artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}"
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {}
+        }
+    }
+}
+
+
+
+
+

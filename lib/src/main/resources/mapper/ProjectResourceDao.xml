@@ -4,10 +4,11 @@
   <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ProjectResource">
     <id column="id" jdbcType="INTEGER" property="id" />
     <result column="project_id" jdbcType="INTEGER" property="projectId" />
+    <result column="scope_type" jdbcType="INTEGER" property="scopeType" />
     <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt" />
     <result column="target_type" jdbcType="VARCHAR" property="targetType" />
     <result column="target_id" jdbcType="INTEGER" property="targetId" />
-    <result column="code" jdbcType="INTEGER" property="code" />
+    <result column="code" jdbcType="VARCHAR" property="code" />
     <result column="title" jdbcType="VARCHAR" property="title" />
     <result column="resource_url" jdbcType="VARCHAR" property="resourceUrl" />
     <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
@@ -18,7 +19,7 @@
   </resultMap>
 
   <sql id="Base_Column_List">
-    id, project_id, deleted_at, target_type, target_id, code, title, resource_url, created_at, created_by,
+    id, project_id, scope_type, deleted_at, target_type, target_id, code, title, resource_url, created_at, created_by,
     updated_at, updated_by, deleted_by
   </sql>
 
@@ -54,6 +55,9 @@
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="projectId != null">
         project_id,
+      </if>
+      <if test="scopeType != null">
+        scope_type,
       </if>
       <if test="deletedAt != null">
         deleted_at,
@@ -93,6 +97,9 @@
       <if test="projectId != null">
         #{projectId,jdbcType=INTEGER},
       </if>
+      <if test="scopeType != null">
+        #{scopeType,jdbcType=INTEGER},
+      </if>
       <if test="targetType != null">
         #{targetType,jdbcType=VARCHAR},
       </if>
@@ -100,7 +107,7 @@
         #{targetId,jdbcType=INTEGER},
       </if>
       <if test="code != null">
-        #{code,jdbcType=INTEGER},
+        #{code,jdbcType=VARCHAR},
       </if>
       <if test="title != null">
         #{title,jdbcType=VARCHAR},
@@ -201,11 +208,94 @@
       <if test="keyword != null">
         AND (code LIKE #{keyword} OR title LIKE #{keyword})
       </if>
+      <if test="resourceId != null">
+        AND (code LIKE #{resourceId})
+      </if>
+      <if test="title != null">
+        AND (title LIKE #{title})
+      </if>
+      <if test="deletedAt != null">
+        AND deleted_at = #{deletedAt}
+      </if>
+      <if test="scopeType != null">
+        AND scope_type = #{scopeType}
+      </if>
+    </where>
+    ORDER BY `code` DESC
+  </select>
+
+  <select id="findListForKm" parameterType="map" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM project_resources
+    <where>
+      project_id = #{scopeId}
+      <if test="targetType != null">
+        AND target_type = #{targetType}
+      </if>
+      <if test="targetId != null">
+        AND target_id = #{targetId}
+      </if>
+      <if test="codes != null and codes.size() > 0">
+        AND `code` IN
+        <foreach item = "item" index = "index" collection = "codes" open = "(" close = ")" separator=",">
+          #{item}
+        </foreach>
+      </if>
+      <if test="targetIds != null">
+        AND target_id IN
+        <foreach item = "item" index = "index" collection = "targetIds" open = "(" close = ")" separator=",">
+          #{item}
+        </foreach>
+      </if>
+      <if test="notTargetTypes != null and notTargetTypes.size() > 0">
+        AND target_type NOT IN
+        <foreach item = "item" index = "index" collection = "notTargetTypes" open = "(" close = ")" separator=",">
+          #{item}
+        </foreach>
+      </if>
+      <if test="targetTypes != null and targetTypes.size() > 0">
+        AND target_type IN
+        <foreach item = "item" index = "index" collection = "targetTypes" open = "(" close = ")" separator=",">
+          #{item}
+        </foreach>
+      </if>
+      <if test="resourceId != null">
+        AND (code LIKE #{resourceId})
+      </if>
+      <if test="title != null">
+        AND (title LIKE #{title})
+      </if>
+      <if test="deletedAt != null">
+        AND deleted_at = #{deletedAt}
+      </if>
+      <if test="scopeType != null">
+        AND scope_type = #{scopeType}
+      </if>
+    </where>
+    ORDER BY `created_at` DESC
+    <if test="pageSize != null">
+      LIMIT #{pageSize}
+    </if>
+  </select>
+
+  <select id="findProjectResourceDetail" parameterType="map" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM project_resources
+    <where>
+      project_id = #{scopeId}
+      <if test="code != null">
+        AND code = #{code}
+      </if>
+      <if test="scopeType != null">
+        AND scope_type = #{scopeType}
+      </if>
       <if test="deletedAt != null">
         AND deleted_at = #{deletedAt}
       </if>
     </where>
-    ORDER BY `code` DESC
+    ORDER BY `created_at` DESC LIMIT 1
   </select>
 
   <select id="getByProjectIdAndTypeAndTarget" parameterType="map" resultMap="BaseResultMap">
@@ -215,6 +305,28 @@
     <where>
       <if test="projectId != null">
         AND project_id = #{projectId}
+      </if>
+      <if test="targetType != null">
+        AND target_type = #{targetType}
+      </if>
+      <if test="targetId != null">
+        AND target_id = #{targetId}
+      </if>
+      <if test="deletedAt != null">
+        AND deleted_at = #{deletedAt}
+      </if>
+    </where>
+    LIMIT 1
+  </select>
+
+  <select id="getByScopeIdAndScopeTypeAndTypeAndTarget" parameterType="map" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM project_resources
+    <where>
+      project_id = #{scopeId}
+      <if test="scopeType != null">
+        AND scope_type = #{scopeType}
       </if>
       <if test="targetType != null">
         AND target_type = #{targetType}
@@ -329,5 +441,17 @@
       <foreach item = "item" index = "index" collection = "targetIds" open = "(" close = ")" separator=",">
         #{item}
       </foreach>
+  </update>
+
+  <update id="delete" parameterType="map">
+    UPDATE project_resources SET deleted_at = #{deletedAt}, deleted_by = #{deletedBy}
+    WHERE project_id = #{scopeId} AND scope_type = #{scopeType} AND target_type = #{targetType}
+    AND target_id = #{targetId}
+  </update>
+
+  <update id="recoverResource" parameterType="map">
+    UPDATE project_resources SET deleted_at = #{deletedAt}
+    WHERE project_id = #{scopeId} AND scope_type = #{scopeType} AND target_type = #{targetType}
+    AND target_id = #{targetId}
   </update>
 </mapper>

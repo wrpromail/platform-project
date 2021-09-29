@@ -17,7 +17,9 @@ public enum ResourceTypeEnum {
     TestingRun("TestingRun", "测试计划"), // 测试计划
     Testing("Testing", "测试"), // 测试
     TestingReport("TestingReport", "测试报告"), // 测试报告
-    Wiki("Wiki", "wiki"), // 史诗
+    Wiki("Wiki", "wiki"), // wiki
+    WorkItem("WorkItem", "工作项"), // WorkItem
+    Risk("Risk", "风险"), // Risk
     Epic("Epic", "史诗"); // 史诗
 
     private String type;

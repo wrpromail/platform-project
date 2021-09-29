@@ -4,10 +4,15 @@ import com.github.pagehelper.PageInfo;
 
 import net.coding.app.project.utils.GrpcUtil;
 import net.coding.app.project.utils.RedissonLockUtil;
+import net.coding.exchange.dto.team.Team;
+import net.coding.grpc.client.platform.TeamServiceGrpcClient;
 import net.coding.lib.project.dto.ProjectResourceDTO;
+import net.coding.lib.project.dto.ResourceDetailDTO;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectResource;
 import net.coding.lib.project.entity.ProjectResourceSequence;
+import net.coding.lib.project.enums.ScopeTypeEnum;
+import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.grpc.client.ProjectGrpcClient;
 import net.coding.lib.project.helper.ProjectResourceServiceHelper;
 import net.coding.lib.project.service.ExternalLinkService;
@@ -37,6 +42,10 @@ import proto.common.CodeProto;
 import proto.common.PagerProto;
 import proto.projectResource.ProjectResourceProto;
 import proto.projectResource.ProjectResourceServiceGrpc;
+
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NOT_EXIST;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.RESOURCE_NO_FOUND;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.TEAM_NOT_EXIST;
 
 @Slf4j
 @GRpcService
@@ -69,6 +78,9 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
 
     @Autowired
     private ExternalLinkService externalLinkService;
+
+    @Autowired
+    private TeamServiceGrpcClient teamServiceGrpcClient;
 
     @Override
     public void addProjectResource(ProjectResourceProto.AddProjectResourceRequest request,
@@ -121,7 +133,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
             record.setTargetId(request.getTargetId());
             record.setTargetType(request.getTargetType());
             record.setUpdatedBy(request.getUserId());
-            record.setCode(request.getCode());
+            record.setCode(String.valueOf(request.getCode()));
             String projectPath = projectGrpcClient.getProjectPath(record.getProjectId());
             record.setResourceUrl(projectResourceLinkService.getResourceLink(record, projectPath));
             ProjectResource resource = projectResourceService.updateProjectResource(record);
@@ -271,7 +283,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 record.setTargetId(request.getTargetId());
                 record.setTargetType(request.getTargetType());
                 record.setCreatedBy(request.getUserId());
-                record.setCode(request.getCode());
+                record.setCode(String.valueOf(request.getCode()));
                 record.setResourceUrl(request.getResourceUrl());
                 if (StringUtils.isBlank(record.getResourceUrl())) {
                     String projectPath = projectGrpcClient.getProjectPath(record.getProjectId());
@@ -323,7 +335,7 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
                 item.setTargetId(projectResource.getTargetId());
                 item.setTargetType(projectResource.getTargetType());
                 item.setCreatedBy(projectResource.getUserId());
-                item.setCode(projectResource.getCode());
+                item.setCode(String.valueOf(projectResource.getCode()));
                 item.setResourceUrl(projectResource.getResourceUrl());
                 item.setCreatedAt(DateUtil.getCurrentDate());
                 item.setUpdatedBy(item.getCreatedBy());
@@ -616,4 +628,166 @@ public class ProjectResourceGrpcService extends ProjectResourceServiceGrpc.Proje
             GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "batchUpdateProjectResource server error", response);
         }
     }
+
+    @Override
+    public void addResource(ProjectResourceProto.AddResourceRequest request, StreamObserver<ProjectResourceProto.ResourceResponse> response) {
+        if(request.getScopeId() <= 0 || request.getTargetId() <= 0 || StringUtils.isEmpty(request.getTargetType())) {
+            GrpcUtil.resourceResponse(CodeProto.Code.INVALID_PARAMETER, "addResource parameters error", null, response);
+            return;
+        }
+        Integer scopeType = request.getScopeType() == 0 ? 1 : request.getScopeType();
+        String lockKey = String.format("addResource:scopeId:%d:scopeType:%d:targetId:%d:targetType:%s", request.getScopeId(), scopeType, request.getTargetId(), request.getTargetType());
+        try {
+            if(redissonLockUtil.tryLock(lockKey, TimeUnit.MILLISECONDS, 1000, 2000)) {
+                if(ScopeTypeEnum.PROJECT.value().equals(scopeType)){
+                    Project project = projectService.getById(request.getScopeId());
+                    if (Objects.isNull(project)) {
+                        GrpcUtil.resourceResponse(CodeProto.Code.INVALID_PARAMETER, "addResource project not exists", null, response);
+                        return;
+                    }
+                } else if(ScopeTypeEnum.TEAM.value().equals(scopeType)){
+                    Team team = teamServiceGrpcClient.getTeam(request.getScopeId());
+                    if (Objects.isNull(team)) {
+                        GrpcUtil.resourceResponse(CodeProto.Code.INVALID_PARAMETER, "addResource team not exists", null, response);
+                        return;
+                    }
+                }
+
+                ProjectResource record = new ProjectResource();
+                record.setProjectId(request.getScopeId());
+                record.setTitle(request.getTitle());
+                record.setTargetId(request.getTargetId());
+                record.setTargetType(request.getTargetType());
+                record.setCreatedBy(request.getUserId());
+                //设置资源覆盖范围 scopeType
+                record.setScopeType(scopeType);
+                ProjectResource resource = projectResourceServiceHelper.addResource(record);
+                if(Objects.nonNull(resource.getId()) && resource.getId().compareTo(0) > 0) {
+                    GrpcUtil.resourceResponse(CodeProto.Code.SUCCESS, "addResource success", GrpcUtil.getResource(resource), response);
+                } else {
+                    GrpcUtil.resourceResponse(CodeProto.Code.INTERNAL_ERROR, "addResource error", null, response);
+                }
+                redissonLockUtil.unlock(lockKey);
+            }
+        } catch (Exception ex) {
+            log.error("addResource fail, parameter is " + request.toString(), ex);
+            GrpcUtil.resourceResponse(CodeProto.Code.INTERNAL_ERROR, "addResource server error", null, response);
+            redissonLockUtil.unlock(lockKey);
+        }
+    }
+
+    @Override
+    public void updateResource(ProjectResourceProto.UpdateResourceRequest request, StreamObserver<ProjectResourceProto.ResourceResponse> response) {
+        if(request.getScopeId() <= 0 || request.getTargetId() <= 0 || StringUtils.isEmpty(request.getTargetType())) {
+            GrpcUtil.resourceResponse(CodeProto.Code.INVALID_PARAMETER, "updateResource parameters error", null, response);
+            return;
+        }
+        String lockKey = String.format("updateResource:scopeId:%d:scopeType:%d:targetId:%d:targetType:%s", request.getScopeId(), request.getScopeType(),request.getTargetId(), request.getTargetType());
+        try {
+            if(redissonLockUtil.tryLock(lockKey, TimeUnit.MILLISECONDS, 1000, 2000)) {
+                if(ScopeTypeEnum.PROJECT.value().equals(request.getScopeType())){
+                    Project project = projectService.getById(request.getScopeId());
+                    if (Objects.isNull(project)) {
+                        GrpcUtil.resourceResponse(CodeProto.Code.INVALID_PARAMETER, "updateResource project not exists", null, response);
+                        return;
+                    }
+                } else if(ScopeTypeEnum.TEAM.value().equals(request.getScopeType())){
+                    Team team = teamServiceGrpcClient.getTeam(request.getScopeId());
+                    if (Objects.isNull(team)) {
+                        GrpcUtil.resourceResponse(CodeProto.Code.INVALID_PARAMETER, "updateResource team not exists", null, response);
+                        return;
+                    }
+                }
+
+                ProjectResource record = projectResourceService.getByScopeIdAndScopeTypeAndTypeAndTarget(request.getScopeId(),
+                        request.getScopeType(), request.getTargetId(), request.getTargetType());
+                if(record == null){
+                    throw CoreException.of(CoreException.ExceptionType.RESOURCE_NO_FOUND);
+                }
+                record.setTitle(request.getTitle());
+                record.setUpdatedBy(request.getUserId());
+                record.setUpdatedAt(DateUtil.getCurrentDate());
+                int result = projectResourceService.update(record);
+                if(result > 0) {
+                    GrpcUtil.resourceResponse(CodeProto.Code.SUCCESS, "updateResource success", GrpcUtil.getResource(record), response);
+                } else {
+                    GrpcUtil.resourceResponse(CodeProto.Code.INTERNAL_ERROR, "updateResource error", null, response);
+                }
+                redissonLockUtil.unlock(lockKey);
+            }
+        } catch (Exception ex) {
+            log.error("updateResource fail, parameter is " + request.toString(), ex);
+            GrpcUtil.resourceResponse(CodeProto.Code.INTERNAL_ERROR, "updateResource server error", null, response);
+            redissonLockUtil.unlock(lockKey);
+        }
+    }
+
+    @Override
+    public void deleteResource(ProjectResourceProto.DeleteResourceRequest request, StreamObserver<ProjectResourceProto.ProjectResourceCommonResponse> response) {
+        try {
+            if (request.getScopeId() <= 0 || StringUtils.isEmpty(request.getTargetType()) || request.getTargetId() <= 0) {
+                GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "parameters project error", response);
+                return;
+            }
+            projectResourceServiceHelper.deleteResource(request.getScopeId(), request.getScopeType(), request.getTargetType(), request.getTargetId(), request.getUserId());
+            GrpcUtil.projectResourceCommonResponse(CodeProto.Code.SUCCESS, "deleteResource success", response);
+        } catch (Exception ex) {
+            log.error("deleteProjectResource fail parameter is " + request.toString(), ex);
+            GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "deleteResource server error", response);
+        }
+    }
+
+    @Override
+    public void recoverResource(ProjectResourceProto.RecoverResourceRequest request, StreamObserver<ProjectResourceProto.ProjectResourceCommonResponse> response) {
+        try {
+            if (request.getScopeId() <= 0 || StringUtils.isEmpty(request.getTargetType()) || request.getTargetId() <= 0) {
+                GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INVALID_PARAMETER, "parameters project error", response);
+                return;
+            }
+            projectResourceServiceHelper.recoverResource(request.getScopeId(), request.getScopeType(), request.getTargetType(), request.getTargetId(), request.getUserId());
+            GrpcUtil.projectResourceCommonResponse(CodeProto.Code.SUCCESS, "recoverResource success", response);
+        } catch (Exception ex) {
+            log.error("deleteProjectResource fail parameter is " + request.toString(), ex);
+            GrpcUtil.projectResourceCommonResponse(CodeProto.Code.INTERNAL_ERROR, "recoverResource server error", response);
+        }
+    }
+
+    @Override
+    public void getResourceByScopeIdAndCode(ProjectResourceProto.GetResourceByScopeIdAndCodeRequest request, StreamObserver<ProjectResourceProto.ProjectResourceResponse> response) {
+        try {
+            if (ScopeTypeEnum.PROJECT.value() == request.getScopeType()) {
+                //项目资源
+                Project project = projectService.getById(request.getScopeId());
+                if (project == null) {
+                    GrpcUtil.projectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "getResourceByScopeIdAndCode project not exists", null, response);
+                    return;
+                }
+                ProjectResource projectResource = projectResourceService.findProjectResourceDetail(project.getId(), request.getCode(), ScopeTypeEnum.PROJECT.value());
+                if (projectResource == null) {
+                    throw CoreException.of(RESOURCE_NO_FOUND);
+                }
+                ResourceDetailDTO resourceDetailDTO = new ResourceDetailDTO(projectResource);
+                resourceDetailDTO.setScopeName(project.getDisplayName());
+                resourceDetailDTO.setScopeAvatar(project.getIcon());
+                GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "getResourceByScopeIdAndCode success", GrpcUtil.getProjectResource(projectResource), response);
+            } else if (ScopeTypeEnum.TEAM.value() == request.getScopeType()){
+                Team team = teamServiceGrpcClient.getTeam(request.getScopeId());
+                if (team == null) {
+                    GrpcUtil.projectResourceResponse(CodeProto.Code.INVALID_PARAMETER, "getResourceByScopeIdAndCode team not exists", null, response);
+                    return;
+                }
+                // 全局资源
+                ProjectResource projectResource = projectResourceService.findProjectResourceDetail(team.getId(), request.getCode(), ScopeTypeEnum.TEAM.value());
+                if (projectResource == null) {
+                    throw CoreException.of(RESOURCE_NO_FOUND);
+                }
+                GrpcUtil.projectResourceResponse(CodeProto.Code.SUCCESS, "getResourceByScopeIdAndCode success", GrpcUtil.getProjectResource(projectResource), response);
+            }
+
+        } catch (Exception ex){
+            log.error("getResourceByScopeIdAndCode fail, parameter is " + request.toString(), ex);
+            GrpcUtil.projectResourceResponse(CodeProto.Code.INTERNAL_ERROR, "getResourceByScopeIdAndCode server error", null, response);
+        }
+    }
+
 }

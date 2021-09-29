@@ -69,4 +69,6 @@ public interface ResourceReferenceDao {
     List<ResourceReference> getWithDeletedByIds(Map<String, Object> parameter);
 
     ResourceReference existsResourceReference(Map<String, Object> parameter);
+
+    void delete(Map<String, Object> map);
 }

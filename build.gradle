@@ -28,6 +28,10 @@ System.setProperty("REGISTRY_USER", System.getenv('REGISTRY_USER') ?: 'ptvyg13pc
 System.setProperty("REGISTRY_PASSWORD", System.getenv('REGISTRY_PASSWORD') ?: 'ecd298c776e9ff972abaecb0247c700499d9c6c0')
 
 subprojects {
+    ext {
+        grpcVersion = '1.31.1'
+        protobufVersion = '3.12.0'
+    }
     apply plugin: "coding-plugin"
     // 请勿删除，否则后果自负，会导致 mariadb client 版本异常，数据时间写入会有异常
     ext['mariadb.version'] = '2.2.5'

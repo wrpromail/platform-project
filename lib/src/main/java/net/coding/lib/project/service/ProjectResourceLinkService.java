@@ -3,6 +3,9 @@ package net.coding.lib.project.service;
 import com.google.common.base.Strings;
 
 import net.coding.common.vendor.Inflector;
+import net.coding.e.grpcClient.collaboration.IssueGrpcClient;
+import net.coding.e.grpcClient.collaboration.dto.Issue;
+import net.coding.e.grpcClient.collaboration.exception.IssueNotException;
 import net.coding.e.proto.FileProto;
 import net.coding.e.proto.IssueProto;
 import net.coding.lib.project.entity.Depot;
@@ -12,7 +15,6 @@ import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectResource;
 import net.coding.lib.project.entity.Release;
 import net.coding.lib.project.grpc.client.FileServiceGrpcClient;
-import net.coding.lib.project.grpc.client.IssueServiceGrpcClient;
 import net.coding.proto.depot.DepotProto;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -39,7 +41,7 @@ import lombok.AllArgsConstructor;
 public class ProjectResourceLinkService {
 
 
-    private final IssueServiceGrpcClient issueServiceGrpcClient;
+    private final IssueGrpcClient issueGrpcClient;
 
     private final ExternalLinkService externalLinkService;
 
@@ -223,40 +225,65 @@ public class ProjectResourceLinkService {
     }
 
     private String buildDefectLink(ProjectResource projectResource, String projectPath) {
-        IssueProto.IssueResponse issue = issueServiceGrpcClient.getIssueById(projectResource.getTargetId(), projectResource.getProjectId(), false);
-        if (Objects.isNull(issue.getData()) || 0 != issue.getCode()) {
+        Issue issue = null;
+        try {
+            issue = issueGrpcClient.getIssueById(projectResource.getTargetId(),  false);
+        } catch (IssueNotException e) {
+            return "#";
+        }
+        if (Objects.isNull(issue) || 0 != issue.getCode()) {
             return "#";
         }
         return projectPath + "/bug-tracking/issues/" + projectResource.getCode() + "/detail";
     }
 
     private String buildRequirementLink(ProjectResource projectResource, String projectPath) {
-        IssueProto.IssueResponse issue = issueServiceGrpcClient.getIssueById(projectResource.getTargetId(), projectResource.getProjectId(), false);
-        if (Objects.isNull(issue.getData()) || 0 != issue.getCode()) {
+        Issue issue = null;
+        try {
+            issue = issueGrpcClient.getIssueById(projectResource.getTargetId(),  false);
+        } catch (IssueNotException e) {
+            return "#";
+        }
+        if (Objects.isNull(issue) || 0 != issue.getCode()) {
             return "#";
         }
         return projectPath + "/requirements/issues/" + projectResource.getCode() + "/detail";
     }
 
     private String buildMissionLink(ProjectResource projectResource, String projectPath) {
-        IssueProto.IssueResponse issue = issueServiceGrpcClient.getIssueById(projectResource.getTargetId(), projectResource.getProjectId(), false);
-        if (Objects.isNull(issue.getData()) || 0 != issue.getCode()) {
+        Issue issue = null;
+        try {
+            issue = issueGrpcClient.getIssueById(projectResource.getTargetId(),  false);
+        } catch (IssueNotException e) {
+            return "#";
+        }
+        if (Objects.isNull(issue) || 0 != issue.getCode()) {
             return "#";
         }
         return projectPath + "/assignments/issues/" + projectResource.getCode() + "/detail";
     }
 
     private String buildSubTaskLink(ProjectResource projectResource, String projectPath) {
-        IssueProto.IssueResponse issue = issueServiceGrpcClient.getIssueById(projectResource.getTargetId(), projectResource.getProjectId(), false);
-        if (Objects.isNull(issue.getData()) || 0 != issue.getCode()) {
+        Issue issue = null;
+        try {
+            issue = issueGrpcClient.getIssueById(projectResource.getTargetId(),  false);
+        } catch (IssueNotException e) {
+            return "#";
+        }
+        if (Objects.isNull(issue) || 0 != issue.getCode()) {
             return "#";
         }
         return projectPath + "/subtasks/issues/" + projectResource.getCode() + "/detail";
     }
 
     private String buildEpicLink(ProjectResource projectResource, String projectPath) {
-        IssueProto.IssueResponse issue = issueServiceGrpcClient.getIssueById(projectResource.getTargetId(), projectResource.getProjectId(), false);
-        if (Objects.isNull(issue.getData()) || 0 != issue.getCode()) {
+        Issue issue = null;
+        try {
+            issue = issueGrpcClient.getIssueById(projectResource.getTargetId(),  false);
+        } catch (IssueNotException e) {
+            return "#";
+        }
+        if (Objects.isNull(issue) || 0 != issue.getCode()) {
             return "#";
         }
         return projectPath + "/epics/issues/" + projectResource.getCode() + "/detail";
@@ -305,4 +332,5 @@ public class ProjectResourceLinkService {
             return projectPath + "/" + type + "/" + projectResource.getTargetId();
         }
     }
+
 }

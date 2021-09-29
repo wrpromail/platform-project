@@ -613,4 +613,32 @@
     LIMIT 1
   </select>
 
+  <update id="delete" parameterType="map">
+    update resource_references
+    <set>
+      <if test="deletedAt != null">
+        deleted_at = #{deletedAt,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <where>
+      <if test="targetScopeType != null">
+        AND target_scope_type = #{targetScopeType}
+      </if>
+      <if test="targetType != null">
+        AND target_type = #{targetType}
+      </if>
+      <if test="targetId != null">
+        AND target_id = #{targetId}
+      </if>
+      <if test="selfScopeType != null">
+        AND self_scope_type = #{selfScopeType}
+      </if>
+      <if test="selfType != null">
+        AND self_type = #{selfType}
+      </if>
+      <if test="selfId != null">
+        AND self_id
+      </if>
+    </where>
+  </update>
 </mapper>

@@ -88,11 +88,11 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
             }
             ResourceReference insert = new ResourceReference();
             insert.setSelfId(request.getSelfId());
-            insert.setSelfIid(request.getSelfIid());
+            insert.setSelfIid(String.valueOf(request.getSelfIid()));
             insert.setSelfType(request.getSelfType());
             insert.setSelfProjectId(request.getSelfProjectId());
             insert.setTargetId(request.getTargetId());
-            insert.setTargetIid(request.getTargetIid());
+            insert.setTargetIid(String.valueOf(request.getTargetIid()));
             insert.setTargetType(request.getTargetType());
             insert.setTargetProjectId(request.getTargetProjectId());
             insert.setCreatedAt(DateUtil.getCurrentDate());
@@ -121,11 +121,11 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
             request.getAddResourceReferenceRequestList().forEach(resourceReference -> {
                 ResourceReference insert = new ResourceReference();
                 insert.setSelfId(resourceReference.getSelfId());
-                insert.setSelfIid(resourceReference.getSelfIid());
+                insert.setSelfIid(String.valueOf(resourceReference.getSelfIid()));
                 insert.setSelfType(resourceReference.getSelfType());
                 insert.setSelfProjectId(resourceReference.getSelfProjectId());
                 insert.setTargetId(resourceReference.getTargetId());
-                insert.setTargetIid(resourceReference.getTargetIid());
+                insert.setTargetIid(String.valueOf(resourceReference.getTargetIid()));
                 insert.setTargetType(resourceReference.getTargetType());
                 insert.setTargetProjectId(resourceReference.getTargetProjectId());
                 insert.setCreatedAt(DateUtil.getCurrentDate());
@@ -154,11 +154,11 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
             }
             ResourceReference update = new ResourceReference();
             update.setSelfId(request.getSelfId());
-            update.setSelfIid(request.getSelfIid());
+            update.setSelfIid(String.valueOf(request.getSelfIid()));
             update.setSelfType(request.getSelfType());
             update.setSelfProjectId(request.getSelfProjectId());
             update.setTargetId(request.getTargetId());
-            update.setTargetIid(request.getTargetIid());
+            update.setTargetIid(String.valueOf(request.getTargetIid()));
             update.setTargetType(request.getTargetType());
             update.setTargetProjectId(request.getTargetProjectId());
             update.setCreatedAt(DateUtil.getCurrentDate());

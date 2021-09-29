@@ -80,7 +80,8 @@ public class CreateProjectForm extends BaseForm {
         FUNCTION_CODE_ANALYSIS("code_analysis", "code_analysis"),
         FUNCTION_API_DOCS("api_docs", "api_doc"),
         FUNCTION_QTA("qta", "test_auto"),
-        FUNCTION_FILE("file", "file_pan");
+        FUNCTION_FILE("file", "file_pan"),
+        FUNCTION_KM("knowledge", "knowledge");
         private String code;
         private String description;
 

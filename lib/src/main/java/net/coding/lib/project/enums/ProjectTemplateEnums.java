@@ -57,6 +57,7 @@ public enum ProjectTemplateEnums {
             ProjectSetting.Code.FUNCTION_WIKI,
             ProjectSetting.Code.FUNCTION_API_DOCS,
             ProjectSetting.Code.FUNCTION_FILE,
+            ProjectSetting.Code.FUNCTION_KM,
             ProjectSetting.Code.FUNCTION_STATISTICS
     );
 
@@ -68,6 +69,7 @@ public enum ProjectTemplateEnums {
             ProjectSetting.Code.FUNCTION_WIKI,
             ProjectSetting.Code.FUNCTION_API_DOCS,
             ProjectSetting.Code.FUNCTION_FILE,
+            ProjectSetting.Code.FUNCTION_KM,
             ProjectSetting.Code.FUNCTION_STATISTICS,
             ProjectSetting.Code.FUNCTION_CODE_ANALYSIS
     );
@@ -80,6 +82,7 @@ public enum ProjectTemplateEnums {
             ProjectSetting.Code.FUNCTION_WIKI,
             ProjectSetting.Code.FUNCTION_API_DOCS,
             ProjectSetting.Code.FUNCTION_FILE,
+            ProjectSetting.Code.FUNCTION_KM,
             ProjectSetting.Code.FUNCTION_CONTINUE_INTEGRATION,
             ProjectSetting.Code.FUNCTION_DEPLOYMENT_MANAGEMENT,
             ProjectSetting.Code.FUNCTION_ARTIFACT,
@@ -95,6 +98,7 @@ public enum ProjectTemplateEnums {
             ProjectSetting.Code.FUNCTION_WIKI,
             ProjectSetting.Code.FUNCTION_API_DOCS,
             ProjectSetting.Code.FUNCTION_FILE,
+            ProjectSetting.Code.FUNCTION_KM,
             ProjectSetting.Code.FUNCTION_STATISTICS
     );
 
@@ -109,6 +113,7 @@ public enum ProjectTemplateEnums {
             ProjectSetting.Code.FUNCTION_DEPLOYMENT_MANAGEMENT,
             ProjectSetting.Code.FUNCTION_ARTIFACT,
             ProjectSetting.Code.FUNCTION_WIKI,
+            ProjectSetting.Code.FUNCTION_KM,
             ProjectSetting.Code.FUNCTION_CODE_ANALYSIS,
             ProjectSetting.Code.FUNCTION_API_DOCS,
             ProjectSetting.Code.FUNCTION_QTA,

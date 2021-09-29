@@ -226,7 +226,9 @@ public class CoreException extends Exception {
         CREDENTIAL_TYPE_INVALID(6605, "credential_type_invalid"),
         CREDENTIAL_TASK_TYPE_INVALID(6606, "credential_task_type_invalid"),
         CREDENTIAL_PASSWORD_BYTES_TOO_LONG(6607, "credential_password_bytes_too_long"),
-        CI_JOB_NOT_FOUND(6301, "ci_job_not_found");
+        CI_JOB_NOT_FOUND(6301, "ci_job_not_found"),
+        //全局资源
+        GLOBAL_RESOURCE_SCOPE_TYPE_NOT_EXIST(8001, "global_resource_scope_type_not_exist");
 
         private final int errorCode;
         private final String resourceKey;

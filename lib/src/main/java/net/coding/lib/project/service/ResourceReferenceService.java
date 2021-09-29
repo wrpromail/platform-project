@@ -163,7 +163,7 @@ public class ResourceReferenceService {
                     .stream()
                     .filter(record -> {
                         if(ResourceTypeEnum.Wiki.getType().equals(record.getTargetType())) {
-                            WikiProto.GetWikiByProjectIdAndIidData wiki = wikiGrpcClient.getWikiByProjectIdAndIidWithoutRecycleBin(record.getTargetProjectId(), record.getTargetIid());
+                            WikiProto.GetWikiByProjectIdAndIidData wiki = wikiGrpcClient.getWikiByProjectIdAndIidWithoutRecycleBin(record.getTargetProjectId(), Integer.valueOf(record.getTargetIid()));
                             if(wiki == null) {
                                 return false;
                             }
@@ -212,7 +212,7 @@ public class ResourceReferenceService {
                     .stream()
                     .filter(record -> {
                         if(ResourceTypeEnum.Wiki.getType().equals(record.getTargetType())) {
-                            WikiProto.GetWikiByProjectIdAndIidData wiki = wikiGrpcClient.getWikiByProjectIdAndIidWithoutRecycleBin(record.getTargetProjectId(), record.getTargetIid());
+                            WikiProto.GetWikiByProjectIdAndIidData wiki = wikiGrpcClient.getWikiByProjectIdAndIidWithoutRecycleBin(record.getTargetProjectId(), Integer.valueOf(record.getTargetIid()));
                             if(wiki == null) {
                                 return false;
                             }
@@ -267,7 +267,7 @@ public class ResourceReferenceService {
                     .stream()
                     .filter(record -> {
                         if(ResourceTypeEnum.Wiki.getType().equals(record.getTargetType())) {
-                            WikiProto.GetWikiByProjectIdAndIidData wiki = wikiGrpcClient.getWikiByProjectIdAndIidWithoutRecycleBin(record.getTargetProjectId(), record.getTargetIid());
+                            WikiProto.GetWikiByProjectIdAndIidData wiki = wikiGrpcClient.getWikiByProjectIdAndIidWithoutRecycleBin(record.getTargetProjectId(), Integer.valueOf(record.getTargetIid()));
                             if(wiki == null) {
                                 return false;
                             }
@@ -350,5 +350,9 @@ public class ResourceReferenceService {
             return true;
         }
         return false;
+    }
+
+    public void delete(Map<String, Object> map) {
+        resourceReferenceDao.delete(map);
     }
 }

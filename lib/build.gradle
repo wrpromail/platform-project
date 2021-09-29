@@ -60,7 +60,6 @@ dependencies {
     }
     compile "net.coding.platform.framework:degradation:20210906.1"
     compile 'net.coding.proto:storage:20201027.1'
-    compile "net.coding.proto:issue:20201102.2"
     compile "net.coding.proto:notification:20201030.2"
     compile 'net.coding.proto:file:20201109.2'
     compile "net.coding.proto:wiki:20201113.1"

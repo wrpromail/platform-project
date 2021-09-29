@@ -25,6 +25,9 @@ public class ProjectResource implements Serializable {
     @ApiModelProperty(value = "项目 ID ")
     private Integer projectId;
 
+    @ApiModelProperty(value = "资源范围类型 1：project 2；team ")
+    private Integer scopeType;
+
     @ApiModelProperty(value = "删除时间")
     private Date deletedAt;
 
@@ -35,7 +38,7 @@ public class ProjectResource implements Serializable {
     private Integer targetId;
 
     @ApiModelProperty(value = "资源序号")
-    private Integer code;
+    private String code;
 
     @ApiModelProperty(value = "标题")
     private String title;

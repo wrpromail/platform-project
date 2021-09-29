@@ -37,4 +37,14 @@ public interface ProjectResourceDao {
     Integer getBeginFixId();
 
     int batchUpdateProjectResource(Map<String, Object> parameters);
+
+    ProjectResource getByScopeIdAndScopeTypeAndTypeAndTarget(Map<String, Object> parameters);
+
+    int delete(Map<String, Object> parameters);
+
+    List<ProjectResource>  findListForKm(Map<String, Object> parameters);
+
+    ProjectResource findProjectResourceDetail(Map<String, Object> parameters);
+
+    void recoverResource(Map<String, Object> parameters);
 }
