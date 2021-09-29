@@ -9,12 +9,14 @@ import net.coding.lib.project.dto.ProjectTokenKeyDTO;
 import net.coding.lib.project.entity.ProjectTokenArtifact;
 import net.coding.lib.project.entity.ProjectToken;
 import net.coding.lib.project.entity.Project;
+import net.coding.lib.project.entity.ProjectTokenDepot;
 import net.coding.lib.project.exception.AppException;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.AddProjectTokenForm;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.service.ProjectTokenArtifactService;
+import net.coding.lib.project.service.ProjectTokenDepotService;
 import net.coding.lib.project.service.ProjectTokenService;
 import net.coding.lib.project.service.ProjectMemberService;
 import net.coding.lib.project.service.ProjectService;
@@ -60,6 +62,7 @@ public class ProjectDeployTokenGrpcService extends ProjectDeployTokenServiceGrpc
     private final TeamGrpcClient teamGrpcClient;
     private final TeamServiceGrpcClient teamServiceGrpcClient;
     private final ProjectTokenArtifactService projectTokenArtifactService;
+    private final ProjectTokenDepotService projectTokenDepotService;
 
 
     public void addDeployToken(
@@ -353,8 +356,9 @@ public class ProjectDeployTokenGrpcService extends ProjectDeployTokenServiceGrpc
                         .setMessage("token is not found");
             } else {
                 List<ProjectTokenArtifact> artifacts = projectTokenArtifactService.getByTokenId(projectToken.getId());
+                List<ProjectTokenDepot> depots = projectTokenDepotService.getTokenById(projectToken.getId());
                 newBuilder.setCode(SUCCESS)
-                        .setData(toDeployToken(projectToken, artifacts));
+                        .setData(toDeployToken(projectToken, artifacts, depots));
             }
         } catch (Exception e) {
             log.error("RpcService.getDeployToken token {},error:{}",
@@ -468,7 +472,7 @@ public class ProjectDeployTokenGrpcService extends ProjectDeployTokenServiceGrpc
     }
 
     private ProjectDeployTokenProto.DeployToken toDeployToken(ProjectToken token) {
-        return this.toDeployToken(token, null);
+        return this.toDeployToken(token, null, null);
 
     }
 
@@ -500,7 +504,9 @@ public class ProjectDeployTokenGrpcService extends ProjectDeployTokenServiceGrpc
         return null;
     }
 
-    private ProjectDeployTokenProto.DeployToken toDeployToken(ProjectToken token, List<ProjectTokenArtifact> deployTokenArtifactList) {
+    private ProjectDeployTokenProto.DeployToken toDeployToken(ProjectToken token,
+                                                              List<ProjectTokenArtifact> deployTokenArtifactList,
+                                                              List<ProjectTokenDepot> projectTokenDepots) {
         ProjectDeployTokenProto.User associated = toUser(token.getAssociatedId());
         ProjectDeployTokenProto.User creator = toUser(token.getCreatorId());
         ProjectDeployTokenProto.DeployToken.Builder builder = ProjectDeployTokenProto.DeployToken.newBuilder()
@@ -532,6 +538,10 @@ public class ProjectDeployTokenGrpcService extends ProjectDeployTokenServiceGrpc
             builder.addAllDeployTokenArtifacts(deployTokenArtifactList.stream()
                     .map(this::toProtoDeployTokenArtifact).collect(Collectors.toList()));
         }
+        if (CollectionUtils.isNotEmpty(projectTokenDepots)) {
+            builder.addAllDeployTokenDepots(projectTokenDepots.stream()
+                    .map(this::toProtoDeployTokenDepot).collect(Collectors.toList()));
+        }
         return builder.build();
     }
 
@@ -540,6 +550,14 @@ public class ProjectDeployTokenGrpcService extends ProjectDeployTokenServiceGrpc
                 .setDeployTokenId(deployTokenArtifact.getDeployTokenId())
                 .setArtifactId(deployTokenArtifact.getArtifactId())
                 .setArtifactScope(deployTokenArtifact.getArtifactScope())
+                .build();
+    }
+
+    private ProjectDeployTokenProto.DeployTokenDepot toProtoDeployTokenDepot(ProjectTokenDepot projectTokenDepot) {
+        return ProjectDeployTokenProto.DeployTokenDepot.newBuilder()
+                .setDeployTokenId(projectTokenDepot.getDeployTokenId())
+                .setDepotId(projectTokenDepot.getDepotId())
+                .setDepotScope(projectTokenDepot.getDepotScope())
                 .build();
     }
 
