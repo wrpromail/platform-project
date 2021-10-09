@@ -11,16 +11,30 @@ option java_outer_classname = "ProjectMemberProto";
 
 
 message AddProjectMemberRequest {
-    int32 projectIdCoding = 1; //项目id
-    string userGk = 2; //本次增加成员操作的用户名，jessiachye 这种
-    string memberGks = 3; //本次要增加的成员，"user1,user2,user3"
-    int32 type = 4; // 90:项目管理员，80:普通成员，只有90、80两个选项
+  int32 projectIdCoding = 1; //项目id
+  string userGk = 2; //本次增加成员操作的用户名，jessiachye 这种
+  string memberGks = 3; //本次要增加的成员，"user1,user2,user3"
+  int32 type = 4; // 90:项目管理员，80:普通成员，只有90、80两个选项
 }
 
 message AddProjectMemberResponse {
-    proto.common.Code code = 1;
-    string message = 2;
+  proto.common.Code code = 1;
+  string message = 2;
 }
+
+message DelProjectMemberRequest {
+  int32 currentUserId = 1; //当前操作用户Id
+  int32 projectId = 2 ;
+  int32 targetUserId = 3; //删除的用户Id
+}
+
+message DelProjectMemberResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+}
+
 service ProjectMemberService {
-    rpc AddProjectMember (AddProjectMemberRequest) returns (AddProjectMemberResponse);
+  rpc AddProjectMember (AddProjectMemberRequest) returns (AddProjectMemberResponse);
+  //删除项目成员
+  rpc DelProjectMember (DelProjectMemberRequest) returns (DelProjectMemberResponse);
 }

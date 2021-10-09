@@ -394,19 +394,21 @@ public class ProjectMemberService {
         projectMemberAdaptorFactory.create(project.getPmType())
                 .checkDelProjectMemberType(member, currentMember.getType());
 
-        int result = projectMemberDao.deleteMember(project.getId(), targetUserId, BeanUtils.getDefaultDeletedAt());
-        if (result > 0) {
-            List<String> roleIdList = advancedRoleServiceGrpcClient.findUserRolesInProject
-                    (targetUserId,
-                            project.getTeamOwnerId(),
-                            project.getId()).stream().map(role -> String.valueOf(role.getId())).collect(toList());
-            advancedRoleServiceGrpcClient.removeUserRoleRecordsInProject(project.getId(), targetUserId);
-            projectMemberAdaptorFactory.create(project.getPmType())
-                    .postDeleteMemberEvent(currentUserId, project, member);
-            deleteMemberEventTrigger.trigger(roleIdList, member, project.getId(), currentUserId);
-            projectHandCacheService.handleProjectMemberCache(member, CacheTypeEnum.DELETE);
-        }
+        delMember(currentUserId, project, targetUserId, member);
 
+    }
+
+    public void delMember(Integer currentUserId, Project project, Integer targetUserId, ProjectMember member) {
+        projectMemberDao.deleteMember(project.getId(), targetUserId, BeanUtils.getDefaultDeletedAt());
+        List<String> roleIdList = advancedRoleServiceGrpcClient.findUserRolesInProject
+                (targetUserId,
+                        project.getTeamOwnerId(),
+                        project.getId()).stream().map(role -> String.valueOf(role.getId())).collect(toList());
+        advancedRoleServiceGrpcClient.removeUserRoleRecordsInProject(project.getId(), targetUserId);
+        projectMemberAdaptorFactory.create(project.getPmType())
+                .postDeleteMemberEvent(currentUserId, project, member);
+        deleteMemberEventTrigger.trigger(roleIdList, member, project.getId(), currentUserId);
+        projectHandCacheService.handleProjectMemberCache(member, CacheTypeEnum.DELETE);
     }
 
     public int quit(Integer projectId) throws CoreException {
