@@ -7,8 +7,6 @@ import net.coding.common.annotation.enums.Action;
 import net.coding.common.annotation.enums.Function;
 import net.coding.common.constants.OAuthConstants;
 import net.coding.common.constants.TwoFactorAuthConstants;
-import net.coding.common.storage.support.internal.StorageStream;
-import net.coding.common.storage.support.internal.StorageUploadStream;
 import net.coding.common.util.Result;
 import net.coding.e.grpcClient.collaboration.exception.MilestoneException;
 import net.coding.lib.project.common.SystemContextHolder;
@@ -89,10 +87,11 @@ public class ProjectController {
     public ProjectDTO updateProjectIcon(@RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
                                         @RequestHeader(GatewayHeader.USER_ID) Integer userId,
                                         @RequestParam(required = false) Integer projectId,
-                                        @StorageStream(bucket = "coding-net-project-icon") StorageUploadStream form) throws CoreException {
-
-        return projectService.updateIcon(teamId, userId, projectId, form);
+                                        @RequestParam(required = false) String icon
+    ) throws CoreException {
+        return projectService.updateIcon(teamId, userId, projectId, icon);
     }
+
 
     @ApiOperation(value = "update_project", notes = "更新项目")
     @ProtectedAPI

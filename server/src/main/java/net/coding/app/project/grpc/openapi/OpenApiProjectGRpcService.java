@@ -337,11 +337,11 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
             );
             CommonResponse(responseObserver, SUCCESS, SUCCESS.name().toLowerCase());
         } catch (CoreException e) {
-            log.error("RpcService modifyProject error CoreException ", e);
+            log.error("RpcService modifyProject error CoreException, code: {}, key: {} ", e.getCode(), e.getKey());
             CommonResponse(responseObserver, NOT_FOUND,
                     localeMessageSource.getMessage(e.getKey()));
         } catch (Exception e) {
-            log.error("rpcService modifyProject error Exception ", e);
+            log.error("RpcService modifyProject error Exception, {}", e.getMessage());
             CommonResponse(responseObserver, INVALID_PARAMETER,
                     INVALID_PARAMETER.name().toLowerCase());
         }

@@ -6,9 +6,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 
 import net.coding.common.storage.support.Storage;
-import net.coding.common.storage.support.bean.ImageInfo;
-import net.coding.common.storage.support.exception.StorageUploadException;
-import net.coding.common.storage.support.internal.StorageUploadStream;
+import net.coding.common.storage.support.util.StorageUtils;
 import net.coding.common.util.BeanUtils;
 import net.coding.common.util.LimitedPager;
 import net.coding.common.util.ResultPage;
@@ -60,6 +58,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.validator.UrlValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -80,11 +79,6 @@ import one.util.streamex.StreamEx;
 import proto.platform.user.UserProto;
 
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_DISPLAY_NAME_MIN_LENGTH;
-import static net.coding.common.base.validator.ValidationConstants.PROJECT_ICON_LIMIT_SIZE;
-import static net.coding.common.base.validator.ValidationConstants.PROJECT_ICON_MAX_HEIGHT;
-import static net.coding.common.base.validator.ValidationConstants.PROJECT_ICON_MAX_WIDTH;
-import static net.coding.common.base.validator.ValidationConstants.PROJECT_ICON_MIN_HEIGHT;
-import static net.coding.common.base.validator.ValidationConstants.PROJECT_ICON_MIN_WIDTH;
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_NAME_CLOUD_MAX_LENGTH;
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_NAME_MIN_LENGTH;
 import static net.coding.common.constants.CommonConstants.DATA_REGEX;
@@ -166,6 +160,7 @@ public class ProjectService {
     private final PinyinService pinyinService;
 
     private final ProjectPinService projectPinService;
+
 
     public Project getById(Integer id) {
         return projectDao.getProjectById(id);
@@ -421,7 +416,7 @@ public class ProjectService {
                 .postProjectDeleteEvent(userId, project, ACTION_DELETE);
     }
 
-    public ProjectDTO updateIcon(Integer teamId, Integer userId, Integer projectId, StorageUploadStream form) throws CoreException {
+    public ProjectDTO updateIcon(Integer teamId, Integer userId, Integer projectId, String icon) throws CoreException {
         Project project = getByIdAndTeamId(projectId, teamId);
         if (Objects.isNull(project)) {
             throw CoreException.of(RESOURCE_NO_FOUND);
@@ -430,7 +425,7 @@ public class ProjectService {
         projectAdaptorFactory.create(project.getPmType())
                 .hasPermissionInEnterprise(teamId, userId, project.getPmType(), ACTION_UPDATE);
 
-        String icon = validateIcon(form);
+        icon = validateIcon(icon);
         project.setIcon(icon);
         projectDao.updateIcon(project.getId(), icon);
 
@@ -563,38 +558,20 @@ public class ProjectService {
                 ));
         return projectDTOService.toDetailDTO(project);
     }
-
-    public String validateIcon(StorageUploadStream form) throws CoreException {
-        String icon;
-        if (form.exceed(PROJECT_ICON_LIMIT_SIZE)) {
-            throw CoreException.of(CoreException.ExceptionType.PROJECT_ICON_TOO_LARGE);
+    /**
+     * 新上传逻辑采用icon
+     * @param icon
+     * @return
+     * @throws CoreException
+     */
+    public String validateIcon(String icon) throws CoreException {
+        if (StringUtils.isNoneBlank(icon)) {
+            if (!StorageUtils.validateImageURL(icon) || !new UrlValidator().isValid(icon)) {
+                throw CoreException.of(CoreException.ExceptionType.UPDATE_PROJECT_ICON_ERROR);
+            }
+            return icon;
         }
-        if (!form.checkFilenameCaseInsensitive(ICON_REG)) {
-            throw CoreException.of(CoreException.ExceptionType.UPDATE_PROJECT_ICON_ERROR);
-        }
-        try {
-            icon = form.storage();
-        } catch (StorageUploadException e) {
-            throw CoreException.of(CoreException.ExceptionType.UPDATE_PROJECT_ICON_ERROR);
-        }
-        if (icon == null) {
-            throw CoreException.of(CoreException.ExceptionType.UPDATE_PROJECT_ICON_ERROR);
-        }
-        ImageInfo info = storage.imageInfo(icon);
-        if (null == info) {
-            throw CoreException.of(CoreException.ExceptionType.UPDATE_PROJECT_ICON_ERROR);
-        }
-        if (info.getWidth() > PROJECT_ICON_MAX_WIDTH || info.getHeight() > PROJECT_ICON_MAX_HEIGHT) {
-            throw CoreException.of(CoreException.ExceptionType.PROJECT_ICON_ERROR);
-        }
-        if (info.getWidth() < PROJECT_ICON_MIN_WIDTH || info.getHeight() < PROJECT_ICON_MIN_HEIGHT) {
-            throw CoreException.of(CoreException.ExceptionType.PROJECT_ICON_ERROR);
-        }
-        Pattern pattern = Pattern.compile(ICON_REG);
-        if (pattern.matcher(info.getFormat().toLowerCase()).matches()) {
-            throw CoreException.of(CoreException.ExceptionType.PROJECT_ICON_ERROR);
-        }
-        return icon;
+        throw CoreException.of(CoreException.ExceptionType.UPDATE_PROJECT_ICON_ERROR);
     }
 
     public void updateProject(UpdateProjectForm form, Project project, Integer userId) throws CoreException, MilestoneException {

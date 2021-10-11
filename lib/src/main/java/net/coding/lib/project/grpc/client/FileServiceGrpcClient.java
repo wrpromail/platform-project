@@ -30,13 +30,11 @@ public class FileServiceGrpcClient extends EndpointGrpcClient<FileServiceGrpc.Fi
     }
 
     public FileProto.File getProjectFileByIdWithDel(Integer projectId, Integer id) {
-        log.info("FileServiceGrpcClient.getProjectFileById() projectId={}, id={}", projectId, id);
         FileProto.GetProjectFileByIdRequest request = FileProto.GetProjectFileByIdRequest.newBuilder()
                 .setProjectId(projectId)
                 .setId(id)
                 .build();
         FileProto.GetProjectFileByIdResponse response = newStub().getProjectFileByIdWithDel(request);
-        log.info("FileServiceGrpcClient.getProjectFileById() response={}", response.toString());
         if(response.getCode() == 0) {
             return response.getFile();
         }
