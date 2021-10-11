@@ -20,6 +20,7 @@ import net.coding.lib.project.entity.ProjectTweet;
 import net.coding.lib.project.enums.CacheTypeEnum;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.AddMemberForm;
+import net.coding.lib.project.grpc.client.TeamGrpcClient;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.hook.trigger.CreateMemberEventTriggerTrigger;
 import net.coding.lib.project.hook.trigger.DeleteMemberEventTriggerTrigger;
@@ -50,12 +51,15 @@ import lombok.extern.slf4j.Slf4j;
 import one.util.streamex.StreamEx;
 import proto.acl.AclProto;
 import proto.advanced_role.AdvancedRoleProto;
+import proto.common.CodeProto;
+import proto.platform.team.TeamProto;
 import proto.platform.user.UserProto;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static net.coding.common.constants.ProjectConstants.PROJECT_PRIVATE;
 import static net.coding.common.constants.RoleConstants.OWNER;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.TEAM_NOT_EXIST;
 
 @Service
 @AllArgsConstructor
@@ -69,6 +73,8 @@ public class ProjectMemberService {
     private final ProjectDao projectDao;
 
     private final UserGrpcClient userGrpcClient;
+
+    private final TeamGrpcClient teamGrpcClient;
 
     private final AdvancedRoleServiceGrpcClient advancedRoleServiceGrpcClient;
 
@@ -124,9 +130,14 @@ public class ProjectMemberService {
         return projectMemberDao.getByProjectIdAndUserId(projectId, userId, Timestamp.valueOf(BeanUtils.NOT_DELETED_AT));
     }
 
-    public ResultPage<ProjectMemberDTO> getProjectMembers(Integer projectId, String keyWord,
+    public ResultPage<ProjectMemberDTO> getProjectMembers(Integer teamId, Integer projectId, String keyWord,
                                                           Integer roleId, PageRowBounds pager) throws CoreException {
-        if (Objects.isNull(projectDao.getProjectById(projectId))) {
+        TeamProto.GetTeamResponse currentTeam = teamGrpcClient.getTeam(teamId);
+        if (Objects.isNull(currentTeam) || CodeProto.Code.SUCCESS != currentTeam.getCode()
+                || ObjectUtils.isEmpty(currentTeam.getData())) {
+            throw CoreException.of(TEAM_NOT_EXIST);
+        }
+        if (Objects.isNull(projectDao.getProjectByIdAndTeamId(projectId, currentTeam.getData().getId()))) {
             throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
         }
         List<ProjectMember> projectMemberList = projectMemberDao.getProjectMembers(projectId, keyWord, roleId, pager);
@@ -141,7 +152,7 @@ public class ProjectMemberService {
         if (!CollectionUtils.isEmpty(projectMembers)) {
             projectMembers.forEach(projectMemberDTO -> {
                         UserProto.User user = userGrpcClient.getUserById(projectMemberDTO.getUser_id());
-                        projectMemberDTO.setUser(UserUtil.toBuilderUser(user, true)
+                        projectMemberDTO.setUser(UserUtil.toBuilderUser(user, false)
                         );
                     }
             );
