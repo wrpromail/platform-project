@@ -62,7 +62,8 @@ public class ProjectSetting {
             Code.FUNCTION_OLD_TASK,
             Code.FUNCTION_CODE_ANALYSIS,
             Code.FUNCTION_API_DOCS,
-            Code.FUNCTION_QTA
+            Code.FUNCTION_QTA,
+            Code.FUNCTION_COMPASS
     );
 
     /**
@@ -104,6 +105,7 @@ public class ProjectSetting {
         FUNCTION_QTA("qta", "test_auto", valueTrue, valueTrue),
         FUNCTION_FILE("file", "file_pan", valueTrue, valueTrue),
         FUNCTION_KM("knowledge", "knowledge", valueTrue, valueTrue),
+        FUNCTION_COMPASS("compass", "compass", valueTrue, valueTrue),
 
         AGILE_ITERATION("agile_development_iteration", "agile_develop_iteration", valueTrue, valueTrue),
         AGILE_EPIC("agile_development_epic", "agile_develop_epic", valueFalse, valueFalse),

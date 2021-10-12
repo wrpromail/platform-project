@@ -99,7 +99,9 @@ public enum ProjectTemplateEnums {
             ProjectSetting.Code.FUNCTION_API_DOCS,
             ProjectSetting.Code.FUNCTION_FILE,
             ProjectSetting.Code.FUNCTION_KM,
-            ProjectSetting.Code.FUNCTION_STATISTICS
+            ProjectSetting.Code.FUNCTION_STATISTICS,
+            ProjectSetting.Code.FUNCTION_COMPASS
+
     );
 
     /**
@@ -118,7 +120,8 @@ public enum ProjectTemplateEnums {
             ProjectSetting.Code.FUNCTION_API_DOCS,
             ProjectSetting.Code.FUNCTION_QTA,
             ProjectSetting.Code.FUNCTION_STATISTICS,
-            ProjectSetting.Code.FUNCTION_FILE
+            ProjectSetting.Code.FUNCTION_FILE,
+            ProjectSetting.Code.FUNCTION_COMPASS
     );
 
     public final static Set<ProjectSetting.Code> FUNCTION_CHOICE_DEMAND = Sets.newHashSet(

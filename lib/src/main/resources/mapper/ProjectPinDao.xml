@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.coding.lib.project.dao.ProjectPinDao">
+    <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ProjectPin">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="project_id" jdbcType="INTEGER" property="projectId"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="sort" jdbcType="INTEGER" property="sort"/>
+        <result column="created_at" jdbcType="TIMESTAMP" property="createdAt"/>
+        <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt"/>
+    </resultMap>
+
+    <select id="getProjectPinPages" resultType="net.coding.lib.project.entity.Project">
+        select p.*
+        from project_pins pp
+        inner join projects p on pp.project_id = p.id and p.deleted_at = '1970-01-01 00:00:00'
+        where pp.deleted_at = '1970-01-01 00:00:00'
+        and pp.user_id = #{userId}
+        and p.team_owner_id = #{teamId}
+        and p.invisible = 0 and p.pm_type = 0
+        <if test="keyword != null and keyword != ''">
+            and (
+            p.name like CONCAT('%',#{keyword},'%')
+            or p.name_pinyin like CONCAT('%',#{keyword},'%')
+            or p.display_name like CONCAT('%',#{keyword},'%')
+            )
+        </if>
+        order by pp.sort asc
+    </select>
+
+    <select id="findMaxSort" resultType="Integer">
+        select if(max(sort) is NULL,0,max(sort))
+        from project_pins
+        where user_id = #{userId} and deleted_at = '1970-01-01 00:00:00'
+    </select>
+
+    <update id="batchUpdateSortBlock">
+        update project_pins
+        set sort =
+        <choose>
+            <when test="sourceSort &gt; targetSort">
+                sort + 1
+            </when>
+            <otherwise>
+                sort - 1
+            </otherwise>
+        </choose>
+        where user_id = #{userId}
+        <choose>
+            <when test="sourceSort &gt; targetSort">
+                and sort &gt;= #{targetSort} and sort &lt; #{sourceSort}
+            </when>
+            <otherwise>
+                and sort &gt; #{sourceSort} and sort &lt; #{targetSort}
+            </otherwise>
+        </choose>
+    </update>
+</mapper>
