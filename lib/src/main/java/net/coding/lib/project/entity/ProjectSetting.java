@@ -2,8 +2,6 @@ package net.coding.lib.project.entity;
 
 import com.google.common.collect.Sets;
 
-import net.coding.common.base.bean.BaseBean;
-
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Set;

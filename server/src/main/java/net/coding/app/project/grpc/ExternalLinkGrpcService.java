@@ -10,13 +10,11 @@ import net.coding.proto.platform.project.ExternalLinkProto;
 import net.coding.proto.platform.project.ExternalLinkServiceGrpc;
 
 import org.lognet.springboot.grpc.GRpcService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import io.grpc.stub.StreamObserver;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import proto.common.CodeProto;
-import proto.projectResource.ProjectResourceProto;
 
 @Slf4j
 @GRpcService

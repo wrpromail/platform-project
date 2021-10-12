@@ -1,6 +1,5 @@
 package net.coding.app.project.config;
 
-import com.getsentry.raven.dsn.Dsn;
 import com.getsentry.raven.logback.SentryAppender;
 
 import org.apache.commons.lang3.StringUtils;

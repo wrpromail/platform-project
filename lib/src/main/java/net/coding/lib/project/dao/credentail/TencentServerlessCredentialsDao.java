@@ -4,7 +4,6 @@ import net.coding.lib.project.entity.TencentServerlessCredential;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Property;
 
 import java.sql.Timestamp;
 

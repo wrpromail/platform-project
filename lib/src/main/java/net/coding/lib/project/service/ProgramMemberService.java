@@ -2,7 +2,6 @@ package net.coding.lib.project.service;
 
 import net.coding.common.util.BeanUtils;
 import net.coding.e.grpcClient.collaboration.ProgramIssueRelationGrpcClient;
-import net.coding.e.grpcClient.collaboration.exception.ProgramIssueRelationException;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.lib.project.dao.ProgramDao;
 import net.coding.lib.project.dao.ProgramProjectDao;
@@ -30,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import one.util.streamex.StreamEx;
 import proto.acl.AclProto;
 
-import static net.coding.lib.project.enums.ProgramProjectRoleTypeEnum.*;
+import static net.coding.lib.project.enums.ProgramProjectRoleTypeEnum.ProgramRoleTypeEnum;
 
 @Service
 @Slf4j

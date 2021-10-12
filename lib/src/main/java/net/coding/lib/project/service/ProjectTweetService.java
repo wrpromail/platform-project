@@ -32,11 +32,9 @@ import lombok.AllArgsConstructor;
 import proto.platform.user.UserProto;
 
 import static net.coding.common.constants.ValidationConstants.TWEET_LIMIT_IMAGES;
-import static net.coding.lib.project.exception.CoreException.ExceptionType.CONTENT_INCLUDE_SENSITIVE_WORDS;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_TWEET_FAST;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_TWEET_REPEAT;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.TWEET_IMAGE_LIMIT_N;
-import static net.coding.lib.project.exception.CoreException.ExceptionType.TWEET_NOT_EXISTS;
 
 @Service
 @AllArgsConstructor

@@ -4,7 +4,6 @@ import net.coding.common.util.BeanUtils;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.parameter.ProgramProjectQueryParameter;
-import net.coding.lib.project.parameter.ProgramQueryParameter;
 import net.coding.lib.project.service.ProgramService;
 import net.coding.lib.project.utils.DateUtil;
 import net.coding.proto.platform.program.ProgramProto;

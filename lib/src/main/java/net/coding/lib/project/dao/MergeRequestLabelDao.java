@@ -1,12 +1,13 @@
 package net.coding.lib.project.dao;
 
-import java.sql.Timestamp;
-import java.util.List;
-import lombok.AllArgsConstructor;
 import net.coding.common.base.dao.BaseDao;
 import net.coding.lib.project.dao.mapper.MergeRequestLabelMapper;
 import net.coding.lib.project.entity.MergeRequestLabel;
+
 import org.springframework.stereotype.Repository;
+
+import java.sql.Timestamp;
+
 import tk.mybatis.mapper.entity.Example;
 import tk.mybatis.mapper.weekend.WeekendSqls;
 

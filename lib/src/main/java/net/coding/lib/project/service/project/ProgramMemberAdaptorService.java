@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import one.util.streamex.StreamEx;
 import proto.acl.AclProto;
 
-import static net.coding.lib.project.enums.ProgramProjectRoleTypeEnum.*;
+import static net.coding.lib.project.enums.ProgramProjectRoleTypeEnum.ProgramRoleTypeEnum;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PERMISSION_DENIED;
 
 

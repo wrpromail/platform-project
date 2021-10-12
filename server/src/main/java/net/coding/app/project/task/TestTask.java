@@ -1,8 +1,5 @@
 package net.coding.app.project.task;
 
-import net.coding.app.project.annotation.EnableRedisLock;
-
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component

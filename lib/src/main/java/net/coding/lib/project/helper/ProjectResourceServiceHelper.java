@@ -23,7 +23,6 @@ import net.coding.lib.project.service.ResourceReferenceService;
 import net.coding.lib.project.service.ResourceSequenceService;
 import net.coding.lib.project.utils.DateUtil;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

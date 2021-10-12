@@ -10,6 +10,8 @@ import net.coding.lib.project.grpc.client.TeamGrpcClient;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.parameter.ProjectCreateParameter;
 import net.coding.lib.project.service.ProjectService;
+import net.coding.proto.platform.project.ProjectProto;
+import net.coding.proto.platform.project.ProjectServiceGrpc;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -26,10 +28,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import one.util.streamex.StreamEx;
 import proto.common.CodeProto;
-
-import net.coding.proto.platform.project.ProjectProto;
-import net.coding.proto.platform.project.ProjectServiceGrpc;
-
 import proto.platform.permission.PermissionProto;
 import proto.platform.team.TeamProto;
 import proto.platform.user.UserProto;
@@ -39,8 +37,8 @@ import static net.coding.lib.project.exception.CoreException.ExceptionType.TEAM_
 import static net.coding.lib.project.exception.CoreException.ExceptionType.USER_NOT_LOGIN;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static proto.common.CodeProto.Code.INTERNAL_ERROR;
-import static proto.common.CodeProto.Code.SUCCESS;
 import static proto.common.CodeProto.Code.NOT_FOUND;
+import static proto.common.CodeProto.Code.SUCCESS;
 import static proto.platform.permission.PermissionProto.Action.Create;
 import static proto.platform.permission.PermissionProto.Action.Delete;
 import static proto.platform.permission.PermissionProto.Function.EnterpriseProject;

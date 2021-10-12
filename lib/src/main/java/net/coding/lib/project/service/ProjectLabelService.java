@@ -2,12 +2,6 @@ package net.coding.lib.project.service;
 
 import com.google.common.eventbus.AsyncEventBus;
 
-import java.util.Collections;
-import java.util.List;
-
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import net.coding.common.base.event.ActivityEvent;
 import net.coding.e.proto.ActivitiesProto.SendActivitiesRequest;
 import net.coding.grpc.client.activity.ActivityGrpcClient;
@@ -22,6 +16,12 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+
+import java.util.Collections;
+import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @AllArgsConstructor

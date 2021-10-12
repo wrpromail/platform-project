@@ -19,7 +19,6 @@ import net.coding.proto.open.api.project.member.ProjectMemberServiceGrpc;
 import org.apache.commons.lang3.ObjectUtils;
 import org.lognet.springboot.grpc.GRpcService;
 
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;

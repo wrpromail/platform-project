@@ -1,17 +1,20 @@
 package net.coding.lib.project.infra;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-
-import java.util.regex.Pattern;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import net.coding.grpc.client.platform.infra.text.pinyin.PinyinInfraGrpcClient;
 import net.coding.grpc.client.platform.infra.text.pinyin.PinyinProto.PinyinRequest;
 import net.coding.grpc.client.platform.infra.text.pinyin.PinyinProto.PinyinResponse;
 import net.coding.grpc.client.platform.infra.text.pinyin.PinyinProto.PinyinStyle;
 import net.coding.platform.degradation.annotation.Degradation;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+
+import java.util.regex.Pattern;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 @Slf4j
 @AllArgsConstructor

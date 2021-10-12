@@ -1,21 +1,5 @@
 package net.coding.app.project.http;
 
-import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NOT_EXIST;
-import static net.coding.lib.project.exception.CoreException.ExceptionType.TWEET_NOT_EXISTS;
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import javax.validation.Valid;
-
-import lombok.AllArgsConstructor;
-
 import net.coding.app.project.constant.GatewayHeader;
 import net.coding.common.annotation.ProjectApiProtector;
 import net.coding.common.annotation.ProtectedAPI;
@@ -26,14 +10,12 @@ import net.coding.lib.project.dao.MergeRequestLabelDao;
 import net.coding.lib.project.dto.ProjectLabelDTO;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectLabel;
-import net.coding.lib.project.entity.ProjectTweet;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.exception.CoreRuntimeException;
 import net.coding.lib.project.form.ProjectLabelForm;
 import net.coding.lib.project.service.ProjectLabelService;
-
 import net.coding.lib.project.service.ProjectService;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,6 +23,20 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import javax.validation.Valid;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import lombok.AllArgsConstructor;
+
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NOT_EXIST;
 
 @RestController
 @Api(value = "项目标签", tags = "项目标签")

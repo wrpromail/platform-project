@@ -1,14 +1,10 @@
 package net.coding.lib.project.entity;
 
-import net.coding.common.base.bean.BaseBean;
-
 import java.io.Serializable;
 import java.sql.Timestamp;
 
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 
 /**
  * @ClassName: ProjectTokenDepot

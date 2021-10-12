@@ -1,11 +1,7 @@
 package net.coding.lib.project.form;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import net.coding.common.base.form.BaseForm;
 import net.coding.common.util.TextUtils;
-
 
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
@@ -13,6 +9,9 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.validation.Errors;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import static net.coding.common.base.validator.ValidationConstants.TWEET_LIMIT_CODES;
 import static net.coding.common.base.validator.ValidationConstants.TWEET_LIMIT_CODE_LENGTH;

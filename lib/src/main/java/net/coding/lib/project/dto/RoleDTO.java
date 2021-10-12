@@ -1,7 +1,5 @@
 package net.coding.lib.project.dto;
 
-import java.sql.Timestamp;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Builder;

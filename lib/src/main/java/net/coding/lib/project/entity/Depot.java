@@ -2,6 +2,7 @@ package net.coding.lib.project.entity;
 
 import java.io.Serializable;
 import java.util.Date;
+
 import lombok.Data;
 
 /**

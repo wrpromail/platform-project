@@ -2,27 +2,7 @@ package net.coding.app.project.http;
 
 import com.github.pagehelper.PageInfo;
 
-import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NOT_EXIST;
-import static net.coding.lib.project.exception.CoreException.ExceptionType.TWEET_NOT_EXISTS;
-import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
-import static org.springframework.web.bind.annotation.RequestMethod.PUT;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
 import net.coding.app.project.constant.GatewayHeader;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestHeader;
-import proto.platform.user.UserProto;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import javax.validation.Valid;
-
 import net.coding.common.annotation.ProjectApiProtector;
 import net.coding.common.annotation.ProtectedAPI;
 import net.coding.common.annotation.enums.Action;
@@ -42,14 +22,34 @@ import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.service.ProjectService;
 import net.coding.lib.project.service.ProjectTweetService;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import javax.validation.Valid;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import proto.platform.user.UserProto;
+
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NOT_EXIST;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.TWEET_NOT_EXISTS;
+import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 @Api(value = "项目公告", tags = "项目公告")
 @RestController

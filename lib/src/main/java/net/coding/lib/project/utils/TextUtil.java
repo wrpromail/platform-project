@@ -3,7 +3,6 @@ package net.coding.lib.project.utils;
 import com.google.common.html.types.SafeUrl;
 import com.google.common.html.types.SafeUrls;
 
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.CharUtils;
 import org.apache.commons.lang3.StringUtils;

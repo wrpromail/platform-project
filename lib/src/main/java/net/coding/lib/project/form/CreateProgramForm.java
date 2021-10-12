@@ -9,8 +9,6 @@ import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.validation.Errors;
 
-import java.util.Set;
-
 import javax.validation.constraints.Pattern;
 
 import io.swagger.annotations.ApiModel;

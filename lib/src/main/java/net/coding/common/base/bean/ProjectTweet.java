@@ -1,7 +1,5 @@
 package net.coding.common.base.bean;
 
-import net.coding.common.base.bean.BaseBean;
-
 import java.sql.Timestamp;
 
 import lombok.Data;

@@ -58,7 +58,6 @@ import proto.platform.user.UserProto;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static net.coding.common.constants.ProjectConstants.PROJECT_PRIVATE;
-import static net.coding.common.constants.RoleConstants.OWNER;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.TEAM_NOT_EXIST;
 
 @Service

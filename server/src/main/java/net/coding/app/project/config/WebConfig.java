@@ -1,7 +1,6 @@
 package net.coding.app.project.config;
 
 import net.coding.lib.project.interceptor.CommonInterceptor;
-import net.coding.lib.project.utils.ApplicationUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;

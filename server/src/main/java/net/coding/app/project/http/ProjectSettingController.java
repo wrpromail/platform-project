@@ -4,12 +4,10 @@ import net.coding.common.annotation.ProjectApiProtector;
 import net.coding.common.annotation.ProtectedAPI;
 import net.coding.common.annotation.enums.Action;
 import net.coding.common.annotation.enums.Function;
-import net.coding.common.base.annotation.RequestAttribute;
 import net.coding.lib.project.dto.ProjectFunctionDTO;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.service.ProjectSettingService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;

@@ -2,8 +2,6 @@ package net.coding.app.project.http;
 
 import com.github.pagehelper.PageInfo;
 
-import net.coding.app.project.utils.ResponseUtil;
-import net.coding.app.project.utils.ResultModel;
 import net.coding.common.annotation.ProtectedAPI;
 import net.coding.common.util.Result;
 import net.coding.common.util.ResultPage;
@@ -19,9 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import io.swagger.annotations.Api;

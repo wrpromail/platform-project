@@ -9,7 +9,6 @@ import net.coding.common.base.event.ProjectMemberRoleChangeEvent;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
-
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.grpc.client.NotificationGrpcClient;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;

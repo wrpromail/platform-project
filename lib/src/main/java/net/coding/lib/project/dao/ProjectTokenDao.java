@@ -9,8 +9,6 @@ import org.apache.ibatis.annotations.Param;
 import java.sql.Timestamp;
 import java.util.List;
 
-import io.swagger.models.auth.In;
-
 @Mapper
 public interface ProjectTokenDao {
     ProjectToken selectByPrimaryKey(

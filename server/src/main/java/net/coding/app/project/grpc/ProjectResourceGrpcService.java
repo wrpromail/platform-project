@@ -43,9 +43,7 @@ import proto.common.PagerProto;
 import proto.projectResource.ProjectResourceProto;
 import proto.projectResource.ProjectResourceServiceGrpc;
 
-import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NOT_EXIST;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.RESOURCE_NO_FOUND;
-import static net.coding.lib.project.exception.CoreException.ExceptionType.TEAM_NOT_EXIST;
 
 @Slf4j
 @GRpcService
