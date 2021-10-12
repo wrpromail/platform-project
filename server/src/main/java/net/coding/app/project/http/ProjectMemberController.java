@@ -50,12 +50,13 @@ public class ProjectMemberController {
     @ApiResponses(value = {@ApiResponse(code = 200, message = "Success", response = ProjectMemberDTO.class)})
     @RequestMapping(value = "", method = RequestMethod.GET)
     public Result members(
+            @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
             @PathVariable(value = "projectId") Integer projectId,
             @RequestParam(required = false) String keyWord,
             @PagerResolve PageRowBounds pager
     ) throws CoreException {
 
-        return Result.success(projectMemberService.getProjectMembers(projectId, keyWord, null, pager));
+        return Result.success(projectMemberService.getProjectMembers(teamId,projectId, keyWord, null, pager));
     }
 
 

@@ -80,6 +80,7 @@ public class OpenApiProjectMemberTwoGRpcService extends ProjectMemberServiceGrpc
             int offset = Math.max((request.getPageNumber() - 1) * request.getPageSize(), 0);
             PageRowBounds pager = new PageRowBounds(offset, request.getPageSize());
             ResultPage<ProjectMemberDTO> resultPage = projectMemberService.getProjectMembers(
+                    currentUser.getTeamId(),
                     request.getProjectId(),
                     EMPTY,
                     request.getRoleId(),
