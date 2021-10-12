@@ -46,6 +46,12 @@ public abstract class AbstractProjectAdaptorService {
 
     public abstract Class Clazz();
 
+    protected abstract String updateNameLog();
+
+    protected abstract String updateDisplayNameLog();
+
+    protected abstract String updateNameAndDisplayNameLog();
+
     public abstract void projectCreateEvent(Integer userId, Project project);
 
     public abstract void projectDeleteEvent(Integer userId, Project project);
@@ -73,6 +79,23 @@ public abstract class AbstractProjectAdaptorService {
         postActivityEvent(userId, project, action);
 
         insertOperationLog(userId, project, action);
+    }
+
+    public void postProjectUpdateEvent(Integer userId, Project project, Short action,
+                                       Boolean postProjectNameFlag, Boolean postDisplayNameFlag,
+                                       String oldDisplayName) {
+        if (postProjectNameFlag && postDisplayNameFlag) {
+            insertOperationLog(userId, project, action, getNameAndDisplayNameMessage(project, oldDisplayName));
+            return;
+        }
+        if (postProjectNameFlag) {
+            insertOperationLog(userId, project, action, getNameMessage(project));
+            return;
+        }
+        if (postDisplayNameFlag) {
+            insertOperationLog(userId, project, action, getDisplayNameMessage(project, oldDisplayName));
+            return;
+        }
     }
 
     public void postProjectArchiveEvent(Integer userId, Project project, Short action) {
@@ -111,20 +134,31 @@ public abstract class AbstractProjectAdaptorService {
         asyncEventBus.post(projectNameChangeEvent);
     }
 
+    public void insertOperationLog(Integer userId, Project project, Short action, String message) {
+        Optional.ofNullable(ProgramProjectEventEnums.of(action, project.getPmType()))
+                .ifPresent(eventEnums -> insertOperationLog(userId, project, eventEnums.name(), message));
+    }
+
     public void insertOperationLog(Integer userId, Project project, Short action) {
         Optional.ofNullable(ProgramProjectEventEnums.of(action, project.getPmType()))
-                .ifPresent(eventEnums ->
-                        loggingGrpcClient.insertOperationLog(loggingProto.OperationLogInsertRequest.newBuilder()
-                                .setUserId(userId)
-                                .setTeamId(project.getTeamOwnerId())
-                                .setContentName(eventEnums.name())
-                                .setTargetId(project.getId())
-                                .setTargetType(project.getClass().getSimpleName())
-                                .setAdminAction(false)
-                                .setText(localeMessageSource.getMessage(eventEnums.getMessage(),
-                                        new Object[]{EMPTY
-                                                , htmlLink(project)}).trim())
-                                .build()));
+                .ifPresent(eventEnums -> {
+                    String message = localeMessageSource.getMessage(eventEnums.getMessage(),
+                            new Object[]{EMPTY
+                                    , htmlLink(project)}).trim();
+                    insertOperationLog(userId, project, eventEnums.name(), message);
+                });
+    }
+
+    public void insertOperationLog(Integer userId, Project project, String contentName, String message) {
+        loggingGrpcClient.insertOperationLog(loggingProto.OperationLogInsertRequest.newBuilder()
+                .setUserId(userId)
+                .setTeamId(project.getTeamOwnerId())
+                .setContentName(contentName)
+                .setTargetId(project.getId())
+                .setTargetType(project.getClass().getSimpleName())
+                .setAdminAction(false)
+                .setText(message)
+                .build());
     }
 
     public void hasPermissionInEnterprise(Integer teamId, Integer userId, Integer program, Short action) throws CoreException {
@@ -166,5 +200,27 @@ public abstract class AbstractProjectAdaptorService {
         sb.append(StringUtils.defaultIfBlank(project.getDisplayName(), project.getName()));
         sb.append("</a>");
         return sb.toString();
+    }
+
+    public String getNameMessage(Project project) {
+        return localeMessageSource.getMessage(updateNameLog(),
+                new Object[]{htmlLink(project),
+                        project.getName()
+                }).trim();
+    }
+
+    public String getDisplayNameMessage(Project project, String oldDisplayName) {
+        return localeMessageSource.getMessage(updateDisplayNameLog(),
+                new Object[]{oldDisplayName,
+                        htmlLink(project)
+                }).trim();
+    }
+
+    public String getNameAndDisplayNameMessage(Project project, String oldDisplayName) {
+        return localeMessageSource.getMessage(updateNameAndDisplayNameLog(),
+                new Object[]{oldDisplayName,
+                        htmlLink(project),
+                        project.getName()
+                }).trim();
     }
 }

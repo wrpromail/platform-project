@@ -46,6 +46,21 @@ public class ProgramAdaptorService extends AbstractProjectAdaptorService {
     }
 
     @Override
+    protected String updateNameLog() {
+        return "program_update_name";
+    }
+
+    @Override
+    protected String updateDisplayNameLog() {
+        return "program_update_display_name";
+    }
+
+    @Override
+    protected String updateNameAndDisplayNameLog() {
+        return "program_update_name_and_display_name";
+    }
+
+    @Override
     public void projectCreateEvent(Integer userId, Project project) {
         postProgramEvent(userId, project, ProgramEvent.Function.Create);
     }
