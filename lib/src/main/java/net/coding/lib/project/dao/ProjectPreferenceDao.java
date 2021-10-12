@@ -1,7 +1,6 @@
 package net.coding.lib.project.dao;
 
 import net.coding.lib.project.entity.ProjectPreference;
-import net.coding.lib.project.entity.ProjectTweet;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

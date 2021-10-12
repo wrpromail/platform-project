@@ -1,16 +1,12 @@
 package net.coding.lib.project.service;
 
-import net.coding.lib.project.dao.ProjectResourceSequenceDao;
 import net.coding.lib.project.dao.ResourceSequenceDao;
-import net.coding.lib.project.entity.ProjectResourceSequence;
 import net.coding.lib.project.entity.ResourceSequence;
 import net.coding.lib.project.enums.GlobalResourceTypeEnum;
 import net.coding.lib.project.enums.ScopeTypeEnum;
 
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 import javax.annotation.Resource;

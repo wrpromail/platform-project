@@ -1,12 +1,9 @@
 package net.coding.lib.project.dao;
 
-import net.coding.lib.project.entity.ProjectResourceSequence;
 import net.coding.lib.project.entity.ResourceSequence;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-
-import java.util.Map;
 
 @Mapper
 public interface ResourceSequenceDao {

@@ -1,15 +1,11 @@
 package net.coding.app.project.http;
 
-import com.github.pagehelper.PageInfo;
-
 import net.coding.app.project.constant.GatewayHeader;
 import net.coding.common.annotation.ProtectedAPI;
 import net.coding.common.util.Result;
-import net.coding.common.util.ResultPage;
 import net.coding.e.grpcClient.collaboration.IssueGrpcClient;
 import net.coding.e.grpcClient.collaboration.dto.Issue;
 import net.coding.e.grpcClient.collaboration.exception.IssueNotException;
-import net.coding.e.proto.IssueProto;
 import net.coding.exchange.dto.team.Team;
 import net.coding.grpc.client.platform.TeamServiceGrpcClient;
 import net.coding.lib.project.dto.ResourceDTO;
@@ -25,7 +21,6 @@ import net.coding.lib.project.service.ProjectResourceService;
 import net.coding.lib.project.service.ProjectService;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,17 +29,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 
-import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NOT_EXIST;
-import static net.coding.lib.project.exception.CoreException.ExceptionType.RESOURCE_NO_FOUND;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.TEAM_NOT_EXIST;
 
 @RestController

@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import static net.coding.lib.project.enums.ProgramProjectRoleTypeEnum.*;
+import static net.coding.lib.project.enums.ProgramProjectRoleTypeEnum.ProgramRoleTypeEnum;
 
 @Slf4j
 @Component

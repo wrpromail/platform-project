@@ -1,7 +1,6 @@
 package net.coding.lib.project.service;
 
 import net.coding.grpc.client.platform.TeamProjectServiceGrpcClient;
-import net.coding.lib.project.dao.ProjectDao;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.enums.DemoProjectTemplateEnums;
 import net.coding.lib.project.enums.ProjectTemplateEnums;
@@ -18,17 +17,16 @@ import org.springframework.validation.Errors;
 import java.sql.Date;
 import java.util.regex.Pattern;
 
-
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import proto.platform.team.project.TeamProjectProto;
 
+import static net.coding.common.base.validator.ValidationConstants.PROJECT_DISPLAY_NAME_MIN_LENGTH;
+import static net.coding.common.base.validator.ValidationConstants.PROJECT_NAME_CLOUD_MAX_LENGTH;
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_NAME_MIN_LENGTH;
 import static net.coding.common.constants.CommonConstants.DATA_REGEX;
 import static net.coding.common.constants.ProjectConstants.PROJECT_NAME_CLOUD_REGEX;
 import static net.coding.common.constants.ProjectConstants.PROJECT_NAME_REGEX;
-import static net.coding.common.base.validator.ValidationConstants.PROJECT_DISPLAY_NAME_MIN_LENGTH;
-import static net.coding.common.base.validator.ValidationConstants.PROJECT_NAME_CLOUD_MAX_LENGTH;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PARAMETER_INVALID;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_DISPLAY_NAME_IS_EMPTY;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_DISPLAY_NAME_LENGTH_ERROR;

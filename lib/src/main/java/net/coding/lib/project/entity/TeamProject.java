@@ -1,9 +1,5 @@
 package net.coding.lib.project.entity;
 
-import net.coding.common.util.BeanUtils;
-import net.coding.lib.project.utils.DateUtil;
-
-
 import java.util.Date;
 
 import javax.persistence.Column;

@@ -4,7 +4,6 @@ package net.coding.lib.project.dao;
 import net.coding.lib.project.entity.ResourceReference;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Map;

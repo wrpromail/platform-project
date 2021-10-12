@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import proto.artifact.*;
+import proto.artifact.ArtifactRepositoryProto;
+import proto.artifact.ArtifactRepositoryServiceGrpc;
 
 /**
  * @Author liuying

@@ -1,11 +1,8 @@
 package net.coding.lib.project.service;
 
 import net.coding.common.util.BeanUtils;
-import net.coding.grpc.client.permission.RoleServiceGrpcClient;
-import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dao.ProjectPersonalPreferenceDao;
 import net.coding.lib.project.entity.ProjectPersonalPreference;
-import net.coding.lib.project.exception.CoreException;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
@@ -19,9 +16,6 @@ import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import proto.platform.user.UserProto;
-
-import static net.coding.common.constants.RoleConstants.ADMIN;
 
 @Service
 @AllArgsConstructor

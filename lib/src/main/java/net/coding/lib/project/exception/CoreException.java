@@ -5,7 +5,6 @@ import net.coding.common.constants.CommonConstants;
 import net.coding.common.db.api.DBException;
 import net.coding.common.util.AllowOriginUtil;
 import net.coding.common.util.QcloudUtils;
-import net.coding.common.util.ResourceUtils;
 import net.coding.common.util.Result;
 import net.coding.lib.project.utils.ResourceUtil;
 
@@ -47,8 +46,6 @@ import static net.coding.common.base.validator.ValidationConstants.PROJECT_DISPL
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_FILE_NAME_LENGTH;
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_NAME_MAX_LENGTH;
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_NAME_MIN_LENGTH;
-import static net.coding.common.base.validator.ValidationConstants.TASK_CONTENT_MAX_LENGTH;
-import static net.coding.common.base.validator.ValidationConstants.TASK_DESCRIPTION_MAX_LENGTH;
 
 @ControllerAdvice
 @Slf4j

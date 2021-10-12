@@ -3,7 +3,6 @@ package net.coding.app.project.grpc.openapi;
 import net.coding.common.i18n.utils.LocaleMessageSource;
 import net.coding.grpc.client.permission.AclServiceGrpcClient;
 import net.coding.lib.project.entity.Project;
-
 import net.coding.lib.project.enums.ProjectLabelEnums;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
@@ -25,7 +24,6 @@ import proto.open.api.CodeProto;
 import proto.open.api.ResultProto;
 import proto.open.api.project.ProjectMemberProto;
 import proto.open.api.project.ProjectMemberServiceGrpc;
-
 import proto.platform.permission.PermissionProto;
 import proto.platform.team.TeamProto;
 import proto.platform.user.UserProto;

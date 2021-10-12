@@ -7,7 +7,6 @@ import net.coding.e.grpcClient.collaboration.IssueGrpcClient;
 import net.coding.e.grpcClient.collaboration.dto.Issue;
 import net.coding.e.grpcClient.collaboration.exception.IssueNotException;
 import net.coding.e.proto.FileProto;
-import net.coding.e.proto.IssueProto;
 import net.coding.lib.project.entity.Depot;
 import net.coding.lib.project.entity.ExternalLink;
 import net.coding.lib.project.entity.MergeRequest;
@@ -15,12 +14,10 @@ import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectResource;
 import net.coding.lib.project.entity.Release;
 import net.coding.lib.project.grpc.client.FileServiceGrpcClient;
-import net.coding.proto.depot.DepotProto;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.MessageFormat;
@@ -31,8 +28,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.annotation.Resource;
 
 import lombok.AllArgsConstructor;
 

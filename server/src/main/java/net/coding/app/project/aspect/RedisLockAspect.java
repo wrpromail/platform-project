@@ -1,15 +1,11 @@
 package net.coding.app.project.aspect;
 
-import net.coding.app.project.Application;
 import net.coding.app.project.annotation.EnableRedisLock;
 import net.coding.app.project.utils.RedissonLockUtil;
-import net.coding.lib.project.utils.ApplicationUtil;
 
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

@@ -6,9 +6,7 @@ import net.coding.e.proto.CommonProto;
 import net.coding.grpc.client.permission.AclServiceGrpcClient;
 import net.coding.lib.project.common.GRpcMetadataContextHolder;
 import net.coding.lib.project.entity.Project;
-
 import net.coding.lib.project.exception.CoreException;
-
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.interceptor.GRpcHeaderServerInterceptor;
 import net.coding.lib.project.service.ProjectService;
@@ -18,8 +16,8 @@ import net.coding.proto.open.api.project.ProjectServiceGrpc;
 import org.apache.commons.lang3.StringUtils;
 import org.lognet.springboot.grpc.GRpcService;
 
-
 import java.util.Objects;
+
 import io.grpc.stub.StreamObserver;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

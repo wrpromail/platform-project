@@ -3,7 +3,6 @@ package net.coding.lib.project.service;
 
 import net.coding.common.util.BeanUtils;
 import net.coding.lib.project.dao.ProjectTokenDepotDao;
-
 import net.coding.lib.project.entity.ProjectTokenDepot;
 
 import org.springframework.stereotype.Service;

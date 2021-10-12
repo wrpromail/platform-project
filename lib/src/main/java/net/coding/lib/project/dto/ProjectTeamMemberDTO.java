@@ -1,10 +1,5 @@
 package net.coding.lib.project.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-
-import java.sql.Date;
-import java.sql.Timestamp;
-
 import javax.persistence.JoinColumn;
 
 import io.swagger.annotations.ApiModel;

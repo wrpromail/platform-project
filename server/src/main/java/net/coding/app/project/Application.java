@@ -3,12 +3,11 @@ package net.coding.app.project;
 import net.coding.common.server.BaseConfig;
 import net.coding.common.server.BaseServer;
 import net.coding.common.verification.VerificationAutoConfiguration;
-
 import net.coding.platform.degradation.ServiceDegradationAutoConfiguration;
+
 import org.lognet.springboot.grpc.autoconfigure.GRpcAutoConfiguration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;

@@ -3,7 +3,6 @@ package net.coding.lib.project.entity;
 import java.io.Serializable;
 import java.util.Date;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

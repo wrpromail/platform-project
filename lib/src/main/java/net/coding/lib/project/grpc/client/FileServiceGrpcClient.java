@@ -1,7 +1,5 @@
 package net.coding.lib.project.grpc.client;
 
-import com.google.gson.Gson;
-
 import net.coding.common.rpc.client.EndpointGrpcClient;
 import net.coding.e.proto.FileProto;
 import net.coding.e.proto.FileServiceGrpc;

@@ -2,9 +2,10 @@ package net.coding.lib.project.dao;
 
 import net.coding.lib.project.entity.ResourceReferenceCommentRelation;
 
+import org.apache.ibatis.annotations.Mapper;
+
 import java.util.List;
 import java.util.Map;
-import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface ResourceReferenceCommentRelationDao {

@@ -1,19 +1,5 @@
 package net.coding.app.project.grpc;
 
-import io.grpc.Status;
-
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
-
-import io.grpc.stub.StreamObserver;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import proto.common.CodeProto;
-
 import net.coding.lib.project.entity.ProjectLabel;
 import net.coding.lib.project.form.ProjectLabelForm;
 import net.coding.lib.project.service.ProjectLabelService;
@@ -24,6 +10,19 @@ import net.coding.proto.platform.project.ProjectLabelServiceGrpc;
 import org.apache.commons.lang3.StringUtils;
 import org.lognet.springboot.grpc.GRpcService;
 import org.springframework.util.CollectionUtils;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
+
+import io.grpc.Status;
+import io.grpc.stub.StreamObserver;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import proto.common.CodeProto;
 
 @Slf4j
 @AllArgsConstructor

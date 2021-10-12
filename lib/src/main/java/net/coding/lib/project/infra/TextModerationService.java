@@ -1,15 +1,18 @@
 package net.coding.lib.project.infra;
 
-import java.util.Collections;
-import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import net.coding.grpc.client.platform.infra.text.moderation.TextModerationInfraGrpcClient;
 import net.coding.grpc.client.platform.infra.text.moderation.TextProto.TextModerationRequest;
 import net.coding.grpc.client.platform.infra.text.moderation.TextProto.TextModerationResponse;
 import net.coding.platform.degradation.annotation.Degradation;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @AllArgsConstructor

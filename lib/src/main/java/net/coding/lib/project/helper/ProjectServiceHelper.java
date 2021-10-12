@@ -6,7 +6,6 @@ import com.google.common.eventbus.AsyncEventBus;
 import net.coding.common.base.event.ActivityEvent;
 import net.coding.common.base.event.CreateProjectUserEvent;
 import net.coding.common.base.event.ProjectCreateEvent;
-
 import net.coding.common.base.gson.JSON;
 import net.coding.common.i18n.utils.LocaleMessageSource;
 import net.coding.common.util.TextUtils;
@@ -32,8 +31,8 @@ import net.coding.lib.project.service.ProjectPreferenceService;
 import net.coding.lib.project.utils.DateUtil;
 import net.coding.lib.project.utils.ResourceUtil;
 import net.coding.lib.project.utils.TextUtil;
-
 import net.coding.platform.degradation.annotation.Degradation;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Component;

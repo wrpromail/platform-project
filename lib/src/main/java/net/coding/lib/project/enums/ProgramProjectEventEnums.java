@@ -6,8 +6,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import proto.platform.permission.PermissionProto;
 
-import static net.coding.common.constants.ProjectConstants.*;
+import static net.coding.common.constants.ProjectConstants.ACTION_ARCHIVE;
 import static net.coding.common.constants.ProjectConstants.ACTION_CREATE;
+import static net.coding.common.constants.ProjectConstants.ACTION_DELETE;
+import static net.coding.common.constants.ProjectConstants.ACTION_UNARCHIVE;
+import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE;
 import static net.coding.lib.project.enums.PmTypeEnums.PROGRAM;
 import static net.coding.lib.project.enums.PmTypeEnums.PROJECT;
 import static net.coding.lib.project.enums.ProgramProjectEventEnums.ACTION.ACTION_VIEW;
