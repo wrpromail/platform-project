@@ -38,6 +38,21 @@ public class ProjectAdaptorService extends AbstractProjectAdaptorService {
     }
 
     @Override
+    protected String updateNameLog() {
+        return "project_update_name";
+    }
+
+    @Override
+    protected String updateDisplayNameLog() {
+        return "project_update_display_name";
+    }
+
+    @Override
+    protected String updateNameAndDisplayNameLog() {
+        return "project_update_name_and_display_name";
+    }
+
+    @Override
     public void projectCreateEvent(Integer userId, Project project) {
 
     }

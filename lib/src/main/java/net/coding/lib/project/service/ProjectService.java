@@ -604,6 +604,7 @@ public class ProjectService {
         boolean postDisplayNameFlag = false;
         boolean postDescriptionFlag = false;
         boolean postDateFlag = false;
+        String oldDisplayName = project.getDisplayName();
         if (!project.getName().equals(form.getName())) {
             if (Objects.nonNull(getByNameAndTeamId(form.getName(), project.getTeamOwnerId()))) {
                 throw CoreException.of(PROJECT_NAME_EXISTS);
@@ -665,6 +666,10 @@ public class ProjectService {
             projectAdaptorFactory.create(project.getPmType())
                     .postActivityEvent(userId, project, ACTION_UPDATE_DATE);
         }
+
+        projectAdaptorFactory.create(project.getPmType())
+                .postProjectUpdateEvent(userId, project, ACTION_UPDATE,
+                        postProjectNameFlag, postDisplayNameFlag, oldDisplayName);
     }
 
     public void validateUpdateProjectParameter(UpdateProjectForm form) throws CoreException {

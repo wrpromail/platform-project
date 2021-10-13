@@ -8,6 +8,7 @@ import net.coding.common.json.Json;
 import net.coding.common.redis.api.JedisManager;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
+import net.coding.lib.project.entity.ProjectPin;
 import net.coding.lib.project.enums.CacheTypeEnum;
 
 import org.apache.commons.lang3.StringUtils;
@@ -87,6 +88,13 @@ public class ProjectHandCacheService {
         EvictCacheManager.evictTableCache(TABLE_NAME, CacheType.count, "countProjects:", pm.getUserId());
         EvictCacheManager.evictTableCache(TABLE_NAME, CacheType.list, "getProjectMembersByUser", pm.getUserId());
     }
+
+    public void handleProjectPinCache(ProjectPin pin) {
+        String TABLE_NAME = "project_pins";
+        EvictCacheManager.evictTableCache(TABLE_NAME, CacheType.bean, pin.getId());
+        EvictCacheManager.evictTableCache(TABLE_NAME, CacheType.list, "userId", pin.getUserId());
+    }
+
 
     protected String countCacheKey(String version, Object... params) {
         return version + ":C:" + StringUtils.join(params, '#');

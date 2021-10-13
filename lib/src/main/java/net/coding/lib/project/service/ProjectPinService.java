@@ -11,6 +11,7 @@ import net.coding.lib.project.dao.ProjectPinDao;
 import net.coding.lib.project.dto.ProjectDTO;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectPin;
+import net.coding.lib.project.enums.CacheTypeEnum;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.parameter.ProjectPageQueryParameter;
@@ -42,6 +43,7 @@ public class ProjectPinService {
     private final ProjectDTOService projectDTOService;
     private final ProjectDao projectDao;
     private final ProjectMemberService projectMemberService;
+    private final ProjectHandCacheService projectHandCacheService;
 
     public Optional<ProjectPin> getByProjectIdAndUserId(int projectId, int userId) {
         return Optional.ofNullable(projectPinDao.selectOne(ProjectPin.builder()
@@ -73,14 +75,16 @@ public class ProjectPinService {
         if (getByProjectIdAndUserId(project.getId(), userId).isPresent()) {
             return true;
         }
-        return projectPinDao.insertSelective(
-                ProjectPin.builder()
-                        .projectId(project.getId())
-                        .userId(userId)
-                        .sort(projectPinDao.findMaxSort(userId) + 1)
-                        .createdAt(Timestamp.valueOf(LocalDateTime.now()))
-                        .deletedAt(Timestamp.valueOf(BaseDao.NOT_DELETED))
-                        .build()) > 0;
+        ProjectPin projectPin = ProjectPin.builder()
+                .projectId(project.getId())
+                .userId(userId)
+                .sort(projectPinDao.findMaxSort(userId) + 1)
+                .createdAt(Timestamp.valueOf(LocalDateTime.now()))
+                .deletedAt(Timestamp.valueOf(BaseDao.NOT_DELETED))
+                .build();
+        projectPinDao.insertSelective(projectPin);
+        projectHandCacheService.handleProjectPinCache(projectPin);
+        return true;
     }
 
     public Boolean cancelPinProject(Integer teamId, Integer userId, Integer projectId) throws CoreException {
@@ -90,6 +94,7 @@ public class ProjectPinService {
                 .ifPresent(pin -> {
                     pin.setDeletedAt(new Timestamp(System.currentTimeMillis()));
                     projectPinDao.updateByPrimaryKeySelective(pin);
+                    projectHandCacheService.handleProjectPinCache(pin);
                 });
         return true;
     }
@@ -104,6 +109,7 @@ public class ProjectPinService {
         if (targetId == 0) {
             sourcePin.setSort(projectPinDao.findMaxSort(userId) + 1);
             projectPinDao.updateByPrimaryKeySelective(sourcePin);
+            projectHandCacheService.handleProjectPinCache(sourcePin);
             return;
         }
         Project targetProject = checkProjectMember(teamId, userId, targetId);
@@ -120,6 +126,7 @@ public class ProjectPinService {
         // 将自己的sort更换成目标sort
         sourcePin.setSort(sourceSort > targetSort ? targetSort : targetSort - 1);
         projectPinDao.updateByPrimaryKeySelective(sourcePin);
+        projectHandCacheService.handleProjectPinCache(sourcePin);
     }
 
     public Project checkProjectMember(Integer teamId, Integer userId, Integer projectId) throws CoreException {
