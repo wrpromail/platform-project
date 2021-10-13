@@ -231,7 +231,7 @@ public class ProjectResourceLinkService {
         } catch (IssueNotException e) {
             return "#";
         }
-        if (Objects.isNull(issue) || 0 != issue.getCode()) {
+        if (Objects.isNull(issue)) {
             return "#";
         }
         return projectPath + "/bug-tracking/issues/" + projectResource.getCode() + "/detail";
@@ -244,7 +244,7 @@ public class ProjectResourceLinkService {
         } catch (IssueNotException e) {
             return "#";
         }
-        if (Objects.isNull(issue) || 0 != issue.getCode()) {
+        if (Objects.isNull(issue)) {
             return "#";
         }
         return projectPath + "/requirements/issues/" + projectResource.getCode() + "/detail";
@@ -257,7 +257,7 @@ public class ProjectResourceLinkService {
         } catch (IssueNotException e) {
             return "#";
         }
-        if (Objects.isNull(issue) || 0 != issue.getCode()) {
+        if (Objects.isNull(issue)) {
             return "#";
         }
         return projectPath + "/assignments/issues/" + projectResource.getCode() + "/detail";
@@ -270,7 +270,7 @@ public class ProjectResourceLinkService {
         } catch (IssueNotException e) {
             return "#";
         }
-        if (Objects.isNull(issue) || 0 != issue.getCode()) {
+        if (Objects.isNull(issue)) {
             return "#";
         }
         return projectPath + "/subtasks/issues/" + projectResource.getCode() + "/detail";
@@ -283,7 +283,7 @@ public class ProjectResourceLinkService {
         } catch (IssueNotException e) {
             return "#";
         }
-        if (Objects.isNull(issue) || 0 != issue.getCode()) {
+        if (Objects.isNull(issue)) {
             return "#";
         }
         return projectPath + "/epics/issues/" + projectResource.getCode() + "/detail";
