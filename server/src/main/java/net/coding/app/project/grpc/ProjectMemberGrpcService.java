@@ -3,6 +3,7 @@ package net.coding.app.project.grpc;
 
 import net.coding.grpc.client.permission.AclServiceGrpcClient;
 import net.coding.lib.project.entity.Project;
+import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.enums.RoleTypeEnum;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
@@ -26,6 +27,7 @@ import proto.common.CodeProto;
 import proto.platform.permission.PermissionProto;
 import proto.platform.user.UserProto;
 
+import static net.coding.lib.project.exception.CoreException.ExceptionType.RESOURCE_NO_FOUND;
 
 @Slf4j
 @AllArgsConstructor
@@ -69,7 +71,6 @@ public class ProjectMemberGrpcService extends ProjectMemberServiceGrpc.ProjectMe
             if (!hasPermissionInProject) {
                 throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
             }
-            ;
             List<Integer> targetUserIds = new ArrayList<>();
             Arrays.stream(request.getMemberGks().split(",")).forEach(targetUserIdStr -> {
                 UserProto.User user = userGrpcClient.getUserByGlobalKey(targetUserIdStr);
@@ -92,6 +93,35 @@ public class ProjectMemberGrpcService extends ProjectMemberServiceGrpc.ProjectMe
                     .setMessage(e.getMessage())
                     .build());
         } finally {
+            responseObserver.onCompleted();
+        }
+    }
+
+    @Override
+    public void delProjectMember(
+            ProjectMemberProto.DelProjectMemberRequest request,
+            StreamObserver<ProjectMemberProto.DelProjectMemberResponse> responseObserver) {
+        ProjectMemberProto.DelProjectMemberResponse.Builder builder = ProjectMemberProto.DelProjectMemberResponse.newBuilder();
+        try {
+            Project project = projectService.getById(request.getProjectId());
+            if (project == null) {
+                throw CoreException.of(RESOURCE_NO_FOUND);
+            }
+            ProjectMember member = projectMemberService.getByProjectIdAndUserId(project.getId(), request.getTargetUserId());
+            if (member == null) {
+                log.error("User {} is not member of project {}", request.getTargetUserId(), project.getId());
+                throw CoreException.of(CoreException.ExceptionType.PROJECT_MEMBER_NOT_EXISTS);
+            }
+            projectMemberService.delMember(request.getCurrentUserId(), project, request.getTargetUserId(), member);
+            builder.setCode(CodeProto.Code.SUCCESS);
+        } catch (CoreException e) {
+            log.error("RpcService delProjectMember error CoreException ", e);
+            builder.setCode(CodeProto.Code.NOT_FOUND).setMessage(e.getMsg());
+        } catch (Exception e) {
+            log.error("rpcService delProjectMember error Exception ", e);
+            builder.setCode(CodeProto.Code.INTERNAL_ERROR).setMessage(e.getMessage());
+        } finally {
+            responseObserver.onNext(builder.build());
             responseObserver.onCompleted();
         }
     }
