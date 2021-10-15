@@ -63,6 +63,7 @@ public class ProjectDeployTokenGrpcService extends ProjectDeployTokenServiceGrpc
     private final ProjectTokenArtifactService projectTokenArtifactService;
     private final ProjectTokenDepotService projectTokenDepotService;
 
+    private static final String GK = "project-token";
 
     public void addDeployToken(
             ProjectDeployTokenProto.AddDeployTokenRequest request,
@@ -396,6 +397,25 @@ public class ProjectDeployTokenGrpcService extends ProjectDeployTokenServiceGrpc
             }
         } catch (Exception e) {
             log.error("RpcService.obtainDefaultTokenKey error:{}", e.getMessage());
+            builder.setCode(INTERNAL_ERROR)
+                    .setMessage(e.getMessage());
+        }
+        responseObserver.onNext(builder.build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getTokenRobotUser(ProjectDeployTokenProto.GetTokenRobotUserRequest request, StreamObserver<ProjectDeployTokenProto.GetTokenRobotUserResponse> responseObserver) {
+        ProjectDeployTokenProto.GetTokenRobotUserResponse.Builder builder = ProjectDeployTokenProto.GetTokenRobotUserResponse.newBuilder();
+        try {
+            UserProto.User user = userGrpcClient.getUserByGlobalKey(GK);
+            builder.setCode(SUCCESS)
+                    .setUserId(user.getId())
+                    .setGlobalKey(user.getGlobalKey())
+                    .setName(user.getName())
+                    .build();
+        } catch (Exception e) {
+            log.error("RpcService.getTokenRobotUser error:{}", e.getMessage());
             builder.setCode(INTERNAL_ERROR)
                     .setMessage(e.getMessage());
         }

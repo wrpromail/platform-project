@@ -212,6 +212,16 @@ message ObtainDefaultTokenKeyResponse {
   string token = 4;
 }
 
+message GetTokenRobotUserRequest{}
+
+message GetTokenRobotUserResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  int32 userId = 3;
+  string globalKey = 4;
+  string name = 5;
+}
+
 service ProjectDeployTokenService {
   rpc refreshInternalAccessToken (RefreshInternalAccessTokenRequest) returns (RefreshInternalAccessTokenResponse);
   rpc AddDeployToken (AddDeployTokenRequest) returns (AddDeployTokenResponse);
@@ -225,4 +235,5 @@ service ProjectDeployTokenService {
   rpc GetDeployToken (GetDeployTokenRequest) returns (DeployTokenResponse);
   rpc GetUserDeployTokensByProjectId (GetUserDeployTokensByProjectIdRequest) returns (GetUserDeployTokensByProjectIdResponse);
   rpc ObtainDefaultTokenKey (ObtainDefaultTokenKeyRequest) returns (ObtainDefaultTokenKeyResponse);
+  rpc GetTokenRobotUser(GetTokenRobotUserRequest) returns (GetTokenRobotUserResponse);
 }
