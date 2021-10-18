@@ -36,6 +36,7 @@ import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.pager.ResultPageFactor;
 import net.coding.lib.project.service.ProjectMemberService;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -690,4 +691,43 @@ public class ProjectCredentialService {
             throw CoreException.of(CoreException.ExceptionType.PROJECT_MEMBER_NOT_EXISTS);
         }
     }
+
+    public List<Credential> getCredentialsByTaskIdAndGenerateBy(int projectId, int taskId, String generateBy, boolean decrypt) {
+        return getCredentials(decrypt, projectCredentialDao.getCredentialsByTaskIdAndGenerateBy(
+                projectId, taskId, generateBy, BeanUtils.getDefaultDeletedAt()
+        ));
+    }
+
+    public List<Credential> getCredentialsByTaskIdAndType(int projectId, int taskId, String type, boolean decrypt) {
+        return getCredentials(decrypt, projectCredentialDao.getCredentialsByTaskIdAndType(
+                projectId, taskId, type, BeanUtils.getDefaultDeletedAt()));
+    }
+
+    public List<Credential> getCredentialsByTaskId(int projectId, int taskId, boolean decrypt) {
+        return getCredentials(decrypt, projectCredentialDao.getCredentialsByTaskId(
+                projectId, taskId, BeanUtils.getDefaultDeletedAt()));
+    }
+
+    @NotNull
+    private List<Credential> getCredentials(boolean decrypt, List<Credential> credentials) {
+        return credentials.stream().map(
+                credential -> {
+                    CredentialTypeEnums credentialType = CredentialTypeEnums.valueOf(credential.getType());
+                    if (credentialType.equals(CredentialTypeEnums.ANDROID_CERTIFICATE)) {
+                        AndroidCredential androidCredential =
+                                androidCredentialDao.getByConnId(credential.getId(), BeanUtils.getDefaultDeletedAt());
+                        if (decrypt) {
+                            credentialRsaService.decrypt(androidCredential);
+                        }
+                        credential.setAndroidCredential(androidCredential);
+                    }
+                    if (decrypt) {
+                        credentialRsaService.decrypt(credential);
+                    }
+                    return credential;
+                }
+        ).collect(Collectors.toList());
+    }
+
+
 }

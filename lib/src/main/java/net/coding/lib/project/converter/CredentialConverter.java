@@ -2,6 +2,7 @@ package net.coding.lib.project.converter;
 
 import com.google.common.collect.ImmutableMap;
 
+import net.coding.lib.project.entity.AndroidCredential;
 import net.coding.lib.project.entity.Credential;
 import net.coding.lib.project.enums.ConnGenerateByEnums;
 import net.coding.lib.project.enums.CredentialScopeEnums;
@@ -142,6 +143,27 @@ public class CredentialConverter {
                 .setCreatedAt(com.google.protobuf.util.Timestamps.fromMillis(credential.getCreatedAt().getTime()))
                 .setUpdatedAt(com.google.protobuf.util.Timestamps.fromMillis(credential.getUpdatedAt().getTime()))
                 .setDeletedAt(com.google.protobuf.util.Timestamps.fromMillis(credential.getDeletedAt().getTime()));
+
+        if (CredentialTypeEnums.ANDROID_CERTIFICATE.name().equals(credential.getType())) {
+            AndroidCredential androidCredential = credential.getAndroidCredential();
+            ProjectCredentialProto.AndroidCredential.Builder androidCredentialBuilder
+                    = ProjectCredentialProto.AndroidCredential.newBuilder();
+            androidCredentialBuilder
+                    .setId(androidCredential.getId())
+                    .setAlias(androidCredential.getAlias())
+                    .setAliasPassword(androidCredential.getAliasPassword())
+                    .setConnId(androidCredential.getConnId())
+                    .setContent(androidCredential.getContent())
+                    .setSha1(androidCredential.getSha1())
+                    .setFileName(androidCredential.getFileName())
+                    .setFilePassword(androidCredential.getFilePassword())
+                    .setCreatedAt(com.google.protobuf.util.Timestamps.fromMillis(credential.getCreatedAt().getTime()))
+                    .setDeletedAt(com.google.protobuf.util.Timestamps.fromMillis(credential.getDeletedAt().getTime()))
+                    .setUpdatedAt(com.google.protobuf.util.Timestamps.fromMillis(credential.getUpdatedAt().getTime()));
+
+            builder.setAndroidCredential(androidCredentialBuilder.build());
+        }
+
         if (StringUtils.isNotEmpty(credential.getGenerateBy())) {
             builder.setGeneratedBy(
                     ProjectCredentialProto.ConnGenerateBy.valueOf(

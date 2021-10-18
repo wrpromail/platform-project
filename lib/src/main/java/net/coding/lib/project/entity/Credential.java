@@ -79,4 +79,6 @@ public class Credential {
     private Timestamp createdAt;
     private Timestamp updatedAt;
     private Timestamp deletedAt;
+
+    private AndroidCredential androidCredential;
 }
