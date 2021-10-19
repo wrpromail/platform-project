@@ -277,7 +277,6 @@ public class ResourceReferenceService {
                         }
                     })
                     .collect(Collectors.toList());
-            log.info("findBySelfWithTargetDeleted resourceReferences={}", resourceReferences.toString());
             return resourceReferences;
         } else {
             return resourceReferenceDao.findBySelfWithTargetDeleted(parameters);
