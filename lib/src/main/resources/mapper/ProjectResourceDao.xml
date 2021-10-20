@@ -221,7 +221,7 @@
         AND scope_type = #{scopeType}
       </if>
     </where>
-    ORDER BY `code` DESC
+    ORDER BY created_at DESC
   </select>
 
   <select id="findListForKm" parameterType="map" resultMap="BaseResultMap">
