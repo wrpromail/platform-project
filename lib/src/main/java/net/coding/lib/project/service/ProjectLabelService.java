@@ -53,7 +53,7 @@ public class ProjectLabelService {
     public int createLabel(Integer userId, ProjectLabelForm form) {
         ProjectLabel origin = getByNameAndProject(form.getName(), form.getProjectId());
         if (origin != null) {
-            return origin.getId();
+            throw new CoreRuntimeException(CoreException.ExceptionType.LABEL_EXIST);
         }
         ProjectLabel projectLabel = new ProjectLabel();
         projectLabel.setProjectId(form.getProjectId());
