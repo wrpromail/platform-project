@@ -59,9 +59,10 @@ public class ProjectCredentialTaskGrpcService extends ProjectCredentialTaskServi
             log.error("RpcService getTaskIdsByCredential error {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
                     .setMessage(e.getMessage());
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
         }
-        responseObserver.onNext(builder.build());
-        responseObserver.onCompleted();
     }
 
     @Override
@@ -92,9 +93,10 @@ public class ProjectCredentialTaskGrpcService extends ProjectCredentialTaskServi
             log.error("RpcService getCredentialsByTaskIdAndGenerateBy error {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
                     .setMessage(e.getMessage());
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
         }
-        responseObserver.onNext(builder.build());
-        responseObserver.onCompleted();
     }
 
     @Override
@@ -127,9 +129,10 @@ public class ProjectCredentialTaskGrpcService extends ProjectCredentialTaskServi
             log.error("RpcService getCredentialsByTaskIdAndType error {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
                     .setMessage(e.getMessage());
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
         }
-        responseObserver.onNext(builder.build());
-        responseObserver.onCompleted();
     }
 
     @Override
@@ -158,9 +161,10 @@ public class ProjectCredentialTaskGrpcService extends ProjectCredentialTaskServi
             log.error("RpcService getCredentialsByTaskId error {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
                     .setMessage(e.getMessage());
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
         }
-        responseObserver.onNext(builder.build());
-        responseObserver.onCompleted();
     }
 
     private List<ProjectCredentialProto.Credential> toProtobufCredentialList(List<Credential> credentials) {
