@@ -77,4 +77,25 @@ public interface ProjectCredentialDao {
             @Param("list") List<Integer> id,
             @Param("deletedAt") Timestamp deletedAt
     );
+
+
+    List<Credential> getCredentialsByTaskIdAndGenerateBy(
+            @Param("projectId") int projectId,
+            @Param("taskId") int taskId,
+            @Param("generateBy") String generateBy,
+            @Param("deletedAt") Timestamp defaultDeletedAt
+    );
+
+    List<Credential> getCredentialsByTaskIdAndType(
+            @Param("projectId") int projectId,
+            @Param("taskId") int taskId,
+            @Param("type") String type,
+            @Param("deletedAt") Timestamp defaultDeletedAt
+    );
+
+    List<Credential> getCredentialsByTaskId(
+            @Param("projectId") int projectId,
+            @Param("taskId") int taskId,
+            @Param("deletedAt") Timestamp defaultDeletedAt
+    );
 }
