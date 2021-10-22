@@ -9,6 +9,7 @@ import net.coding.common.util.TextUtils;
 import net.coding.e.grpcClient.collaboration.IssueWorkflowGrpcClient;
 import net.coding.exchange.dto.team.Team;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
+import net.coding.grpc.client.platform.SystemSettingGrpcClient;
 import net.coding.grpc.client.platform.TeamServiceGrpcClient;
 import net.coding.lib.project.dao.ProgramDao;
 import net.coding.lib.project.dao.ProgramProjectDao;
@@ -36,6 +37,8 @@ import net.coding.lib.project.parameter.ProgramProjectQueryParameter;
 import net.coding.lib.project.parameter.ProgramQueryParameter;
 import net.coding.lib.project.service.project.adaptor.ProjectAdaptorFactory;
 import net.coding.lib.project.utils.DateUtil;
+import net.coding.platform.charge.api.pojo.EnterpriseInfoDTO;
+import net.coding.platform.charge.client.grpc.EnterpriseGrpcClient;
 import net.coding.platform.permission.proto.CommonProto;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -59,6 +62,7 @@ import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import one.util.streamex.StreamEx;
+import proto.platform.system.setting.SystemSettingProto;
 import proto.platform.user.UserProto;
 
 import static net.coding.common.base.bean.ProjectTweet.ACTION_CREATE;
@@ -70,6 +74,8 @@ import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJE
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_DISPLAY_NAME_EXISTS;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NAME_EXISTS;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.RESOURCE_NO_FOUND;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.SERVER_BUSY;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.TEAM_CHARGE_NOT_ADVANCED_PAY;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.TEAM_MEMBER_NOT_EXISTS;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.TEAM_NOT_EXIST;
 
@@ -77,6 +83,10 @@ import static net.coding.lib.project.exception.CoreException.ExceptionType.TEAM_
 @Slf4j
 @AllArgsConstructor
 public class ProgramService {
+
+    public static final short TYPE_ADVANCED_PAY = 2; // 高级版服务
+
+    public static final String PLATFORM_FEATURE_PROGRAM_PAYMENT = "platform_feature_program_payment"; // 否开启项目集付费
 
     private final TeamServiceGrpcClient teamServiceGrpcClient;
 
@@ -120,6 +130,10 @@ public class ProgramService {
         if (!teamServiceGrpcClient.isMember(team.getId(), currentUserId)) {
             throw CoreException.of(TEAM_MEMBER_NOT_EXISTS);
         }
+
+        projectAdaptorFactory.create(PmTypeEnums.PROGRAM.getType())
+                .checkProgramPay(team.getId());
+
         if (Objects.nonNull(projectService.getByNameAndTeamId(form.getName(), team.getId()))) {
             throw CoreException.of(PROJECT_NAME_EXISTS);
         }

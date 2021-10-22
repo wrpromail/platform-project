@@ -98,4 +98,9 @@ public class ProjectAdaptorService extends AbstractProjectAdaptorService {
     public void checkProgramTime(Project program) {
 
     }
+
+    @Override
+    public void checkProgramPay(Integer teamId) {
+
+    }
 }
