@@ -38,7 +38,6 @@ import static springfox.documentation.builders.PathSelectors.regex;
         net.coding.common.rabbitmq.Config.class,
         net.coding.grpc.client.activity.Config.class,
         net.coding.grpc.client.template.Config.class,
-        net.coding.grpc.client.pinyin.Config.class,
         net.coding.common.i18n.Config.class,
         net.coding.grpc.client.depot.Config.class,
         net.coding.common.util.Config.class,
