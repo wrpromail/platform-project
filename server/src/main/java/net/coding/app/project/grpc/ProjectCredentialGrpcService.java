@@ -233,9 +233,10 @@ public class ProjectCredentialGrpcService extends ProjectCredentialServiceGrpc.P
             log.error("RpcService getByCredential error {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
                     .setMessage(e.getMessage());
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
         }
-        responseObserver.onNext(builder.build());
-        responseObserver.onCompleted();
     }
 
     @Override

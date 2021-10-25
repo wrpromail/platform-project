@@ -217,6 +217,7 @@ public class ProjectCredentialService {
         if (credential != null) {
             credential = this.extendCredential(credential);
             if (decrypt) {
+                credentialRsaService.decrypt(credential.getAndroidCredential());
                 credentialRsaService.decrypt(credential);
             }
         }
@@ -239,6 +240,12 @@ public class ProjectCredentialService {
             }
         } else if (credential.getType().equalsIgnoreCase(CredentialTypeEnums.TENCENT_SERVERLESS.name())) {
             credential = tencentServerlessCredentialService.flushIfNeed(credential);
+        } else if (credential.getType().equalsIgnoreCase(CredentialTypeEnums.ANDROID_CERTIFICATE.name())) {
+            AndroidCredential androidCredential =
+                    androidCredentialDao.getByConnId(credential.getId(), BeanUtils.getDefaultDeletedAt());
+            if (androidCredential != null) {
+                credential.setAndroidCredential(androidCredential);
+            }
         }
         return credential;
     }
@@ -716,12 +723,10 @@ public class ProjectCredentialService {
                     if (credentialType.equals(CredentialTypeEnums.ANDROID_CERTIFICATE)) {
                         AndroidCredential androidCredential =
                                 androidCredentialDao.getByConnId(credential.getId(), BeanUtils.getDefaultDeletedAt());
-                        if (decrypt) {
-                            credentialRsaService.decrypt(androidCredential);
-                        }
                         credential.setAndroidCredential(androidCredential);
                     }
                     if (decrypt) {
+                        credentialRsaService.decrypt(credential.getAndroidCredential());
                         credentialRsaService.decrypt(credential);
                     }
                     return credential;
