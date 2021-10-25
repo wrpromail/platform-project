@@ -88,6 +88,9 @@ public class CoreException extends Exception {
         TEAM_MEMBER_NOT_EXISTS(3710, "team_member_not_exists"),
         TEAM_NOT_HAVE_PROJECT(3718, "team_not_have_project"),
 
+        //charge
+        TEAM_CHARGE_NOT_ADVANCED_PAY(3800, "team_charge_not_advanced_pay"),
+
         // project 相关以 11 开头
         PROJECT_NOT_EXIST(1100, "project_not_exists"),
         PROJECT_MEMBER_EXISTS(1101, "project_member_exists"),

@@ -64,6 +64,8 @@ public abstract class AbstractProjectAdaptorService {
 
     public abstract void checkProgramTime(Project program) throws MilestoneException, CoreException;
 
+    public abstract void checkProgramPay(Integer teamId) throws CoreException;
+
 
     public void postProjectCreateEvent(Integer userId, Project project, Short action) {
         projectCreateEvent(userId, project);

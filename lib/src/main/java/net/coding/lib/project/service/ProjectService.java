@@ -536,6 +536,10 @@ public class ProjectService {
         if (Objects.isNull(projectMemberService.getByProjectIdAndUserId(project.getId(), userId))) {
             throw CoreException.of(PERMISSION_DENIED);
         }
+
+        projectAdaptorFactory.create(project.getPmType())
+                .checkProgramPay(teamId);
+
         Optional.ofNullable(
                 projectRecentViewDao.selectOne(ProjectRecentView.builder()
                         .teamId(teamId)
