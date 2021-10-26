@@ -217,7 +217,9 @@ public class ProjectCredentialService {
         if (credential != null) {
             credential = this.extendCredential(credential);
             if (decrypt) {
-                credentialRsaService.decrypt(credential.getAndroidCredential());
+                if (CredentialTypeEnums.ANDROID_CERTIFICATE.name().equalsIgnoreCase(credential.getType())) {
+                    credentialRsaService.decrypt(credential.getAndroidCredential());
+                }
                 credentialRsaService.decrypt(credential);
             }
         }
@@ -723,10 +725,12 @@ public class ProjectCredentialService {
                     if (credentialType.equals(CredentialTypeEnums.ANDROID_CERTIFICATE)) {
                         AndroidCredential androidCredential =
                                 androidCredentialDao.getByConnId(credential.getId(), BeanUtils.getDefaultDeletedAt());
+                        if (decrypt) {
+                            credentialRsaService.decrypt(androidCredential);
+                        }
                         credential.setAndroidCredential(androidCredential);
                     }
                     if (decrypt) {
-                        credentialRsaService.decrypt(credential.getAndroidCredential());
                         credentialRsaService.decrypt(credential);
                     }
                     return credential;
