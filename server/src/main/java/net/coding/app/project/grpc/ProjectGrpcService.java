@@ -4,7 +4,7 @@ package net.coding.app.project.grpc;
 import net.coding.common.util.BeanUtils;
 import net.coding.grpc.client.permission.AclServiceGrpcClient;
 import net.coding.lib.project.entity.Project;
-import net.coding.lib.project.enums.ProjectTemplateEnums;
+import net.coding.lib.project.template.ProjectTemplateType;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
@@ -144,7 +144,7 @@ public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBas
                     .teamId(response.getData().getId())
                     .name(request.getProjectName().replace(" ", "-"))
                     .displayName(request.getProjectName())
-                    .projectTemplate(ProjectTemplateEnums.DEV_OPS.name())
+                    .projectTemplate(ProjectTemplateType.DEV_OPS.name())
                     .description(EMPTY)
                     .build());
             existProjectByNameResponse(responseObserver, SUCCESS, SUCCESS.name(), false);

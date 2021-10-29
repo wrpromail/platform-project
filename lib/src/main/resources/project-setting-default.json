@@ -1,0 +1,228 @@
+{
+  "defines": [
+    {
+      "code": "agile_story_point_type",
+      "scope": "agile_story_point_type",
+      "name": "故事点估算方式",
+      "description": "项目协同故事点类型",
+      "defaultValue": "FIBONACCI",
+      "order": 1
+    },
+    {
+      "code": "cooperate_mode",
+      "scope": "cooperate_mode",
+      "name": "项目协同协作模式",
+      "description": "项目协同敏捷类型",
+      "defaultValue": "",
+      "order": 1
+    },
+    {
+      "code": "iteration_module_switch",
+      "scope": "iteration_module",
+      "name": "项目协同迭代模式",
+      "description": "",
+      "defaultValue": "0",
+      "order": 1
+    },
+    {
+      "code": "project_template_type",
+      "scope": "project_template",
+      "name": "项目模板类型",
+      "description": "",
+      "defaultValue": "0",
+      "order": 1
+    },
+    {
+      "code": "demo_template_type",
+      "scope": "project_template",
+      "name": "项目模板",
+      "description": "",
+      "defaultValue": "0",
+      "order": 1
+    },
+    {
+      "code": "epic_welcome",
+      "scope": "epic_welcome",
+      "name": "史诗",
+      "description": "",
+      "defaultValue": "0",
+      "order": 1
+    },
+    {
+      "code": "agile_development",
+      "scope": "function",
+      "name": "项目协同",
+      "description": "管理项目信息，包括需求管理、任务分配、缺陷跟踪、状态流转、进度展示等。",
+      "defaultValue": "1",
+      "order": 1
+    },
+    {
+      "code": "test_management",
+      "scope": "function",
+      "name": "测试管理",
+      "description": "测试用例管理、测试计划与报告输出。",
+      "defaultValue": "1",
+      "order": 2
+    },
+    {
+      "code": "code_management",
+      "scope": "function",
+      "name": "代码仓库",
+      "description": "代码仓库、分支、合并请求、代码评审、发布，包括 设置 > 代码托管。",
+      "defaultValue": "1",
+      "order": 3
+    },
+    {
+      "code": "code_analysis",
+      "scope": "function",
+      "name": "代码扫描",
+      "description": "代码检查、代码度量、重复代码、代码统计。",
+      "defaultValue": "1",
+      "order": 4
+    },
+    {
+      "code": "continue_integration",
+      "scope": "function",
+      "name": "持续集成",
+      "description": "代码检查、代码度量、重复代码、代码统计。",
+      "defaultValue": "1",
+      "order": 5
+    },
+    {
+      "code": "deployment_management",
+      "scope": "function",
+      "name": "持续部署",
+      "description": "基于 Spinnaker，支持 Kubernetes、云服务器等多种场景的部署。",
+      "defaultValue": "1",
+      "order": 6
+    },
+    {
+      "code": "artifact",
+      "scope": "function",
+      "name": "制品库",
+      "description": "管理构建产物，支持 Docker、Maven、Npm、PyPi 等制品库类型。",
+      "defaultValue": "1",
+      "order": 7
+    },
+    {
+      "code": "wiki",
+      "scope": "function",
+      "name": "Wiki",
+      "description": "帮助团队进行知识沉淀，同时可维护公开文档。",
+      "defaultValue": "1",
+      "order": 8
+    },
+    {
+      "code": "api_docs",
+      "scope": "function",
+      "name": "API 文档",
+      "description": "您可通过精美的 API 文档来推动整个 API 开发过程，并可配合持续集成实现自动化发布。",
+      "defaultValue": "1",
+      "order": 9
+    },
+    {
+      "code": "knowledge",
+      "scope": "function",
+      "name": "知识管理",
+      "description": "为团队提供信息整理、知识沉淀的协作空间，使团队通畅地进行信息共享。",
+      "defaultValue": "1",
+      "order": 10
+    },
+    {
+      "code": "compass",
+      "scope": "function",
+      "name": "Compass",
+      "description": "企业 DevOps 全流程的管控，透视与价值流分析。",
+      "defaultValue": "1",
+      "order": 11
+    },
+    {
+      "code": "file",
+      "scope": "function",
+      "name": "文件网盘",
+      "description": "存放和组织项目文件，支持对文件进行分享。",
+      "defaultValue": "1",
+      "order": 12
+    },
+    {
+      "code": "app_ops",
+      "scope": "function",
+      "name": "应用管理",
+      "description": "应用管理支持版本化，原子化的发布组件，配置，数据变更。 提供应用监控日志，闭环应用研发运维一体化。",
+      "defaultValue": "1",
+      "order": 13
+    },
+    {
+      "code": "agile_development_iteration",
+      "scope": "agile",
+      "name": "",
+      "description": "",
+      "defaultValue": "1",
+      "order": 1
+    },
+    {
+      "code": "agile_development_epic",
+      "scope": "agile",
+      "name": "",
+      "description": "",
+      "defaultValue": "0",
+      "order": 1
+    },
+    {
+      "code": "agile_development_requirement",
+      "scope": "agile",
+      "name": "",
+      "description": "",
+      "defaultValue": "0",
+      "order": 1
+    },
+    {
+      "code": "agile_development_mission",
+      "scope": "agile",
+      "name": "",
+      "description": "",
+      "defaultValue": "0",
+      "order": 1
+    },
+    {
+      "code": "agile_development_defect",
+      "scope": "agile",
+      "name": "",
+      "description": "",
+      "defaultValue": "0",
+      "order": 1
+    },
+    {
+      "code": "agile_story_point",
+      "scope": "agile",
+      "name": "",
+      "description": "",
+      "defaultValue": "0",
+      "order": 1
+    },
+    {
+      "code": "daily_work_email_notification",
+      "scope": "daily_work_email",
+      "name": "",
+      "description": "",
+      "defaultValue": "0",
+      "order": 1
+    },
+    {
+      "code": "backlog_todo",
+      "scope": "backlog_todo",
+      "name": "Backlog 待评估区域",
+      "description": "",
+      "defaultValue": "0",
+      "order": 1
+    },
+    {
+      "code": "agile_development_plan_page",
+      "scope": "agile_development_plan_page",
+      "name": "计划页功能的开启与关闭",
+      "description": "",
+      "defaultValue": "1",
+      "order": 1
+    }
+  ]
+}
