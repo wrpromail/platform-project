@@ -121,7 +121,8 @@ public enum ProjectTemplateEnums {
             ProjectSetting.Code.FUNCTION_QTA,
             ProjectSetting.Code.FUNCTION_STATISTICS,
             ProjectSetting.Code.FUNCTION_FILE,
-            ProjectSetting.Code.FUNCTION_COMPASS
+            ProjectSetting.Code.FUNCTION_COMPASS,
+            ProjectSetting.Code.FUNCTION_APP_OPS
     );
 
     public final static Set<ProjectSetting.Code> FUNCTION_CHOICE_DEMAND = Sets.newHashSet(

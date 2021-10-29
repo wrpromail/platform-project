@@ -81,6 +81,7 @@ public class CreateProjectForm extends BaseForm {
         FUNCTION_QTA("qta", "test_auto"),
         FUNCTION_FILE("file", "file_pan"),
         FUNCTION_KM("knowledge", "knowledge"),
+        FUNCTION_APP_OPS("app_ops", "app_ops"),
         FUNCTION_COMPASS("compass", "compass");
         private String code;
         private String description;

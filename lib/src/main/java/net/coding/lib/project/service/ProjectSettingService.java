@@ -1,5 +1,7 @@
 package net.coding.lib.project.service;
 
+import com.google.common.eventbus.AsyncEventBus;
+
 import net.coding.common.base.cache.CacheManager;
 import net.coding.common.cache.evict.constant.CacheType;
 import net.coding.common.cache.evict.manager.EvictCacheManager;
@@ -7,10 +9,14 @@ import net.coding.common.config.PDSettings;
 import net.coding.common.config.TencentOASettings;
 import net.coding.common.util.BeanUtils;
 import net.coding.lib.project.common.SystemContextHolder;
+import net.coding.lib.project.dao.ProjectDao;
 import net.coding.lib.project.dao.ProjectSettingsDao;
 import net.coding.lib.project.dto.ProjectFunctionDTO;
+import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectSetting;
+import net.coding.lib.project.event.ProjectSettingChangeEvent;
 import net.coding.lib.project.exception.CoreException;
+import net.coding.lib.project.exception.ProjectNotFoundException;
 import net.coding.lib.project.helper.ProjectServiceHelper;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -26,6 +32,7 @@ import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import proto.platform.user.UserProto;
 
 import static net.coding.lib.project.entity.ProjectSetting.TOTAL_PROJECT_FUNCTION;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PARAMETER_INVALID;
@@ -42,6 +49,10 @@ public class ProjectSettingService {
     private final TencentOASettings tencentOASettings;
 
     private final PDSettings pdSettings;
+
+    private final AsyncEventBus asyncEventBus;
+
+    private final ProjectDao projectDao;
 
     public static final String CACHE_REGION = "net.coding.lib.project.service.ProjectSettingService";
 
@@ -93,7 +104,7 @@ public class ProjectSettingService {
         ProjectSetting.Code setting = settingOptional.get();
         String value = status ? ProjectSetting.valueTrue : ProjectSetting.valueFalse;
         ProjectSetting projectSetting = findProjectSetting(projectId, function);
-
+        String beforeValue;
         if (Objects.isNull(projectSetting)) {
             projectSetting = ProjectSetting.builder()
                     .projectId(projectId)
@@ -108,15 +119,20 @@ public class ProjectSettingService {
         }
 
         CacheManager.evict(CACHE_REGION, "getAllFunction:" + projectId);
-
+        beforeValue = projectSetting.getValue();
         projectSetting.setValue(value);
         if (saveOrUpdateProjectSetting(projectSetting)) {
             // 1: 开启 0: 关闭
             Short action = status ? ProjectSetting.open : ProjectSetting.close;
             Integer userId = SystemContextHolder.get().getId();
             projectServiceHelper.postFunctionActivity(userId, projectSetting, action);
+            Project project = Optional.ofNullable(projectDao.getProjectById(projectId))
+                    .orElseThrow(ProjectNotFoundException::new);
+            Integer operatorId = Optional.ofNullable(SystemContextHolder.get()).map(UserProto.User::getId).orElse(0);
+            sendProjectSettingChangeEvent(project.getTeamOwnerId(), project.getId(), operatorId, function, value, beforeValue);
             return true;
         }
+
         return false;
     }
 
@@ -151,6 +167,7 @@ public class ProjectSettingService {
      */
     public ProjectSetting updateProjectSetting(Integer projectId, String code, String value) {
         ProjectSetting projectSetting = findProjectSetting(projectId, code);
+        String beforeValue = null;
         if (projectSetting == null) {
             projectSetting = ProjectSetting.builder()
                     .projectId(projectId)
@@ -162,11 +179,16 @@ public class ProjectSettingService {
                     .build();
             projectSettingsDao.insert(projectSetting);
         } else {
+            beforeValue = projectSetting.getValue();
             projectSetting.setValue(value);
             projectSettingsDao.update(projectSetting);
         }
         CacheManager.evict(CACHE_REGION, "getAllFunction:" + projectId);
 
+        Project project = Optional.ofNullable(projectDao.getProjectById(projectId))
+                .orElseThrow(ProjectNotFoundException::new);
+        Integer operatorId = Optional.ofNullable(SystemContextHolder.get()).map(UserProto.User::getId).orElse(0);
+        sendProjectSettingChangeEvent(project.getTeamOwnerId(), project.getId(), operatorId, code, value, beforeValue);
         return projectSetting;
     }
 
@@ -242,5 +264,20 @@ public class ProjectSettingService {
     public String getCodeDefaultValue(String code) {
         net.coding.e.lib.core.bean.ProjectSetting.Code projectSetting = ProjectSetting.Code.getByCode(code);
         return projectSetting == null ? null : projectSetting.getDefaultValue();
+    }
+
+    public void sendProjectSettingChangeEvent(Integer teamId, Integer projectId, Integer operatorId,
+                                              String code, String value, String beforeValue) {
+        asyncEventBus.post(
+                ProjectSettingChangeEvent
+                        .builder()
+                        .teamId(teamId)
+                        .projectId(projectId)
+                        .operatorId(operatorId)
+                        .code(code)
+                        .afterValue(value)
+                        .beforeValue(beforeValue)
+                        .build()
+        );
     }
 }

@@ -55,6 +55,7 @@ import net.coding.lib.project.service.project.adaptor.ProjectAdaptorFactory;
 import net.coding.lib.project.utils.DateUtil;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -78,6 +79,7 @@ import lombok.extern.slf4j.Slf4j;
 import one.util.streamex.StreamEx;
 import proto.platform.user.UserProto;
 
+import static java.lang.Boolean.TRUE;
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_DISPLAY_NAME_MIN_LENGTH;
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_NAME_CLOUD_MAX_LENGTH;
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_NAME_MIN_LENGTH;
@@ -110,6 +112,7 @@ import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJE
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_TEMPLATE_NOT_EXIST;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_UNARCHIVE_NAME_DUPLICATED;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.RESOURCE_NO_FOUND;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 
 @Service
@@ -380,10 +383,25 @@ public class ProjectService {
             List<CreateProjectForm.ProjectFunction> FunctionModule =
                     Optional.ofNullable(parameter.getFunctionModule()).orElseGet(ArrayList::new);
             // 根据模版类型初始化部分项目开关
-            ProjectSetting.TOTAL_PROJECT_FUNCTION.stream()
+            Set<String> noOpenFunction =  ProjectSetting.TOTAL_PROJECT_FUNCTION.stream()
                     .filter(e -> !ownFunctions.contains(e))
                     .filter(e -> !FunctionModule.contains(CreateProjectForm.ProjectFunction.codeOf(e.getCode())))
-                    .forEach(e -> projectSettingService.updateProjectSetting(projectId, e.getCode(), ProjectSetting.valueFalse));
+                    .map(ProjectSetting.Code::getCode)
+                    .collect(Collectors.toSet());
+            noOpenFunction
+                    .forEach(code -> projectSettingService.updateProjectSetting(projectId, code, ProjectSetting.valueFalse));
+            //发送事件开启的功能开关
+            StreamEx.of(ProjectSetting.TOTAL_PROJECT_FUNCTION)
+                    .filter(e -> !noOpenFunction.contains(e.getCode()))
+                    .forEach(e -> projectSettingService.sendProjectSettingChangeEvent(
+                            parameter.getTeamId(),
+                            projectId,
+                            parameter.getUserId(),
+                            e.getCode(),
+                            String.valueOf(BooleanUtils.toInteger(TRUE)),
+                            EMPTY)
+                    );
+
             // demo模版初始化数据
             if (Objects.nonNull(demoProjectTemplateEnums)) {
                 agileTemplateGRpcClient.dataInitByProjectTemplate(projectId, parameter.getUserId(),
