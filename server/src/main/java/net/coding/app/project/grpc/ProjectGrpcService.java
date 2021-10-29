@@ -89,7 +89,7 @@ public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBas
                     .build());
             createProjectResponse(responseObserver, SUCCESS, SUCCESS.name(), project);
         } catch (CoreException e) {
-            log.error("RpcService createProject error CoreException ", e);
+            log.error("RpcService createProject error CoreException , message {}", e.getMessage());
             createProjectResponse(responseObserver, NOT_FOUND, e.getMsg(), null);
         } catch (Exception e) {
             log.error("rpcService createProject error Exception ", e);
@@ -122,7 +122,7 @@ public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBas
             projectService.delete(currentUser.getId(), currentUser.getTeamId(), request.getProjectId());
             deleteProjectResponse(responseObserver, SUCCESS, SUCCESS.name());
         } catch (CoreException e) {
-            log.error("RpcService deleteProject error CoreException ", e);
+            log.error("RpcService deleteProject error CoreException , message {}", e.getMessage());
             deleteProjectResponse(responseObserver, NOT_FOUND, e.getMsg());
         } catch (Exception e) {
             log.error("rpcService deleteProject error Exception ", e);
@@ -149,7 +149,7 @@ public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBas
                     .build());
             existProjectByNameResponse(responseObserver, SUCCESS, SUCCESS.name(), false);
         } catch (CoreException e) {
-            log.error("RpcService existProjectByName error CoreException ", e);
+            log.error("RpcService existProjectByName error CoreException , message {}", e.getMessage());
             existProjectByNameResponse(responseObserver, SUCCESS, e.getMsg(), true);
         } catch (Exception e) {
             log.error("rpcService existProjectByName error Exception ", e);

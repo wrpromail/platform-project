@@ -132,7 +132,7 @@ public class OpenApiProjectMemberGRpcService extends ProjectMemberServiceGrpc.Pr
                     false);
             CommonResponse(responseObserver, SUCCESS, SUCCESS.name().toLowerCase());
         } catch (CoreException e) {
-            log.error("RpcService createProjectMember error CoreException ", e);
+            log.error("RpcService createProjectMember error CoreException, message {} ", e.getMessage());
             CommonResponse(responseObserver, NOT_FOUND,
                     localeMessageSource.getMessage(e.getKey()));
         } catch (Exception e) {

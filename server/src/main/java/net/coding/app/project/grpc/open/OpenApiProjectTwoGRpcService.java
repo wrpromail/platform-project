@@ -82,7 +82,7 @@ public class OpenApiProjectTwoGRpcService extends ProjectServiceGrpc.ProjectServ
             }
             DescribeProjectResponse(responseObserver, SUCCESS, SUCCESS.name().toLowerCase(), project);
         } catch (CoreException e) {
-            log.error("RpcService describeProjectByName error CoreException ", e);
+            log.error("RpcService describeProjectByName error CoreException, message {}", e.getMessage());
             DescribeProjectResponse(responseObserver, NOT_FOUND,
                     localeMessageSource.getMessage(e.getKey()), null);
         } catch (Exception e) {

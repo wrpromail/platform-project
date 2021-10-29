@@ -115,7 +115,7 @@ public class ProjectMemberGrpcService extends ProjectMemberServiceGrpc.ProjectMe
             projectMemberService.delMember(request.getCurrentUserId(), project, request.getTargetUserId(), member);
             builder.setCode(CodeProto.Code.SUCCESS);
         } catch (CoreException e) {
-            log.error("RpcService delProjectMember error CoreException ", e);
+            log.error("RpcService delProjectMember error CoreException, message {} ", e.getMessage());
             builder.setCode(CodeProto.Code.NOT_FOUND).setMessage(e.getMsg());
         } catch (Exception e) {
             log.error("rpcService delProjectMember error Exception ", e);
