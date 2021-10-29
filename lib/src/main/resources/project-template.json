@@ -12,7 +12,8 @@
     "qta",
     "file",
     "knowledge",
-    "compass"
+    "compass",
+    "app_ops"
   ],
   "projectManage": [
     "agile_development",
