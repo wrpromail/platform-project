@@ -17,7 +17,7 @@ import net.coding.grpc.client.platform.UserServiceGrpcClient;
 import net.coding.lib.project.entity.Credential;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectPreference;
-import net.coding.lib.project.entity.ProjectSetting;
+import net.coding.lib.project.setting.ProjectSetting;
 import net.coding.lib.project.entity.ProjectTweet;
 import net.coding.lib.project.enums.ActivityEnums;
 import net.coding.lib.project.enums.ProgramProjectEventEnums;
