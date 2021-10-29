@@ -45,7 +45,6 @@ public class AgileTemplateGRpcClient extends EndpointGrpcClient<AgileTemplateSer
         }
         AgileTemplateProto.TemplateInitRequest request = builder.build();
         CommonProto.Result result = newStub().dataInitByProjectTemplate(request);
-        log.info("AgileTemplateGRpcClient.dataInitByProjectTemplate() response={}", result.toString());
         if (result == null || 0 != result.getCode()) {
             log.info("rpc dataInitByProjectTemplate error");
             if (result != null) {

@@ -37,7 +37,6 @@ public class CiJobGrpcClient extends EndpointGrpcClient<CiJobServiceGrpc.CiJobSe
                 .build();
         CiJobProto.ListByProjectResponse response = newStub().listByProject(request);
         if (!ObjectUtils.isEmpty(response)) {
-            log.info("CiJobGRpcClient.listByProject() response={}", response.getCiJobsList());
             return response.getCiJobsList();
         }
         return null;

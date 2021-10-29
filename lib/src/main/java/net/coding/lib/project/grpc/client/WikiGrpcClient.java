@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-public class WikiGrpcClient extends EndpointGrpcClient<WikiServiceGrpc.WikiServiceBlockingStub>{
+public class WikiGrpcClient extends EndpointGrpcClient<WikiServiceGrpc.WikiServiceBlockingStub> {
 
     @Value("${grpc.client.wiki.serviceName:e-wiki}")
     private String serviceName;
@@ -36,8 +36,7 @@ public class WikiGrpcClient extends EndpointGrpcClient<WikiServiceGrpc.WikiServi
                 .build();
         log.info("WikiGrpcClient.getWikiByProjectIdAndIidWithoutRecycleBin request={}", request.toString());
         WikiProto.GetWikiByProjectIdAndIidResponse response = newStub().getWikiByProjectIdAndIidWithoutRecycleBin(request);
-        log.info("WikiGrpcClient.getWikiByProjectIdAndIidWithoutRecycleBin response={}", response.toString());
-        if(response.getCode() == 0) {
+        if (response.getCode() == 0) {
             return response.getData();
         }
         return null;
@@ -51,8 +50,7 @@ public class WikiGrpcClient extends EndpointGrpcClient<WikiServiceGrpc.WikiServi
                 .build();
         log.info("WikiGrpcClient.wikiCanRead request={}", request.toString());
         WikiProto.WikiCanReadResponse response = newStub().wikiCanRead(request);
-        log.info("WikiGrpcClient.wikiCanRead response={}", response.toString());
-        if(response.getCode() == 0) {
+        if (response.getCode() == 0) {
             return response.getData();
         }
         return false;

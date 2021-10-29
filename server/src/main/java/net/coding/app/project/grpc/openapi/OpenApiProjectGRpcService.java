@@ -101,7 +101,7 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
             describeCodingProjectsResponse(responseObserver, SUCCESS,
                     SUCCESS.name().toLowerCase(), resultPage);
         } catch (CoreException e) {
-            log.error("RpcService describeCodingProjects error CoreException ", e);
+            log.error("RpcService describeCodingProjects error CoreException, message {} ", e.getMessage());
             describeCodingProjectsResponse(responseObserver, NOT_FOUND,
                     localeMessageSource.getMessage(e.getKey()), null);
         } catch (Exception e) {
@@ -142,7 +142,7 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
             DescribeProjectsResponse(responseObserver, SUCCESS,
                     SUCCESS.name().toLowerCase(), projects);
         } catch (CoreException e) {
-            log.error("RpcService describeProjectLabels error CoreException ", e);
+            log.error("RpcService describeProjectLabels error CoreException, message {} ", e.getMessage());
             DescribeProjectsResponse(responseObserver, NOT_FOUND,
                     localeMessageSource.getMessage(e.getKey()), null);
         } catch (Exception e) {
@@ -189,7 +189,7 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
             DescribeProjectsResponse(responseObserver, SUCCESS,
                     SUCCESS.name().toLowerCase(), projects);
         } catch (CoreException e) {
-            log.error("RpcService describeUserProjects error CoreException ", e);
+            log.error("RpcService describeUserProjects error CoreException, message {} ", e.getMessage());
             DescribeProjectsResponse(responseObserver, NOT_FOUND,
                     localeMessageSource.getMessage(e.getKey()), null);
         } catch (Exception e) {
@@ -216,7 +216,7 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
             }
             DescribeProjectResponse(responseObserver, SUCCESS, SUCCESS.name().toLowerCase(), project);
         } catch (CoreException e) {
-            log.error("RpcService describeOneProject error CoreException ", e);
+            log.error("RpcService describeOneProject error CoreException, message {} ", e.getMessage());
             DescribeProjectResponse(responseObserver, NOT_FOUND,
                     localeMessageSource.getMessage(e.getKey()), null);
         } catch (Exception e) {
@@ -236,7 +236,7 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
             createProjectWithTemplateResponse(responseObserver, SUCCESS,
                     SUCCESS.name().toLowerCase(), projectId);
         } catch (CoreException e) {
-            log.error("RpcService createProjectWithTemplate error CoreException ", e);
+            log.error("RpcService createProjectWithTemplate error CoreException, message {} ", e.getMessage());
             createProjectWithTemplateResponse(responseObserver, NOT_FOUND,
                     e.getMsg(), 0);
         } catch (Exception e) {
@@ -256,7 +256,7 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
             createProjectWithTemplateResponse(responseObserver, SUCCESS,
                     SUCCESS.name().toLowerCase(), projectId);
         } catch (CoreException e) {
-            log.error("RpcService createCodingProject error CoreException ", e);
+            log.error("RpcService createCodingProject error CoreException, message {} ", e.getMessage());
             createProjectWithTemplateResponse(responseObserver, NOT_FOUND,
                     e.getMsg(), 0);
         } catch (Exception e) {
@@ -288,7 +288,7 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
             projectService.delete(currentUser.getId(), currentUser.getTeamId(), request.getProjectId());
             CommonResponse(responseObserver, SUCCESS, SUCCESS.name().toLowerCase());
         } catch (CoreException e) {
-            log.error("RpcService deleteOneProject error CoreException ", e);
+            log.error("RpcService deleteOneProject error CoreException, message {} ", e.getMessage());
             CommonResponse(responseObserver, NOT_FOUND,
                     localeMessageSource.getMessage(e.getKey()));
         } catch (Exception e) {
