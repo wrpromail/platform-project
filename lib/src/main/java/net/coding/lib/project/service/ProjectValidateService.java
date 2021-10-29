@@ -2,8 +2,8 @@ package net.coding.lib.project.service;
 
 import net.coding.grpc.client.platform.TeamProjectServiceGrpcClient;
 import net.coding.lib.project.entity.Project;
-import net.coding.lib.project.template.ProjectTemplateDemoType;
-import net.coding.lib.project.template.ProjectTemplateType;
+import net.coding.lib.project.enums.DemoProjectTemplateEnums;
+import net.coding.lib.project.enums.ProjectTemplateEnums;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.UpdateProjectForm;
 import net.coding.lib.project.parameter.ProjectCreateParameter;
@@ -258,12 +258,12 @@ public class ProjectValidateService {
 
     public boolean validateProjectTemplate(String projectTemplate) {
         return StringUtils.isNotEmpty(projectTemplate)
-                && EnumUtils.isValidEnum(ProjectTemplateType.class, projectTemplate);
+                && EnumUtils.isValidEnum(ProjectTemplateEnums.class, projectTemplate);
     }
 
     public void validateTemplate(String template) throws CoreException {
         if (StringUtils.isNotEmpty(template)
-                && ProjectTemplateDemoType.valueFrom(template) == null) {
+                && DemoProjectTemplateEnums.string2enum(template) == null) {
             throw CoreException.of(PARAMETER_INVALID);
         }
     }
