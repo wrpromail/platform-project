@@ -1,10 +1,9 @@
-package net.coding.e.lib.core.bean;
+package net.coding.lib.project.entity;
 
 import com.google.common.collect.Sets;
 
-import net.coding.common.base.bean.BaseBean;
-
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
@@ -15,12 +14,12 @@ import lombok.NoArgsConstructor;
 
 import static net.coding.common.i18n.utils.LocaleMessageSourceUtil.getMessage;
 
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProjectSetting extends BaseBean {
+public class ProjectSetting {
 
     public final static String valueTrue = "1";
     public final static String valueFalse = "0";
@@ -30,6 +29,7 @@ public class ProjectSetting extends BaseBean {
 
     private static final long serialVersionUID = -1973992627485106043L;
 
+    private Integer id;
     private Integer projectId;
 
     private String code;
@@ -62,7 +62,8 @@ public class ProjectSetting extends BaseBean {
             Code.FUNCTION_OLD_TASK,
             Code.FUNCTION_CODE_ANALYSIS,
             Code.FUNCTION_API_DOCS,
-            Code.FUNCTION_QTA
+            Code.FUNCTION_QTA,
+            Code.FUNCTION_COMPASS
     );
 
     /**
@@ -104,6 +105,7 @@ public class ProjectSetting extends BaseBean {
         FUNCTION_QTA("qta", "test_auto", valueTrue, valueTrue),
         FUNCTION_FILE("file", "file_pan", valueTrue, valueTrue),
         FUNCTION_KM("knowledge", "knowledge", valueTrue, valueTrue),
+        FUNCTION_COMPASS("compass", "compass", valueTrue, valueTrue),
 
         AGILE_ITERATION("agile_development_iteration", "agile_develop_iteration", valueTrue, valueTrue),
         AGILE_EPIC("agile_development_epic", "agile_develop_epic", valueFalse, valueFalse),
@@ -141,6 +143,13 @@ public class ProjectSetting extends BaseBean {
 
         public String getOaDefaultValue() {
             return oaDefaultValue;
+        }
+
+        public static net.coding.e.lib.core.bean.ProjectSetting.Code getByCode(String code) {
+            return  Arrays.stream(net.coding.e.lib.core.bean.ProjectSetting.Code.values()).
+                    filter(c -> c.getCode().equals(code))
+                    .findFirst()
+                    .orElse(null);
         }
     }
 

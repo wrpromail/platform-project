@@ -27,10 +27,13 @@ import net.coding.lib.project.entity.ProjectGroup;
 import net.coding.lib.project.entity.ProjectGroupProject;
 import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.entity.ProjectRecentView;
+import net.coding.lib.project.entity.ProjectSetting;
 import net.coding.lib.project.entity.TeamProject;
 import net.coding.lib.project.enums.CacheTypeEnum;
 import net.coding.lib.project.enums.ConnGenerateByEnums;
+import net.coding.lib.project.enums.DemoProjectTemplateEnums;
 import net.coding.lib.project.enums.PmTypeEnums;
+import net.coding.lib.project.enums.ProjectTemplateEnums;
 import net.coding.lib.project.enums.TemplateEnums;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.CreateProjectForm;
@@ -49,17 +52,10 @@ import net.coding.lib.project.parameter.ProjectQueryParameter;
 import net.coding.lib.project.parameter.ProjectUpdateParameter;
 import net.coding.lib.project.service.credential.ProjectCredentialService;
 import net.coding.lib.project.service.project.adaptor.ProjectAdaptorFactory;
-import net.coding.lib.project.setting.ProjectSettingDefault;
-import net.coding.lib.project.setting.ProjectSettingFunctionService;
-import net.coding.lib.project.setting.ProjectSettingService;
-import net.coding.lib.project.template.ProjectTemplateDemoType;
-import net.coding.lib.project.template.ProjectTemplateService;
-import net.coding.lib.project.template.ProjectTemplateType;
 import net.coding.lib.project.utils.DateUtil;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.math.RandomUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.validator.UrlValidator;
@@ -82,7 +78,6 @@ import lombok.extern.slf4j.Slf4j;
 import one.util.streamex.StreamEx;
 import proto.platform.user.UserProto;
 
-import static java.lang.Boolean.TRUE;
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_DISPLAY_NAME_MIN_LENGTH;
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_NAME_CLOUD_MAX_LENGTH;
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_NAME_MIN_LENGTH;
@@ -98,6 +93,8 @@ import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE_NAME;
 import static net.coding.common.constants.ProjectConstants.ARCHIVE_PROJECT_DELETED_AT;
 import static net.coding.common.constants.ProjectConstants.INFINITY_MEMBER;
 import static net.coding.common.constants.RoleConstants.ADMIN;
+import static net.coding.lib.project.entity.ProjectSetting.Code.DEMO_TEMPLATE_TYPE;
+import static net.coding.lib.project.entity.ProjectSetting.Code.PROJECT_TEMPLATE_TYPE;
 import static net.coding.lib.project.enums.ProgramProjectEventEnums.ACTION.ACTION_VIEW;
 import static net.coding.lib.project.enums.ProgramProjectEventEnums.createProject;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.CONTENT_INCLUDE_SENSITIVE_WORDS;
@@ -113,7 +110,6 @@ import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJE
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_TEMPLATE_NOT_EXIST;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_UNARCHIVE_NAME_DUPLICATED;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.RESOURCE_NO_FOUND;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 
 @Service
@@ -122,8 +118,6 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 public class ProjectService {
 
     private final static String ICON_REG = ".+\\.(jpg|bmp|gif|png|jpeg)$";
-    private final static String DEMO_TEMPLATE_TYPE = "demo_template_type";
-    private final static String PROJECT_TEMPLATE_TYPE = "project_template_type";
 
     private final Storage storage;
 
@@ -164,10 +158,8 @@ public class ProjectService {
     private final ProjectAdaptorFactory projectAdaptorFactory;
     private final TextModerationService textModerationService;
     private final PinyinService pinyinService;
-    private final ProjectSettingFunctionService projectSettingFunctionService;
 
     private final ProjectPinService projectPinService;
-    private final ProjectTemplateService projectTemplateService;
 
 
     public Project getById(Integer id) {
@@ -230,12 +222,7 @@ public class ProjectService {
             throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
         }
         parameter.setTeamOwnerId(team.getOwner_id());
-        parameter.setShouldInitDepot(
-                projectTemplateService.isInitDepot(
-                        ProjectTemplateType.valueFrom(parameter.getProjectTemplate()),
-                        ProjectTemplateDemoType.valueFrom(parameter.getTemplate())
-                )
-        );
+        parameter.setShouldInitDepot((shouldInitDepot(parameter.getProjectTemplate(), parameter.getTemplate())));
         //校验创建项目相关参数
         validateCreateProjectParameter(parameter);
 
@@ -355,6 +342,9 @@ public class ProjectService {
         // 创建项目默认的偏好设置 由于创建项目较慢这里 7 次 insert 把这个转移到异步
         projectPreferenceService.initProjectPreferences(project.getId());
 
+        //新的项目隐藏掉 task
+        projectSettingService.updateProjectTaskHide(project.getId(), true);
+
         return project;
     }
 
@@ -376,45 +366,29 @@ public class ProjectService {
 
     public void initProjectSetting(Integer projectId, ProjectCreateParameter parameter) throws CoreException {
         if (!TemplateEnums.getTencentServerless().contains(parameter.getTemplate())) {
-            ProjectTemplateType projectTemplateType = ProjectTemplateType.valueFrom(parameter.getProjectTemplate());
-            ProjectTemplateDemoType projectTemplateDemoType = ProjectTemplateDemoType.valueFrom(parameter.getTemplate());
-            projectSettingService.update(projectId, PROJECT_TEMPLATE_TYPE, parameter.getProjectTemplate());
+            ProjectTemplateEnums projectTemplateEnums = ProjectTemplateEnums.valueOf(parameter.getProjectTemplate());
+            DemoProjectTemplateEnums demoProjectTemplateEnums = DemoProjectTemplateEnums.string2enum(parameter.getTemplate());
+            projectSettingService.updateProjectSetting(projectId, PROJECT_TEMPLATE_TYPE.getCode(), parameter.getProjectTemplate());
 
-            if (ProjectTemplateType.DEMO_BEGIN.equals(projectTemplateType)) {
-                projectSettingService.update(projectId, DEMO_TEMPLATE_TYPE, parameter.getTemplate());
+            if (ProjectTemplateEnums.DEMO_BEGIN.equals(projectTemplateEnums)) {
+                projectSettingService.updateProjectSetting(projectId, DEMO_TEMPLATE_TYPE.getCode(), parameter.getTemplate());
             }
-            Set<String> ownFunctions = projectTemplateService.getFunctions(projectTemplateType, projectTemplateDemoType);
+            Set<ProjectSetting.Code> ownFunctions = projectTemplateEnums.getFunctions(demoProjectTemplateEnums);
             if (Objects.isNull(ownFunctions)) {
                 throw CoreException.of(PARAMETER_INVALID);
             }
             List<CreateProjectForm.ProjectFunction> FunctionModule =
                     Optional.ofNullable(parameter.getFunctionModule()).orElseGet(ArrayList::new);
             // 根据模版类型初始化部分项目开关
-            Set<String> noOpenFunction = StreamEx.of(projectSettingFunctionService.getFunctions())
-                    .filter(e -> !ownFunctions.contains(e.getCode()))
+            ProjectSetting.TOTAL_PROJECT_FUNCTION.stream()
+                    .filter(e -> !ownFunctions.contains(e))
                     .filter(e -> !FunctionModule.contains(CreateProjectForm.ProjectFunction.codeOf(e.getCode())))
-                    .map(ProjectSettingDefault::getCode)
-                    .collect(Collectors.toSet());
-            noOpenFunction
-                    .forEach(code -> projectSettingService.update(projectId, code, String.valueOf(BooleanUtils.toInteger(false))));
-            //发送事件开启的功能开关
-            StreamEx.of(projectSettingFunctionService.getFunctions())
-                    .filter(e -> !noOpenFunction.contains(e.getCode()))
-                    .forEach(e -> projectSettingService.sendProjectSettingChangeEvent(
-                            parameter.getTeamId(),
-                            projectId,
-                            parameter.getUserId(),
-                            e.getCode(),
-                            String.valueOf(BooleanUtils.toInteger(TRUE)),
-                            EMPTY));
+                    .forEach(e -> projectSettingService.updateProjectSetting(projectId, e.getCode(), ProjectSetting.valueFalse));
             // demo模版初始化数据
-            if (Objects.nonNull(projectTemplateDemoType)) {
-                agileTemplateGRpcClient.dataInitByProjectTemplate(
-                        projectId,
-                        parameter.getUserId(),
+            if (Objects.nonNull(demoProjectTemplateEnums)) {
+                agileTemplateGRpcClient.dataInitByProjectTemplate(projectId, parameter.getUserId(),
                         parameter.getProjectTemplate(),
-                        parameter.getTemplate()
-                );
+                        parameter.getTemplate());
             }
         }
     }
@@ -588,10 +562,8 @@ public class ProjectService {
                 ));
         return projectDTOService.toDetailDTO(project);
     }
-
     /**
      * 新上传逻辑采用icon
-     *
      * @param icon
      * @return
      * @throws CoreException
@@ -803,6 +775,24 @@ public class ProjectService {
                 .description(credentialParameter.getDescription())
                 .allSelect(credentialParameter.isAllSelect())
                 .build();
+    }
+
+    private boolean shouldInitDepot(String projectTemplate, String template) {
+        switch (ProjectTemplateEnums.valueOf(projectTemplate)) {
+            case PROJECT_MANAGE:
+            case DEV_OPS:
+            case CODE_HOST:
+            case CHOICE_DEMAND:
+                return false;
+            case DEMO_BEGIN:
+                if (DemoProjectTemplateEnums.AGILE.name().equalsIgnoreCase(template)
+                        || DemoProjectTemplateEnums.TESTING.name().equalsIgnoreCase(template)
+                        || DemoProjectTemplateEnums.CLASSIC.name().equalsIgnoreCase(template)) {
+                    return false;
+                }
+            default:
+                return true;
+        }
     }
 
     public void validateGroupId(ProjectPageQueryParameter parameter) throws CoreException {

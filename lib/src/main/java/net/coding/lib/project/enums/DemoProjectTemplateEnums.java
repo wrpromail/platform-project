@@ -1,12 +1,13 @@
-package net.coding.lib.project.template;
+package net.coding.lib.project.enums;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
-import java.util.Optional;
 
 /**
  * 范例项目类型
  */
-public enum ProjectTemplateDemoType {
+public enum DemoProjectTemplateEnums {
 
     AGILE,         // 敏捷项目管理
     CLASSIC,         // 经典项目管理
@@ -26,9 +27,13 @@ public enum ProjectTemplateDemoType {
     TENCENT_SLS_STATIC_WEBSITE;
 
 
-    public static ProjectTemplateDemoType valueFrom(String value) {
-        return Arrays.stream(ProjectTemplateDemoType.values())
-                .filter(t -> Optional.ofNullable(value).map(s -> s.toUpperCase().equals(t.name())).orElse(false))
+    public static DemoProjectTemplateEnums string2enum(String s) {
+        if (StringUtils.isEmpty(s)) {
+            return null;
+        }
+        final String upper = s.toUpperCase();
+        return Arrays.stream(DemoProjectTemplateEnums.values())
+                .filter(t -> upper.equals(t.name()))
                 .findFirst()
                 .orElse(null);
 

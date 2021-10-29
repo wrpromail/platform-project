@@ -73,7 +73,6 @@ public class CreateProjectForm extends BaseForm {
         FUNCTION_CODE_MANAGEMENT("code_management", "code_deposit"),
         FUNCTION_CONTINUE_INTEGRATION("continue_integration", "ci"),
         FUNCTION_DEPLOYMENT_MANAGEMENT("deployment_management", "deployment_manage"),
-        FUNCTION_APP_OPS("app_ops", "app_ops"),
         FUNCTION_ARTIFACT("artifact", "artifact"),
         FUNCTION_WIKI("wiki", "wiki"),
         FUNCTION_STATISTICS("statistics", "statistics"),

@@ -6,11 +6,12 @@ import net.coding.common.util.Result;
 import net.coding.common.util.adapter.SpringfoxJsonToGsonAdapter;
 import net.coding.lib.project.exception.ExceptionMessage;
 
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.http.converter.json.GsonBuilderUtils;
 import org.springframework.stereotype.Component;
+
+import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -24,8 +25,7 @@ import springfox.documentation.swagger.web.UiConfiguration;
 @Component
 public class GsonHttpMessageConverter extends org.springframework.http.converter.json.GsonHttpMessageConverter {
     private final static List<Type> TYPE = Lists.newArrayList(
-            new ParameterizedTypeReference<List<SwaggerResource>>() {
-            }.getType(),
+            ParameterizedTypeImpl.make(List.class, new Type[]{SwaggerResource.class}, null),
             Result.class,
             Json.class,
             UiConfiguration.class,

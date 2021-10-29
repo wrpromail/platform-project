@@ -229,10 +229,10 @@ public class ProgramService {
             //项目集中已存在项目
             List<Integer> programProjectIds =
                     StreamEx.of(programProjectDao.select(ProgramProject.builder()
-                                    .programId(program.getId())
-                                    .deletedAt(BeanUtils.getDefaultDeletedAt())
-                                    .build())
-                            )
+                            .programId(program.getId())
+                            .deletedAt(BeanUtils.getDefaultDeletedAt())
+                            .build())
+                    )
                             .map(ProgramProject::getProjectId)
                             .collect(Collectors.toList());
             StreamEx.of(projectIds)
@@ -334,12 +334,12 @@ public class ProgramService {
                                                   Integer programId, Boolean queryJoined) throws CoreException {
         getProgram(currentTeamId, currentUserId, programId);
         return StreamEx.of(
-                        getProgramProjects(ProgramProjectQueryParameter.builder()
-                                .teamId(currentTeamId)
-                                .programId(programId)
-                                .userId(queryJoined ? currentUserId : 0)
-                                .build())
-                )
+                getProgramProjects(ProgramProjectQueryParameter.builder()
+                        .teamId(currentTeamId)
+                        .programId(programId)
+                        .userId(queryJoined ? currentUserId : 0)
+                        .build())
+        )
                 .map(projectDTOService::toDetailDTO)
                 .nonNull()
                 .peek(p -> p.setMemberCount(projectMemberDao.findListByProjectId(p.getId(), p.getDeleted_at()).size()))
@@ -359,11 +359,11 @@ public class ProgramService {
         return StreamEx.of(userIds)
                 .map(userId -> {
                     List<ProjectDTO> projects = StreamEx.of(
-                                    programDao.selectProgramProjects(ProgramProjectQueryParameter.builder()
-                                            .teamId(currentTeamId)
-                                            .userId(userId)
-                                            .programId(programId).build())
-                            )
+                            programDao.selectProgramProjects(ProgramProjectQueryParameter.builder()
+                                    .teamId(currentTeamId)
+                                    .userId(userId)
+                                    .programId(programId).build())
+                    )
                             .map(projectDTOService::toDetailDTO)
                             .nonNull()
                             .collect(Collectors.toList());
@@ -392,11 +392,11 @@ public class ProgramService {
 
     private List<ProjectDTO> toProjectDTO(Integer teamId, Integer programId) {
         return StreamEx.of(
-                        programDao.selectProgramProjects(ProgramProjectQueryParameter.builder()
-                                .teamId(teamId)
-                                .programId(programId)
-                                .build())
-                )
+                programDao.selectProgramProjects(ProgramProjectQueryParameter.builder()
+                        .teamId(teamId)
+                        .programId(programId)
+                        .build())
+        )
                 .map(projectDTOService::toDetailDTO)
                 .nonNull()
                 .collect(Collectors.toList());
