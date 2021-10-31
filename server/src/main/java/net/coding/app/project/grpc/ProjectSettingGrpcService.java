@@ -253,7 +253,7 @@ public class ProjectSettingGrpcService extends ProjectSettingServiceGrpc.Project
                     // 不存在setting的项目id，填充默认值。
                     willBatchSelectProjectSetting.removeAll(existSettingProjectIds);
                     if (CollectionUtils.isNotEmpty(willBatchSelectProjectSetting)) {
-                        net.coding.e.lib.core.bean.ProjectSetting.Code defaultCode = ProjectSetting.Code.getByCode(code);
+                        ProjectSetting.Code defaultCode = ProjectSetting.Code.getByCode(code);
                         if (defaultCode != null) {
                             String defaultValue = defaultCode.getDefaultValue();
                             willBatchSelectProjectSetting.forEach(

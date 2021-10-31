@@ -145,8 +145,8 @@ public class ProjectSetting {
             return oaDefaultValue;
         }
 
-        public static net.coding.e.lib.core.bean.ProjectSetting.Code getByCode(String code) {
-            return  Arrays.stream(net.coding.e.lib.core.bean.ProjectSetting.Code.values()).
+        public static Code getByCode(String code) {
+            return Arrays.stream(Code.values()).
                     filter(c -> c.getCode().equals(code))
                     .findFirst()
                     .orElse(null);

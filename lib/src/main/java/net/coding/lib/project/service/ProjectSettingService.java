@@ -262,7 +262,7 @@ public class ProjectSettingService {
     }
 
     public String getCodeDefaultValue(String code) {
-        net.coding.e.lib.core.bean.ProjectSetting.Code projectSetting = ProjectSetting.Code.getByCode(code);
+        ProjectSetting.Code projectSetting = ProjectSetting.Code.getByCode(code);
         return projectSetting == null ? null : projectSetting.getDefaultValue();
     }
 
