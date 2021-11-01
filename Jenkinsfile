@@ -15,7 +15,7 @@ pipeline {
                 withCredentials([
                     usernamePassword(credentialsId: env.BUILD_CREDENTIALS_ID, usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PASSWORD'),
                     usernamePassword(credentialsId: env.BUILD_CREDENTIALS_ID, usernameVariable: 'PUBLISH_REGISTRY_USER', passwordVariable: 'PUBLISH_REGISTRY_PASSWORD'),
-                    usernamePassword(credentialsId: env.BUILD_CREDENTIALS_ID, usernameVariable: 'DOCKER_REGISTRY_USER', passwordVariable: 'DOCKER_REGISTRY_PASSWORD'),
+                    usernamePassword(credentialsId: env.DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_REGISTRY_USER', passwordVariable: 'DOCKER_REGISTRY_PASSWORD'),
                 ]) {
                      echo "Found GIT_TAG value, will replace VERSION_TAG use GIT_TAG build"
                      sh "VERSION_TAG=$GIT_TAG ./build.sh"
@@ -25,7 +25,7 @@ pipeline {
                  withCredentials([
                      usernamePassword(credentialsId: env.BUILD_CREDENTIALS_ID, usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PASSWORD'),
                      usernamePassword(credentialsId: env.BUILD_CREDENTIALS_ID, usernameVariable: 'PUBLISH_REGISTRY_USER', passwordVariable: 'PUBLISH_REGISTRY_PASSWORD'),
-                     usernamePassword(credentialsId: env.BUILD_CREDENTIALS_ID, usernameVariable: 'DOCKER_REGISTRY_USER', passwordVariable: 'DOCKER_REGISTRY_PASSWORD'),
+                     usernamePassword(credentialsId: env.DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_REGISTRY_USER', passwordVariable: 'DOCKER_REGISTRY_PASSWORD'),
                  ]) {
                      sh "./build.sh"
                  }
@@ -33,6 +33,7 @@ pipeline {
          }
       }
     }
+
     stage('版本清单') {
       steps {
         script {
