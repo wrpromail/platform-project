@@ -18,12 +18,12 @@ buildscript {
     }
 
     dependencies {
-        classpath "net.coding.common:coding-plugin-collection:1.1.21"
+        classpath "net.coding.common:coding-plugin-collection:1.2.2"
     }
 }
 
 System.setProperty("MAVEN_URL", "https://devops-maven.pkg.codingcorp.net/repository/registry/maven-release/")
-System.setProperty("BASE_IMAGE", "devops-docker.pkg.codingcorp.net/registry/build/ubuntu-tracing:20210513")
+System.setProperty("BASE_IMAGE", "devops-docker.pkg.codingcorp.net/coding-standard/images/konajdk-slim:8u302-r1")
 System.setProperty("REGISTRY_USER", System.getenv('REGISTRY_USER') ?: 'ptvyg13pcd54')
 System.setProperty("REGISTRY_PASSWORD", System.getenv('REGISTRY_PASSWORD') ?: 'ecd298c776e9ff972abaecb0247c700499d9c6c0')
 
