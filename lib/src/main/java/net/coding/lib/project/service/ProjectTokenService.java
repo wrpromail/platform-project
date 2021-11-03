@@ -5,7 +5,6 @@ import net.coding.common.constants.DeployTokenScopeEnum;
 import net.coding.common.util.BeanUtils;
 import net.coding.common.vendor.CodingStringUtils;
 import net.coding.grpc.client.platform.GlobalKeyGrpcClient;
-import net.coding.lib.project.dao.DepotDao;
 import net.coding.lib.project.dao.ProjectTokenArtifactDao;
 import net.coding.lib.project.dao.ProjectTokenDao;
 import net.coding.lib.project.dao.ProjectTokenDepotDao;
@@ -16,7 +15,6 @@ import net.coding.lib.project.dto.ProjectTokenDTO;
 import net.coding.lib.project.dto.ProjectTokenDepotDTO;
 import net.coding.lib.project.dto.ProjectTokenKeyDTO;
 import net.coding.lib.project.dto.ProjectTokenScopeDTO;
-import net.coding.lib.project.entity.Depot;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectToken;
 import net.coding.lib.project.entity.ProjectTokenArtifact;
@@ -54,6 +52,8 @@ import java.util.stream.Stream;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import proto.git.GitDepotGrpcClient;
+import proto.git.GitDepotProto;
 import proto.platform.globalKey.GlobalKeyProto;
 import proto.platform.user.UserProto;
 
@@ -83,7 +83,7 @@ public class ProjectTokenService {
 
     private final ProjectTokenDepotService projectTokenDepotService;
 
-    private final DepotDao depotDao;
+    private final GitDepotGrpcClient gitDepotGrpcClient;
 
     private final ProjectTokenArtifactService projectTokenArtifactService;
 
@@ -166,15 +166,19 @@ public class ProjectTokenService {
             List<Integer> depotIds = deployTokenDepots.stream().map(it -> it.getDepotId()).collect(Collectors.toList());
             if (!CollectionUtils.isEmpty(depotIds)) {
 
-                Map<Integer, Depot> depotMap = depotDao.getByIds(depotIds).stream()
+                GitDepotProto.GetGitDepotBatchResponse response = gitDepotGrpcClient.getGitDepotBatch(
+                        GitDepotProto.GetGitDepotBatchRequest.newBuilder()
+                                .addAllDepotIdList(depotIds)
+                                .build());
+                Map<Integer, GitDepotProto.GitDepot> depotMap = response.getDepotsList().stream()
                         .filter(Objects::nonNull)
-                        .filter(d -> d.getId() != null)
-                        .collect(Collectors.toMap(it -> it.getId(), Function.identity()));
+                        .collect(Collectors.toMap(GitDepotProto.GitDepot::getDepotId, Function.identity()));
+
                 deployTokenDepots.stream().filter(e -> depotMap.get(e.getDepotId()) != null).forEach(it -> {
 
-                    Depot depot = depotMap.get(it.getDepotId());
+                    GitDepotProto.GitDepot depot = depotMap.get(it.getDepotId());
                     DepotScopeDTO depotScopeDTO = DepotScopeDTO.builder().depotName(depot.getName())
-                            .id(depot.getId()).build();
+                            .id(depot.getDepotId()).build();
                     List<ProjectTokenDepotDTO> scopeDTOs = Arrays.stream(it.getDepotScope().split(DEPLOY_TOKEN_SCOPE_DELIMITER))
                             .map(str -> getWithValue(StringUtils.trim(str)))
                             .filter(Objects::nonNull)

@@ -50,7 +50,8 @@ import static springfox.documentation.builders.PathSelectors.regex;
         net.coding.service.hook.definition.ServiceHookConfigurer.class,
         net.coding.grpc.client.platform.infra.text.pinyin.Config.class,
         net.coding.grpc.client.platform.infra.text.moderation.Config.class,
-        net.coding.platform.charge.client.grpc.EnterpriseGrpcClient.class
+        net.coding.platform.charge.client.grpc.EnterpriseGrpcClient.class,
+        proto.git.Config.class
 
 })
 @ImportAutoConfiguration(

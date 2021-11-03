@@ -7,12 +7,9 @@ import net.coding.e.grpcClient.collaboration.IssueGrpcClient;
 import net.coding.e.grpcClient.collaboration.dto.Issue;
 import net.coding.e.grpcClient.collaboration.exception.IssueNotException;
 import net.coding.e.proto.FileProto;
-import net.coding.lib.project.entity.Depot;
 import net.coding.lib.project.entity.ExternalLink;
-import net.coding.lib.project.entity.MergeRequest;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectResource;
-import net.coding.lib.project.entity.Release;
 import net.coding.lib.project.grpc.client.FileServiceGrpcClient;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -30,6 +27,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import lombok.AllArgsConstructor;
+import proto.git.GitDepotGrpcClient;
+import proto.git.GitDepotProto;
 
 @Service
 @AllArgsConstructor
@@ -40,13 +39,9 @@ public class ProjectResourceLinkService {
 
     private final ExternalLinkService externalLinkService;
 
-    private final MergeRequestService mergeRequestService;
-
-    private final ReleaseService releaseService;
-
     private final FileServiceGrpcClient fileServiceGrpcClient;
 
-    private final DepotService depotService;
+    private final GitDepotGrpcClient gitDepotGrpcClient;
 
     private final ProjectService projectService;
 
@@ -175,11 +170,20 @@ public class ProjectResourceLinkService {
     }
 
     private String buildMergeRequestLink(ProjectResource projectResource, String projectPath) {
-        MergeRequest mergeRequest = mergeRequestService.getById(projectResource.getTargetId());
+        GitDepotProto.GetMergeRequestDetailResponse response = gitDepotGrpcClient.getMRDetail(
+                GitDepotProto.GetMRDetailRequest.newBuilder()
+                        .setMergeRequestId(projectResource.getTargetId())
+                        .build()
+        );
+        GitDepotProto.MergeRequest mergeRequest = response.getMergeRequest();
         if (Objects.isNull(mergeRequest)) {
             return "#";
         }
-        Depot depot = depotService.getById(mergeRequest.getDepotId());
+        GitDepotProto.GitDepot depot = gitDepotGrpcClient.getGitDepot(
+                GitDepotProto.GetGitDepotRequest.newBuilder()
+                        .setDepotId(mergeRequest.getDepotId())
+                        .build()
+        );
         if (Objects.isNull(depot)) {
             return "#";
         }
@@ -198,11 +202,17 @@ public class ProjectResourceLinkService {
     }
 
     private String buildReleaseLink(ProjectResource projectResource, String projectPath) {
-        Release release = releaseService.getById(projectResource.getTargetId());
+        GitDepotProto.GetReleaseDetailResponse response = gitDepotGrpcClient.getReleaseDetail(
+                GitDepotProto.GetReleaseDetailRequest.newBuilder()
+                        .setId(projectResource.getTargetId())
+                        .build());
+        GitDepotProto.Release release = response.getRelease();
         if (Objects.isNull(release) || release.getTagName().startsWith("release/")) {
             return "#";
         }
-        Depot depot = depotService.getById(release.getDepotId());
+        GitDepotProto.GitDepot depot = gitDepotGrpcClient.getGitDepot(GitDepotProto.GetGitDepotRequest.newBuilder()
+                .setDepotId(release.getDepotId())
+                .build());
         if (Objects.isNull(depot)) {
             return "#";
         }

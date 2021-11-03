@@ -3,9 +3,9 @@ package net.coding.lib.project.service;
 import com.google.common.eventbus.AsyncEventBus;
 
 import net.coding.common.base.event.ActivityEvent;
+import net.coding.e.grpcClient.collaboration.IssueLabelGrpcClient;
 import net.coding.e.proto.ActivitiesProto.SendActivitiesRequest;
 import net.coding.grpc.client.activity.ActivityGrpcClient;
-import net.coding.lib.project.dao.IssueLabelDao;
 import net.coding.lib.project.dao.ProjectLabelDao;
 import net.coding.lib.project.entity.ProjectLabel;
 import net.coding.lib.project.exception.CoreException;
@@ -30,7 +30,7 @@ public class ProjectLabelService {
 
     private final ProjectLabelDao projectLabelDao;
     private final ActivityGrpcClient activityGrpcClient;
-    private final IssueLabelDao issueLabelDao;
+    private final IssueLabelGrpcClient issueLabelGrpcClient;
     private final AsyncEventBus asyncEventBus;
 
     /**
@@ -127,7 +127,11 @@ public class ProjectLabelService {
         if (projectLabel == null || !projectId.equals(projectLabel.getProjectId())) {
             throw new CoreRuntimeException(CoreException.ExceptionType.PERMISSION_DENIED);
         }
-        issueLabelDao.deleteByLabelId(labelId);
+        try {
+            issueLabelGrpcClient.deleteIssueLabelById(labelId, projectId);
+        } catch (Exception e) {
+            log.error("RPC issueLabelGrpcClient.deleteIssueLabelById error , message {}", e.getMessage());
+        }
         int ok = projectLabelDao.delete(projectLabel);
         asyncEventBus.post(
                 ActivityEvent.builder()
