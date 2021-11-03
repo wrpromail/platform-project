@@ -21,7 +21,7 @@ import static java.lang.Boolean.FALSE;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 public class QueryProgramForm extends LimitedPager {
 
     @ApiModelProperty(value = "查询类型", required = true)

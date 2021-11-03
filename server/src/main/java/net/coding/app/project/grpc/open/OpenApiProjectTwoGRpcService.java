@@ -65,7 +65,7 @@ public class OpenApiProjectTwoGRpcService extends ProjectServiceGrpc.ProjectServ
             if (StringUtils.isNotBlank(projectId)
                     && !projectId.equals(String.valueOf(project.getId()))) {
                 throw CoreException.of(PERMISSION_DENIED);
-            }else {
+            } else {
                 //验证用户接口权限
                 boolean hasPermissionInProject = aclServiceGrpcClient.hasPermissionInProject(
                         PermissionProto.Permission.newBuilder()

@@ -13,7 +13,7 @@ public class TencentServerlessCredentialForm extends BaseCredentialForm {
     private boolean fake;
 
     @Data
-    public static  class TencentServerlessCredentialRaw {
+    public static class TencentServerlessCredentialRaw {
         private String secret_id;
         private String secret_key;
         private String token;

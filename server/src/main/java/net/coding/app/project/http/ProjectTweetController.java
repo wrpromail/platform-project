@@ -70,8 +70,7 @@ public class ProjectTweetController {
     private UserGrpcClient userGrpcClient;
 
     /**
-     * 检测项目权限，团队权限
-     * id : 公告id
+     * 检测项目权限，团队权限 id : 公告id
      */
     @ModelAttribute
     public void preCheckPermission(
@@ -98,7 +97,7 @@ public class ProjectTweetController {
     @ProtectedAPI
     @ProjectApiProtector(function = Function.ProjectNotice, action = Action.Create)
     @RequestMapping(value = "", method = POST)
-    public Result createProjectTweet (
+    public Result createProjectTweet(
             @ModelAttribute("project") Project project,
             @Valid CreateTweetForm form,
             Errors errors) throws CoreException {
@@ -106,7 +105,7 @@ public class ProjectTweetController {
             throw CoreException.of(errors);
         }
         String projectPath = projectGrpcClient.getProjectPath(project.getId());
-        ProjectTweet projectTweet = projectTweetService.insert(form.getContent(), form.getSlateRaw(),true, project);
+        ProjectTweet projectTweet = projectTweetService.insert(form.getContent(), form.getSlateRaw(), true, project);
         if (projectTweet == null) {
             return Result.failed();
         } else {
@@ -123,8 +122,8 @@ public class ProjectTweetController {
             @ModelAttribute("project") Project project,
             @ModelAttribute("projectTweet") ProjectTweet projectTweet,
             @RequestParam("raw") String raw,
-            @RequestParam(value = "slateRaw",required = false,defaultValue = "") String slateRaw
-            ) throws CoreException {
+            @RequestParam(value = "slateRaw", required = false, defaultValue = "") String slateRaw
+    ) throws CoreException {
 
         String projectPath = projectGrpcClient.getProjectPath(project.getId());
         projectTweet = projectTweetService.update(projectTweet, raw, slateRaw, project);
@@ -155,7 +154,7 @@ public class ProjectTweetController {
     @ApiOperation(value = "获取最近一条公告", notes = "项目概览中的公告，目前返回的是list,改成只包含最近公告的list,lastId参数不用了")
     @ProtectedAPI
     @RequestMapping(value = "last", method = GET)
-    public Result getLast (
+    public Result getLast(
             @ModelAttribute("project") Project project,
             @RequestParam(value = "withRaw", defaultValue = "false") boolean withRaw) {
         String projectPath = projectGrpcClient.getProjectPath(project.getId());
@@ -174,20 +173,20 @@ public class ProjectTweetController {
     @ApiOperation(value = "公告列表", notes = "原api:/api/project/{project_id}/notices get")
     @ProtectedAPI
     @RequestMapping(value = "", method = GET)
-    public ResultPage<ProjectTweetDTO> getProjectNotices (
+    public ResultPage<ProjectTweetDTO> getProjectNotices(
             @ModelAttribute("project") Project project,
             @ModelAttribute LimitedPager pager,
             @RequestParam(value = "withRaw", defaultValue = "false") boolean withRaw) {
         Integer page = pager.getPage();
         Integer pageSize = pager.getPageSize();
-        if(page == null || page <= 0) {
+        if (page == null || page <= 0) {
             page = 1;
         }
-        if(pageSize == null || pageSize <= 0) {
+        if (pageSize == null || pageSize <= 0) {
             pageSize = 20;
         }
         String projectPath = projectGrpcClient.getProjectPath(project.getId());
-        PageInfo<ProjectTweet > pageResult = projectTweetService.findList(project.getId(), page, pageSize);
+        PageInfo<ProjectTweet> pageResult = projectTweetService.findList(project.getId(), page, pageSize);
         List<ProjectTweet> projectNoticeList = pageResult.getList();
         List<ProjectTweetDTO> dtoList = new ArrayList<>(projectNoticeList.size());
         List<Integer> userId = projectNoticeList.stream().map(ProjectTweet::getOwnerId).distinct().collect(Collectors.toList());
@@ -212,7 +211,6 @@ public class ProjectTweetController {
         Integer userId = SystemContextHolder.get() != null ? SystemContextHolder.get().getId() : 0;
         return Result.of(projectTweetService.delete(projectTweet, userId, project) > 0);
     }
-
 
 
 }

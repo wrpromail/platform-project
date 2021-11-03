@@ -222,7 +222,7 @@ public class ProjectResourceLinkService {
     private String buildDefectLink(ProjectResource projectResource, String projectPath) {
         Issue issue = null;
         try {
-            issue = issueGrpcClient.getIssueById(projectResource.getTargetId(),  false);
+            issue = issueGrpcClient.getIssueById(projectResource.getTargetId(), false);
         } catch (IssueNotException e) {
             return "#";
         }
@@ -235,7 +235,7 @@ public class ProjectResourceLinkService {
     private String buildRequirementLink(ProjectResource projectResource, String projectPath) {
         Issue issue = null;
         try {
-            issue = issueGrpcClient.getIssueById(projectResource.getTargetId(),  false);
+            issue = issueGrpcClient.getIssueById(projectResource.getTargetId(), false);
         } catch (IssueNotException e) {
             return "#";
         }
@@ -248,7 +248,7 @@ public class ProjectResourceLinkService {
     private String buildMissionLink(ProjectResource projectResource, String projectPath) {
         Issue issue = null;
         try {
-            issue = issueGrpcClient.getIssueById(projectResource.getTargetId(),  false);
+            issue = issueGrpcClient.getIssueById(projectResource.getTargetId(), false);
         } catch (IssueNotException e) {
             return "#";
         }
@@ -261,7 +261,7 @@ public class ProjectResourceLinkService {
     private String buildSubTaskLink(ProjectResource projectResource, String projectPath) {
         Issue issue = null;
         try {
-            issue = issueGrpcClient.getIssueById(projectResource.getTargetId(),  false);
+            issue = issueGrpcClient.getIssueById(projectResource.getTargetId(), false);
         } catch (IssueNotException e) {
             return "#";
         }
@@ -274,7 +274,7 @@ public class ProjectResourceLinkService {
     private String buildEpicLink(ProjectResource projectResource, String projectPath) {
         Issue issue = null;
         try {
-            issue = issueGrpcClient.getIssueById(projectResource.getTargetId(),  false);
+            issue = issueGrpcClient.getIssueById(projectResource.getTargetId(), false);
         } catch (IssueNotException e) {
             return "#";
         }

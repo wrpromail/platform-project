@@ -330,7 +330,7 @@ public class ProjectCredentialGrpcService extends ProjectCredentialServiceGrpc.P
                 .map(Credential::getCreatorId)
                 .collect(Collectors.toSet());
         Map<Integer, String> userMap = Optional.ofNullable(
-                userGrpcClient.findUserByIds(new ArrayList<>(creatorIds)))
+                        userGrpcClient.findUserByIds(new ArrayList<>(creatorIds)))
                 .filter(CollectionUtils::isNotEmpty)
                 .map(users -> users.stream()
                         .filter(Objects::nonNull)
@@ -338,7 +338,7 @@ public class ProjectCredentialGrpcService extends ProjectCredentialServiceGrpc.P
                 )
                 .orElse(new HashMap<>());
         return Optional.of(credentials.stream()
-                .map(this::toBuildCredential).collect(toList()))
+                        .map(this::toBuildCredential).collect(toList()))
                 .filter(CollectionUtils::isNotEmpty)
                 .map(vs -> vs.stream()
                         .filter(Objects::nonNull)

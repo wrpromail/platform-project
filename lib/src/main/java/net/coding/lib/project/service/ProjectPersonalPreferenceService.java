@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ProjectPersonalPreferenceService {
     private final ProjectPersonalPreferenceDao projectPersonalPreferenceDao;
+
     public ProjectPersonalPreference findBy(Integer projectId, Integer userId, String key) {
         if (projectId == null || userId == null || StringUtils.isBlank(key)) {
             throw new IllegalArgumentException();

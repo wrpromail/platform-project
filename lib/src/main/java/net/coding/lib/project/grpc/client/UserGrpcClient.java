@@ -39,7 +39,7 @@ public class UserGrpcClient extends EndpointGrpcClient<UserServiceGrpc.UserServi
                     .setTeamId(teamId)
                     .build();
             UserProto.GetUserResponse response = newStub().getUserByNameAndTeamId(request);
-            if(CodeProto.Code.SUCCESS.equals(response.getCode())) {
+            if (CodeProto.Code.SUCCESS.equals(response.getCode())) {
                 return response.getData();
             }
         } catch (Exception ex) {
@@ -54,7 +54,7 @@ public class UserGrpcClient extends EndpointGrpcClient<UserServiceGrpc.UserServi
                     .setUserGlobalKey(globalKey)
                     .build();
             UserProto.GetUserResponse response = newStub().getUserByGlobalKey(request);
-            if(CodeProto.Code.SUCCESS.equals(response.getCode())) {
+            if (CodeProto.Code.SUCCESS.equals(response.getCode())) {
                 return response.getData();
             }
         } catch (Exception ex) {
@@ -69,7 +69,7 @@ public class UserGrpcClient extends EndpointGrpcClient<UserServiceGrpc.UserServi
                     .setUserId(id)
                     .build();
             UserProto.GetUserResponse response = newStub().getUserById(request);
-            if(CodeProto.Code.SUCCESS.equals(response.getCode())) {
+            if (CodeProto.Code.SUCCESS.equals(response.getCode())) {
                 return response.getData();
             }
         } catch (Exception ex) {
@@ -84,7 +84,7 @@ public class UserGrpcClient extends EndpointGrpcClient<UserServiceGrpc.UserServi
                     .setUserId(id)
                     .build();
             UserProto.GetUserHtmlLinkResponse response = newStub().getUserHtmlLink(request);
-            if(CodeProto.Code.SUCCESS.equals(response.getCode())) {
+            if (CodeProto.Code.SUCCESS.equals(response.getCode())) {
                 return response.getUserHtmlLink();
             }
         } catch (Exception ex) {
@@ -99,7 +99,7 @@ public class UserGrpcClient extends EndpointGrpcClient<UserServiceGrpc.UserServi
                     .addAllIds(userIds)
                     .build();
             UserProto.FindUserResponse response = newStub().findUserByIds(request);
-            if(CodeProto.Code.SUCCESS.equals(response.getCode())) {
+            if (CodeProto.Code.SUCCESS.equals(response.getCode())) {
                 return response.getDataList();
             }
         } catch (Exception ex) {

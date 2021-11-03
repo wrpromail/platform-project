@@ -19,7 +19,7 @@ public class RedissonConfig {
     @Bean
     public RedissonClient redissonClient() {
         Config config = new Config();
-        String redisUrl = String.format("redis://%s:%s", host+"", port+"");
+        String redisUrl = String.format("redis://%s:%s", host + "", port + "");
         config.useSingleServer().setAddress(redisUrl).setTimeout(3000).setConnectionMinimumIdleSize(2).setConnectionPoolSize(32);
         return Redisson.create(config);
     }

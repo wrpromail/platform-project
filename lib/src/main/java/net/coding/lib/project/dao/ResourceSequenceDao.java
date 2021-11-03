@@ -10,8 +10,8 @@ public interface ResourceSequenceDao {
 
     int insert(ResourceSequence record);
 
-    ResourceSequence getByScopeIdAndScopeType(@Param("scopeId")Integer scopeId, @Param("scopeType")Integer scopeType);
+    ResourceSequence getByScopeIdAndScopeType(@Param("scopeId") Integer scopeId, @Param("scopeType") Integer scopeType);
 
-    int generateResourceCode(@Param("scopeId")Integer scopeId, @Param("scopeType")Integer scopeType);
+    int generateResourceCode(@Param("scopeId") Integer scopeId, @Param("scopeType") Integer scopeType);
 
 }

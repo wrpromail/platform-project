@@ -1,40 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="net.coding.lib.project.dao.MergeRequestDao">
-  <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.MergeRequest">
-    <id column="id" jdbcType="INTEGER" property="id" />
-    <result column="depot_id" jdbcType="INTEGER" property="depotId" />
-    <result column="source_branch" jdbcType="VARCHAR" property="sourceBranch" />
-    <result column="target_branch" jdbcType="VARCHAR" property="targetBranch" />
-    <result column="author_id" jdbcType="INTEGER" property="authorId" />
-    <result column="action_author" jdbcType="INTEGER" property="actionAuthor" />
-    <result column="assignee_id" jdbcType="INTEGER" property="assigneeId" />
-    <result column="title" jdbcType="VARCHAR" property="title" />
-    <result column="body" jdbcType="VARCHAR" property="body" />
-    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
-    <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
-    <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt" />
-    <result column="action_at" jdbcType="TIMESTAMP" property="actionAt" />
-    <result column="merge_status" jdbcType="VARCHAR" property="mergeStatus" />
-    <result column="iid" jdbcType="INTEGER" property="iid" />
-    <result column="source_sha" jdbcType="VARCHAR" property="sourceSha" />
-    <result column="target_sha" jdbcType="VARCHAR" property="targetSha" />
-    <result column="granted" jdbcType="BOOLEAN" property="granted" />
-    <result column="granted_by" jdbcType="INTEGER" property="grantedBy" />
-    <result column="pipeline_id" jdbcType="INTEGER" property="pipelineId" />
-    <result column="body_plan" jdbcType="VARCHAR" property="bodyPlan" />
-    <result column="conflicts" jdbcType="VARCHAR" property="conflicts" />
-    <result column="merged_sha" jdbcType="VARCHAR" property="mergedSha" />
-  </resultMap>
-  <sql id="Base_Column_List">
-    id, depot_id, source_branch, target_branch, author_id, action_author, assignee_id, 
+    <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.MergeRequest">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="depot_id" jdbcType="INTEGER" property="depotId"/>
+        <result column="source_branch" jdbcType="VARCHAR" property="sourceBranch"/>
+        <result column="target_branch" jdbcType="VARCHAR" property="targetBranch"/>
+        <result column="author_id" jdbcType="INTEGER" property="authorId"/>
+        <result column="action_author" jdbcType="INTEGER" property="actionAuthor"/>
+        <result column="assignee_id" jdbcType="INTEGER" property="assigneeId"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="body" jdbcType="VARCHAR" property="body"/>
+        <result column="created_at" jdbcType="TIMESTAMP" property="createdAt"/>
+        <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt"/>
+        <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt"/>
+        <result column="action_at" jdbcType="TIMESTAMP" property="actionAt"/>
+        <result column="merge_status" jdbcType="VARCHAR" property="mergeStatus"/>
+        <result column="iid" jdbcType="INTEGER" property="iid"/>
+        <result column="source_sha" jdbcType="VARCHAR" property="sourceSha"/>
+        <result column="target_sha" jdbcType="VARCHAR" property="targetSha"/>
+        <result column="granted" jdbcType="BOOLEAN" property="granted"/>
+        <result column="granted_by" jdbcType="INTEGER" property="grantedBy"/>
+        <result column="pipeline_id" jdbcType="INTEGER" property="pipelineId"/>
+        <result column="body_plan" jdbcType="VARCHAR" property="bodyPlan"/>
+        <result column="conflicts" jdbcType="VARCHAR" property="conflicts"/>
+        <result column="merged_sha" jdbcType="VARCHAR" property="mergedSha"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, depot_id, source_branch, target_branch, author_id, action_author, assignee_id,
     title, body, created_at, updated_at, deleted_at, action_at, merge_status, iid, source_sha, 
     target_sha, `granted`, granted_by, pipeline_id, body_plan, conflicts, merged_sha
-  </sql>
-  <select id="getById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
-    select 
-    <include refid="Base_Column_List" />
-    from merge_requests
-    where deleted_at = '1970-01-01 00:00:00' AND id = #{id,jdbcType=INTEGER}
-  </select>
+    </sql>
+    <select id="getById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from merge_requests
+        where deleted_at = '1970-01-01 00:00:00' AND id = #{id,jdbcType=INTEGER}
+    </select>
 </mapper>

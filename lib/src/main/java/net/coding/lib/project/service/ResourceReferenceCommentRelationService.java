@@ -36,7 +36,7 @@ public class ResourceReferenceCommentRelationService {
         Map<String, Object> parameter = new HashMap<>();
         parameter.put("referenceIds", referenceIds);
         parameter.put("deletedAt", DateUtil.getCurrentDate());
-        if(isDescription) {
+        if (isDescription) {
             parameter.put("citedSource", "DESCRIPTION");
             return resourceReferenceCommentRelationDao.deleteByReferenceIdsAndCitedSource(parameter);
         }

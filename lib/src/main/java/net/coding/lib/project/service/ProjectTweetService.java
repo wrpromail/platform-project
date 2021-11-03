@@ -49,6 +49,7 @@ public class ProjectTweetService {
     private final TemplateGrpcClient templateGrpcClient;
 
     private final ProjectResourceLinkService projectResourceLinkService;
+
     public ProjectTweet insert(String content, String slateRaw, boolean doCheck, Project project) throws CoreException {
         String raw = content;
         Integer userId = 0;

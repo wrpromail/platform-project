@@ -44,11 +44,11 @@ public class ResultModel<D> {
     }
 
     public static <T> ResultModel<T> getInstance(String code, T data) {
-        return getInstance(code, (String)null, (int)(System.currentTimeMillis() / 1000L), data);
+        return getInstance(code, (String) null, (int) (System.currentTimeMillis() / 1000L), data);
     }
 
     public static <T> ResultModel<T> getInstance(String code, Integer currentTime, T data) {
-        return getInstance(code, (String)null, currentTime, data);
+        return getInstance(code, (String) null, currentTime, data);
     }
 
     public static <T> ResultModel<T> getInstance(String code, String msg, Integer currentTime, T data) {

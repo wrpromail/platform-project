@@ -148,7 +148,7 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
     public void updateResourceReference(ResourceReferenceProto.UpdateResourceReferenceRequest request,
                                         StreamObserver<ResourceReferenceProto.ResourceReferenceResponse> response) {
         try {
-            if (request.getSelfIid() <= 0  || request.getTargetProjectId() <= 0 || request.getTargetIid() <= 0) {
+            if (request.getSelfIid() <= 0 || request.getTargetProjectId() <= 0 || request.getTargetIid() <= 0) {
                 GrpcUtil.resourceReferenceResponse(CodeProto.Code.INVALID_PARAMETER, "updateResourceReference parameters error", null, response);
                 return;
             }

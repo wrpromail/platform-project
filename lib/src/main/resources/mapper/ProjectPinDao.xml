@@ -30,9 +30,10 @@
     </select>
 
     <select id="findMaxSort" resultType="Integer">
-        select if(max(sort) is NULL,0,max(sort))
+        select if(max(sort) is NULL, 0, max(sort))
         from project_pins
-        where user_id = #{userId} and deleted_at = '1970-01-01 00:00:00'
+        where user_id = #{userId}
+          and deleted_at = '1970-01-01 00:00:00'
     </select>
 
     <update id="batchUpdateSortBlock">

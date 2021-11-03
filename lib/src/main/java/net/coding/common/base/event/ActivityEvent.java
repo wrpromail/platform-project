@@ -43,7 +43,7 @@ public class ActivityEvent implements ParametrizedEventType {
 
     @Override
     public List<Type> provideParametrized() {
-        if(type == null) {
+        if (type == null) {
             return Collections.emptyList(); //最终还是会 post 失败
         }
         return Collections.singletonList(type);

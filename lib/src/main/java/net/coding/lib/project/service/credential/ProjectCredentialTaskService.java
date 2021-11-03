@@ -1,7 +1,6 @@
 package net.coding.lib.project.service.credential;
 
 import net.coding.common.util.BeanUtils;
-import net.coding.lib.project.dao.credentail.ProjectCredentialDao;
 import net.coding.lib.project.dao.credentail.ProjectCredentialTaskDao;
 import net.coding.lib.project.dto.ConnectionTaskDTO;
 import net.coding.lib.project.entity.Credential;
@@ -10,7 +9,6 @@ import net.coding.lib.project.enums.CredentialTaskTypeEnums;
 import net.coding.lib.project.enums.CredentialTypeEnums;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.grpc.client.CiJobGrpcClient;
-import net.coding.proto.platform.project.ProjectCredentialProto;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;

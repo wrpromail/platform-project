@@ -19,9 +19,7 @@ public class CredentialForm extends BaseCredentialForm {
     private String username;
 
     /**
-     * 密码/私钥口令
-     * 注意：RSA加密明文bytes最大长度有86限制，汉字占2bytes，故限制 String 长度小于40
-     * v2 版本使用分块加密，理论上没有长度限制，设置为1000最大
+     * 密码/私钥口令 注意：RSA加密明文bytes最大长度有86限制，汉字占2bytes，故限制 String 长度小于40 v2 版本使用分块加密，理论上没有长度限制，设置为1000最大
      */
     @Valid
     @Length(max = 1000, message = "credential_password_too_long")

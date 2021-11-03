@@ -10,7 +10,8 @@ import lombok.NoArgsConstructor;
 
 /**
  * resource_references
- * @author 
+ *
+ * @author
  */
 @Data
 @AllArgsConstructor

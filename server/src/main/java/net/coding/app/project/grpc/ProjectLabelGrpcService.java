@@ -106,11 +106,11 @@ public class ProjectLabelGrpcService extends ProjectLabelServiceGrpc.ProjectLabe
                 status = Status.INTERNAL;
             }
             responseObserver.onError(status.withDescription(
-                    "createLabel fail, " + e.getMessage() +
-                            ", projectId is " + request.getProjectId() +
-                            ", name is " + request.getName() +
-                            ", color is " + request.getColor() +
-                            ", ownerId is " + request.getOwnerId())
+                            "createLabel fail, " + e.getMessage() +
+                                    ", projectId is " + request.getProjectId() +
+                                    ", name is " + request.getName() +
+                                    ", color is " + request.getColor() +
+                                    ", ownerId is " + request.getOwnerId())
                     .asRuntimeException());
         }
     }
@@ -150,9 +150,9 @@ public class ProjectLabelGrpcService extends ProjectLabelServiceGrpc.ProjectLabe
         try {
             List<Integer> ids = request.getIdList();
             List<ProjectLabel> projectLabels = projectLabelService.getByIds(ids);
-            if(CollectionUtils.isEmpty(projectLabels)){
+            if (CollectionUtils.isEmpty(projectLabels)) {
                 builder.setCode(CodeProto.Code.NOT_FOUND);
-            }else {
+            } else {
                 List<ProjectLabelProto.ProjectLabel> projectLabelList = projectLabels
                         .stream()
                         .map(this::toBuilder)
@@ -182,9 +182,9 @@ public class ProjectLabelGrpcService extends ProjectLabelServiceGrpc.ProjectLabe
                     request.getName(),
                     request.getProjectId()
             );
-            if(projectLabel==null){
+            if (projectLabel == null) {
                 builder.setCode(CodeProto.Code.NOT_FOUND);
-            }else {
+            } else {
                 builder.setProjectLabel(toBuilder(projectLabel))
                         .setCode(CodeProto.Code.SUCCESS);
             }

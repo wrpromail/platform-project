@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * deploy_token_artifacts
+ *
  * @author
  */
 @Data

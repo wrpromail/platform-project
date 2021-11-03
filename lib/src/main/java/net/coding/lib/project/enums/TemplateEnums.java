@@ -102,13 +102,13 @@ public enum TemplateEnums {
 
     }
 
-    public boolean isTencentServerless(){
+    public boolean isTencentServerless() {
         return this == TENCENT_SLS_EXPRESS ||
                 this == TENCENT_SLS_FLASK ||
                 this == TENCENT_SLS_STATIC_WEBSITE;
     }
 
-    public static List<String> getTencentServerless(){
+    public static List<String> getTencentServerless() {
         return Arrays.asList(TENCENT_SLS_EXPRESS.name(), TENCENT_SLS_FLASK.name(),
                 TENCENT_SLS_STATIC_WEBSITE.name(), TENCENT_SLS_DB.name());
     }

@@ -10,20 +10,20 @@ option java_outer_classname = "AgileTemplateProto";
 
 
 message TemplateInitRequest {
-    int32 projectId = 1;
-    int32 creatorId = 2;
-    string projectTemplate = 3; // 项目模板
-    string template = 4; // 范例模版
+  int32 projectId = 1;
+  int32 creatorId = 2;
+  string projectTemplate = 3; // 项目模板
+  string template = 4; // 范例模版
 }
 
 message DemoProjectAgileDateRequest {
-    int32 teamId = 1;
-    int32 projectId = 2;
-    int32 creatorId = 3;
+  int32 teamId = 1;
+  int32 projectId = 2;
+  int32 creatorId = 3;
 }
 
 service AgileTemplateService {
 
-    // 项目创建后初始化agile的部分数据
-    rpc dataInitByProjectTemplate (TemplateInitRequest) returns (Result);
+  // 项目创建后初始化agile的部分数据
+  rpc dataInitByProjectTemplate (TemplateInitRequest) returns (Result);
 }

@@ -25,7 +25,7 @@ import proto.projectResource.ProjectResourceProto;
 public class GrpcUtil {
 
     public static void projectResourceResponse(CodeProto.Code code, String message, ProjectResourceProto.ProjectResource resource, StreamObserver<ProjectResourceProto.ProjectResourceResponse> response) {
-        if(CodeProto.Code.SUCCESS.equals(code)) {
+        if (CodeProto.Code.SUCCESS.equals(code)) {
             ProjectResourceProto.ProjectResourceResponse build = ProjectResourceProto.ProjectResourceResponse.newBuilder()
                     .setCode(code)
                     .setMessage(message)
@@ -44,7 +44,7 @@ public class GrpcUtil {
     }
 
     public static void resourceResponse(CodeProto.Code code, String message, ProjectResourceProto.Resource resource, StreamObserver<ProjectResourceProto.ResourceResponse> response) {
-        if(CodeProto.Code.SUCCESS.equals(code)) {
+        if (CodeProto.Code.SUCCESS.equals(code)) {
             ProjectResourceProto.ResourceResponse build = ProjectResourceProto.ResourceResponse.newBuilder()
                     .setCode(code)
                     .setMessage(message)
@@ -61,6 +61,7 @@ public class GrpcUtil {
             response.onCompleted();
         }
     }
+
     public static void projectResourceCommonResponse(CodeProto.Code code, String message, StreamObserver<ProjectResourceProto.ProjectResourceCommonResponse> response) {
         ProjectResourceProto.ProjectResourceCommonResponse build = ProjectResourceProto.ProjectResourceCommonResponse.newBuilder()
                 .setCode(code)
@@ -129,7 +130,7 @@ public class GrpcUtil {
     public static void findProjectResourceResponse(CodeProto.Code code, String message, PagerProto.PageInfo pageInfo,
                                                    List<ProjectResourceProto.ProjectResource> projectResourceList,
                                                    StreamObserver<ProjectResourceProto.FindProjectResourceResponse> response) {
-        if(CodeProto.Code.SUCCESS.equals(code)) {
+        if (CodeProto.Code.SUCCESS.equals(code)) {
             ProjectResourceProto.FindProjectResourceResponse build = ProjectResourceProto.FindProjectResourceResponse.newBuilder()
                     .setCode(code)
                     .setMessage(message)
@@ -151,7 +152,7 @@ public class GrpcUtil {
     public static void batchProjectResourceResponse(CodeProto.Code code, String message,
                                                     List<ProjectResourceProto.ProjectResource> projectResourceList,
                                                     StreamObserver<ProjectResourceProto.BatchProjectResourceResponse> response) {
-        if(CodeProto.Code.SUCCESS.equals(code)) {
+        if (CodeProto.Code.SUCCESS.equals(code)) {
             ProjectResourceProto.BatchProjectResourceResponse build = ProjectResourceProto.BatchProjectResourceResponse.newBuilder()
                     .setCode(code)
                     .setMessage(message)
@@ -172,7 +173,7 @@ public class GrpcUtil {
     public static void multiCodeResponse(CodeProto.Code code, String message,
                                          ProjectResourceProto.MultiResourceSequence multiResourceSequence,
                                          StreamObserver<ProjectResourceProto.MultiCodeResponse> response) {
-        if(CodeProto.Code.SUCCESS.equals(code)) {
+        if (CodeProto.Code.SUCCESS.equals(code)) {
             ProjectResourceProto.MultiCodeResponse build = ProjectResourceProto.MultiCodeResponse.newBuilder()
                     .setCode(code)
                     .setMessage(message)
@@ -192,7 +193,7 @@ public class GrpcUtil {
 
     public static void getResourceLinkResponse(CodeProto.Code code, String message, String url,
                                                StreamObserver<ProjectResourceProto.GetResourceLinkResponse> response) {
-        if(CodeProto.Code.SUCCESS.equals(code)) {
+        if (CodeProto.Code.SUCCESS.equals(code)) {
             ProjectResourceProto.GetResourceLinkResponse build = ProjectResourceProto.GetResourceLinkResponse.newBuilder()
                     .setCode(code)
                     .setMessage(message)
@@ -211,9 +212,9 @@ public class GrpcUtil {
     }
 
     public static void FindProjectResourceMutuallyResponse(CodeProto.Code code, String message,
-                                                   List<ProjectResourceDTO> projectResourceList,
-                                                   StreamObserver<ProjectResourceProto.FindProjectResourceMutuallyResponse> response) {
-        if(CodeProto.Code.SUCCESS.equals(code)) {
+                                                           List<ProjectResourceDTO> projectResourceList,
+                                                           StreamObserver<ProjectResourceProto.FindProjectResourceMutuallyResponse> response) {
+        if (CodeProto.Code.SUCCESS.equals(code)) {
             List<ProjectResourceProto.ProjectResourceDto> list = new ArrayList<>();
             projectResourceList.forEach(record -> {
                 ProjectResourceProto.ProjectResourceDto dto = ProjectResourceProto.ProjectResourceDto.newBuilder()
@@ -249,7 +250,7 @@ public class GrpcUtil {
 
     public static void resourceReferenceResponse(CodeProto.Code code, String message, ResourceReferenceProto.ResourceReference resourceReference,
                                                  StreamObserver<ResourceReferenceProto.ResourceReferenceResponse> response) {
-        if(CodeProto.Code.SUCCESS.equals(code)) {
+        if (CodeProto.Code.SUCCESS.equals(code)) {
             ResourceReferenceProto.ResourceReferenceResponse build = ResourceReferenceProto.ResourceReferenceResponse.newBuilder()
                     .setCode(code)
                     .setMessage(message)
@@ -295,7 +296,7 @@ public class GrpcUtil {
     }
 
     public static void countByTargetResponse(CodeProto.Code code, String message, Integer counts, StreamObserver<ResourceReferenceProto.CountResourceReferenceResponse> response) {
-        if(CodeProto.Code.SUCCESS.equals(code)) {
+        if (CodeProto.Code.SUCCESS.equals(code)) {
             ResourceReferenceProto.CountResourceReferenceResponse build = ResourceReferenceProto.CountResourceReferenceResponse.newBuilder()
                     .setCode(code)
                     .setMessage(message)
@@ -340,21 +341,21 @@ public class GrpcUtil {
     }
 
     public static Integer defaultInt(Integer obj) {
-        if(null != obj) {
+        if (null != obj) {
             return obj;
         }
         return 0;
     }
 
     public static long defaultLong(Date time) {
-        if(Objects.nonNull(time)) {
+        if (Objects.nonNull(time)) {
             return time.getTime();
         }
         return 0L;
     }
 
     public static String defaultDateStr(Date time) {
-        if(Objects.nonNull(time)) {
+        if (Objects.nonNull(time)) {
             return DateUtil.dateToStr(time);
         }
         return "";
@@ -363,7 +364,7 @@ public class GrpcUtil {
     public static void findResourceReferenceListResponse(CodeProto.Code code, String message,
                                                          List<ResourceReference> resourceReferenceList,
                                                          StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> response) {
-        if(CodeProto.Code.SUCCESS.equals(code)) {
+        if (CodeProto.Code.SUCCESS.equals(code)) {
             ResourceReferenceProto.FindResourceReferenceListResponse build = ResourceReferenceProto.FindResourceReferenceListResponse.newBuilder()
                     .setCode(code)
                     .setMessage(message)
@@ -384,7 +385,7 @@ public class GrpcUtil {
     public static void findIdsMutuallyResponse(CodeProto.Code code, String message,
                                                List<Integer> ids,
                                                StreamObserver<ResourceReferenceProto.FindIdsMutuallyResponse> response) {
-        if(CodeProto.Code.SUCCESS.equals(code)) {
+        if (CodeProto.Code.SUCCESS.equals(code)) {
             ResourceReferenceProto.FindIdsMutuallyResponse build = ResourceReferenceProto.FindIdsMutuallyResponse.newBuilder()
                     .setCode(code)
                     .setMessage(message)
@@ -404,7 +405,7 @@ public class GrpcUtil {
 
     public static void addExternalLinkResponse(CodeProto.Code code, String message, ExternalLink externalLink,
                                                StreamObserver<ExternalLinkProto.AddExternalLinkResponse> response) {
-        if(CodeProto.Code.SUCCESS.equals(code)) {
+        if (CodeProto.Code.SUCCESS.equals(code)) {
             ExternalLinkProto.ExternalLink data = ExternalLinkProto.ExternalLink.newBuilder()
                     .setId(externalLink.getId())
                     .setUserId(externalLink.getCreatorId())
@@ -432,7 +433,7 @@ public class GrpcUtil {
 
     public static void existsResourceReferenceResponse(CodeProto.Code code, String message, boolean existsFlag,
                                                        StreamObserver<ResourceReferenceProto.ExistsResourceReferenceResponse> response) {
-        if(CodeProto.Code.SUCCESS.equals(code)) {
+        if (CodeProto.Code.SUCCESS.equals(code)) {
             ResourceReferenceProto.ExistsResourceReferenceResponse build = ResourceReferenceProto.ExistsResourceReferenceResponse.newBuilder()
                     .setCode(code)
                     .setExistsFlag(existsFlag)
@@ -451,8 +452,8 @@ public class GrpcUtil {
     }
 
     public static void addCommentRelationResponse(CodeProto.Code code, String message, ResourceReferenceCommentRelationProto.CommentRelation commentRelation,
-                                                 StreamObserver<ResourceReferenceCommentRelationProto.AddCommentRelationResponse> response) {
-        if(CodeProto.Code.SUCCESS.equals(code)) {
+                                                  StreamObserver<ResourceReferenceCommentRelationProto.AddCommentRelationResponse> response) {
+        if (CodeProto.Code.SUCCESS.equals(code)) {
             ResourceReferenceCommentRelationProto.AddCommentRelationResponse build = ResourceReferenceCommentRelationProto.AddCommentRelationResponse.newBuilder()
                     .setCode(code)
                     .setMessage(message)
@@ -511,9 +512,9 @@ public class GrpcUtil {
     }
 
     public static void findCommentRelationListResponse(CodeProto.Code code, String message,
-                                                         List<ResourceReferenceCommentRelation> resourceReferenceCommentRelationList,
-                                                         StreamObserver<ResourceReferenceCommentRelationProto.FindCommentRelationResponse> response) {
-        if(CodeProto.Code.SUCCESS.equals(code)) {
+                                                       List<ResourceReferenceCommentRelation> resourceReferenceCommentRelationList,
+                                                       StreamObserver<ResourceReferenceCommentRelationProto.FindCommentRelationResponse> response) {
+        if (CodeProto.Code.SUCCESS.equals(code)) {
             ResourceReferenceCommentRelationProto.FindCommentRelationResponse build = ResourceReferenceCommentRelationProto.FindCommentRelationResponse
                     .newBuilder()
                     .setCode(code)
@@ -534,9 +535,9 @@ public class GrpcUtil {
     }
 
     public static void findReferenceIdsResponse(CodeProto.Code code, String message,
-                                                       List<Integer> resourceIdList,
-                                                       StreamObserver<ResourceReferenceCommentRelationProto.FindReferenceIdsResponse> response) {
-        if(CodeProto.Code.SUCCESS.equals(code)) {
+                                                List<Integer> resourceIdList,
+                                                StreamObserver<ResourceReferenceCommentRelationProto.FindReferenceIdsResponse> response) {
+        if (CodeProto.Code.SUCCESS.equals(code)) {
             ResourceReferenceCommentRelationProto.FindReferenceIdsResponse build = ResourceReferenceCommentRelationProto.FindReferenceIdsResponse
                     .newBuilder()
                     .setCode(code)
@@ -559,7 +560,7 @@ public class GrpcUtil {
     public static void hasCommentResponse(CodeProto.Code code, String message,
                                           boolean isComment,
                                           StreamObserver<ResourceReferenceCommentRelationProto.HasCommentResponse> response) {
-        if(CodeProto.Code.SUCCESS.equals(code)) {
+        if (CodeProto.Code.SUCCESS.equals(code)) {
             ResourceReferenceCommentRelationProto.HasCommentResponse build = ResourceReferenceCommentRelationProto.HasCommentResponse
                     .newBuilder()
                     .setCode(code)

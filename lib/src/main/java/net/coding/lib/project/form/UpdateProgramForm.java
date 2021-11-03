@@ -33,7 +33,7 @@ import static net.coding.common.constants.ProjectConstants.PROJECT_NAME_REGEX;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 public class UpdateProgramForm extends BaseForm {
 
     @ApiModelProperty(value = "id", required = true)

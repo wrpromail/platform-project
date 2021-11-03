@@ -5,6 +5,6 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum  ProgramWorkflowEnums {
-    PROGRAM,TEMPLATE
+public enum ProgramWorkflowEnums {
+    PROGRAM, TEMPLATE
 }

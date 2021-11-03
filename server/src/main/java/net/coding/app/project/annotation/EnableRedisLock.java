@@ -10,7 +10,10 @@ import java.util.concurrent.TimeUnit;
 @Target(ElementType.METHOD)
 public @interface EnableRedisLock {
     String lockKey();
+
     int waitTime() default 3;
+
     TimeUnit timeUnit() default TimeUnit.SECONDS;
+
     int leaseTime() default 3;
 }

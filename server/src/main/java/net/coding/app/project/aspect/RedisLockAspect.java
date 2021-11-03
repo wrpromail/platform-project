@@ -20,7 +20,7 @@ public class RedisLockAspect {
     private RedissonLockUtil redissonLockUtil;
 
     @Around(value = "@annotation(net.coding.app.project.annotation.EnableRedisLock)")
-    public void handleRedisLock(ProceedingJoinPoint joinPoint) throws Throwable{
+    public void handleRedisLock(ProceedingJoinPoint joinPoint) throws Throwable {
         EnableRedisLock redisLock = ((MethodSignature) joinPoint.getSignature())
                 .getMethod()
                 .getAnnotation(EnableRedisLock.class);
@@ -28,7 +28,7 @@ public class RedisLockAspect {
         int waitTime = redisLock.waitTime();
         TimeUnit timeUnit = redisLock.timeUnit();
         int leaseTime = redisLock.leaseTime();
-        if(redissonLockUtil.tryLock(lockKey, timeUnit, waitTime, leaseTime)) {
+        if (redissonLockUtil.tryLock(lockKey, timeUnit, waitTime, leaseTime)) {
             try {
                 joinPoint.proceed();
                 redissonLockUtil.unlock(lockKey);

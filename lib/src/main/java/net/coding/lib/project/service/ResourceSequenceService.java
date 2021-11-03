@@ -33,7 +33,7 @@ public class ResourceSequenceService {
         int result = resourceSequenceDao.generateResourceCode(scopeId, scopeType);
         if (result > 0) {
             ResourceSequence resourceSequence = resourceSequenceDao.getByScopeIdAndScopeType(scopeId, scopeType);
-            String code = switchCode(resourceSequence.getCode(),resourceSequence.getScopeType(), targetType);
+            String code = switchCode(resourceSequence.getCode(), resourceSequence.getScopeType(), targetType);
             return code;
         } else {
             throw new RuntimeException("can not get new project resource code!!! maybe project id not found!!!");
@@ -41,16 +41,17 @@ public class ResourceSequenceService {
     }
 
     private String switchCode(Integer code, Integer scopeType, String targetType) {
-        if(ScopeTypeEnum.PROJECT.value().equals(scopeType)){
+        if (ScopeTypeEnum.PROJECT.value().equals(scopeType)) {
             return String.valueOf(code);
-        } else if(ScopeTypeEnum.TEAM.value().equals(scopeType)){
+        } else if (ScopeTypeEnum.TEAM.value().equals(scopeType)) {
             GlobalResourceTypeEnum globalResourceTypeEnum = GlobalResourceTypeEnum.valueFrom(targetType);
             String formatCode;
-            switch (Objects.requireNonNull(globalResourceTypeEnum)){
+            switch (Objects.requireNonNull(globalResourceTypeEnum)) {
                 case KNOWLEDGE_MANAGE:
                     formatCode = "K-" + code;
                     break;
-                default: formatCode = String.valueOf(code);
+                default:
+                    formatCode = String.valueOf(code);
             }
             return formatCode;
         }

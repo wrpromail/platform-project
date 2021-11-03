@@ -1,644 +1,671 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="net.coding.lib.project.dao.ResourceReferenceDao">
-  <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ResourceReference">
-    <id column="id" jdbcType="INTEGER" property="id" />
-    <result column="self_id" jdbcType="INTEGER" property="selfId" />
-    <result column="self_project_id" jdbcType="INTEGER" property="selfProjectId" />
-    <result column="self_iid" jdbcType="INTEGER" property="selfIid" />
-    <result column="self_type" jdbcType="VARCHAR" property="selfType" />
-    <result column="target_id" jdbcType="INTEGER" property="targetId" />
-    <result column="target_project_id" jdbcType="INTEGER" property="targetProjectId" />
-    <result column="target_iid" jdbcType="INTEGER" property="targetIid" />
-    <result column="target_type" jdbcType="VARCHAR" property="targetType" />
-    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
-    <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
-    <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt" />
-  </resultMap>
+    <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ResourceReference">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="self_id" jdbcType="INTEGER" property="selfId"/>
+        <result column="self_project_id" jdbcType="INTEGER" property="selfProjectId"/>
+        <result column="self_iid" jdbcType="INTEGER" property="selfIid"/>
+        <result column="self_type" jdbcType="VARCHAR" property="selfType"/>
+        <result column="target_id" jdbcType="INTEGER" property="targetId"/>
+        <result column="target_project_id" jdbcType="INTEGER" property="targetProjectId"/>
+        <result column="target_iid" jdbcType="INTEGER" property="targetIid"/>
+        <result column="target_type" jdbcType="VARCHAR" property="targetType"/>
+        <result column="created_at" jdbcType="TIMESTAMP" property="createdAt"/>
+        <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt"/>
+        <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt"/>
+    </resultMap>
 
-  <sql id="Base_Column_List">
-    id, self_id, self_project_id, self_iid, self_type, target_id, target_project_id, 
+    <sql id="Base_Column_List">
+        id, self_id, self_project_id, self_iid, self_type, target_id, target_project_id,
     target_iid, target_type, created_at, updated_at, deleted_at
-  </sql>
+    </sql>
 
-  <select id="findList" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM resource_references
-    <where>
-      <if test="targetType != null">
-        AND target_type = #{targetType}
-      </if>
-      <if test="targetIds != null and targetIds.size() > 0">
-        AND target_id IN
-        <foreach item = "item" index = "index" collection = "targetIds" open = "(" close = ")" separator=",">
-          #{item}
+    <select id="findList" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM resource_references
+        <where>
+            <if test="targetType != null">
+                AND target_type = #{targetType}
+            </if>
+            <if test="targetIds != null and targetIds.size() > 0">
+                AND target_id IN
+                <foreach item="item" index="index" collection="targetIds" open="(" close=")"
+                         separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="selfType != null">
+                AND self_type = #{selfType}
+            </if>
+            <if test="selfIds != null and selfIds.size() > 0">
+                AND self_id IN
+                <foreach item="item" index="index" collection="selfIds" open="(" close=")"
+                         separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="deletedAt != null">
+                AND deleted_at = #{deletedAt}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" keyColumn="id" keyProperty="id"
+            parameterType="net.coding.lib.project.entity.ResourceReference" useGeneratedKeys="true">
+        insert into resource_references
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="selfId != null">
+                self_id,
+            </if>
+            <if test="selfProjectId != null">
+                self_project_id,
+            </if>
+            <if test="selfIid != null">
+                self_iid,
+            </if>
+            <if test="selfType != null">
+                self_type,
+            </if>
+            <if test="targetId != null">
+                target_id,
+            </if>
+            <if test="targetProjectId != null">
+                target_project_id,
+            </if>
+            <if test="targetIid != null">
+                target_iid,
+            </if>
+            <if test="targetType != null">
+                target_type,
+            </if>
+            <if test="createdAt != null">
+                created_at,
+            </if>
+            <if test="updatedAt != null">
+                updated_at,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="selfId != null">
+                #{selfId},
+            </if>
+            <if test="selfProjectId != null">
+                #{selfProjectId},
+            </if>
+            <if test="selfIid != null">
+                #{selfIid},
+            </if>
+            <if test="selfType != null">
+                #{selfType},
+            </if>
+            <if test="targetId != null">
+                #{targetId},
+            </if>
+            <if test="targetProjectId != null">
+                #{targetProjectId},
+            </if>
+            <if test="targetIid != null">
+                #{targetIid},
+            </if>
+            <if test="targetType != null">
+                #{targetType},
+            </if>
+            <if test="createdAt != null">
+                #{createdAt},
+            </if>
+            <if test="updatedAt != null">
+                #{updatedAt},
+            </if>
+        </trim>
+    </insert>
+
+    <insert id="batchInsert" parameterType="list">
+        INSERT INTO resource_references (self_id, self_project_id, self_iid,
+        self_type, target_id, target_project_id,
+        target_iid, target_type, created_at,
+        updated_at)
+        VALUES
+        <foreach collection="list" item="resourceReference" separator=",">
+            (#{resourceReference.selfId}, #{resourceReference.selfProjectId},
+            #{resourceReference.selfIid},
+            #{resourceReference.selfType}, #{resourceReference.targetId},
+            #{resourceReference.targetProjectId},
+            #{resourceReference.targetIid}, #{resourceReference.targetType},
+            #{resourceReference.createdAt},
+            #{resourceReference.updatedAt})
         </foreach>
-      </if>
-      <if test="selfType != null">
-        AND self_type = #{selfType}
-      </if>
-      <if test="selfIds != null and selfIds.size() > 0">
-        AND self_id IN
-        <foreach item = "item" index = "index" collection = "selfIds" open = "(" close = ")" separator=",">
-          #{item}
+    </insert>
+
+    <update id="batchDelete" parameterType="map">
+        update resource_references
+        <set>
+            <if test="deletedAt != null">
+                deleted_at = #{deletedAt,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        <where>
+            <if test="targetType != null">
+                AND target_type = #{targetType}
+            </if>
+            <if test="targetIds != null and targetIds.size() > 0">
+                AND target_id IN
+                <foreach item="item" index="index" collection="targetIds" open="(" close=")"
+                         separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="selfType != null">
+                AND self_type = #{selfType}
+            </if>
+            <if test="selfIds != null and selfIds.size() > 0">
+                AND self_id IN
+                <foreach item="item" index="index" collection="selfIds" open="(" close=")"
+                         separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </update>
+
+    <select id="getResourceReferenceMutually" parameterType="map" resultMap="BaseResultMap">
+        SELECT DISTINCT self_id,
+                        self_project_id,
+                        self_iid,
+                        self_type,
+                        target_id,
+                        target_project_id,
+                        target_iid,
+                        target_type
+        FROM resource_references
+        WHERE self_iid = #{selfIid}
+          AND self_project_id = #{selfProjectId}
+          AND deleted_at = '1970-01-01 00:00:00'
+        UNION
+        SELECT target_id         AS self_id,
+               target_project_id AS self_project_id,
+               target_iid        AS self_iid,
+               target_type       AS self_type,
+               self_id           AS target_id,
+               self_project_id   AS target_project_id,
+               self_iid          AS target_iid,
+               self_type         AS target_type
+        FROM resource_references
+        WHERE target_iid = #{selfIid}
+          AND target_project_id = #{selfProjectId}
+          AND deleted_at = '1970-01-01 00:00:00'
+        ORDER BY self_iid DESC
+    </select>
+
+    <select id="getResourceReference" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM resource_references
+        <where>
+            <if test="targetType != null">
+                AND target_type = #{targetType}
+            </if>
+            <if test="targetId != null">
+                AND target_id = #{targetId}
+            </if>
+            <if test="targetIid != null">
+                AND target_iid = #{targetIid}
+            </if>
+            <if test="selfType != null">
+                AND self_type = #{selfType}
+            </if>
+            <if test="selfId != null">
+                AND self_id = #{selfId}
+            </if>
+            <if test="selfIid != null">
+                AND self_iid = #{selfIid}
+            </if>
+            <if test="deletedAt != null">
+                AND deleted_at = #{deletedAt}
+            </if>
+        </where>
+    </select>
+
+    <update id="update" parameterType="net.coding.lib.project.entity.ResourceReference">
+        update resource_references
+        <set>
+            <if test="selfId != null">
+                self_id = #{selfId},
+            </if>
+            <if test="selfProjectId != null">
+                self_project_id = #{selfProjectId},
+            </if>
+            <if test="selfIid != null">
+                self_iid = #{selfIid},
+            </if>
+            <if test="selfType != null">
+                self_type = #{selfType},
+            </if>
+            <if test="targetId != null">
+                target_id = #{targetId},
+            </if>
+            <if test="targetProjectId != null">
+                target_project_id = #{targetProjectId},
+            </if>
+            <if test="targetIid != null">
+                target_iid = #{targetIid},
+            </if>
+            <if test="targetType != null">
+                target_type = #{targetType},
+            </if>
+            <if test="createdAt != null">
+                created_at = #{createdAt},
+            </if>
+            <if test="updatedAt != null">
+                updated_at = #{updatedAt},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <update id="deleteById" parameterType="map">
+        update resource_references
+        set deleted_at = #{deletedAt}
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteByIds" parameterType="map">
+        update resource_references set deleted_at = #{deletedAt} WHERE id IN
+        <foreach item="item" index="index" collection="ids" open="(" close=")" separator=",">
+            #{item}
         </foreach>
-      </if>
-      <if test="deletedAt != null">
-        AND deleted_at = #{deletedAt}
-      </if>
-    </where>
-  </select>
+    </update>
 
-  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="net.coding.lib.project.entity.ResourceReference" useGeneratedKeys="true">
-    insert into resource_references
-    <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="selfId != null">
-        self_id,
-      </if>
-      <if test="selfProjectId != null">
-        self_project_id,
-      </if>
-      <if test="selfIid != null">
-        self_iid,
-      </if>
-      <if test="selfType != null">
-        self_type,
-      </if>
-      <if test="targetId != null">
-        target_id,
-      </if>
-      <if test="targetProjectId != null">
-        target_project_id,
-      </if>
-      <if test="targetIid != null">
-        target_iid,
-      </if>
-      <if test="targetType != null">
-        target_type,
-      </if>
-      <if test="createdAt != null">
-        created_at,
-      </if>
-      <if test="updatedAt != null">
-        updated_at,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="selfId != null">
-        #{selfId},
-      </if>
-      <if test="selfProjectId != null">
-        #{selfProjectId},
-      </if>
-      <if test="selfIid != null">
-        #{selfIid},
-      </if>
-      <if test="selfType != null">
-        #{selfType},
-      </if>
-      <if test="targetId != null">
-        #{targetId},
-      </if>
-      <if test="targetProjectId != null">
-        #{targetProjectId},
-      </if>
-      <if test="targetIid != null">
-        #{targetIid},
-      </if>
-      <if test="targetType != null">
-        #{targetType},
-      </if>
-      <if test="createdAt != null">
-        #{createdAt},
-      </if>
-      <if test="updatedAt != null">
-        #{updatedAt},
-      </if>
-    </trim>
-  </insert>
-
-  <insert id="batchInsert" parameterType="list">
-    INSERT INTO resource_references (self_id, self_project_id, self_iid,
-      self_type, target_id, target_project_id,
-      target_iid, target_type, created_at,
-      updated_at)
-    VALUES
-    <foreach collection="list" item="resourceReference" separator=",">
-      (#{resourceReference.selfId}, #{resourceReference.selfProjectId}, #{resourceReference.selfIid},
-      #{resourceReference.selfType}, #{resourceReference.targetId}, #{resourceReference.targetProjectId},
-      #{resourceReference.targetIid}, #{resourceReference.targetType}, #{resourceReference.createdAt},
-      #{resourceReference.updatedAt})
-    </foreach>
-  </insert>
-
-  <update id="batchDelete" parameterType="map">
-    update resource_references
-    <set>
-      <if test="deletedAt != null">
-        deleted_at = #{deletedAt,jdbcType=TIMESTAMP},
-      </if>
-    </set>
-    <where>
-      <if test="targetType != null">
-        AND target_type = #{targetType}
-      </if>
-      <if test="targetIds != null and targetIds.size() > 0">
-        AND target_id IN
-        <foreach item = "item" index = "index" collection = "targetIds" open = "(" close = ")" separator=",">
-          #{item}
-        </foreach>
-      </if>
-      <if test="selfType != null">
-        AND self_type = #{selfType}
-      </if>
-      <if test="selfIds != null and selfIds.size() > 0">
-        AND self_id IN
-        <foreach item = "item" index = "index" collection = "selfIds" open = "(" close = ")" separator=",">
-          #{item}
-        </foreach>
-      </if>
-    </where>
-  </update>
-
-  <select id="getResourceReferenceMutually" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-      DISTINCT self_id, self_project_id, self_iid, self_type, target_id, target_project_id, target_iid, target_type
-    FROM
-      resource_references
-    WHERE
-      self_iid = #{selfIid}
-      AND self_project_id = #{selfProjectId}
-      AND deleted_at = '1970-01-01 00:00:00'
-    UNION
-    SELECT
-      target_id AS self_id,
-      target_project_id AS self_project_id,
-      target_iid AS self_iid,
-      target_type AS self_type,
-      self_id AS target_id,
-      self_project_id AS target_project_id,
-      self_iid AS target_iid,
-      self_type AS target_type
-    FROM
-      resource_references
-    WHERE
-      target_iid = #{selfIid}
-      AND target_project_id = #{selfProjectId}
-      AND deleted_at = '1970-01-01 00:00:00'
-    ORDER BY self_iid DESC
-  </select>
-
-  <select id="getResourceReference" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM resource_references
-    <where>
-      <if test="targetType != null">
-        AND target_type = #{targetType}
-      </if>
-      <if test="targetId != null">
-        AND target_id = #{targetId}
-      </if>
-      <if test="targetIid != null">
-        AND target_iid = #{targetIid}
-      </if>
-      <if test="selfType != null">
-        AND self_type = #{selfType}
-      </if>
-      <if test="selfId != null">
-        AND self_id = #{selfId}
-      </if>
-      <if test="selfIid != null">
-        AND self_iid = #{selfIid}
-      </if>
-      <if test="deletedAt != null">
-        AND deleted_at = #{deletedAt}
-      </if>
-    </where>
-  </select>
-
-  <update id="update" parameterType="net.coding.lib.project.entity.ResourceReference">
-    update resource_references
-    <set>
-      <if test="selfId != null">
-        self_id = #{selfId},
-      </if>
-      <if test="selfProjectId != null">
-        self_project_id = #{selfProjectId},
-      </if>
-      <if test="selfIid != null">
-        self_iid = #{selfIid},
-      </if>
-      <if test="selfType != null">
-        self_type = #{selfType},
-      </if>
-      <if test="targetId != null">
-        target_id = #{targetId},
-      </if>
-      <if test="targetProjectId != null">
-        target_project_id = #{targetProjectId},
-      </if>
-      <if test="targetIid != null">
-        target_iid = #{targetIid},
-      </if>
-      <if test="targetType != null">
-        target_type = #{targetType},
-      </if>
-      <if test="createdAt != null">
-        created_at = #{createdAt},
-      </if>
-      <if test="updatedAt != null">
-        updated_at = #{updatedAt},
-      </if>
-    </set>
-    where id = #{id,jdbcType=INTEGER}
-  </update>
-
-  <update id="deleteById" parameterType="map">
-    update resource_references set deleted_at = #{deletedAt} WHERE id = #{id}
-  </update>
-
-  <update id="deleteByIds" parameterType="map">
-    update resource_references set deleted_at = #{deletedAt} WHERE id IN
-    <foreach item = "item" index = "index" collection = "ids" open = "(" close = ")" separator=",">
-      #{item}
-    </foreach>
-  </update>
-
-  <select id="countByTarget" parameterType="map" resultType="int">
-    SELECT
+    <select id="countByTarget" parameterType="map" resultType="int">
+        SELECT
         COUNT(id)
-    FROM
+        FROM
         resource_references
-    <where>
-      <if test="targetProjectId != null">
-        and target_project_id = #{targetProjectId}
-      </if>
-      <if test="targetIid != null">
-        and target_iid = #{targetIid}
-      </if>
-      <if test="deletedAt != null">
-        and deleted_at = #{deletedAt}
-      </if>
-    </where>
-  </select>
+        <where>
+            <if test="targetProjectId != null">
+                and target_project_id = #{targetProjectId}
+            </if>
+            <if test="targetIid != null">
+                and target_iid = #{targetIid}
+            </if>
+            <if test="deletedAt != null">
+                and deleted_at = #{deletedAt}
+            </if>
+        </where>
+    </select>
 
-  <select id="countBySelfWithTargetDeleted" parameterType="map" resultType="int">
-    SELECT
-      count(rr.id)
-    FROM
-      resource_references as rr
-    WHERE
-      rr.self_project_id = #{projectId}
-      and rr.self_iid = #{code}
-      and (rr.deleted_at = '1970-01-01 00:00:00'
-        or (rr.deleted_at != '1970-01-01 00:00:00'
-          and exists (select spr.* from project_resources as spr where spr.deleted_at = '1970-01-01 00:00:00'
-            and spr.project_id = rr.self_project_id and spr.code = rr.self_iid)
-          and exists (select tpr.* from project_resources as tpr where tpr.project_id = rr.target_project_id
-            and tpr.code = rr.target_iid and tpr.deleted_at != '1970-01-01 00:00:00')
-          and exists (select rrcr.* from resource_reference_comment_relations as rrcr where rrcr.resource_reference_id = rr.id
-            and rrcr.deleted_at = '1970-01-01 00:00:00')
-        )
-      )
-  </select>
+    <select id="countBySelfWithTargetDeleted" parameterType="map" resultType="int">
+        SELECT count(rr.id)
+        FROM resource_references as rr
+        WHERE rr.self_project_id = #{projectId}
+          and rr.self_iid = #{code}
+          and (rr.deleted_at = '1970-01-01 00:00:00'
+            or (rr.deleted_at != '1970-01-01 00:00:00'
+                and exists(select spr.*
+                           from project_resources as spr
+                           where spr.deleted_at = '1970-01-01 00:00:00'
+                             and spr.project_id = rr.self_project_id
+                             and spr.code = rr.self_iid)
+                and exists(select tpr.*
+                           from project_resources as tpr
+                           where tpr.project_id = rr.target_project_id
+                             and tpr.code = rr.target_iid
+                             and tpr.deleted_at != '1970-01-01 00:00:00')
+                and exists(select rrcr.*
+                           from resource_reference_comment_relations as rrcr
+                           where rrcr.resource_reference_id = rr.id
+                             and rrcr.deleted_at = '1970-01-01 00:00:00')
+                   )
+            )
+    </select>
 
-  <select id="findListByTargetType" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM resource_references
-    <where>
-      <if test="targetType != null">
-        AND target_type = #{targetType}
-      </if>
-      <if test="targetId != null">
-        AND target_id = #{targetId}
-      </if>
-      <if test="deletedAt != null">
-        and deleted_at = #{deletedAt}
-      </if>
-    </where>
-  </select>
+    <select id="findListByTargetType" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM resource_references
+        <where>
+            <if test="targetType != null">
+                AND target_type = #{targetType}
+            </if>
+            <if test="targetId != null">
+                AND target_id = #{targetId}
+            </if>
+            <if test="deletedAt != null">
+                and deleted_at = #{deletedAt}
+            </if>
+        </where>
+    </select>
 
-  <select id="findListByTargetProjectId" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM resource_references
-    <where>
-      <if test="targetProjectId != null">
-        AND target_project_id = #{targetProjectId}
-      </if>
-      <if test="targetIid != null">
-        AND target_iid = #{targetIid}
-      </if>
-      <if test="deletedAt != null">
-        and deleted_at = #{deletedAt}
-      </if>
-    </where>
-    ORDER BY created_at DESC
-  </select>
+    <select id="findListByTargetProjectId" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM resource_references
+        <where>
+            <if test="targetProjectId != null">
+                AND target_project_id = #{targetProjectId}
+            </if>
+            <if test="targetIid != null">
+                AND target_iid = #{targetIid}
+            </if>
+            <if test="deletedAt != null">
+                and deleted_at = #{deletedAt}
+            </if>
+        </where>
+        ORDER BY created_at DESC
+    </select>
 
-  <select id="findListBySelfType" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM resource_references
-    <where>
-      <if test="selfType != null">
-        AND self_type = #{selfType}
-      </if>
-      <if test="selfId != null">
-        AND self_id = #{selfId}
-      </if>
-      <if test="deletedAt != null">
-        and deleted_at = #{deletedAt}
-      </if>
-    </where>
-  </select>
+    <select id="findListBySelfType" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM resource_references
+        <where>
+            <if test="selfType != null">
+                AND self_type = #{selfType}
+            </if>
+            <if test="selfId != null">
+                AND self_id = #{selfId}
+            </if>
+            <if test="deletedAt != null">
+                and deleted_at = #{deletedAt}
+            </if>
+        </where>
+    </select>
 
-  <select id="findListBySelfProjectId" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM resource_references
-    <where>
-      <if test="selfProjectId != null">
-        AND self_project_id = #{selfProjectId}
-      </if>
-      <if test="selfIid != null">
-        AND self_iid = #{selfIid}
-      </if>
-      <if test="deletedAt != null">
-        and deleted_at = #{deletedAt}
-      </if>
-    </where>
-    ORDER BY created_at DESC
-  </select>
+    <select id="findListBySelfProjectId" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM resource_references
+        <where>
+            <if test="selfProjectId != null">
+                AND self_project_id = #{selfProjectId}
+            </if>
+            <if test="selfIid != null">
+                AND self_iid = #{selfIid}
+            </if>
+            <if test="deletedAt != null">
+                and deleted_at = #{deletedAt}
+            </if>
+        </where>
+        ORDER BY created_at DESC
+    </select>
 
-  <select id="findListBySelfAndTarget" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM resource_references
-    WHERE
-    ((self_project_id = #{projectId} AND self_id = #{selfAndTargetId}) OR (target_project_id = #{projectId} AND target_id = #{selfAndTargetId}))
-    AND deleted_at = #{deletedAt}
-    ORDER BY created_at DESC
-  </select>
+    <select id="findListBySelfAndTarget" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM resource_references
+        WHERE
+        ((self_project_id = #{projectId} AND self_id = #{selfAndTargetId}) OR (target_project_id =
+        #{projectId} AND target_id = #{selfAndTargetId}))
+        AND deleted_at = #{deletedAt}
+        ORDER BY created_at DESC
+    </select>
 
-  <select id="findReferMutuallyList" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-      DISTINCT self_id, self_project_id, self_iid, self_type, target_id, target_project_id, target_iid, target_type
-    FROM
-      resource_references
-    WHERE
-      self_iid = #{selfIid}
-      AND self_project_id = #{selfProjectId}
-      AND deleted_at = '1970-01-01 00:00:00'
-      UNION
-      SELECT
-        target_id AS self_id,
-        target_project_id AS self_project_id,
-        target_iid AS self_iid,
-        target_type AS self_type,
-        self_id AS target_id,
-        self_project_id AS target_project_id,
-        self_iid AS target_iid,
-        self_type AS target_type
-      FROM
+    <select id="findReferMutuallyList" parameterType="map" resultMap="BaseResultMap">
+        SELECT DISTINCT self_id,
+                        self_project_id,
+                        self_iid,
+                        self_type,
+                        target_id,
+                        target_project_id,
+                        target_iid,
+                        target_type
+        FROM resource_references
+        WHERE self_iid = #{selfIid}
+          AND self_project_id = #{selfProjectId}
+          AND deleted_at = '1970-01-01 00:00:00'
+        UNION
+        SELECT target_id         AS self_id,
+               target_project_id AS self_project_id,
+               target_iid        AS self_iid,
+               target_type       AS self_type,
+               self_id           AS target_id,
+               self_project_id   AS target_project_id,
+               self_iid          AS target_iid,
+               self_type         AS target_type
+        FROM resource_references
+        WHERE target_iid = #{selfIid}
+          AND target_project_id = #{selfProjectId}
+          AND deleted_at = '1970-01-01 00:00:00'
+        ORDER BY self_iid DESC
+    </select>
+
+    <select id="findMutuallyList" parameterType="map" resultMap="BaseResultMap">
+        SELECT DISTINCT *
+        FROM resource_references
+        WHERE (self_iid = #{selfCode} AND self_project_id = #{selfProjectId} AND
+               target_iid = #{targetCode} AND target_project_id = #{targetProjectId})
+           OR (target_iid = #{selfCode} AND target_project_id = #{selfProjectId} AND
+               self_iid = #{targetCode} AND self_project_id = #{targetProjectId}) AND
+              deleted_at = '1970-01-01 00:00:00'
+    </select>
+
+    <select id="findIdsMutually" parameterType="map" resultType="int">
+        SELECT DISTINCT id
+        FROM resource_references
+        WHERE ((self_project_id = #{projectId} AND self_iid = #{code}) OR
+               (target_project_id = #{projectId} AND target_iid = #{code}))
+          AND deleted_at = '1970-01-01 00:00:00'
+    </select>
+
+    <select id="findBySelfWithDescriptionCitedRelation" parameterType="map"
+            resultMap="BaseResultMap">
+        SELECT rr.*
+        FROM resource_references as rr
+        WHERE rr.self_type = #{selfType}
+          and rr.self_id = #{selfId}
+          and exists(select *
+                     from resource_reference_comment_relations as rrcr
+                     where rrcr.resource_reference_id = rr.id
+                       and rrcr.cited_source = 'DESCRIPTION'
+                       and rrcr.deleted_at = '1970-01-01 00:00:00')
+    </select>
+
+    <select id="findBySelfWithoutDescriptionCitedRelation" parameterType="map"
+            resultMap="BaseResultMap">
+        SELECT rr.*
+        FROM resource_references as rr
+        WHERE rr.self_type = #{selfType}
+          and rr.self_id = #{selfId}
+          and rr.deleted_at = '1970-01-01 00:00:00'
+          and not exists(select *
+                         from resource_reference_comment_relations as rrcr
+                         where rrcr.resource_reference_id = rr.id
+                           and rrcr.cited_source = 'DESCRIPTION'
+                           and rrcr.deleted_at = '1970-01-01 00:00:00')
+    </select>
+
+    <select id="findBySelfWithTargetDeleted" parameterType="map" resultMap="BaseResultMap">
+        SELECT rr.*
+        FROM resource_references as rr
+        WHERE rr.self_project_id = #{projectId}
+          and rr.self_iid = #{code}
+          and (rr.deleted_at = '1970-01-01 00:00:00' or (rr.deleted_at != '1970-01-01 00:00:00'
+            and exists(select spr.*
+                       from project_resources as spr
+                       where spr.deleted_at = '1970-01-01 00:00:00'
+                         and spr.project_id = rr.self_project_id
+                         and spr.code = rr.self_iid)
+            and exists(select tpr.*
+                       from project_resources as tpr
+                       where tpr.project_id = rr.target_project_id
+                         and tpr.code = rr.target_iid
+                         and tpr.deleted_at != '1970-01-01 00:00:00')
+            and exists(select rrcr.*
+                       from resource_reference_comment_relations as rrcr
+                       where rrcr.resource_reference_id = rr.id
+                         and rrcr.deleted_at = '1970-01-01 00:00:00')))
+    </select>
+
+    <select id="findByProjectId" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        *
+        FROM
         resource_references
-      WHERE
-        target_iid = #{selfIid}
-        AND target_project_id = #{selfProjectId}
-        AND deleted_at = '1970-01-01 00:00:00'
-      ORDER BY self_iid DESC
-  </select>
+        <where>
+            <if test="projectId != null">
+                AND ( self_project_id = #{projectId} OR target_project_id = #{projectId} )
+            </if>
+            <if test="deletedAt != null">
+                AND deleted_at = #{deletedAt}
+            </if>
+        </where>
+    </select>
 
-  <select id="findMutuallyList" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-      DISTINCT *
-    FROM
-      resource_references
-    WHERE
-      (self_iid = #{selfCode} AND self_project_id = #{selfProjectId} AND target_iid = #{targetCode} AND target_project_id = #{targetProjectId}) OR
-      (target_iid = #{selfCode} AND target_project_id = #{selfProjectId} AND self_iid = #{targetCode} AND self_project_id = #{targetProjectId}) AND
-      deleted_at = '1970-01-01 00:00:00'
-  </select>
+    <select id="getByProjectIdAndCode" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM resource_references
+        <where>
+            <if test="selfProjectId != null">
+                AND self_project_id = #{selfProjectId}
+            </if>
+            <if test="selfIid != null ">
+                AND self_iid = #{selfIid}
+            </if>
+            <if test="targetProjectId != null">
+                AND target_project_id = #{targetProjectId}
+            </if>
+            <if test="targetIid != null">
+                AND target_iid = #{targetIid}
+            </if>
+            <if test="deletedAt != null">
+                AND deleted_at = #{deletedAt}
+            </if>
+        </where>
+        LIMIT 1
+    </select>
 
-  <select id="findIdsMutually" parameterType="map" resultType="int">
-    SELECT
-      DISTINCT id
-    FROM
-      resource_references
-    WHERE
-      ((self_project_id = #{projectId} AND self_iid = #{code}) OR (target_project_id = #{projectId} AND target_iid = #{code}))
-      AND deleted_at = '1970-01-01 00:00:00'
-  </select>
+    <select id="getByTypeAndId" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM resource_references
+        <where>
+            <if test="selfType != null">
+                AND self_type = #{selfType}
+            </if>
+            <if test="selfId != null ">
+                AND self_id = #{selfId}
+            </if>
+            <if test="targetType != null">
+                AND target_type = #{targetType}
+            </if>
+            <if test="targetId != null">
+                AND target_id = #{targetId}
+            </if>
+            <if test="deletedAt != null">
+                AND deleted_at = #{deletedAt}
+            </if>
+        </where>
+        LIMIT 1
+    </select>
 
-  <select id="findBySelfWithDescriptionCitedRelation" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-      rr.*
-    FROM
-      resource_references as rr
-    WHERE
-      rr.self_type = #{selfType} and rr.self_id = #{selfId}
-      and exists (select * from resource_reference_comment_relations as rrcr
-                where rrcr.resource_reference_id = rr.id and rrcr.cited_source = 'DESCRIPTION'
-                 and rrcr.deleted_at = '1970-01-01 00:00:00')
-  </select>
+    <select id="getOptional" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM resource_references
+        <where>
+            <if test="selfProjectId != null ">
+                AND self_project_id = #{selfProjectId}
+            </if>
+            <if test="selfType != null">
+                AND self_type = #{selfType}
+            </if>
+            <if test="selfId != null">
+                AND self_id = #{selfId}
+            </if>
+            <if test="targetType != null">
+                AND target_type = #{targetType}
+            </if>
+            <if test="deletedAt != null">
+                AND deleted_at = #{deletedAt}
+            </if>
+        </where>
+        LIMIT 1
+    </select>
 
-  <select id="findBySelfWithoutDescriptionCitedRelation" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-      rr.*
-    FROM
-      resource_references as rr
-    WHERE rr.self_type = #{selfType} and rr.self_id = #{selfId}
-      and rr.deleted_at = '1970-01-01 00:00:00'
-      and not exists (select * from resource_reference_comment_relations as rrcr
-      where rrcr.resource_reference_id = rr.id and rrcr.cited_source = 'DESCRIPTION'
-      and rrcr.deleted_at = '1970-01-01 00:00:00')
-  </select>
+    <select id="getById" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM resource_references
+        <where>
+            <if test="id != null ">
+                AND id = #{id}
+            </if>
+            <if test="deletedAt != null">
+                AND deleted_at = #{deletedAt}
+            </if>
+        </where>
+        LIMIT 1
+    </select>
 
-  <select id="findBySelfWithTargetDeleted" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-      rr.*
-    FROM
-      resource_references as rr
-    WHERE rr.self_project_id = #{projectId} and rr.self_iid = #{code}
-      and (rr.deleted_at = '1970-01-01 00:00:00' or (rr.deleted_at != '1970-01-01 00:00:00'
-      and exists (select spr.* from project_resources as spr where spr.deleted_at = '1970-01-01 00:00:00'
-      and spr.project_id = rr.self_project_id and spr.code = rr.self_iid)
-      and exists (select tpr.* from project_resources as tpr where tpr.project_id = rr.target_project_id
-      and tpr.code = rr.target_iid and tpr.deleted_at != '1970-01-01 00:00:00')
-      and exists (select rrcr.* from resource_reference_comment_relations as rrcr where rrcr.resource_reference_id = rr.id
-      and rrcr.deleted_at = '1970-01-01 00:00:00')))
-  </select>
+    <select id="getWithDeletedByIds" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM resource_references
+        <where>
+            <if test="ids != null">
+                AND id IN
+                <foreach item="item" index="index" collection="ids" open="(" close=")"
+                         separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        LIMIT 1
+    </select>
 
-  <select id="findByProjectId" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-      *
-    FROM
-      resource_references
-    <where>
-      <if test="projectId != null">
-        AND ( self_project_id = #{projectId} OR target_project_id = #{projectId} )
-      </if>
-      <if test="deletedAt != null">
-        AND deleted_at = #{deletedAt}
-      </if>
-    </where>
-  </select>
+    <select id="existsResourceReference" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM resource_references
+        <where>
+            <if test="selfProjectId != null ">
+                AND self_project_id = #{selfProjectId}
+            </if>
+            <if test="selfIid != null">
+                AND self_iid = #{selfIid}
+            </if>
+            <if test="targetProjectId != null">
+                AND target_project_id = #{targetProjectId}
+            </if>
+            <if test="targetIid != null">
+                AND target_iid = #{targetIid}
+            </if>
+            <if test="deletedAt != null">
+                AND deleted_at = #{deletedAt}
+            </if>
+        </where>
+        LIMIT 1
+    </select>
 
-  <select id="getByProjectIdAndCode" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM resource_references
-    <where>
-      <if test="selfProjectId != null">
-        AND self_project_id = #{selfProjectId}
-      </if>
-      <if test="selfIid != null ">
-        AND self_iid = #{selfIid}
-      </if>
-      <if test="targetProjectId != null">
-        AND target_project_id = #{targetProjectId}
-      </if>
-      <if test="targetIid != null">
-        AND target_iid = #{targetIid}
-      </if>
-      <if test="deletedAt != null">
-        AND deleted_at = #{deletedAt}
-      </if>
-    </where>
-    LIMIT 1
-  </select>
-
-  <select id="getByTypeAndId" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM resource_references
-    <where>
-      <if test="selfType != null">
-        AND self_type = #{selfType}
-      </if>
-      <if test="selfId != null ">
-        AND self_id = #{selfId}
-      </if>
-      <if test="targetType != null">
-        AND target_type = #{targetType}
-      </if>
-      <if test="targetId != null">
-        AND target_id = #{targetId}
-      </if>
-      <if test="deletedAt != null">
-        AND deleted_at = #{deletedAt}
-      </if>
-    </where>
-    LIMIT 1
-  </select>
-
-  <select id="getOptional" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM resource_references
-    <where>
-      <if test="selfProjectId != null ">
-        AND self_project_id = #{selfProjectId}
-      </if>
-      <if test="selfType != null">
-        AND self_type = #{selfType}
-      </if>
-      <if test="selfId != null">
-        AND self_id = #{selfId}
-      </if>
-      <if test="targetType != null">
-        AND target_type = #{targetType}
-      </if>
-      <if test="deletedAt != null">
-        AND deleted_at = #{deletedAt}
-      </if>
-    </where>
-    LIMIT 1
-  </select>
-
-  <select id="getById" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM resource_references
-    <where>
-      <if test="id != null ">
-        AND id = #{id}
-      </if>
-      <if test="deletedAt != null">
-        AND deleted_at = #{deletedAt}
-      </if>
-    </where>
-    LIMIT 1
-  </select>
-
-  <select id="getWithDeletedByIds" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM resource_references
-    <where>
-      <if test="ids != null">
-        AND id IN
-        <foreach item = "item" index = "index" collection = "ids" open = "(" close = ")" separator=",">
-          #{item}
-        </foreach>
-      </if>
-    </where>
-    LIMIT 1
-  </select>
-
-  <select id="existsResourceReference" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM resource_references
-    <where>
-      <if test="selfProjectId != null ">
-        AND self_project_id = #{selfProjectId}
-      </if>
-      <if test="selfIid != null">
-        AND self_iid = #{selfIid}
-      </if>
-      <if test="targetProjectId != null">
-        AND target_project_id = #{targetProjectId}
-      </if>
-      <if test="targetIid != null">
-        AND target_iid = #{targetIid}
-      </if>
-      <if test="deletedAt != null">
-        AND deleted_at = #{deletedAt}
-      </if>
-    </where>
-    LIMIT 1
-  </select>
-
-  <update id="delete" parameterType="map">
-    update resource_references
-    <set>
-      <if test="deletedAt != null">
-        deleted_at = #{deletedAt,jdbcType=TIMESTAMP},
-      </if>
-    </set>
-    <where>
-      <if test="targetScopeType != null">
-        AND target_scope_type = #{targetScopeType}
-      </if>
-      <if test="targetType != null">
-        AND target_type = #{targetType}
-      </if>
-      <if test="targetId != null">
-        AND target_id = #{targetId}
-      </if>
-      <if test="selfScopeType != null">
-        AND self_scope_type = #{selfScopeType}
-      </if>
-      <if test="selfType != null">
-        AND self_type = #{selfType}
-      </if>
-      <if test="selfId != null">
-        AND self_id
-      </if>
-    </where>
-  </update>
+    <update id="delete" parameterType="map">
+        update resource_references
+        <set>
+            <if test="deletedAt != null">
+                deleted_at = #{deletedAt,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        <where>
+            <if test="targetScopeType != null">
+                AND target_scope_type = #{targetScopeType}
+            </if>
+            <if test="targetType != null">
+                AND target_type = #{targetType}
+            </if>
+            <if test="targetId != null">
+                AND target_id = #{targetId}
+            </if>
+            <if test="selfScopeType != null">
+                AND self_scope_type = #{selfScopeType}
+            </if>
+            <if test="selfType != null">
+                AND self_type = #{selfType}
+            </if>
+            <if test="selfId != null">
+                AND self_id
+            </if>
+        </where>
+    </update>
 </mapper>

@@ -39,6 +39,6 @@ public class ProgramPageQueryParameter {
     private Timestamp deletedAt;
 
     private Integer page;
-    
+
     private Integer pageSize;
 }

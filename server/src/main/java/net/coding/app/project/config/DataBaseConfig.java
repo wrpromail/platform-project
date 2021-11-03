@@ -63,6 +63,7 @@ public class DataBaseConfig implements TransactionManagementConfigurer {
     public SqlSessionTemplate sqlSessionTemplate(SqlSessionFactory sqlSessionFactory) {
         return new SqlSessionTemplate(sqlSessionFactory);
     }
+
     /*配置事务管理器*/
     @Bean
     @Override

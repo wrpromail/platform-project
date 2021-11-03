@@ -30,7 +30,7 @@ public interface ProjectSettingsDao {
 
     List<ProjectSetting> findProjectsSetting(
             @Param("list") List<Integer> projectIds,
-            @Param("code") String  function,
+            @Param("code") String function,
             @Param("deletedAt") Timestamp deletedAt
     );
 

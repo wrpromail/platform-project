@@ -198,10 +198,10 @@
         SELECT p.*
         FROM projects p
         where p.deleted_at = '1970-01-01 00:00:00'
-        and p.pm_type = 1
-        and p.invisible = 0
-        and p.team_owner_id = #{teamId}
-        and p.id = #{programId}
+          and p.pm_type = 1
+          and p.invisible = 0
+          and p.team_owner_id = #{teamId}
+          and p.id = #{programId}
     </select>
 
 </mapper>

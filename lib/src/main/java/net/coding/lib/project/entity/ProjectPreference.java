@@ -21,9 +21,13 @@ public class ProjectPreference implements Serializable {
 
     /*-------------------------------- 偏好设置类型常量 --------------------------------*/
     /* 通知设置 */
-    /** 项目公告. */
+    /**
+     * 项目公告.
+     */
     public static final Short PREFERENCE_TYPE_PROJECT_TWEET = 1;
-    /** 未受保护的分支. */
+    /**
+     * 未受保护的分支.
+     */
     public static final Short PREFERENCE_TYPE_UNPROTECTED_BRANCH_MERGE_REQUEST = 2;
 
     public static final Short PREFERENCE_TYPE_SERVICE_HOOK_ENABLED = 3;
@@ -31,16 +35,17 @@ public class ProjectPreference implements Serializable {
 
     /*-------------------------------- 偏好设置状态常量 --------------------------------*/
     /* 通用. */
-    /** 关闭. */
+    /**
+     * 关闭.
+     */
     public static final short PREFERENCE_STATUS_FALSE = 0;
-    /** 开启. */
+    /**
+     * 开启.
+     */
     public static final short PREFERENCE_STATUS_TRUE = 1;
 
     /**
-     * 合并请求偏好设置的方式(PREFERENCE_TYPE_MR_SETTING type 7)
-     * 0 默认直接合并
-     * 1 默认 Squash 合并
-     * 2 只能 Squash 合并
+     * 合并请求偏好设置的方式(PREFERENCE_TYPE_MR_SETTING type 7) 0 默认直接合并 1 默认 Squash 合并 2 只能 Squash 合并
      */
     public static final short PREFERENCE_STATUS_DEFAULT = 0;
     public static final short PREFERENCE_STATUS_SQUASH = 1;

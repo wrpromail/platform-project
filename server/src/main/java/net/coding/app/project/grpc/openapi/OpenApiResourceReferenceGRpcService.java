@@ -1,19 +1,10 @@
 package net.coding.app.project.grpc.openapi;
 
-import static proto.open.api.CodeProto.Code.SUCCESS;
-
-import io.grpc.stub.StreamObserver;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import net.coding.common.i18n.utils.LocaleMessageSource;
 import net.coding.e.proto.CommonProto.Result;
 import net.coding.exchange.exception.ProjectNotExistsException;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
-import net.coding.lib.project.exception.AppException;
 import net.coding.lib.project.exception.PermissionDenyException;
 import net.coding.lib.project.service.ProjectMemberService;
 import net.coding.lib.project.service.ProjectService;
@@ -22,8 +13,19 @@ import net.coding.proto.open.api.project.resource.ResourceReferenceProto.Describ
 import net.coding.proto.open.api.project.resource.ResourceReferenceProto.DescribeResourceReferencesResponse;
 import net.coding.proto.open.api.project.resource.ResourceReferenceProto.ResourceReferenceItem;
 import net.coding.proto.open.api.project.resource.ResourceReferenceServiceGrpc;
+
 import org.lognet.springboot.grpc.GRpcService;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import io.grpc.stub.StreamObserver;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import proto.open.api.CodeProto.Code;
+
+import static proto.open.api.CodeProto.Code.SUCCESS;
 
 /**
  * @Description: OPEN API 项目协同资源引用列表 接口，非 OPEN API 业务 勿修改
@@ -47,13 +49,13 @@ public class OpenApiResourceReferenceGRpcService extends
      */
     @Override
     public void describeResourceReferences(DescribeResourceReferencesRequest request,
-            StreamObserver<DescribeResourceReferencesResponse> responseObserver) {
+                                           StreamObserver<DescribeResourceReferencesResponse> responseObserver) {
         try {
             int projectId = Optional.ofNullable(
-                    projectService.getByNameAndTeamId(
-                            request.getProjectName(),
-                            request.getUser().getTeamId()
-                    ))
+                            projectService.getByNameAndTeamId(
+                                    request.getProjectName(),
+                                    request.getUser().getTeamId()
+                            ))
                     .map(Project::getId)
                     .orElseThrow(ProjectNotExistsException::new);
             ProjectMember projectMember = projectMemberService.getByProjectIdAndUserId(

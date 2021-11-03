@@ -57,7 +57,7 @@ public class ResourceReferenceService {
     }
 
     public int deleteById(Integer id) {
-        if(id <= 0) {
+        if (id <= 0) {
             return 0;
         }
         Map<String, Object> parameters = new HashMap<>();
@@ -67,7 +67,7 @@ public class ResourceReferenceService {
     }
 
     public int deleteByIds(List<Integer> ids) {
-        if(CollectionUtils.isEmpty(ids)) {
+        if (CollectionUtils.isEmpty(ids)) {
             return 0;
         }
         Map<String, Object> parameters = new HashMap<>();
@@ -82,7 +82,7 @@ public class ResourceReferenceService {
                 .stream()
                 .map(ResourceReference::getId)
                 .collect(Collectors.toList());
-        if(CollectionUtils.isEmpty(ids)) {
+        if (CollectionUtils.isEmpty(ids)) {
             return 0;
         }
         Map<String, Object> parameters = new HashMap<>();
@@ -97,7 +97,7 @@ public class ResourceReferenceService {
                 .stream()
                 .map(ResourceReference::getId)
                 .collect(Collectors.toList());
-        if(CollectionUtils.isEmpty(ids)) {
+        if (CollectionUtils.isEmpty(ids)) {
             return 0;
         }
         Map<String, Object> parameters = new HashMap<>();
@@ -109,7 +109,7 @@ public class ResourceReferenceService {
     public int deleteByTypeAndId(String type, Integer id) {
         int selfDelete = deleteSelfByTypeAndId(type, id);
         int targetDelete = deleteTargetByTypeAndId(type, id);
-        if(targetDelete > 0 && selfDelete > 0) {
+        if (targetDelete > 0 && selfDelete > 0) {
             return 1;
         }
         return 0;
@@ -121,7 +121,7 @@ public class ResourceReferenceService {
                 .stream()
                 .map(ResourceReference::getId)
                 .collect(Collectors.toList());
-        if(CollectionUtils.isEmpty(ids)) {
+        if (CollectionUtils.isEmpty(ids)) {
             return 0;
         }
         Map<String, Object> parameters = new HashMap<>();
@@ -158,13 +158,13 @@ public class ResourceReferenceService {
         parameters.put("targetProjectId", targetProjectId);
         parameters.put("targetIid", targetIid);
         parameters.put("deletedAt", "1970-01-01 00:00:00");
-        if(isFilter) {
+        if (isFilter) {
             List<ResourceReference> resourceReferences = resourceReferenceDao.findListByTargetProjectId(parameters)
                     .stream()
                     .filter(record -> {
-                        if(ResourceTypeEnum.Wiki.getType().equals(record.getTargetType())) {
+                        if (ResourceTypeEnum.Wiki.getType().equals(record.getTargetType())) {
                             WikiProto.GetWikiByProjectIdAndIidData wiki = wikiGrpcClient.getWikiByProjectIdAndIidWithoutRecycleBin(record.getTargetProjectId(), Integer.valueOf(record.getTargetIid()));
-                            if(wiki == null) {
+                            if (wiki == null) {
                                 return false;
                             }
                             return wikiGrpcClient.wikiCanRead(userId, wiki.getProjectId(), wiki.getIid());
@@ -207,13 +207,13 @@ public class ResourceReferenceService {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("selfProjectId", selfProjectId);
         parameters.put("selfIid", selfIid);
-        if(isFilter) {
+        if (isFilter) {
             List<ResourceReference> resourceReferences = resourceReferenceDao.findReferMutuallyList(parameters)
                     .stream()
                     .filter(record -> {
-                        if(ResourceTypeEnum.Wiki.getType().equals(record.getTargetType())) {
+                        if (ResourceTypeEnum.Wiki.getType().equals(record.getTargetType())) {
                             WikiProto.GetWikiByProjectIdAndIidData wiki = wikiGrpcClient.getWikiByProjectIdAndIidWithoutRecycleBin(record.getTargetProjectId(), Integer.valueOf(record.getTargetIid()));
-                            if(wiki == null) {
+                            if (wiki == null) {
                                 return false;
                             }
                             return wikiGrpcClient.wikiCanRead(userId, wiki.getProjectId(), wiki.getIid());
@@ -262,13 +262,13 @@ public class ResourceReferenceService {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("projectId", projectId);
         parameters.put("code", code);
-        if(isFilter) {
+        if (isFilter) {
             List<ResourceReference> resourceReferences = resourceReferenceDao.findBySelfWithTargetDeleted(parameters)
                     .stream()
                     .filter(record -> {
-                        if(ResourceTypeEnum.Wiki.getType().equals(record.getTargetType())) {
+                        if (ResourceTypeEnum.Wiki.getType().equals(record.getTargetType())) {
                             WikiProto.GetWikiByProjectIdAndIidData wiki = wikiGrpcClient.getWikiByProjectIdAndIidWithoutRecycleBin(record.getTargetProjectId(), Integer.valueOf(record.getTargetIid()));
-                            if(wiki == null) {
+                            if (wiki == null) {
                                 return false;
                             }
                             return wikiGrpcClient.wikiCanRead(userId, wiki.getProjectId(), wiki.getIid());
@@ -286,7 +286,7 @@ public class ResourceReferenceService {
     public List<ResourceReference> findByProjectId(Integer projectId, boolean withDeleted) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("projectId", projectId);
-        if(false == withDeleted) {
+        if (false == withDeleted) {
             parameters.put("deletedAt", "1970-01-01 00:00:00");
         }
         return resourceReferenceDao.findByProjectId(parameters);
@@ -325,7 +325,7 @@ public class ResourceReferenceService {
     public ResourceReference getById(Integer id, boolean withDeleted) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("id", id);
-        if(false == withDeleted) {
+        if (false == withDeleted) {
             parameters.put("deletedAt", "1970-01-01 00:00:00");
         }
         return resourceReferenceDao.getById(parameters);
@@ -345,7 +345,7 @@ public class ResourceReferenceService {
         parameters.put("selfIid", selfIid);
         parameters.put("deletedAt", "1970-01-01 00:00:00");
         ResourceReference resourceReference = resourceReferenceDao.existsResourceReference(parameters);
-        if(Objects.nonNull(resourceReference)) {
+        if (Objects.nonNull(resourceReference)) {
             return true;
         }
         return false;
