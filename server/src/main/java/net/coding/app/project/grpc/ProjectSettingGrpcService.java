@@ -47,18 +47,24 @@ public class ProjectSettingGrpcService extends ProjectSettingServiceGrpc.Project
             if (project == null || project.getDeletedAt().equals(BeanUtils.getDefaultArchivedAt())) {
                 throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST_OR_ARCHIVED);
             }
-            ProjectSetting projectSetting = projectSettingService.findProjectSetting(projectId, code);
-            if (projectSetting == null) {
-                String defaultValue = projectSettingService.getCodeDefaultValue(code);
-                if (defaultValue == null) {
-                    builder.setCode(CodeProto.Code.NOT_FOUND);
+            if (projectSettingService.isDisabledSystemMenu(code)) {
+                //如果系统关闭菜单，则默认禁用
+                builder.setCode(CodeProto.Code.SUCCESS);
+                builder.setValue(ProjectSetting.valueFalse);
+            } else {
+                ProjectSetting projectSetting = projectSettingService.findProjectSetting(projectId, code);
+                if (projectSetting == null) {
+                    String defaultValue = projectSettingService.getCodeDefaultValue(code);
+                    if (defaultValue == null) {
+                        builder.setCode(CodeProto.Code.NOT_FOUND);
+                    } else {
+                        builder.setCode(CodeProto.Code.SUCCESS);
+                        builder.setValue(defaultValue);
+                    }
                 } else {
                     builder.setCode(CodeProto.Code.SUCCESS);
-                    builder.setValue(defaultValue);
+                    builder.setValue(projectSetting.getValue());
                 }
-            } else {
-                builder.setCode(CodeProto.Code.SUCCESS);
-                builder.setValue(projectSetting.getValue());
             }
         } catch (Exception e) {
             log.error("RpcService getProjectSettingByCode error {}", e.getMessage());
@@ -95,6 +101,13 @@ public class ProjectSettingGrpcService extends ProjectSettingServiceGrpc.Project
                     projectSetting.setValue(defaultValue);
                     projectSetting.setId(0);
                     projectSettings.add(projectSetting);
+                }
+            });
+
+            //如果系统关闭菜单，则默认禁用
+            projectSettings.forEach(setting -> {
+                if (projectSettingService.isDisabledSystemMenu(setting.getCode())) {
+                    setting.setValue(ProjectSetting.valueFalse);
                 }
             });
 

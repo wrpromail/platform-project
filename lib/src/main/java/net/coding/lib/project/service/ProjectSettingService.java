@@ -8,6 +8,7 @@ import net.coding.common.cache.evict.manager.EvictCacheManager;
 import net.coding.common.config.PDSettings;
 import net.coding.common.config.TencentOASettings;
 import net.coding.common.util.BeanUtils;
+import net.coding.grpc.client.platform.SystemSettingGrpcClient;
 import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dao.ProjectDao;
 import net.coding.lib.project.dao.ProjectSettingsDao;
@@ -20,6 +21,7 @@ import net.coding.lib.project.exception.ProjectNotFoundException;
 import net.coding.lib.project.helper.ProjectServiceHelper;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +34,7 @@ import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import proto.platform.system.setting.SystemSettingProto;
 import proto.platform.user.UserProto;
 
 import static net.coding.lib.project.entity.ProjectSetting.TOTAL_PROJECT_FUNCTION;
@@ -54,6 +57,8 @@ public class ProjectSettingService {
 
     private final ProjectDao projectDao;
 
+    private final SystemSettingGrpcClient systemSettingGrpcClient;
+
     public static final String CACHE_REGION = "net.coding.lib.project.service.ProjectSettingService";
 
     private static final String TABLE_NAME = "project_settings";
@@ -67,15 +72,16 @@ public class ProjectSettingService {
                 .stream()
                 .map(function -> {
                     ProjectSetting setting = findProjectSetting(projectId, function.getCode());
+                    boolean disabled = isDisabledSystemMenu(function.getCode());
+                    String value = Optional.ofNullable(setting).map(ProjectSetting::getValue).orElse(function.getDefaultValue());
+                    if (disabled) {
+                        value = ProjectSetting.valueFalse;
+                    }
                     return ProjectFunctionDTO.builder()
                             .code(function.getCode())
                             .description(function.getDescription())
                             .projectId(projectId)
-                            .value(setting != null ? setting.getValue() :
-                                    tencentOASettings.getIsOAVersion() ? function.getOaDefaultValue() :
-                                            pdSettings.getIsPDVersion() ? ProjectSetting.getValue(getPDDefaultValue(function)) :
-                                                    function.getDefaultValue()
-                            )
+                            .value(value)
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -264,6 +270,26 @@ public class ProjectSettingService {
     public String getCodeDefaultValue(String code) {
         ProjectSetting.Code projectSetting = ProjectSetting.Code.getByCode(code);
         return projectSetting == null ? null : projectSetting.getDefaultValue();
+    }
+
+    public boolean isDisabledSystemMenu(String code) {
+        return Optional.ofNullable(ProjectSetting.Code.getByCode(code))
+                .map(c -> systemSettingGrpcClient.get(
+                        SystemSettingProto
+                                .SystemSettingRequest
+                                .newBuilder()
+                                .setCode(getSystemMenuCode(c.getMenuCode()))
+                                .build()
+                ))
+                .map(SystemSettingProto.SystemSettingResponse::getSetting)
+                .map(SystemSettingProto.SystemSetting::getValue)
+                .map(BooleanUtils::toBooleanObject)
+                .filter(Boolean.FALSE::equals)
+                .isPresent();
+    }
+
+    private String getSystemMenuCode(String code) {
+        return "platform_feature_menu_" + code + "_enabled";
     }
 
     public void sendProjectSettingChangeEvent(Integer teamId, Integer projectId, Integer operatorId,

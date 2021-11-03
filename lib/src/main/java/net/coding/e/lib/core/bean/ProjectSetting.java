@@ -17,25 +17,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProjectSetting extends BaseBean {
 
-    public final static String valueTrue = "1";
-    public final static String valueFalse = "0";
-
-    public final static Short open = 1;
-    public final static Short close = 0;
-
     private static final long serialVersionUID = -1973992627485106043L;
 
     private Integer projectId;
-
     private String code;
-
     private String value;
-
     private String description;
-
     private Timestamp createdAt;
-
     private Timestamp updatedAt;
-
     private Timestamp deletedAt;
 }
