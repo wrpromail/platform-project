@@ -669,8 +669,8 @@ public class ProjectCredentialService {
                 .appId(credential.getAppId())
                 .secretId(credential.getSecretId())
                 .secretKey(!StringUtils.equals(
-                        CredentialTypeEnums.APP_ID_SECRET_KEY.toString(),
-                        credential.getType()
+                                CredentialTypeEnums.APP_ID_SECRET_KEY.toString(),
+                                credential.getType()
                         ) ? credential.getSecretKey() : StringUtils.EMPTY
                 )
                 .description(credential.getDescription())

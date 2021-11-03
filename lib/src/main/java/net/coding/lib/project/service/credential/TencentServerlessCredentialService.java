@@ -31,7 +31,7 @@ public class TencentServerlessCredentialService {
     private final TencentServerlessCredentialsDao tencentServerlessCredentialsDao;
     private final ProjectCredentialDao projectCredentialDao;
     private final RestTemplate restTemplate;
-    private  final  Gson gson;
+    private final Gson gson;
 
 
     public Credential flushIfNeed(Credential credential) {
@@ -93,7 +93,7 @@ public class TencentServerlessCredentialService {
     }
 
     private TencentServerlessCredentialForm.TencentServerlessCredentialRaw requestFlush(TencentServerlessCredential serverlessCredential) {
-        String responseText="{}";
+        String responseText = "{}";
         String url = String.format(
                 "http://%s%s?uuid=%s&expired=%d&signature=%s&appid=%s&os=Linux",
                 API_BASE_URL, REFRESH_TOKEN_PATH, serverlessCredential.getUuid(),
@@ -102,7 +102,7 @@ public class TencentServerlessCredentialService {
         );
         try {
             responseText = restTemplate.getForObject(url, String.class);
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("Http get request fail {} ", e.getMessage());
         }
         return JSON.fromJson(responseText, TencentServerlessCredentialForm.TencentServerlessCredentialRaw.class);

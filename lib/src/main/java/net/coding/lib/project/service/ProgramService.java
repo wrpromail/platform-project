@@ -9,7 +9,6 @@ import net.coding.common.util.TextUtils;
 import net.coding.e.grpcClient.collaboration.IssueWorkflowGrpcClient;
 import net.coding.exchange.dto.team.Team;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
-import net.coding.grpc.client.platform.SystemSettingGrpcClient;
 import net.coding.grpc.client.platform.TeamServiceGrpcClient;
 import net.coding.lib.project.dao.ProgramDao;
 import net.coding.lib.project.dao.ProgramProjectDao;
@@ -37,8 +36,6 @@ import net.coding.lib.project.parameter.ProgramProjectQueryParameter;
 import net.coding.lib.project.parameter.ProgramQueryParameter;
 import net.coding.lib.project.service.project.adaptor.ProjectAdaptorFactory;
 import net.coding.lib.project.utils.DateUtil;
-import net.coding.platform.charge.api.pojo.EnterpriseInfoDTO;
-import net.coding.platform.charge.client.grpc.EnterpriseGrpcClient;
 import net.coding.platform.permission.proto.CommonProto;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -62,7 +59,6 @@ import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import one.util.streamex.StreamEx;
-import proto.platform.system.setting.SystemSettingProto;
 import proto.platform.user.UserProto;
 
 import static net.coding.common.base.bean.ProjectTweet.ACTION_CREATE;
@@ -74,8 +70,6 @@ import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJE
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_DISPLAY_NAME_EXISTS;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NAME_EXISTS;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.RESOURCE_NO_FOUND;
-import static net.coding.lib.project.exception.CoreException.ExceptionType.SERVER_BUSY;
-import static net.coding.lib.project.exception.CoreException.ExceptionType.TEAM_CHARGE_NOT_ADVANCED_PAY;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.TEAM_MEMBER_NOT_EXISTS;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.TEAM_NOT_EXIST;
 
@@ -229,10 +223,10 @@ public class ProgramService {
             //项目集中已存在项目
             List<Integer> programProjectIds =
                     StreamEx.of(programProjectDao.select(ProgramProject.builder()
-                            .programId(program.getId())
-                            .deletedAt(BeanUtils.getDefaultDeletedAt())
-                            .build())
-                    )
+                                    .programId(program.getId())
+                                    .deletedAt(BeanUtils.getDefaultDeletedAt())
+                                    .build())
+                            )
                             .map(ProgramProject::getProjectId)
                             .collect(Collectors.toList());
             StreamEx.of(projectIds)
@@ -334,12 +328,12 @@ public class ProgramService {
                                                   Integer programId, Boolean queryJoined) throws CoreException {
         getProgram(currentTeamId, currentUserId, programId);
         return StreamEx.of(
-                getProgramProjects(ProgramProjectQueryParameter.builder()
-                        .teamId(currentTeamId)
-                        .programId(programId)
-                        .userId(queryJoined ? currentUserId : 0)
-                        .build())
-        )
+                        getProgramProjects(ProgramProjectQueryParameter.builder()
+                                .teamId(currentTeamId)
+                                .programId(programId)
+                                .userId(queryJoined ? currentUserId : 0)
+                                .build())
+                )
                 .map(projectDTOService::toDetailDTO)
                 .nonNull()
                 .peek(p -> p.setMemberCount(projectMemberDao.findListByProjectId(p.getId(), p.getDeleted_at()).size()))
@@ -359,11 +353,11 @@ public class ProgramService {
         return StreamEx.of(userIds)
                 .map(userId -> {
                     List<ProjectDTO> projects = StreamEx.of(
-                            programDao.selectProgramProjects(ProgramProjectQueryParameter.builder()
-                                    .teamId(currentTeamId)
-                                    .userId(userId)
-                                    .programId(programId).build())
-                    )
+                                    programDao.selectProgramProjects(ProgramProjectQueryParameter.builder()
+                                            .teamId(currentTeamId)
+                                            .userId(userId)
+                                            .programId(programId).build())
+                            )
                             .map(projectDTOService::toDetailDTO)
                             .nonNull()
                             .collect(Collectors.toList());
@@ -392,11 +386,11 @@ public class ProgramService {
 
     private List<ProjectDTO> toProjectDTO(Integer teamId, Integer programId) {
         return StreamEx.of(
-                programDao.selectProgramProjects(ProgramProjectQueryParameter.builder()
-                        .teamId(teamId)
-                        .programId(programId)
-                        .build())
-        )
+                        programDao.selectProgramProjects(ProgramProjectQueryParameter.builder()
+                                .teamId(teamId)
+                                .programId(programId)
+                                .build())
+                )
                 .map(projectDTOService::toDetailDTO)
                 .nonNull()
                 .collect(Collectors.toList());

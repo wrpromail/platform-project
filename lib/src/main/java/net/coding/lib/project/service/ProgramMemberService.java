@@ -100,10 +100,10 @@ public class ProgramMemberService {
                                            List<ProjectMember> projectMembers) {
         //项目集下其他项目成员
         Set<Integer> otherMembers = StreamEx.of(
-                programDao.selectProgramProjects(ProgramProjectQueryParameter.builder()
-                        .teamId(teamId)
-                        .programId(program.getId())
-                        .build()))
+                        programDao.selectProgramProjects(ProgramProjectQueryParameter.builder()
+                                .teamId(teamId)
+                                .programId(program.getId())
+                                .build()))
                 .filter(p -> !p.getId().equals(project.getId()))
                 .flatMap(p -> projectMemberDao.findListByProjectId(p.getId(),
                         new Timestamp(p.getDeletedAt().getTime())).stream())
@@ -126,11 +126,11 @@ public class ProgramMemberService {
         programUserIds.forEach(targetUserId -> delMember(teamId, program, targetUserId));
 
         Optional.ofNullable(
-                programProjectDao.selectOne(ProgramProject.builder()
-                        .programId(program.getId())
-                        .projectId(project.getId())
-                        .deletedAt(BeanUtils.getDefaultDeletedAt())
-                        .build()))
+                        programProjectDao.selectOne(ProgramProject.builder()
+                                .programId(program.getId())
+                                .projectId(project.getId())
+                                .deletedAt(BeanUtils.getDefaultDeletedAt())
+                                .build()))
                 .ifPresent(pp -> {
                     pp.setDeletedAt(new Timestamp(System.currentTimeMillis()));
                     programProjectDao.updateByPrimaryKeySelective(pp);

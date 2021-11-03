@@ -75,7 +75,7 @@ public class ProjectLabelDao {
     public List<ProjectLabel> findByIds(List<Integer> ids) {
         Example example = Example.builder(entityClass).where(
                 WeekendSqls.<ProjectLabel>custom()
-                        .andIn(ProjectLabel::getId,ids)
+                        .andIn(ProjectLabel::getId, ids)
                         .andEqualTo(ProjectLabel::getDeletedAt,
                                 Timestamp.valueOf(BaseDao.NOT_DELETED))
         ).build();

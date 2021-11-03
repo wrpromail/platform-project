@@ -50,8 +50,7 @@ public class ProjectLableController {
 
 
     /**
-     * 检测项目权限，团队权限
-     * id : 项目label id
+     * 检测项目权限，团队权限 id : 项目label id
      */
     @ModelAttribute
     public void preCheckPermission(

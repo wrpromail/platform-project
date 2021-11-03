@@ -21,6 +21,7 @@ public class MergeRequestLabelDao {
         entityClass = MergeRequestLabel.class;
         this.mapper = mapper;
     }
+
     public long countByLabel(int labelId) {
         Example example = Example.builder(entityClass).where(
                 WeekendSqls.<MergeRequestLabel>custom()

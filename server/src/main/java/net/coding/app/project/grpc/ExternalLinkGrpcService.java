@@ -44,7 +44,7 @@ public class ExternalLinkGrpcService extends ExternalLinkServiceGrpc.ExternalLin
             externalLink.setIid(Integer.valueOf(resource.getCode()));
             GrpcUtil.addExternalLinkResponse(CodeProto.Code.SUCCESS, "add success", externalLink, response);
         } catch (Exception ex) {
-            log.error("addExternalLink fail, parameter is "+ request.toString(), ex);
+            log.error("addExternalLink fail, parameter is " + request.toString(), ex);
             GrpcUtil.addExternalLinkResponse(CodeProto.Code.INTERNAL_ERROR,
                     "addExternalLink service error", null, response);
         }

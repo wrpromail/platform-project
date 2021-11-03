@@ -15,6 +15,7 @@ public class RedissonLockUtil {
 
     /**
      * 获取锁
+     *
      * @param lockKey
      * @return
      */
@@ -26,6 +27,7 @@ public class RedissonLockUtil {
 
     /**
      * 获取锁的时间
+     *
      * @param lockKey
      * @param leaseTime
      * @return
@@ -36,7 +38,7 @@ public class RedissonLockUtil {
         return lock;
     }
 
-    public RLock lock(String lockKey, TimeUnit unit ,int timeout) {
+    public RLock lock(String lockKey, TimeUnit unit, int timeout) {
         RLock lock = redissonClient.getLock(lockKey);
         lock.lock(timeout, unit);
         return lock;

@@ -98,7 +98,7 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
         try {
             valid(request.getUser().getId(), request.getProjectId());
             CredentialTypeEnums credentialType = Optional.ofNullable(CredentialTypeEnums
-                    .of(request.getCredentialType().name()))
+                            .of(request.getCredentialType().name()))
                     .orElse(CredentialTypeEnums.USERNAME_PASSWORD);
 
             // 支持的类型判断

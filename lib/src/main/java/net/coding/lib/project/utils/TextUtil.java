@@ -57,6 +57,7 @@ public class TextUtil {
 
     /**
      * 截取指定范围的字符串
+     *
      * @param originalString
      * @param length
      * @param appendEllipsis
@@ -71,7 +72,7 @@ public class TextUtil {
             return originalString;
         }
 
-        String result = originalString.substring(0 , appendEllipsis ? (length - 1) : length);
+        String result = originalString.substring(0, appendEllipsis ? (length - 1) : length);
 
         if (Boolean.TRUE.equals(appendEllipsis)) {
             result += "…";
@@ -120,13 +121,14 @@ public class TextUtil {
 
     /**
      * 获取指定HTML标签的指定属性的值最后一个值, 未找到返回默认值
+     *
      * @param html
      * @param element
      * @param attr
      * @param defaultRes
      * @return
      */
-    public static String getAttrValByLastElement(String html, String element, String attr, String defaultRes){
+    public static String getAttrValByLastElement(String html, String element, String attr, String defaultRes) {
         Elements elements = Jsoup.parse(html).getElementsByTag(element);
         if (elements.size() == 0) {
             return defaultRes;
@@ -166,7 +168,7 @@ public class TextUtil {
     }
 
     public static String replaceImageDomainInMarkdown(String markdownText, String sourceHostWithProtocol, String targetHostWithProtocol) {
-        String result =  markdownText.replace("![图片](" + sourceHostWithProtocol, "![图片](" + targetHostWithProtocol);
+        String result = markdownText.replace("![图片](" + sourceHostWithProtocol, "![图片](" + targetHostWithProtocol);
         result = result.replace("![图片](" + DEPRECATED_QCLOUD_DOMAIN, "![图片](" + targetHostWithProtocol);
 
         return result;
@@ -366,7 +368,7 @@ public class TextUtil {
                 .stream()
                 .filter(el -> {
                     //a标签有锚点的去掉target="_blank"属性
-                    if(el.attr("href").startsWith("#")){
+                    if (el.attr("href").startsWith("#")) {
                         el.removeAttr("target");
                     }
                     String href = el.attr("href").toLowerCase();
@@ -464,7 +466,8 @@ public class TextUtil {
     }
 
     public static String imageAndCodeToWord(String content) {
-        Document document = TextUtil.replaceImagesTag(content);;
+        Document document = TextUtil.replaceImagesTag(content);
+        ;
         Elements codes = document.getElementsByTag("code");
         for (Element code : codes) {
             code.replaceWith(new TextNode("[代码]", ""));

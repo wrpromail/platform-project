@@ -1,457 +1,476 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="net.coding.lib.project.dao.ProjectResourceDao">
-  <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ProjectResource">
-    <id column="id" jdbcType="INTEGER" property="id" />
-    <result column="project_id" jdbcType="INTEGER" property="projectId" />
-    <result column="scope_type" jdbcType="INTEGER" property="scopeType" />
-    <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt" />
-    <result column="target_type" jdbcType="VARCHAR" property="targetType" />
-    <result column="target_id" jdbcType="INTEGER" property="targetId" />
-    <result column="code" jdbcType="VARCHAR" property="code" />
-    <result column="title" jdbcType="VARCHAR" property="title" />
-    <result column="resource_url" jdbcType="VARCHAR" property="resourceUrl" />
-    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
-    <result column="created_by" jdbcType="INTEGER" property="createdBy" />
-    <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
-    <result column="updated_by" jdbcType="INTEGER" property="updatedBy" />
-    <result column="deleted_by" jdbcType="INTEGER" property="deletedBy" />
-  </resultMap>
+    <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ProjectResource">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="project_id" jdbcType="INTEGER" property="projectId"/>
+        <result column="scope_type" jdbcType="INTEGER" property="scopeType"/>
+        <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt"/>
+        <result column="target_type" jdbcType="VARCHAR" property="targetType"/>
+        <result column="target_id" jdbcType="INTEGER" property="targetId"/>
+        <result column="code" jdbcType="VARCHAR" property="code"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="resource_url" jdbcType="VARCHAR" property="resourceUrl"/>
+        <result column="created_at" jdbcType="TIMESTAMP" property="createdAt"/>
+        <result column="created_by" jdbcType="INTEGER" property="createdBy"/>
+        <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt"/>
+        <result column="updated_by" jdbcType="INTEGER" property="updatedBy"/>
+        <result column="deleted_by" jdbcType="INTEGER" property="deletedBy"/>
+    </resultMap>
 
-  <sql id="Base_Column_List">
-    id, project_id, scope_type, deleted_at, target_type, target_id, code, title, resource_url, created_at, created_by,
+    <sql id="Base_Column_List">
+        id, project_id, scope_type, deleted_at, target_type, target_id, code, title, resource_url, created_at, created_by,
     updated_at, updated_by, deleted_by
-  </sql>
+    </sql>
 
-  <select id="getById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM project_resources
-    WHERE id = #{id,jdbcType=INTEGER}
-  </select>
+    <select id="getById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM project_resources
+        WHERE id = #{id,jdbcType=INTEGER}
+    </select>
 
-  <insert id="batchInsert" parameterType="list">
-    INSERT INTO project_resources(project_id, target_type, target_id, code, title,resource_url, created_at, created_by, updated_at, updated_by, deleted_by)
-    VALUES
-    <foreach collection="list" item="projectResource" separator=",">
-      (
-        #{projectResource.projectId},
-        #{projectResource.targetType},
-        #{projectResource.targetId},
-        #{projectResource.code},
-        #{projectResource.title},
-        #{projectResource.resourceUrl},
-        #{projectResource.createdAt},
-        #{projectResource.createdBy},
-        #{projectResource.updatedAt},
-        #{projectResource.updatedBy},
-        #{projectResource.deletedBy}
-      )
-    </foreach>
-  </insert>
-
-  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="net.coding.lib.project.entity.ProjectResource" useGeneratedKeys="true">
-    INSERT INTO project_resources
-    <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="projectId != null">
-        project_id,
-      </if>
-      <if test="scopeType != null">
-        scope_type,
-      </if>
-      <if test="deletedAt != null">
-        deleted_at,
-      </if>
-      <if test="targetType != null">
-        target_type,
-      </if>
-      <if test="targetId != null">
-        target_id,
-      </if>
-      <if test="code != null">
-        code,
-      </if>
-      <if test="title != null">
-        title,
-      </if>
-      <if test="resourceUrl != null">
-        resource_url,
-      </if>
-      <if test="createdAt != null">
-        created_at,
-      </if>
-      <if test="createdBy != null">
-        created_by,
-      </if>
-      <if test="updatedAt != null">
-        updated_at,
-      </if>
-      <if test="updatedBy != null">
-        updated_by,
-      </if>
-      <if test="deletedBy != null">
-        deleted_by,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="projectId != null">
-        #{projectId,jdbcType=INTEGER},
-      </if>
-      <if test="scopeType != null">
-        #{scopeType,jdbcType=INTEGER},
-      </if>
-      <if test="targetType != null">
-        #{targetType,jdbcType=VARCHAR},
-      </if>
-      <if test="targetId != null">
-        #{targetId,jdbcType=INTEGER},
-      </if>
-      <if test="code != null">
-        #{code,jdbcType=VARCHAR},
-      </if>
-      <if test="title != null">
-        #{title,jdbcType=VARCHAR},
-      </if>
-      <if test="resourceUrl != null">
-        #{resourceUrl,jdbcType=VARCHAR},
-      </if>
-      <if test="createdAt != null">
-        #{createdAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="createdBy != null">
-        #{createdBy,jdbcType=INTEGER},
-      </if>
-      <if test="updatedAt != null">
-        #{updatedAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updatedBy != null">
-        #{updatedBy,jdbcType=INTEGER},
-      </if>
-      <if test="deletedBy != null">
-        #{deletedBy,jdbcType=INTEGER},
-      </if>
-    </trim>
-  </insert>
-
-  <update id="update" parameterType="net.coding.lib.project.entity.ProjectResource">
-    UPDATE project_resources
-    <set>
-      <if test="title != null">
-        title = #{title,jdbcType=VARCHAR},
-      </if>
-      <if test="updatedAt != null">
-        updated_at = #{updatedAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updatedBy != null">
-        updated_by = #{updatedBy,jdbcType=INTEGER},
-      </if>
-      <if test="deletedAt != null">
-        deleted_at = #{deletedAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="deletedBy != null">
-        deleted_by = #{deletedBy,jdbcType=INTEGER},
-      </if>
-      <if test="resourceUrl != null">
-        resource_url = #{resourceUrl,jdbcType=VARCHAR},
-      </if>
-    </set>
-    WHERE id = #{id,jdbcType=INTEGER}
-  </update>
-
-  <update id="batchDelete" parameterType="map">
-    UPDATE project_resources SET deleted_at = #{deletedAt}, deleted_by = #{deletedBy}
-    WHERE project_id = #{projectId} AND target_type = #{targetType}
-      AND target_id IN
-      <foreach item = "item" index = "index" collection = "targetIds" open = "(" close = ")" separator=",">
-        #{item}
-      </foreach>
-  </update>
-
-  <select id="findList" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM project_resources
-    <where>
-      <if test="projectId != null">
-        AND project_id = #{projectId}
-      </if>
-      <if test="targetType != null">
-        AND target_type = #{targetType}
-      </if>
-      <if test="targetId != null">
-        AND target_id = #{targetId}
-      </if>
-      <if test="codes != null and codes.size() > 0">
-        AND `code` IN
-        <foreach item = "item" index = "index" collection = "codes" open = "(" close = ")" separator=",">
-          #{item}
+    <insert id="batchInsert" parameterType="list">
+        INSERT INTO project_resources(project_id, target_type, target_id, code, title,resource_url,
+        created_at, created_by, updated_at, updated_by, deleted_by)
+        VALUES
+        <foreach collection="list" item="projectResource" separator=",">
+            (
+            #{projectResource.projectId},
+            #{projectResource.targetType},
+            #{projectResource.targetId},
+            #{projectResource.code},
+            #{projectResource.title},
+            #{projectResource.resourceUrl},
+            #{projectResource.createdAt},
+            #{projectResource.createdBy},
+            #{projectResource.updatedAt},
+            #{projectResource.updatedBy},
+            #{projectResource.deletedBy}
+            )
         </foreach>
-      </if>
-      <if test="targetIds != null">
+    </insert>
+
+    <insert id="insert" keyColumn="id" keyProperty="id"
+            parameterType="net.coding.lib.project.entity.ProjectResource" useGeneratedKeys="true">
+        INSERT INTO project_resources
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="projectId != null">
+                project_id,
+            </if>
+            <if test="scopeType != null">
+                scope_type,
+            </if>
+            <if test="deletedAt != null">
+                deleted_at,
+            </if>
+            <if test="targetType != null">
+                target_type,
+            </if>
+            <if test="targetId != null">
+                target_id,
+            </if>
+            <if test="code != null">
+                code,
+            </if>
+            <if test="title != null">
+                title,
+            </if>
+            <if test="resourceUrl != null">
+                resource_url,
+            </if>
+            <if test="createdAt != null">
+                created_at,
+            </if>
+            <if test="createdBy != null">
+                created_by,
+            </if>
+            <if test="updatedAt != null">
+                updated_at,
+            </if>
+            <if test="updatedBy != null">
+                updated_by,
+            </if>
+            <if test="deletedBy != null">
+                deleted_by,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="projectId != null">
+                #{projectId,jdbcType=INTEGER},
+            </if>
+            <if test="scopeType != null">
+                #{scopeType,jdbcType=INTEGER},
+            </if>
+            <if test="targetType != null">
+                #{targetType,jdbcType=VARCHAR},
+            </if>
+            <if test="targetId != null">
+                #{targetId,jdbcType=INTEGER},
+            </if>
+            <if test="code != null">
+                #{code,jdbcType=VARCHAR},
+            </if>
+            <if test="title != null">
+                #{title,jdbcType=VARCHAR},
+            </if>
+            <if test="resourceUrl != null">
+                #{resourceUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="createdAt != null">
+                #{createdAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="createdBy != null">
+                #{createdBy,jdbcType=INTEGER},
+            </if>
+            <if test="updatedAt != null">
+                #{updatedAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedBy != null">
+                #{updatedBy,jdbcType=INTEGER},
+            </if>
+            <if test="deletedBy != null">
+                #{deletedBy,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="net.coding.lib.project.entity.ProjectResource">
+        UPDATE project_resources
+        <set>
+            <if test="title != null">
+                title = #{title,jdbcType=VARCHAR},
+            </if>
+            <if test="updatedAt != null">
+                updated_at = #{updatedAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedBy != null">
+                updated_by = #{updatedBy,jdbcType=INTEGER},
+            </if>
+            <if test="deletedAt != null">
+                deleted_at = #{deletedAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="deletedBy != null">
+                deleted_by = #{deletedBy,jdbcType=INTEGER},
+            </if>
+            <if test="resourceUrl != null">
+                resource_url = #{resourceUrl,jdbcType=VARCHAR},
+            </if>
+        </set>
+        WHERE id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <update id="batchDelete" parameterType="map">
+        UPDATE project_resources SET deleted_at = #{deletedAt}, deleted_by = #{deletedBy}
+        WHERE project_id = #{projectId} AND target_type = #{targetType}
         AND target_id IN
-        <foreach item = "item" index = "index" collection = "targetIds" open = "(" close = ")" separator=",">
-          #{item}
+        <foreach item="item" index="index" collection="targetIds" open="(" close=")" separator=",">
+            #{item}
         </foreach>
-      </if>
-      <if test="notTargetTypes != null and notTargetTypes.size() > 0">
-        AND target_type NOT IN
-        <foreach item = "item" index = "index" collection = "notTargetTypes" open = "(" close = ")" separator=",">
-          #{item}
-        </foreach>
-      </if>
-      <if test="targetTypes != null and targetTypes.size() > 0">
-        AND target_type IN
-        <foreach item = "item" index = "index" collection = "targetTypes" open = "(" close = ")" separator=",">
-          #{item}
-        </foreach>
-      </if>
-      <if test="keyword != null">
-        AND (code LIKE #{keyword} OR title LIKE #{keyword})
-      </if>
-      <if test="resourceId != null">
-        AND (code LIKE #{resourceId})
-      </if>
-      <if test="title != null">
-        AND (title LIKE #{title})
-      </if>
-      <if test="deletedAt != null">
-        AND deleted_at = #{deletedAt}
-      </if>
-      <if test="scopeType != null">
-        AND scope_type = #{scopeType}
-      </if>
-    </where>
-    ORDER BY created_at DESC
-  </select>
+    </update>
 
-  <select id="findListForKm" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM project_resources
-    <where>
-      project_id = #{scopeId}
-      <if test="targetType != null">
-        AND target_type = #{targetType}
-      </if>
-      <if test="targetId != null">
-        AND target_id = #{targetId}
-      </if>
-      <if test="codes != null and codes.size() > 0">
-        AND `code` IN
-        <foreach item = "item" index = "index" collection = "codes" open = "(" close = ")" separator=",">
-          #{item}
-        </foreach>
-      </if>
-      <if test="targetIds != null">
-        AND target_id IN
-        <foreach item = "item" index = "index" collection = "targetIds" open = "(" close = ")" separator=",">
-          #{item}
-        </foreach>
-      </if>
-      <if test="notTargetTypes != null and notTargetTypes.size() > 0">
-        AND target_type NOT IN
-        <foreach item = "item" index = "index" collection = "notTargetTypes" open = "(" close = ")" separator=",">
-          #{item}
-        </foreach>
-      </if>
-      <if test="targetTypes != null and targetTypes.size() > 0">
-        AND target_type IN
-        <foreach item = "item" index = "index" collection = "targetTypes" open = "(" close = ")" separator=",">
-          #{item}
-        </foreach>
-      </if>
-      <if test="resourceId != null">
-        AND (code LIKE #{resourceId})
-      </if>
-      <if test="title != null">
-        AND (title LIKE #{title})
-      </if>
-      <if test="deletedAt != null">
-        AND deleted_at = #{deletedAt}
-      </if>
-      <if test="scopeType != null">
-        AND scope_type = #{scopeType}
-      </if>
-    </where>
-    ORDER BY `created_at` DESC
-    <if test="pageSize != null">
-      LIMIT #{pageSize}
-    </if>
-  </select>
+    <select id="findList" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM project_resources
+        <where>
+            <if test="projectId != null">
+                AND project_id = #{projectId}
+            </if>
+            <if test="targetType != null">
+                AND target_type = #{targetType}
+            </if>
+            <if test="targetId != null">
+                AND target_id = #{targetId}
+            </if>
+            <if test="codes != null and codes.size() > 0">
+                AND `code` IN
+                <foreach item="item" index="index" collection="codes" open="(" close=")"
+                         separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="targetIds != null">
+                AND target_id IN
+                <foreach item="item" index="index" collection="targetIds" open="(" close=")"
+                         separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="notTargetTypes != null and notTargetTypes.size() > 0">
+                AND target_type NOT IN
+                <foreach item="item" index="index" collection="notTargetTypes" open="(" close=")"
+                         separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="targetTypes != null and targetTypes.size() > 0">
+                AND target_type IN
+                <foreach item="item" index="index" collection="targetTypes" open="(" close=")"
+                         separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="keyword != null">
+                AND (code LIKE #{keyword} OR title LIKE #{keyword})
+            </if>
+            <if test="resourceId != null">
+                AND (code LIKE #{resourceId})
+            </if>
+            <if test="title != null">
+                AND (title LIKE #{title})
+            </if>
+            <if test="deletedAt != null">
+                AND deleted_at = #{deletedAt}
+            </if>
+            <if test="scopeType != null">
+                AND scope_type = #{scopeType}
+            </if>
+        </where>
+        ORDER BY created_at DESC
+    </select>
 
-  <select id="findProjectResourceDetail" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM project_resources
-    <where>
-      project_id = #{scopeId}
-      <if test="code != null">
-        AND code = #{code}
-      </if>
-      <if test="scopeType != null">
-        AND scope_type = #{scopeType}
-      </if>
-      <if test="deletedAt != null">
-        AND deleted_at = #{deletedAt}
-      </if>
-    </where>
-    ORDER BY `created_at` DESC LIMIT 1
-  </select>
+    <select id="findListForKm" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM project_resources
+        <where>
+            project_id = #{scopeId}
+            <if test="targetType != null">
+                AND target_type = #{targetType}
+            </if>
+            <if test="targetId != null">
+                AND target_id = #{targetId}
+            </if>
+            <if test="codes != null and codes.size() > 0">
+                AND `code` IN
+                <foreach item="item" index="index" collection="codes" open="(" close=")"
+                         separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="targetIds != null">
+                AND target_id IN
+                <foreach item="item" index="index" collection="targetIds" open="(" close=")"
+                         separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="notTargetTypes != null and notTargetTypes.size() > 0">
+                AND target_type NOT IN
+                <foreach item="item" index="index" collection="notTargetTypes" open="(" close=")"
+                         separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="targetTypes != null and targetTypes.size() > 0">
+                AND target_type IN
+                <foreach item="item" index="index" collection="targetTypes" open="(" close=")"
+                         separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="resourceId != null">
+                AND (code LIKE #{resourceId})
+            </if>
+            <if test="title != null">
+                AND (title LIKE #{title})
+            </if>
+            <if test="deletedAt != null">
+                AND deleted_at = #{deletedAt}
+            </if>
+            <if test="scopeType != null">
+                AND scope_type = #{scopeType}
+            </if>
+        </where>
+        ORDER BY `created_at` DESC
+        <if test="pageSize != null">
+            LIMIT #{pageSize}
+        </if>
+    </select>
 
-  <select id="getByProjectIdAndTypeAndTarget" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM project_resources
-    <where>
-      <if test="projectId != null">
-        AND project_id = #{projectId}
-      </if>
-      <if test="targetType != null">
-        AND target_type = #{targetType}
-      </if>
-      <if test="targetId != null">
-        AND target_id = #{targetId}
-      </if>
-      <if test="deletedAt != null">
-        AND deleted_at = #{deletedAt}
-      </if>
-    </where>
-    LIMIT 1
-  </select>
+    <select id="findProjectResourceDetail" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM project_resources
+        <where>
+            project_id = #{scopeId}
+            <if test="code != null">
+                AND code = #{code}
+            </if>
+            <if test="scopeType != null">
+                AND scope_type = #{scopeType}
+            </if>
+            <if test="deletedAt != null">
+                AND deleted_at = #{deletedAt}
+            </if>
+        </where>
+        ORDER BY `created_at` DESC LIMIT 1
+    </select>
 
-  <select id="getByScopeIdAndScopeTypeAndTypeAndTarget" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM project_resources
-    <where>
-      project_id = #{scopeId}
-      <if test="scopeType != null">
-        AND scope_type = #{scopeType}
-      </if>
-      <if test="targetType != null">
-        AND target_type = #{targetType}
-      </if>
-      <if test="targetId != null">
-        AND target_id = #{targetId}
-      </if>
-      <if test="deletedAt != null">
-        AND deleted_at = #{deletedAt}
-      </if>
-    </where>
-    LIMIT 1
-  </select>
+    <select id="getByProjectIdAndTypeAndTarget" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM project_resources
+        <where>
+            <if test="projectId != null">
+                AND project_id = #{projectId}
+            </if>
+            <if test="targetType != null">
+                AND target_type = #{targetType}
+            </if>
+            <if test="targetId != null">
+                AND target_id = #{targetId}
+            </if>
+            <if test="deletedAt != null">
+                AND deleted_at = #{deletedAt}
+            </if>
+        </where>
+        LIMIT 1
+    </select>
 
-  <select id="getByProjectIdAndCode" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM project_resources
-    <where>
-      <if test="projectId != null">
-        AND project_id = #{projectId}
-      </if>
-      <if test="code != null">
-        AND `code` = #{code}
-      </if>
-      <if test="targetTypes != null and targetTypes.size() > 0">
-        AND target_type NOT IN
-        <foreach item = "item" index = "index" collection = "targetTypes" open = "(" close = ")" separator=",">
-          #{item}
-        </foreach>
-      </if>
-      <if test="deletedAt != null">
-        AND deleted_at = #{deletedAt}
-      </if>
-    </where>
-    LIMIT 1
-  </select>
+    <select id="getByScopeIdAndScopeTypeAndTypeAndTarget" parameterType="map"
+            resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM project_resources
+        <where>
+            project_id = #{scopeId}
+            <if test="scopeType != null">
+                AND scope_type = #{scopeType}
+            </if>
+            <if test="targetType != null">
+                AND target_type = #{targetType}
+            </if>
+            <if test="targetId != null">
+                AND target_id = #{targetId}
+            </if>
+            <if test="deletedAt != null">
+                AND deleted_at = #{deletedAt}
+            </if>
+        </where>
+        LIMIT 1
+    </select>
 
-  <select id="countByProjectIdAndCodes" parameterType="map" resultType="java.lang.Integer">
-    SELECT
+    <select id="getByProjectIdAndCode" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM project_resources
+        <where>
+            <if test="projectId != null">
+                AND project_id = #{projectId}
+            </if>
+            <if test="code != null">
+                AND `code` = #{code}
+            </if>
+            <if test="targetTypes != null and targetTypes.size() > 0">
+                AND target_type NOT IN
+                <foreach item="item" index="index" collection="targetTypes" open="(" close=")"
+                         separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="deletedAt != null">
+                AND deleted_at = #{deletedAt}
+            </if>
+        </where>
+        LIMIT 1
+    </select>
+
+    <select id="countByProjectIdAndCodes" parameterType="map" resultType="java.lang.Integer">
+        SELECT
         COUNT(id) AS counts
-    FROM project_resources
-    <where>
-      <if test="projectId != null">
-        AND project_id = #{projectId}
-      </if>
-      <if test="codes != null and codes.size() > 0">
-        AND `code` IN
-        <foreach item = "item" index = "index" collection = "codes" open = "(" close = ")" separator=",">
-          #{item}
-        </foreach>
-      </if>
-    </where>
-    ORDER BY id DESC
-  </select>
+        FROM project_resources
+        <where>
+            <if test="projectId != null">
+                AND project_id = #{projectId}
+            </if>
+            <if test="codes != null and codes.size() > 0">
+                AND `code` IN
+                <foreach item="item" index="index" collection="codes" open="(" close=")"
+                         separator=",">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        ORDER BY id DESC
+    </select>
 
-  <select id="getProjectResourceWithDeleted" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM project_resources
-    <where>
-      <if test="projectId != null">
-        AND project_id = #{projectId}
-      </if>
-      <if test="code != null">
-        AND `code` = #{code}
-      </if>
-      <if test="targetTypes != null and targetTypes.size() > 0">
-        AND target_type NOT IN
-        <foreach item = "item" index = "index" collection = "targetTypes" open = "(" close = ")" separator=",">
-          #{item}
-        </foreach>
-      </if>
-      <if test="deletedAt != null">
-        AND deleted_at = #{deletedAt}
-      </if>
-    </where>
-    LIMIT 1
-  </select>
+    <select id="getProjectResourceWithDeleted" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM project_resources
+        <where>
+            <if test="projectId != null">
+                AND project_id = #{projectId}
+            </if>
+            <if test="code != null">
+                AND `code` = #{code}
+            </if>
+            <if test="targetTypes != null and targetTypes.size() > 0">
+                AND target_type NOT IN
+                <foreach item="item" index="index" collection="targetTypes" open="(" close=")"
+                         separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="deletedAt != null">
+                AND deleted_at = #{deletedAt}
+            </if>
+        </where>
+        LIMIT 1
+    </select>
 
-  <select id="findFixResourceList" parameterType="map" resultType="java.lang.Integer">
-    SELECT
+    <select id="findFixResourceList" parameterType="map" resultType="java.lang.Integer">
+        SELECT
         id
-    FROM
+        FROM
         project_resources
-    <where>
-      <if test="id != null">
-        AND id > #{id}
-      </if>
-    </where>
-    Order by id ASC
-    LIMIT 1000;
-  </select>
+        <where>
+            <if test="id != null">
+                AND id > #{id}
+            </if>
+        </where>
+        Order by id ASC
+        LIMIT 1000;
+    </select>
 
-  <select id="getBeginFixId" resultType="java.lang.Integer">
-    SELECT
-        id
-    FROM
-        project_resources
-    WHERE
-        resource_url = ""
-    Order by id ASC
-    LIMIT 1;
-  </select>
+    <select id="getBeginFixId" resultType="java.lang.Integer">
+        SELECT id
+        FROM project_resources
+        WHERE resource_url = ""
+        Order by id ASC
+        LIMIT 1;
+    </select>
 
 
+    <update id="batchUpdateProjectResource" parameterType="map">
+        UPDATE project_resources SET updated_at = #{updatedAt}, updated_by = #{updatedBy},
+        target_type = #{targetTargetType}
+        WHERE project_id = #{projectId} AND target_type = #{currentTargetType}
+        AND target_id IN
+        <foreach item="item" index="index" collection="targetIds" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </update>
 
-  <update id="batchUpdateProjectResource" parameterType="map">
-    UPDATE project_resources SET updated_at = #{updatedAt}, updated_by = #{updatedBy}, target_type = #{targetTargetType}
-    WHERE project_id = #{projectId} AND target_type = #{currentTargetType}
-      AND target_id IN
-      <foreach item = "item" index = "index" collection = "targetIds" open = "(" close = ")" separator=",">
-        #{item}
-      </foreach>
-  </update>
+    <update id="delete" parameterType="map">
+        UPDATE project_resources
+        SET deleted_at = #{deletedAt},
+            deleted_by = #{deletedBy}
+        WHERE project_id = #{scopeId}
+          AND scope_type = #{scopeType}
+          AND target_type = #{targetType}
+          AND target_id = #{targetId}
+    </update>
 
-  <update id="delete" parameterType="map">
-    UPDATE project_resources SET deleted_at = #{deletedAt}, deleted_by = #{deletedBy}
-    WHERE project_id = #{scopeId} AND scope_type = #{scopeType} AND target_type = #{targetType}
-    AND target_id = #{targetId}
-  </update>
-
-  <update id="recoverResource" parameterType="map">
-    UPDATE project_resources SET deleted_at = #{deletedAt}
-    WHERE project_id = #{scopeId} AND scope_type = #{scopeType} AND target_type = #{targetType}
-    AND target_id = #{targetId}
-  </update>
+    <update id="recoverResource" parameterType="map">
+        UPDATE project_resources
+        SET deleted_at = #{deletedAt}
+        WHERE project_id = #{scopeId}
+          AND scope_type = #{scopeType}
+          AND target_type = #{targetType}
+          AND target_id = #{targetId}
+    </update>
 </mapper>

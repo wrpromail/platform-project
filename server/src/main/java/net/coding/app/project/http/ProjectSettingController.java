@@ -32,6 +32,7 @@ import lombok.AllArgsConstructor;
 public class ProjectSettingController {
 
     private final ProjectSettingService projectSettingService;
+
     /**
      * 获取所有的功能设置项
      */
@@ -39,14 +40,15 @@ public class ProjectSettingController {
     public List<ProjectFunctionDTO> getAllFunctions(@PathVariable Integer projectId) {
         return projectSettingService.getAllFunction(projectId);
     }
+
     /**
      * 修改功能状态
      */
     @RequestMapping(value = "/function", method = RequestMethod.PUT)
     @ProjectApiProtector(function = Function.ProjectFunction, action = Action.Update)
     public boolean updateFunctionStatus(@PathVariable Integer projectId,
-                                       @RequestParam String function,
-                                       @RequestParam Boolean status
+                                        @RequestParam String function,
+                                        @RequestParam Boolean status
     ) throws CoreException {
 
         boolean result = projectSettingService.updateProjectFunction(

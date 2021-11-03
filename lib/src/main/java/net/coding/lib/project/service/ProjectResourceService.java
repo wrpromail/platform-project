@@ -71,10 +71,10 @@ public class ProjectResourceService {
     public PageInfo<ProjectResource> findProjectResourceList(Integer projectId, String keyword, List<String> targetTypes, Integer page, Integer pageSize) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("projectId", projectId);
-        if(StringUtils.isNotEmpty(keyword)) {
+        if (StringUtils.isNotEmpty(keyword)) {
             parameters.put("keyword", "%" + keyword + "%");
         }
-        if(Objects.nonNull(targetTypes) && targetTypes.size() > 0) {
+        if (Objects.nonNull(targetTypes) && targetTypes.size() > 0) {
             parameters.put("targetTypes", targetTypes);
         }
         parameters.put("scopeType", ScopeTypeEnum.PROJECT.value());
@@ -89,10 +89,10 @@ public class ProjectResourceService {
     public PageInfo<ProjectResource> findGlobalResourceList(Integer teamId, String keyword, List<String> targetTypes, Integer page, Integer pageSize) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("projectId", teamId);
-        if(StringUtils.isNotEmpty(keyword)) {
+        if (StringUtils.isNotEmpty(keyword)) {
             parameters.put("keyword", "%" + keyword + "%");
         }
-        if(Objects.nonNull(targetTypes) && targetTypes.size() > 0) {
+        if (Objects.nonNull(targetTypes) && targetTypes.size() > 0) {
             parameters.put("targetTypes", targetTypes);
         }
         parameters.put("scopeType", ScopeTypeEnum.TEAM.value());
@@ -222,13 +222,13 @@ public class ProjectResourceService {
     public List<ProjectResource> findResourceList(Integer scopeId, String resourceId, String title, List<String> targetTypes, Integer pageSize, Integer scopeType) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("scopeId", scopeId);
-        if(StringUtils.isNotEmpty(resourceId)) {
+        if (StringUtils.isNotEmpty(resourceId)) {
             parameters.put("resourceId", "%" + resourceId + "%");
         }
-        if(StringUtils.isNotEmpty(title)) {
+        if (StringUtils.isNotEmpty(title)) {
             parameters.put("title", "%" + title + "%");
         }
-        if(Objects.nonNull(targetTypes) && targetTypes.size() > 0) {
+        if (Objects.nonNull(targetTypes) && targetTypes.size() > 0) {
             parameters.put("targetTypes", targetTypes);
         }
         parameters.put("scopeType", scopeType);
@@ -244,10 +244,10 @@ public class ProjectResourceService {
 
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("scopeId", scopeId);
-        if(StringUtils.isNotEmpty(code)) {
+        if (StringUtils.isNotEmpty(code)) {
             parameters.put("code", code);
         }
-        if(scopeType != null) {
+        if (scopeType != null) {
             parameters.put("scopeType", scopeType);
         }
         parameters.put("deletedAt", "1970-01-01 00:00:00");

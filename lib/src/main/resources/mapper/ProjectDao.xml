@@ -30,11 +30,11 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-    id, owner_id, created_at, updated_at, deleted_at, `status`, recommended, depot_shared,
+        id, owner_id, created_at, updated_at, deleted_at, `status`, recommended, depot_shared,
     `type`, max_member, `name`, name_pinyin, display_name, description, icon, `plan`,
     team_owner_id, user_owner_id, start_date, end_date, project_file_quota, invisible,
     `label`,pm_type
-  </sql>
+    </sql>
 
     <select id="getProjectPages" resultMap="BaseResultMap">
         select p.* from team_projects tp
@@ -165,25 +165,23 @@
 
 
     <update id="updateBasicInfo">
-    update projects
-    set
-      `name` = #{name,jdbcType=VARCHAR},
-      name_pinyin = #{namePinyin,jdbcType=VARCHAR},
-      description = #{description,jdbcType=VARCHAR},
-      display_name = #{displayName,jdbcType=VARCHAR},
-      start_date = #{startDate,jdbcType=DATE},
-      end_date = #{endDate,jdbcType=DATE},
-      updated_at = NOW()
-    where id = #{id,jdbcType=INTEGER}
-  </update>
+        update projects
+        set `name`       = #{name,jdbcType=VARCHAR},
+            name_pinyin  = #{namePinyin,jdbcType=VARCHAR},
+            description  = #{description,jdbcType=VARCHAR},
+            display_name = #{displayName,jdbcType=VARCHAR},
+            start_date   = #{startDate,jdbcType=DATE},
+            end_date     = #{endDate,jdbcType=DATE},
+            updated_at   = NOW()
+        where id = #{id,jdbcType=INTEGER}
+    </update>
 
     <update id="updateIcon">
-    update projects
-    set
-      icon = #{icon,jdbcType=VARCHAR},
-      updated_at = NOW()
-    where id = #{id,jdbcType=INTEGER}
-  </update>
+        update projects
+        set icon       = #{icon,jdbcType=VARCHAR},
+            updated_at = NOW()
+        where id = #{id,jdbcType=INTEGER}
+    </update>
 
     <select id="getUserProjects" resultMap="BaseResultMap">
         SELECT p.*

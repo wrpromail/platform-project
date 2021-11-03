@@ -43,6 +43,7 @@ public class ProjectGrpcClient extends EndpointGrpcClient<ProjectServiceGrpc.Pro
 
     /**
      * 先调platform-service，后续再迁移过来
+     *
      * @return
      */
     public String getProjectPath(Integer projectId) {
@@ -60,6 +61,7 @@ public class ProjectGrpcClient extends EndpointGrpcClient<ProjectServiceGrpc.Pro
 
     /**
      * 获取htmlUrl
+     *
      * @param projectId
      * @return
      */

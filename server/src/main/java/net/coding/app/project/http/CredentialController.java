@@ -203,6 +203,6 @@ public class CredentialController {
             @PathVariable(value = "projectId") Integer projectId,
             @PathVariable("id") int id
     ) throws CoreException {
-        return Result.success(projectCredentialService.showHiddenInfo(id,projectId));
+        return Result.success(projectCredentialService.showHiddenInfo(id, projectId));
     }
 }

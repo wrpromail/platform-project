@@ -51,7 +51,7 @@ public class ProjectGroup {
     private Date deletedAt;
 
 
-    public enum TYPE{
+    public enum TYPE {
         ALL,
         NO_GROUP,
         CUSTOM

@@ -24,6 +24,7 @@ public class ArtifactRepositoryGrpcClient extends EndpointGrpcClient<ArtifactRep
 
     @Value("${grpc.client.artifacts.servicePort:20153}")
     private int servicePort;
+
     @Override
     protected int provideServicePort() {
         return servicePort;

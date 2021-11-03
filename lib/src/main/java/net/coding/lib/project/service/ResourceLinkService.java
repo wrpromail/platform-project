@@ -16,12 +16,13 @@ public class ResourceLinkService {
     public String getResourceLink(ProjectResource record) {
         GlobalResourceTypeEnum globalResourceTypeEnum = GlobalResourceTypeEnum.valueFrom(record.getTargetType());
         String resourceLink;
-        switch (Objects.requireNonNull(globalResourceTypeEnum)){
+        switch (Objects.requireNonNull(globalResourceTypeEnum)) {
             case KNOWLEDGE_MANAGE:
                 resourceLink = "/api/km/v1/spaces/pages/" + record.getTargetId();
                 break;
 
-            default: resourceLink = "";
+            default:
+                resourceLink = "";
         }
         return resourceLink;
     }

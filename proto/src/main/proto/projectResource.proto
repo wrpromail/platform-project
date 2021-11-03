@@ -118,7 +118,7 @@ message MultiResourceSequence {
 message MultiCodeResponse {
   proto.common.Code code = 1;
   string message = 2;
-  MultiResourceSequence multiResourceSequence= 3;
+  MultiResourceSequence multiResourceSequence = 3;
 }
 
 message BatchRelateResourceRequest {

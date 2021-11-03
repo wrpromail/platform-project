@@ -10,7 +10,8 @@ import lombok.NoArgsConstructor;
 
 /**
  * project_tweets
- * @author 
+ *
+ * @author
  */
 @Data
 @Builder

@@ -7,7 +7,8 @@ import lombok.Data;
 
 /**
  * depots
- * @author 
+ *
+ * @author
  */
 @Data
 public class Depot implements Serializable {

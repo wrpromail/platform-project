@@ -35,7 +35,7 @@ public class FileServiceGrpcClient extends EndpointGrpcClient<FileServiceGrpc.Fi
                 .setId(id)
                 .build();
         FileProto.GetProjectFileByIdResponse response = newStub().getProjectFileByIdWithDel(request);
-        if(response.getCode() == 0) {
+        if (response.getCode() == 0) {
             return response.getFile();
         }
         return null;

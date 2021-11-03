@@ -326,8 +326,8 @@ public class ProjectDeployTokenGrpcService extends ProjectDeployTokenServiceGrpc
             List<ProjectToken> tokens = projectTokenService.selectUserProjectToken(request.getProjectId());
             if (CollectionUtils.isNotEmpty(tokens)) {
                 newBuilder.addAllTokens(tokens.stream()
-                        .map(this::toDeployToken)
-                        .collect(Collectors.toList()))
+                                .map(this::toDeployToken)
+                                .collect(Collectors.toList()))
                         .setCode(SUCCESS);
             } else {
                 newBuilder.setCode(NOT_FOUND);

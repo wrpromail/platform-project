@@ -26,7 +26,7 @@ public class PinyinService {
     private final PinyinInfraGrpcClient pinyinInfraGrpcClient;
 
     private String normal(String value) {
-        PinyinResponse response =  pinyinInfraGrpcClient.convert(
+        PinyinResponse response = pinyinInfraGrpcClient.convert(
                 PinyinRequest.newBuilder()
                         .setValue(value)
                         .setMixed(false)

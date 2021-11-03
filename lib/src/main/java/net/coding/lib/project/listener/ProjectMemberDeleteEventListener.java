@@ -54,11 +54,11 @@ public class ProjectMemberDeleteEventListener {
             ).forEach(program -> {
                 //项目集下其他项目成员中所在项目
                 boolean isExist = StreamEx.of(programDao.selectProgramProjects(
-                        ProgramProjectQueryParameter.builder()
-                                .teamId(program.getTeamOwnerId())
-                                .programId(program.getId())
-                                .userId(event.getUserId())
-                                .build()))
+                                ProgramProjectQueryParameter.builder()
+                                        .teamId(program.getTeamOwnerId())
+                                        .programId(program.getId())
+                                        .userId(event.getUserId())
+                                        .build()))
                         .anyMatch(p -> !p.getId().equals(project.getId()));
                 if (isExist) {
                     return;

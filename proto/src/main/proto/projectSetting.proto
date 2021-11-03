@@ -46,7 +46,7 @@ message ProjectSettingUpdateRequest {
 
 message ProjectSettingUpdateResponse {
   proto.common.Code code = 1;
-  string message=2;
+  string message = 2;
   ProjectSettingMessage data = 3;
 }
 
@@ -56,7 +56,7 @@ message ProjectSettingBatchUpdateRequest {
 
 message ProjectSettingBatchUpdateResponse {
   proto.common.Code code = 1;
-  string message=2;
+  string message = 2;
 }
 
 message ProjectSettingGetByIdRequest {
@@ -65,7 +65,7 @@ message ProjectSettingGetByIdRequest {
 
 message ProjectSettingGetByIdResponse {
   proto.common.Code code = 1;
-  string message=2;
+  string message = 2;
   ProjectSettingMessage data = 3;
 }
 
@@ -76,7 +76,7 @@ message ProjectSettingByProjectIdsAndCodeRequest {
 
 message ProjectSettingByProjectIdsAndCodeResponse {
   proto.common.Code code = 1;
-  string message=2;
+  string message = 2;
   repeated ProjectSettingMessage value = 3;
 }
 

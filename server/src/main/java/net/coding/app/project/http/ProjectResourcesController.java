@@ -52,13 +52,13 @@ public class ProjectResourcesController {
     })
     @GetMapping("/findProjectResourceList")
     public ResultPage<ProjectResource> findProjectResourceList(Integer projectId, Integer page, Integer pageSize) throws CoreException {
-        if(projectId <= 0) {
+        if (projectId <= 0) {
             throw CoreException.of(PROJECT_NOT_EXIST);
         }
-        if(page == null || page <= 0) {
+        if (page == null || page <= 0) {
             page = 1;
         }
-        if(pageSize == null || pageSize <= 0) {
+        if (pageSize == null || pageSize <= 0) {
             pageSize = 20;
         }
         PageInfo<ProjectResource> pageInfo = projectResourceService.findProjectResourceList(projectId, null, null, page, pageSize);
@@ -76,11 +76,11 @@ public class ProjectResourcesController {
     })
     @GetMapping("/findProjectResourceInfo")
     public Result findProjectResourceInfo(Integer projectResourceId) {
-        if(projectResourceId == null || projectResourceId <= 0) {
+        if (projectResourceId == null || projectResourceId <= 0) {
             return Result.failed();
         }
         ProjectResource projectResource = projectResourceService.getById(projectResourceId);
-        if(Objects.nonNull(projectResource)) {
+        if (Objects.nonNull(projectResource)) {
             String projectPath = projectGrpcClient.getProjectPath(projectResource.getProjectId());
             projectResource.setResourceUrl(projectResourceLinkService.getResourceLink(projectResource, projectPath));
             return Result.success(projectResource);
@@ -95,10 +95,10 @@ public class ProjectResourcesController {
     })
     @GetMapping("/batchProjectResourceList")
     public Result batchProjectResourceList(Integer projectId, List<Integer> codes) {
-        if(projectId == null || projectId <= 0) {
+        if (projectId == null || projectId <= 0) {
             return Result.failed();
         }
-        if(CollectionUtils.isEmpty(codes)) {
+        if (CollectionUtils.isEmpty(codes)) {
             return Result.failed();
         }
         List<ProjectResource> projectResourceList = projectResourceService.batchProjectResourceList(projectId, codes);

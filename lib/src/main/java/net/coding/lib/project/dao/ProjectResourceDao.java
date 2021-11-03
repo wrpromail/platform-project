@@ -42,7 +42,7 @@ public interface ProjectResourceDao {
 
     int delete(Map<String, Object> parameters);
 
-    List<ProjectResource>  findListForKm(Map<String, Object> parameters);
+    List<ProjectResource> findListForKm(Map<String, Object> parameters);
 
     ProjectResource findProjectResourceDetail(Map<String, Object> parameters);
 

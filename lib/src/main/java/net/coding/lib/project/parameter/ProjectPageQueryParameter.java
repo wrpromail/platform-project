@@ -32,6 +32,6 @@ public class ProjectPageQueryParameter {
     private Timestamp deletedAt;
 
     private Integer page;
-    
+
     private Integer pageSize;
 }

@@ -172,7 +172,7 @@ public class ProjectCredentialTaskGrpcService extends ProjectCredentialTaskServi
             return new ArrayList<>();
         }
         return Optional.of(credentials.stream()
-                .map(CredentialConverter::toBuildCredential).collect(toList()))
+                        .map(CredentialConverter::toBuildCredential).collect(toList()))
                 .filter(CollectionUtils::isNotEmpty)
                 .orElse(new ArrayList<>());
     }

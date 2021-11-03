@@ -1,257 +1,269 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="net.coding.lib.project.dao.ResourceReferenceCommentRelationDao">
-  <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ResourceReferenceCommentRelation">
-    <id column="id" jdbcType="BIGINT" property="id" />
-    <result column="project_id" jdbcType="INTEGER" property="projectId" />
-    <result column="resource_reference_id" jdbcType="INTEGER" property="resourceReferenceId" />
-    <result column="resource_type" jdbcType="VARCHAR" property="resourceType" />
-    <result column="cited_source" jdbcType="VARCHAR" property="citedSource" />
-    <result column="comment_id" jdbcType="INTEGER" property="commentId" />
-    <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
-    <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
-    <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt" />
-  </resultMap>
-  <sql id="Base_Column_List">
-    id, project_id, resource_reference_id, resource_type, cited_source, comment_id, created_at, 
+    <resultMap id="BaseResultMap"
+               type="net.coding.lib.project.entity.ResourceReferenceCommentRelation">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="project_id" jdbcType="INTEGER" property="projectId"/>
+        <result column="resource_reference_id" jdbcType="INTEGER" property="resourceReferenceId"/>
+        <result column="resource_type" jdbcType="VARCHAR" property="resourceType"/>
+        <result column="cited_source" jdbcType="VARCHAR" property="citedSource"/>
+        <result column="comment_id" jdbcType="INTEGER" property="commentId"/>
+        <result column="created_at" jdbcType="TIMESTAMP" property="createdAt"/>
+        <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt"/>
+        <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, project_id, resource_reference_id, resource_type, cited_source, comment_id, created_at,
     updated_at, deleted_at
-  </sql>
-  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="net.coding.lib.project.entity.ResourceReferenceCommentRelation" useGeneratedKeys="true">
-    insert into resource_reference_comment_relations
-    <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="projectId != null">
-        project_id,
-      </if>
-      <if test="resourceReferenceId != null">
-        resource_reference_id,
-      </if>
-      <if test="resourceType != null">
+    </sql>
+    <insert id="insert" keyColumn="id" keyProperty="id"
+            parameterType="net.coding.lib.project.entity.ResourceReferenceCommentRelation"
+            useGeneratedKeys="true">
+        insert into resource_reference_comment_relations
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="projectId != null">
+                project_id,
+            </if>
+            <if test="resourceReferenceId != null">
+                resource_reference_id,
+            </if>
+            <if test="resourceType != null">
+                resource_type,
+            </if>
+            <if test="citedSource != null">
+                cited_source,
+            </if>
+            <if test="commentId != null">
+                comment_id,
+            </if>
+            <if test="createdAt != null">
+                created_at,
+            </if>
+            <if test="updatedAt != null">
+                updated_at,
+            </if>
+            <if test="deletedAt != null">
+                deleted_at,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="projectId != null">
+                #{projectId,jdbcType=INTEGER},
+            </if>
+            <if test="resourceReferenceId != null">
+                #{resourceReferenceId,jdbcType=INTEGER},
+            </if>
+            <if test="resourceType != null">
+                #{resourceType,jdbcType=VARCHAR},
+            </if>
+            <if test="citedSource != null">
+                #{citedSource,jdbcType=VARCHAR},
+            </if>
+            <if test="commentId != null">
+                #{commentId,jdbcType=INTEGER},
+            </if>
+            <if test="createdAt != null">
+                #{createdAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedAt != null">
+                #{updatedAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="deletedAt != null">
+                #{deletedAt,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+
+    <select id="countComment" parameterType="map" resultType="int">
+        SELECT
+        COUNT(id)
+        FROM
+        resource_reference_comment_relations
+        <where>
+            <if test="resourceReferenceId != null">
+                and resource_reference_id = #{resourceReferenceId}
+            </if>
+            <if test="deletedAt != null">
+                and deleted_at = #{deletedAt}
+            </if>
+        </where>
+    </select>
+
+    <update id="update"
+            parameterType="net.coding.lib.project.entity.ResourceReferenceCommentRelation">
+        update resource_reference_comment_relations
+        <set>
+            <if test="projectId != null">
+                project_id = #{projectId,jdbcType=INTEGER},
+            </if>
+            <if test="resourceReferenceId != null">
+                resource_reference_id = #{resourceReferenceId,jdbcType=INTEGER},
+            </if>
+            <if test="resourceType != null">
+                resource_type = #{resourceType,jdbcType=VARCHAR},
+            </if>
+            <if test="citedSource != null">
+                cited_source = #{citedSource,jdbcType=VARCHAR},
+            </if>
+            <if test="commentId != null">
+                comment_id = #{commentId,jdbcType=INTEGER},
+            </if>
+            <if test="createdAt != null">
+                created_at = #{createdAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedAt != null">
+                updated_at = #{updatedAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="deletedAt != null">
+                deleted_at = #{deletedAt,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <insert id="batchInsert" parameterType="list">
+        INSERT INTO resource_reference_comment_relations (project_id, resource_reference_id,
         resource_type,
-      </if>
-      <if test="citedSource != null">
-        cited_source,
-      </if>
-      <if test="commentId != null">
-        comment_id,
-      </if>
-      <if test="createdAt != null">
-        created_at,
-      </if>
-      <if test="updatedAt != null">
-        updated_at,
-      </if>
-      <if test="deletedAt != null">
-        deleted_at,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="projectId != null">
-        #{projectId,jdbcType=INTEGER},
-      </if>
-      <if test="resourceReferenceId != null">
-        #{resourceReferenceId,jdbcType=INTEGER},
-      </if>
-      <if test="resourceType != null">
-        #{resourceType,jdbcType=VARCHAR},
-      </if>
-      <if test="citedSource != null">
-        #{citedSource,jdbcType=VARCHAR},
-      </if>
-      <if test="commentId != null">
-        #{commentId,jdbcType=INTEGER},
-      </if>
-      <if test="createdAt != null">
-        #{createdAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updatedAt != null">
-        #{updatedAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="deletedAt != null">
-        #{deletedAt,jdbcType=TIMESTAMP},
-      </if>
-    </trim>
-  </insert>
-  
-  <select id="countComment" parameterType="map" resultType="int">
-    SELECT
-     COUNT(id)
-    FROM
-      resource_reference_comment_relations
-    <where>
-      <if test="resourceReferenceId != null">
-        and resource_reference_id = #{resourceReferenceId}
-      </if>
-      <if test="deletedAt != null">
-        and deleted_at = #{deletedAt}
-      </if>
-    </where>
-  </select>
-
-  <update id="update" parameterType="net.coding.lib.project.entity.ResourceReferenceCommentRelation">
-    update resource_reference_comment_relations
-    <set>
-      <if test="projectId != null">
-        project_id = #{projectId,jdbcType=INTEGER},
-      </if>
-      <if test="resourceReferenceId != null">
-        resource_reference_id = #{resourceReferenceId,jdbcType=INTEGER},
-      </if>
-      <if test="resourceType != null">
-        resource_type = #{resourceType,jdbcType=VARCHAR},
-      </if>
-      <if test="citedSource != null">
-        cited_source = #{citedSource,jdbcType=VARCHAR},
-      </if>
-      <if test="commentId != null">
-        comment_id = #{commentId,jdbcType=INTEGER},
-      </if>
-      <if test="createdAt != null">
-        created_at = #{createdAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updatedAt != null">
-        updated_at = #{updatedAt,jdbcType=TIMESTAMP},
-      </if>
-      <if test="deletedAt != null">
-        deleted_at = #{deletedAt,jdbcType=TIMESTAMP},
-      </if>
-    </set>
-    where id = #{id,jdbcType=BIGINT}
-  </update>
-
-  <insert id="batchInsert" parameterType="list">
-    INSERT INTO resource_reference_comment_relations (project_id, resource_reference_id, resource_type,
-    cited_source, comment_id, created_at,
-    updated_at, deleted_at)
-    VALUES
-    <foreach collection="list" item="record" separator=",">
-      (#{record.projectId}, #{record.resourceReferenceId}, #{record.resourceType},
-      #{record.citedSource}, #{record.commentId}, #{record.createdAt},
-      #{record.updatedAt}, #{record.deletedAt})
-    </foreach>
-  </insert>
-
-  <update id="deleteByReferenceIds" parameterType="map">
-    update resource_reference_comment_relations set deleted_at = #{deletedAt}
-      where resource_reference_id IN
-      <foreach item = "item" index = "index" collection = "referenceIds" open = "(" close = ")" separator=",">
-        #{item}
-      </foreach>
-  </update>
-
-  <update id="deleteByReferenceIdsAndCitedSource" parameterType="map">
-    update resource_reference_comment_relations set deleted_at = #{deletedAt}
-    where cited_source = #{citedSource} AND resource_reference_id IN
-    <foreach item = "item" index = "index" collection = "referenceIds" open = "(" close = ")" separator=",">
-      #{item}
-    </foreach>
-  </update>
-
-  <update id="deleteByCommentIdAndReferenceIds" parameterType="map">
-    update resource_reference_comment_relations set deleted_at = #{deletedAt}
-      where comment_id = #{commentId} and resource_reference_id IN
-      <foreach item = "item" index = "index" collection = "referenceIds" open = "(" close = ")" separator=",">
-        #{item}
-      </foreach>
-  </update>
-
-  <select id="findByResourceReferenceId" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM resource_reference_comment_relations
-    <where>
-      <if test="referenceId != null">
-        AND resource_reference_id = #{referenceId}
-      </if>
-      <if test="deletedAt != null">
-        and deleted_at = #{deletedAt}
-      </if>
-    </where>
-  </select>
-
-  <select id="findByCommentIdAndCommentType" parameterType="map" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM resource_reference_comment_relations
-    <where>
-      <if test="commentId != null">
-        AND comment_id = #{commentId}
-      </if>
-      <if test="resourceType != null">
-        AND resource_type = #{resourceType}
-      </if>
-      <if test="citedSource != null">
-        AND cited_source = #{citedSources}
-      </if>
-      <if test="deletedAt != null">
-        and deleted_at = #{deletedAt}
-      </if>
-    </where>
-  </select>
-
-  <select id="findReferenceRelationsAbove" parameterType="map" resultType="integer">
-    SELECT
-      resource_reference_id
-    FROM
-      resource_reference_comment_relations
-    <where>
-      <if test="referenceIds != null and referenceIds.size() > 0">
-        AND resource_reference_id IN
-        <foreach item = "item" index = "index" collection = "referenceIds" open = "(" close = ")" separator=",">
-          #{item}
+        cited_source, comment_id, created_at,
+        updated_at, deleted_at)
+        VALUES
+        <foreach collection="list" item="record" separator=",">
+            (#{record.projectId}, #{record.resourceReferenceId}, #{record.resourceType},
+            #{record.citedSource}, #{record.commentId}, #{record.createdAt},
+            #{record.updatedAt}, #{record.deletedAt})
         </foreach>
-      </if>
-      <if test="deletedAt != null">
-        and deleted_at = #{deletedAt}
-      </if>
-    </where>
-    group by resource_reference_id
-    <if test="number != null and number != 0 " >
-      having count(resource_reference_id) <![CDATA[ > ]]> #{number}
-    </if>
-  </select>
+    </insert>
 
-  <select id="findReferenceRelationsBelowEqual" parameterType="map" resultType="integer">
-    SELECT
-      resource_reference_id
-    FROM
-      resource_reference_comment_relations
-    <where>
-      <if test="referenceIds != null and referenceIds.size() > 0">
-        AND resource_reference_id IN
-        <foreach item = "item" index = "index" collection = "referenceIds" open = "(" close = ")" separator=",">
-          #{item}
+    <update id="deleteByReferenceIds" parameterType="map">
+        update resource_reference_comment_relations set deleted_at = #{deletedAt}
+        where resource_reference_id IN
+        <foreach item="item" index="index" collection="referenceIds" open="(" close=")"
+                 separator=",">
+            #{item}
         </foreach>
-      </if>
-      <if test="deletedAt != null">
-        and deleted_at = #{deletedAt}
-      </if>
-    </where>
-    group by resource_reference_id
-    <if test="number != null and number != 0 " >
-      having count(resource_reference_id) <![CDATA[ <= ]]> #{number}
-    </if>
-  </select>
+    </update>
 
-  <select id="findUsedReferenceIdsWithoutDescription" parameterType="map" resultType="integer">
-    SELECT
-      resource_reference_id
-    FROM
-      resource_reference_comment_relations
-    <where>
-      <if test="referenceIds != null and referenceIds.size() > 0">
-        AND resource_reference_id IN
-        <foreach item = "item" index = "index" collection = "referenceIds" open = "(" close = ")" separator=",">
-          #{item}
+    <update id="deleteByReferenceIdsAndCitedSource" parameterType="map">
+        update resource_reference_comment_relations set deleted_at = #{deletedAt}
+        where cited_source = #{citedSource} AND resource_reference_id IN
+        <foreach item="item" index="index" collection="referenceIds" open="(" close=")"
+                 separator=",">
+            #{item}
         </foreach>
-      </if>
-      <if test="deletedAt != null">
-        and deleted_at = #{deletedAt}
-      </if>
-      <if test="citedSource != null">
-        and cited_source != #{citedSource}
-      </if>
-    </where>
-    group by resource_reference_id
-  </select>
+    </update>
+
+    <update id="deleteByCommentIdAndReferenceIds" parameterType="map">
+        update resource_reference_comment_relations set deleted_at = #{deletedAt}
+        where comment_id = #{commentId} and resource_reference_id IN
+        <foreach item="item" index="index" collection="referenceIds" open="(" close=")"
+                 separator=",">
+            #{item}
+        </foreach>
+    </update>
+
+    <select id="findByResourceReferenceId" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM resource_reference_comment_relations
+        <where>
+            <if test="referenceId != null">
+                AND resource_reference_id = #{referenceId}
+            </if>
+            <if test="deletedAt != null">
+                and deleted_at = #{deletedAt}
+            </if>
+        </where>
+    </select>
+
+    <select id="findByCommentIdAndCommentType" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM resource_reference_comment_relations
+        <where>
+            <if test="commentId != null">
+                AND comment_id = #{commentId}
+            </if>
+            <if test="resourceType != null">
+                AND resource_type = #{resourceType}
+            </if>
+            <if test="citedSource != null">
+                AND cited_source = #{citedSources}
+            </if>
+            <if test="deletedAt != null">
+                and deleted_at = #{deletedAt}
+            </if>
+        </where>
+    </select>
+
+    <select id="findReferenceRelationsAbove" parameterType="map" resultType="integer">
+        SELECT
+        resource_reference_id
+        FROM
+        resource_reference_comment_relations
+        <where>
+            <if test="referenceIds != null and referenceIds.size() > 0">
+                AND resource_reference_id IN
+                <foreach item="item" index="index" collection="referenceIds" open="(" close=")"
+                         separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="deletedAt != null">
+                and deleted_at = #{deletedAt}
+            </if>
+        </where>
+        group by resource_reference_id
+        <if test="number != null and number != 0 ">
+            having count(resource_reference_id) <![CDATA[ > ]]> #{number}
+        </if>
+    </select>
+
+    <select id="findReferenceRelationsBelowEqual" parameterType="map" resultType="integer">
+        SELECT
+        resource_reference_id
+        FROM
+        resource_reference_comment_relations
+        <where>
+            <if test="referenceIds != null and referenceIds.size() > 0">
+                AND resource_reference_id IN
+                <foreach item="item" index="index" collection="referenceIds" open="(" close=")"
+                         separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="deletedAt != null">
+                and deleted_at = #{deletedAt}
+            </if>
+        </where>
+        group by resource_reference_id
+        <if test="number != null and number != 0 ">
+            having count(resource_reference_id) <![CDATA[ <= ]]> #{number}
+        </if>
+    </select>
+
+    <select id="findUsedReferenceIdsWithoutDescription" parameterType="map" resultType="integer">
+        SELECT
+        resource_reference_id
+        FROM
+        resource_reference_comment_relations
+        <where>
+            <if test="referenceIds != null and referenceIds.size() > 0">
+                AND resource_reference_id IN
+                <foreach item="item" index="index" collection="referenceIds" open="(" close=")"
+                         separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="deletedAt != null">
+                and deleted_at = #{deletedAt}
+            </if>
+            <if test="citedSource != null">
+                and cited_source != #{citedSource}
+            </if>
+        </where>
+        group by resource_reference_id
+    </select>
 
 </mapper>

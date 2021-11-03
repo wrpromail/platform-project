@@ -10,35 +10,35 @@ option java_package = "net.coding.proto.platform.project";
 option java_outer_classname = "ProjectPreferenceProto";
 
 message ProjectPreference {
-    int32 projectId = 2;
-    string name = 3;
-    string value = 4;
+  int32 projectId = 2;
+  string name = 3;
+  string value = 4;
 }
 
 message ProjectPreferenceGetRequest {
-    int32 projectId = 1;
-    string name = 2;
+  int32 projectId = 1;
+  string name = 2;
 }
 
 message ProjectPreferenceGetResponse {
-    proto.common.Code code = 1;
-    string message = 2;
-    ProjectPreference projectPreference = 3;
+  proto.common.Code code = 1;
+  string message = 2;
+  ProjectPreference projectPreference = 3;
 }
 
 message ProjectPreferenceSetRequest {
-    int32 projectId = 1;
-    string name = 2;
-    string value = 3;
+  int32 projectId = 1;
+  string name = 2;
+  string value = 3;
 }
 
 message ProjectPreferenceSetResponse {
-    proto.common.Code code = 1;
-    string message = 2;
+  proto.common.Code code = 1;
+  string message = 2;
 }
 
 service ProjectPreferenceService {
-    rpc Get (ProjectPreferenceGetRequest) returns (ProjectPreferenceGetResponse);
-    rpc Set (ProjectPreferenceSetRequest) returns (ProjectPreferenceSetResponse);
+  rpc Get (ProjectPreferenceGetRequest) returns (ProjectPreferenceGetResponse);
+  rpc Set (ProjectPreferenceSetRequest) returns (ProjectPreferenceSetResponse);
 
 }

@@ -60,21 +60,15 @@ public class GlobalResourcesController {
     private IssueGrpcClient issueGrpcClient;
 
     /**
-    * @Description:
-     * 输入 Space + # 或 Space + 项目GK + # 时呼出资源搜索菜单；按 Esc 取消菜单。
-     * - 在任意位置关联资源时，若指定项目ID则搜索指定项目资源+全局资源；
-     * - 在项目内页面关联资源时，如未指定项目则搜索当前项目资源 + 全局资源；
-     * - 在非项目内页面关联资源时，如未指定项目则仅搜索全局资源。
-     *
-     * 搜索结果按以下优先顺序显示，最多显示前 8 个结果：
-     * 1. 精确匹配资源编号的资源；
-     * 2. 资源编号以关键词开头的资源；
-     * 3. 资源编号包含关键词的资源；
-     * 4. 标题包含关键词的资源。
+     * @Description: 输入 Space + # 或 Space + 项目GK + # 时呼出资源搜索菜单；按 Esc 取消菜单。 -
+     * 在任意位置关联资源时，若指定项目ID则搜索指定项目资源+全局资源； - 在项目内页面关联资源时，如未指定项目则搜索当前项目资源 + 全局资源； -
+     * 在非项目内页面关联资源时，如未指定项目则仅搜索全局资源。
+     * <p>
+     * 搜索结果按以下优先顺序显示，最多显示前 8 个结果： 1. 精确匹配资源编号的资源； 2. 资源编号以关键词开头的资源； 3. 资源编号包含关键词的资源； 4. 标题包含关键词的资源。
      * 以上同一分类中若包含多个符合匹配规则的资源，则按创建时间倒序展示。
-    * @Author: Jyong <jiangyong@coding.net>
-    * @Date: 2021/8/21
-    */
+     * @Author: Jyong <jiangyong@coding.net>
+     * @Date: 2021/8/21
+     */
     @GetMapping("/search/all-resource")
     public Result findResourceList(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
@@ -98,7 +92,7 @@ public class GlobalResourcesController {
             if (project != null) {
                 // 1.根据 resourceId 匹配项目资源
                 List<ProjectResource> infoWithResourceId = projectResourceService.findResourceList(project.getId(), keyword, null, targetTypes, pageSize, ScopeTypeEnum.PROJECT.value());
-                if(infoWithResourceId != null && infoWithResourceId.size() > 0){
+                if (infoWithResourceId != null && infoWithResourceId.size() > 0) {
                     projectResourceList.addAll(infoWithResourceId.stream().distinct().map(item -> new ResourceDTO(item, enterProjectGK)).collect(Collectors.toList()));
                 }
                 if (projectResourceList.size() == 8) {
@@ -108,7 +102,7 @@ public class GlobalResourcesController {
                 }
                 //2.根据title 匹配项目资源
                 List<ProjectResource> infoWithTitle = projectResourceService.findResourceList(project.getId(), null, keyword, targetTypes, pageSize - projectResourceList.size(), ScopeTypeEnum.PROJECT.value());
-                if(infoWithTitle != null && infoWithTitle.size() > 0){
+                if (infoWithTitle != null && infoWithTitle.size() > 0) {
                     projectResourceList.addAll(infoWithTitle.stream().distinct().map(item -> new ResourceDTO(item, enterProjectGK)).collect(Collectors.toList()));
                     projectResourceList = projectResourceList.stream().distinct().collect(Collectors.toList());
                 }
@@ -125,7 +119,7 @@ public class GlobalResourcesController {
             if (project != null) {
                 // 3.根据 resourceId 匹配项目资源
                 List<ProjectResource> infoWithResourceId = projectResourceService.findResourceList(project.getId(), keyword, null, targetTypes, pageSize - projectResourceList.size(), ScopeTypeEnum.PROJECT.value());
-                if(infoWithResourceId != null && infoWithResourceId.size() > 0){
+                if (infoWithResourceId != null && infoWithResourceId.size() > 0) {
                     projectResourceList.addAll(infoWithResourceId.stream().distinct().map(item -> new ResourceDTO(item, innerProjectGK)).collect(Collectors.toList()));
                     projectResourceList = projectResourceList.stream().distinct().collect(Collectors.toList());
                 }
@@ -135,7 +129,7 @@ public class GlobalResourcesController {
                 }
                 //4.根据title 匹配项目资源
                 List<ProjectResource> infoWithTitle = projectResourceService.findResourceList(project.getId(), null, keyword, targetTypes, pageSize - projectResourceList.size(), ScopeTypeEnum.PROJECT.value());
-                if(infoWithTitle != null && infoWithTitle.size() > 0){
+                if (infoWithTitle != null && infoWithTitle.size() > 0) {
                     projectResourceList.addAll(infoWithTitle.stream().distinct().map(item -> new ResourceDTO(item, innerProjectGK)).collect(Collectors.toList()));
                     projectResourceList = projectResourceList.stream().distinct().collect(Collectors.toList());
                 }
@@ -148,7 +142,7 @@ public class GlobalResourcesController {
 
         //5.resourceId 匹配全局资源
         List<ProjectResource> globalInfoWithResourceId = projectResourceService.findResourceList(teamId, keyword, null, targetTypes, pageSize - projectResourceList.size(), ScopeTypeEnum.TEAM.value());
-        if(globalInfoWithResourceId != null && globalInfoWithResourceId.size() > 0){
+        if (globalInfoWithResourceId != null && globalInfoWithResourceId.size() > 0) {
             projectResourceList.addAll(globalInfoWithResourceId.stream().distinct().map(item -> new ResourceDTO(item, null)).collect(Collectors.toList()));
             projectResourceList = projectResourceList.stream().distinct().collect(Collectors.toList());
         }
@@ -158,7 +152,7 @@ public class GlobalResourcesController {
         }
         //6.根据title 匹配全局资源
         List<ProjectResource> globalInfoWithTitle = projectResourceService.findResourceList(teamId, null, keyword, targetTypes, pageSize - projectResourceList.size(), ScopeTypeEnum.TEAM.value());
-        if(globalInfoWithTitle != null && globalInfoWithTitle.size() > 0){
+        if (globalInfoWithTitle != null && globalInfoWithTitle.size() > 0) {
             projectResourceList.addAll(globalInfoWithTitle.stream().distinct().map(item -> new ResourceDTO(item, null)).collect(Collectors.toList()));
             projectResourceList = projectResourceList.stream().distinct().collect(Collectors.toList());
         }
@@ -167,15 +161,15 @@ public class GlobalResourcesController {
     }
 
     private List<ResourceDTO> dealAgileResource(List<ResourceDTO> projectResourceList) {
-        for(ResourceDTO projectResource : projectResourceList){
-            if(ResourceTypeEnum.Defect.getType().equalsIgnoreCase(projectResource.getTargetType())
+        for (ResourceDTO projectResource : projectResourceList) {
+            if (ResourceTypeEnum.Defect.getType().equalsIgnoreCase(projectResource.getTargetType())
                     || ResourceTypeEnum.Epic.getType().equalsIgnoreCase(projectResource.getTargetType())
                     || ResourceTypeEnum.Requirement.getType().equalsIgnoreCase(projectResource.getTargetType())
                     || ResourceTypeEnum.Mission.getType().equalsIgnoreCase(projectResource.getTargetType())
                     || ResourceTypeEnum.SubTask.getType().equalsIgnoreCase(projectResource.getTargetType())
                     || ResourceTypeEnum.WorkItem.getType().equalsIgnoreCase(projectResource.getTargetType())
                     || ResourceTypeEnum.Risk.getType().equalsIgnoreCase(projectResource.getTargetType())
-            ){
+            ) {
                 try {
                     Issue issueResponse = issueGrpcClient.getIssueById(projectResource.getTargetId(), false);
                     projectResource.setTargetType(issueResponse.getIssueTypeDetail().getIconType());
@@ -205,7 +199,7 @@ public class GlobalResourcesController {
                 return Result.success(null);
             }
             ProjectResource projectResource = projectResourceService.findProjectResourceDetail(project.getId(), code, ScopeTypeEnum.PROJECT.value());
-            if(projectResource == null){
+            if (projectResource == null) {
                 return Result.success(null);
             }
             ResourceDetailDTO resourceDetailDTO = new ResourceDetailDTO(projectResource);
@@ -216,7 +210,7 @@ public class GlobalResourcesController {
         }
         // 全局资源
         ProjectResource projectResource = projectResourceService.findProjectResourceDetail(team.getId(), code, ScopeTypeEnum.TEAM.value());
-        if(projectResource == null){
+        if (projectResource == null) {
             return Result.success(null);
         }
         ResourceDetailDTO resourceDetailDTO = new ResourceDetailDTO(projectResource);
@@ -227,14 +221,14 @@ public class GlobalResourcesController {
     }
 
     private ResourceDetailDTO dealAgileResourceDetail(ResourceDetailDTO projectResource) {
-        if(ResourceTypeEnum.Defect.getType().equalsIgnoreCase(projectResource.getTargetType())
+        if (ResourceTypeEnum.Defect.getType().equalsIgnoreCase(projectResource.getTargetType())
                 || ResourceTypeEnum.Epic.getType().equalsIgnoreCase(projectResource.getTargetType())
                 || ResourceTypeEnum.Requirement.getType().equalsIgnoreCase(projectResource.getTargetType())
                 || ResourceTypeEnum.Mission.getType().equalsIgnoreCase(projectResource.getTargetType())
                 || ResourceTypeEnum.SubTask.getType().equalsIgnoreCase(projectResource.getTargetType())
                 || ResourceTypeEnum.WorkItem.getType().equalsIgnoreCase(projectResource.getTargetType())
                 || ResourceTypeEnum.Risk.getType().equalsIgnoreCase(projectResource.getTargetType())
-        ){
+        ) {
             try {
                 Issue issueResponse = issueGrpcClient.getIssueById(projectResource.getTargetId(), false);
                 projectResource.setTargetType(issueResponse.getIssueTypeDetail().getIconType());

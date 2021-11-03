@@ -1,66 +1,73 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="net.coding.lib.project.dao.ProjectResourceSequenceDao">
-  <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ProjectResourceSequence">
-    <id column="id" jdbcType="INTEGER" property="id" />
-    <result column="project_id" jdbcType="INTEGER" property="projectId" />
-    <result column="code" jdbcType="INTEGER" property="code" />
-  </resultMap>
+    <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ProjectResourceSequence">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="project_id" jdbcType="INTEGER" property="projectId"/>
+        <result column="code" jdbcType="INTEGER" property="code"/>
+    </resultMap>
 
-  <sql id="Base_Column_List">
-    id, project_id, code
-  </sql>
+    <sql id="Base_Column_List">
+        id, project_id, code
+    </sql>
 
-  <select id="getById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM project_resource_sequences
-    WHERE id = #{id,jdbcType=INTEGER}
-    LIMIT 1
-  </select>
+    <select id="getById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM project_resource_sequences
+        WHERE id = #{id,jdbcType=INTEGER}
+        LIMIT 1
+    </select>
 
-  <select id="getByProjectId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
-    SELECT
-    <include refid="Base_Column_List" />
-    FROM project_resource_sequences
-    WHERE project_id = #{projectId,jdbcType=INTEGER}
-    LIMIT 1
-  </select>
+    <select id="getByProjectId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM project_resource_sequences
+        WHERE project_id = #{projectId,jdbcType=INTEGER}
+        LIMIT 1
+    </select>
 
-  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="net.coding.lib.project.entity.ProjectResourceSequence" useGeneratedKeys="true">
-    INSERT INTO project_resource_sequences
-    <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="projectId != null">
-        project_id,
-      </if>
-      <if test="code != null">
-        code,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="projectId != null">
-        #{projectId,jdbcType=INTEGER},
-      </if>
-      <if test="code != null">
-        #{code,jdbcType=INTEGER},
-      </if>
-    </trim>
-  </insert>
+    <insert id="insert" keyColumn="id" keyProperty="id"
+            parameterType="net.coding.lib.project.entity.ProjectResourceSequence"
+            useGeneratedKeys="true">
+        INSERT INTO project_resource_sequences
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="projectId != null">
+                project_id,
+            </if>
+            <if test="code != null">
+                code,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="projectId != null">
+                #{projectId,jdbcType=INTEGER},
+            </if>
+            <if test="code != null">
+                #{code,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
 
-  <update id="generateProjectResourceCode" parameterType="java.lang.Integer">
-    UPDATE project_resource_sequences SET `code` = `code` + 1  WHERE project_id = #{projectId} AND @new_code := `code` + 1
-  </update>
+    <update id="generateProjectResourceCode" parameterType="java.lang.Integer">
+        UPDATE project_resource_sequences
+        SET `code` = `code` + 1
+        WHERE project_id = #{projectId} AND @new_code := `code` + 1
+    </update>
 
-  <update id="generateProjectResourceCodes" parameterType="map">
-    UPDATE project_resource_sequences SET `code` = `code` + #{codeAmount}  WHERE project_id = #{projectId} AND @new_codes := `code` + #{codeAmount}
-  </update>
+    <update id="generateProjectResourceCodes" parameterType="map">
+        UPDATE project_resource_sequences
+        SET `code` = `code` + #{codeAmount}
+        WHERE project_id = #{projectId} AND @new_codes := `code` + #{codeAmount}
+    </update>
 
-  <select id="getCode" parameterType="java.lang.Integer" resultType="java.lang.Integer">
-    SELECT @new_code;
-  </select>
+    <select id="getCode" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        SELECT @new_code;
+    </select>
 
-  <select id="getCodes" parameterType="java.lang.Integer" resultType="java.lang.Integer">
-    SELECT @new_codes;
-  </select>
+    <select id="getCodes" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        SELECT @new_codes;
+    </select>
 
 </mapper>

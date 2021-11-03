@@ -340,6 +340,7 @@ public class ProjectServiceHelper {
                 .build()
         );
     }
+
     @Degradation
     public void sendCreateProjectNotification(Integer ownerId, Integer userId, Project project,
                                               ProgramProjectEventEnums eventEnums) {

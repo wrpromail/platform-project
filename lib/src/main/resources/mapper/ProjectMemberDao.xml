@@ -13,8 +13,8 @@
         <result column="alias" jdbcType="VARCHAR" property="alias"/>
     </resultMap>
     <sql id="Base_Column_List">
-    id, project_id, user_id, `type`, created_at, deleted_at, last_visit_at, `alias`
-  </sql>
+        id, project_id, user_id, `type`, created_at, deleted_at, last_visit_at, `alias`
+    </sql>
     <select id="getById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -226,26 +226,26 @@
     </select>
 
     <update id="updateProjectMemberType">
-    update project_members
-    set  `type` = #{type,jdbcType=TINYINT}
-    where user_id = #{userId}
-    AND project_id = #{projectId}
-    AND deleted_at = #{deletedAt}
-  </update>
+        update project_members
+        set `type` = #{type,jdbcType=TINYINT}
+        where user_id = #{userId}
+          AND project_id = #{projectId}
+          AND deleted_at = #{deletedAt}
+    </update>
 
     <update id="deleteMember">
-     update project_members
-     set deleted_at = NOW()
-     where user_id = #{userId}
-     AND project_id = #{projectId}
-     AND deleted_at = #{deletedAt}
-  </update>
+        update project_members
+        set deleted_at = NOW()
+        where user_id = #{userId}
+          AND project_id = #{projectId}
+          AND deleted_at = #{deletedAt}
+    </update>
 
     <update id="updateVisitTime">
-    update project_members
-     set last_visit_at = NOW()
-     where id = #{id}
-     AND deleted_at = #{deletedAt}
+        update project_members
+        set last_visit_at = NOW()
+        where id = #{id}
+          AND deleted_at = #{deletedAt}
 
-  </update>
+    </update>
 </mapper>
