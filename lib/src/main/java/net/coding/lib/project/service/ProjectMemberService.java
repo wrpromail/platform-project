@@ -4,10 +4,10 @@ import com.google.common.collect.ImmutableList;
 
 import com.github.pagehelper.PageRowBounds;
 
-import net.coding.common.config.CodingSettings;
 import net.coding.common.util.BeanUtils;
 import net.coding.common.util.ResultPage;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
+import net.coding.lib.project.AppProperties;
 import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dao.ProjectDao;
 import net.coding.lib.project.dao.ProjectMemberDao;
@@ -84,7 +84,7 @@ public class ProjectMemberService {
     private final CreateMemberEventTriggerTrigger createMemberEventTrigger;
     private final DeleteMemberEventTriggerTrigger deleteMemberEventTrigger;
     private final UpdateMemberRoleEventTriggerTrigger updateMemberRoleEventTriggerTrigger;
-    private final CodingSettings codingSettings;
+    private final AppProperties appProperties;
 
     public ProjectMember getById(Integer id) {
         return projectMemberDao.getById(id);
@@ -208,9 +208,9 @@ public class ProjectMemberService {
                             short type, Project project, boolean isInvite) throws CoreException {
         try {
             Set<Integer> memberUserIds = projectMemberDao.findListByProjectId(
-                    project.getId(),
-                    Timestamp.valueOf(BeanUtils.NOT_DELETED_AT)
-            )
+                            project.getId(),
+                            Timestamp.valueOf(BeanUtils.NOT_DELETED_AT)
+                    )
                     .stream()
                     .map(ProjectMember::getUserId)
                     .collect(toSet());
@@ -358,7 +358,7 @@ public class ProjectMemberService {
         }
         boolean flag = StringUtils.equals(
                 user.getGlobalKey(),
-                codingSettings.getEnterprise().getTokenUser()
+                appProperties.getTokenUser()
         );
         if (flag) {
             return true;

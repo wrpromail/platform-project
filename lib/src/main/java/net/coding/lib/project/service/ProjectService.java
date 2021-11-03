@@ -5,8 +5,6 @@ import com.google.common.collect.Lists;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 
-import net.coding.common.storage.support.Storage;
-import net.coding.common.storage.support.util.StorageUtils;
 import net.coding.common.util.BeanUtils;
 import net.coding.common.util.LimitedPager;
 import net.coding.common.util.ResultPage;
@@ -15,6 +13,7 @@ import net.coding.e.grpcClient.collaboration.exception.MilestoneException;
 import net.coding.exchange.dto.team.Team;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.grpc.client.platform.TeamServiceGrpcClient;
+import net.coding.lib.project.AppProperties;
 import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dao.ProjectDao;
 import net.coding.lib.project.dao.ProjectGroupProjectDao;
@@ -120,49 +119,28 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 @AllArgsConstructor
 public class ProjectService {
 
-    private final static String ICON_REG = ".+\\.(jpg|bmp|gif|png|jpeg)$";
-
-    private final Storage storage;
-
     private final ProjectDao projectDao;
-
     private final TeamProjectDao teamProjectDao;
-
     private final ProjectRecentViewDao projectRecentViewDao;
-
     private final ProjectDTOService projectDTOService;
-
     private final ProjectMemberService projectMemberService;
-
     private final ProjectValidateService projectValidateService;
-
     private final ProjectServiceHelper projectServiceHelper;
-
     private final ProjectHandCacheService projectHandCacheService;
-
     private final TeamServiceGrpcClient teamServiceGrpcClient;
-
     private final AdvancedRoleServiceGrpcClient advancedRoleServiceGrpcClient;
-
     private final ProjectSettingService projectSettingService;
-
     private final ProjectGroupProjectDao projectGroupProjectDao;
-
     private final ProjectPreferenceService projectPreferenceService;
-
     private final ProjectCredentialService projectCredentialService;
-
     private final ProjectGroupService projectGroupService;
-
     private final TransactionTemplate transactionTemplate;
-
     private final AgileTemplateGRpcClient agileTemplateGRpcClient;
-
     private final ProjectAdaptorFactory projectAdaptorFactory;
     private final TextModerationService textModerationService;
     private final PinyinService pinyinService;
-
     private final ProjectPinService projectPinService;
+    private final AppProperties appProperties;
 
 
     public Project getById(Integer id) {
@@ -383,7 +361,7 @@ public class ProjectService {
             List<CreateProjectForm.ProjectFunction> FunctionModule =
                     Optional.ofNullable(parameter.getFunctionModule()).orElseGet(ArrayList::new);
             // 根据模版类型初始化部分项目开关
-            Set<String> noOpenFunction =  ProjectSetting.TOTAL_PROJECT_FUNCTION.stream()
+            Set<String> noOpenFunction = ProjectSetting.TOTAL_PROJECT_FUNCTION.stream()
                     .filter(e -> !ownFunctions.contains(e))
                     .filter(e -> !FunctionModule.contains(CreateProjectForm.ProjectFunction.codeOf(e.getCode())))
                     .map(ProjectSetting.Code::getCode)
@@ -498,10 +476,10 @@ public class ProjectService {
         project.setDeletedAt(DateUtil.strToDate(ARCHIVE_PROJECT_DELETED_AT));
         projectDao.updateByPrimaryKeySelective(project);
         Optional.ofNullable(
-                teamProjectDao.selectOne(TeamProject.builder()
-                        .projectId(projectId)
-                        .teamId(teamId)
-                        .build()))
+                        teamProjectDao.selectOne(TeamProject.builder()
+                                .projectId(projectId)
+                                .teamId(teamId)
+                                .build()))
                 .ifPresent(tp -> {
                     tp.setDeletedAt(DateUtil.strToDate(ARCHIVE_PROJECT_DELETED_AT));
                     teamProjectDao.updateByPrimaryKeySelective(tp);
@@ -532,10 +510,10 @@ public class ProjectService {
         project.setDeletedAt(DateUtil.strToDate(BeanUtils.NOT_DELETED_AT));
         projectDao.updateByPrimaryKeySelective(project);
         Optional.ofNullable(
-                teamProjectDao.selectOne(TeamProject.builder()
-                        .projectId(projectId)
-                        .teamId(teamId)
-                        .build()))
+                        teamProjectDao.selectOne(TeamProject.builder()
+                                .projectId(projectId)
+                                .teamId(teamId)
+                                .build()))
                 .ifPresent(tp -> {
                     tp.setDeletedAt(DateUtil.strToDate(BeanUtils.NOT_DELETED_AT));
                     teamProjectDao.updateByPrimaryKeySelective(tp);
@@ -559,12 +537,12 @@ public class ProjectService {
                 .checkProgramPay(teamId);
 
         Optional.ofNullable(
-                projectRecentViewDao.selectOne(ProjectRecentView.builder()
-                        .teamId(teamId)
-                        .userId(userId)
-                        .projectId(project.getId())
-                        .deletedAt(BeanUtils.getDefaultDeletedAt())
-                        .build()))
+                        projectRecentViewDao.selectOne(ProjectRecentView.builder()
+                                .teamId(teamId)
+                                .userId(userId)
+                                .projectId(project.getId())
+                                .deletedAt(BeanUtils.getDefaultDeletedAt())
+                                .build()))
                 .map(projectRecentView -> {
                     projectRecentView.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
                     return projectRecentViewDao.updateByPrimaryKeySelective(projectRecentView);
@@ -580,20 +558,29 @@ public class ProjectService {
                 ));
         return projectDTOService.toDetailDTO(project);
     }
+
     /**
      * 新上传逻辑采用icon
+     *
      * @param icon
      * @return
      * @throws CoreException
      */
     public String validateIcon(String icon) throws CoreException {
         if (StringUtils.isNoneBlank(icon)) {
-            if (!StorageUtils.validateImageURL(icon) || !new UrlValidator().isValid(icon)) {
+            if (!validateImageURL(icon) || !new UrlValidator().isValid(icon)) {
                 throw CoreException.of(CoreException.ExceptionType.UPDATE_PROJECT_ICON_ERROR);
             }
             return icon;
         }
         throw CoreException.of(CoreException.ExceptionType.UPDATE_PROJECT_ICON_ERROR);
+    }
+
+    public boolean validateImageURL(String url) {
+        if (StringUtils.isBlank(appProperties.getIcon().getDomain())) {
+            return true;
+        }
+        return Pattern.compile("^(?:https?|ftp)://[^.]+.(" + appProperties.getIcon().getDomain() + ")/.*$").matcher(url).find();
     }
 
     public void updateProject(UpdateProjectForm form, Project project, Integer userId) throws CoreException, MilestoneException {

@@ -28,7 +28,6 @@ dependencies {
     compile "net.coding.common:eventbus:${commonVersion}"
     compile "net.coding.common:server:${commonVersion}"
     compile "net.coding.common:rabbitmq:${commonVersion}"
-    compile "net.coding.common:storage:${commonVersion}"
     compile "net.coding.common:cache:${commonVersion}"
     compile "net.coding.common:db:${commonVersion}"
     compile "net.coding.common:cache-evict:${commonVersion}"

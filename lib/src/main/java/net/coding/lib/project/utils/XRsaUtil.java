@@ -1,7 +1,7 @@
 package net.coding.lib.project.utils;
 
 
-import net.coding.lib.project.service.download.CodingSettings;
+import net.coding.lib.project.AppProperties;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
@@ -40,7 +40,7 @@ public class XRsaUtil {
     public static final String RSA_ALGORITHM_SIGN = "SHA256WithRSA";
     private static RSAPublicKey publicKey;
     private static RSAPrivateKey privateKey;
-    private final CodingSettings codingSettings;
+    private final AppProperties appProperties;
 
     @PostConstruct
     public void init() {
@@ -48,12 +48,12 @@ public class XRsaUtil {
             KeyFactory keyFactory = KeyFactory.getInstance(RSA_ALGORITHM);
             //通过X509编码的Key指令获得公钥对象
             X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(
-                    Base64.decodeBase64(codingSettings.getApp().getCredential().getPublicKey())
+                    Base64.decodeBase64(appProperties.getCredential().getPublicKey())
             );
             publicKey = (RSAPublicKey) keyFactory.generatePublic(x509KeySpec);
             //通过PKCS#8编码的Key指令获得私钥对象
             PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(
-                    Base64.decodeBase64(codingSettings.getApp().getCredential().getPrivateKey())
+                    Base64.decodeBase64(appProperties.getCredential().getPrivateKey())
             );
             privateKey = (RSAPrivateKey) keyFactory.generatePrivate(pkcs8KeySpec);
         } catch (Exception e) {
@@ -195,10 +195,10 @@ public class XRsaUtil {
             );
             return new String(
                     Base64.encodeBase64(rsaSplitCodecOAEP(
-                            cipher,
-                            Cipher.ENCRYPT_MODE,
-                            data.getBytes(CHARSET),
-                            publicKey.getModulus().bitLength()
+                                    cipher,
+                                    Cipher.ENCRYPT_MODE,
+                                    data.getBytes(CHARSET),
+                                    publicKey.getModulus().bitLength()
                             )
                     )
             );

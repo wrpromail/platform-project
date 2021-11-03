@@ -1,9 +1,9 @@
 package net.coding.lib.project.service.credential;
 
+import net.coding.lib.project.AppProperties;
 import net.coding.lib.project.entity.AndroidCredential;
 import net.coding.lib.project.entity.Credential;
 import net.coding.lib.project.enums.CredentialTypeEnums;
-import net.coding.lib.project.service.download.CodingSettings;
 import net.coding.lib.project.utils.XRsaUtil;
 
 import org.apache.commons.lang3.StringUtils;
@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @AllArgsConstructor
 public class ProjectCredentialRsaService {
-    private final CodingSettings codingSettings;
+    private final AppProperties appProperties;
 
     public void encrypt(Credential credential) {
         CredentialTypeEnums credentialType = CredentialTypeEnums.valueOf(credential.getType());
@@ -32,15 +32,17 @@ public class ProjectCredentialRsaService {
             credential.setPassword(encrypt(password.trim()));
         }
     }
+
     public String encrypt(String text) {
         if (text == null) {
             return StringUtils.EMPTY;
         }
-        if (codingSettings.getApp().getCredential().isVersion2()) {
+        if (appProperties.getCredential().isVersion2()) {
             return XRsaUtil.publicEncrypt4OAEPv2(text);
         }
         return XRsaUtil.publicEncrypt4Oaep(text);
     }
+
     /**
      * AndroidCredential 的
      */
@@ -54,6 +56,7 @@ public class ProjectCredentialRsaService {
             androidCert.setAliasPassword(encrypt(aliasPassword.trim()));
         }
     }
+
     public void decrypt(Credential credential) {
         decrypt(credential, null);
     }
@@ -94,7 +97,7 @@ public class ProjectCredentialRsaService {
         if (StringUtils.isBlank(text)) {
             return null;
         }
-        if (codingSettings.getApp().getCredential().isVersion2()) {
+        if (appProperties.getCredential().isVersion2()) {
             return XRsaUtil.privateDecrypt4OAEPv2(text.trim());
         }
         return XRsaUtil.privateDecrypt4Oaep(text.trim());
