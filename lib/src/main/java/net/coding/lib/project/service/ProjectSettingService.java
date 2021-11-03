@@ -5,8 +5,6 @@ import com.google.common.eventbus.AsyncEventBus;
 import net.coding.common.base.cache.CacheManager;
 import net.coding.common.cache.evict.constant.CacheType;
 import net.coding.common.cache.evict.manager.EvictCacheManager;
-import net.coding.common.config.PDSettings;
-import net.coding.common.config.TencentOASettings;
 import net.coding.common.util.BeanUtils;
 import net.coding.grpc.client.platform.SystemSettingGrpcClient;
 import net.coding.lib.project.common.SystemContextHolder;
@@ -48,10 +46,6 @@ public class ProjectSettingService {
     private final ProjectSettingsDao projectSettingsDao;
 
     private final ProjectServiceHelper projectServiceHelper;
-
-    private final TencentOASettings tencentOASettings;
-
-    private final PDSettings pdSettings;
 
     private final AsyncEventBus asyncEventBus;
 
@@ -234,37 +228,6 @@ public class ProjectSettingService {
 
     public ProjectSetting get(Integer id) {
         return projectSettingsDao.get(id, BeanUtils.getDefaultDeletedAt());
-    }
-
-    public Boolean getPDDefaultValue(ProjectSetting.Code function) {
-        switch (function) {
-            case FUNCTION_AGILE_DEVELOPMENT:
-                return !pdSettings.getAgileDevelopmentClose();
-            case FUNCTION_TEST_MANAGEMENT:
-                return !pdSettings.getTestManagementClose();
-            case FUNCTION_CODE_MANAGEMENT:
-                return !pdSettings.getCodeManagementClose();
-            case FUNCTION_CONTINUE_INTEGRATION:
-                return !pdSettings.getContinueIntegrationClose();
-            case FUNCTION_DEPLOYMENT_MANAGEMENT:
-                return !pdSettings.getDeploymentManagementClose();
-            case FUNCTION_ARTIFACT:
-                return !pdSettings.getArtifactClose();
-            case FUNCTION_WIKI:
-                return !pdSettings.getWikiClose();
-            case FUNCTION_STATISTICS:
-                return !pdSettings.getStatisticsClose();
-            case FUNCTION_OLD_TASK:
-                return !pdSettings.getOldTaskClose();
-            case FUNCTION_CODE_ANALYSIS:
-                return !pdSettings.getCodeAnalysisClose();
-            case FUNCTION_API_DOCS:
-                return !pdSettings.getApiDocsClose();
-            case FUNCTION_QTA:
-                return !pdSettings.getQtaClose();
-            default:
-                return false;
-        }
     }
 
     public String getCodeDefaultValue(String code) {

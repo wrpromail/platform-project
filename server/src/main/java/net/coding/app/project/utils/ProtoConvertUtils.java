@@ -3,8 +3,8 @@ package net.coding.app.project.utils;
 import net.coding.common.base.util.QiniuCDNReplaceUtil;
 import net.coding.common.constants.ProjectConstants;
 import net.coding.common.util.TextUtils;
+import net.coding.lib.project.AppProperties;
 import net.coding.lib.project.entity.Project;
-import net.coding.lib.project.service.download.CodingSettings;
 import net.coding.lib.project.utils.DateUtil;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -24,7 +24,7 @@ import proto.open.api.project.ProjectProto;
 public class ProtoConvertUtils {
 
     @Autowired
-    private CodingSettings codingSettings;
+    private AppProperties appProperties;
 
     /**
      * EnterpriseProjectProto
@@ -48,7 +48,7 @@ public class ProtoConvertUtils {
     public ProjectProto.DescribeProjectResponse describeProjectToProto(Project project) {
         String icon = project.getIcon();
         if (StringUtils.startsWith(icon, "/")) {
-            icon = codingSettings.getApp().hostWithProtocol() + icon;
+            icon = appProperties.getDomain().getSchemaHome() + icon;
         }
         icon = QiniuCDNReplaceUtil.replace(icon);
         return ProjectProto.DescribeProjectResponse.newBuilder()
@@ -75,7 +75,7 @@ public class ProtoConvertUtils {
     public net.coding.proto.open.api.project.ProjectProto.Project describeProjectToProjectProto(Project project) {
         String icon = project.getIcon();
         if (StringUtils.startsWith(icon, "/")) {
-            icon = codingSettings.getApp().hostWithProtocol() + icon;
+            icon = appProperties.getDomain().getSchemaHome() + icon;
         }
         icon = QiniuCDNReplaceUtil.replace(icon);
         return net.coding.proto.open.api.project.ProjectProto.Project.newBuilder()
