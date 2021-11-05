@@ -53,6 +53,9 @@ public class ProjectSettingGrpcService extends ProjectSettingServiceGrpc.Project
             ProjectSetting projectSetting = projectSettingService.findByCode(request.getProjectId(), request.getCode());
             builder.setCode(CodeProto.Code.SUCCESS)
                     .setValue(projectSetting.getValue());
+        } catch (CoreException e) {
+            builder.setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(StringUtils.defaultString(e.getMessage()));
         } catch (Exception e) {
             log.error("RpcService getProjectSettingByCode error {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
@@ -74,6 +77,9 @@ public class ProjectSettingGrpcService extends ProjectSettingServiceGrpc.Project
             assertProjectNotArchived(request.getProjectId());
             List<ProjectSetting> projectSettings = projectSettingService.findProjectSettings(request.getProjectId(), request.getCodesList());
             builder.addAllData(toProto(projectSettings)).build();
+        } catch (CoreException e) {
+            builder.setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(StringUtils.defaultString(e.getMessage()));
         } catch (Exception e) {
             log.error("RpcService getProjectSettingByCodes error {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
@@ -100,6 +106,9 @@ public class ProjectSettingGrpcService extends ProjectSettingServiceGrpc.Project
                     request.getValue()
             );
             builder.setData(toProto(setting));
+        } catch (CoreException e) {
+            builder.setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(StringUtils.defaultString(e.getMessage()));
         } catch (Exception e) {
             log.error("RpcService projectSettingUpdate error {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)

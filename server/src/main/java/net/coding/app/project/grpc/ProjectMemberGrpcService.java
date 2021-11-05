@@ -86,6 +86,11 @@ public class ProjectMemberGrpcService extends ProjectMemberServiceGrpc.ProjectMe
             responseObserver.onNext(ProjectMemberProto.AddProjectMemberResponse.newBuilder()
                     .setCode(CodeProto.Code.SUCCESS)
                     .build());
+        } catch (CoreException e) {
+            responseObserver.onNext(ProjectMemberProto.AddProjectMemberResponse.newBuilder()
+                    .setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(e.getMessage())
+                    .build());
         } catch (Exception e) {
             log.error("RpcService AddProjectMember error CoreException ", e);
             responseObserver.onNext(ProjectMemberProto.AddProjectMemberResponse.newBuilder()
@@ -115,7 +120,6 @@ public class ProjectMemberGrpcService extends ProjectMemberServiceGrpc.ProjectMe
             projectMemberService.delMember(request.getCurrentUserId(), project, request.getTargetUserId(), member);
             builder.setCode(CodeProto.Code.SUCCESS);
         } catch (CoreException e) {
-            log.error("RpcService delProjectMember error CoreException, message {} ", e.getMessage());
             builder.setCode(CodeProto.Code.NOT_FOUND).setMessage(e.getMsg());
         } catch (Exception e) {
             log.error("rpcService delProjectMember error Exception ", e);

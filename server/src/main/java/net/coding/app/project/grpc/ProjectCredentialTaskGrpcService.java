@@ -55,6 +55,9 @@ public class ProjectCredentialTaskGrpcService extends ProjectCredentialTaskServi
                     .collect(Collectors.toList()));
             builder.setCode(CodeProto.Code.SUCCESS)
                     .build();
+        } catch (CoreException e) {
+            builder.setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(e.getMessage());
         } catch (Exception e) {
             log.error("RpcService getTaskIdsByCredential error {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
@@ -89,6 +92,9 @@ public class ProjectCredentialTaskGrpcService extends ProjectCredentialTaskServi
             builder.addAllCredential(toProtobufCredentialList(credentials))
                     .setCode(CodeProto.Code.SUCCESS)
                     .build();
+        } catch (CoreException e) {
+            builder.setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(e.getMessage());
         } catch (Exception e) {
             log.error("RpcService getCredentialsByTaskIdAndGenerateBy error {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
@@ -125,6 +131,9 @@ public class ProjectCredentialTaskGrpcService extends ProjectCredentialTaskServi
             builder.addAllCredential(toProtobufCredentialList(credentials))
                     .setCode(CodeProto.Code.SUCCESS)
                     .build();
+        } catch (CoreException e) {
+            builder.setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(e.getMessage());
         } catch (Exception e) {
             log.error("RpcService getCredentialsByTaskIdAndType error {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
@@ -157,6 +166,9 @@ public class ProjectCredentialTaskGrpcService extends ProjectCredentialTaskServi
             builder.addAllCredential(toProtobufCredentialList(credentials))
                     .setCode(CodeProto.Code.SUCCESS)
                     .build();
+        } catch (CoreException e) {
+            builder.setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(e.getMessage());
         } catch (Exception e) {
             log.error("RpcService getCredentialsByTaskId error {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
@@ -172,7 +184,7 @@ public class ProjectCredentialTaskGrpcService extends ProjectCredentialTaskServi
             return new ArrayList<>();
         }
         return Optional.of(credentials.stream()
-                        .map(CredentialConverter::toBuildCredential).collect(toList()))
+                .map(CredentialConverter::toBuildCredential).collect(toList()))
                 .filter(CollectionUtils::isNotEmpty)
                 .orElse(new ArrayList<>());
     }

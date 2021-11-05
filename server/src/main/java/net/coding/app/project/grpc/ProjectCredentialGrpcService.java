@@ -64,6 +64,9 @@ public class ProjectCredentialGrpcService extends ProjectCredentialServiceGrpc.P
             }
             credentialService.delete(credId, credential.getProjectId());
             builder.setCode(CodeProto.Code.SUCCESS);
+        } catch (CoreException e) {
+            builder.setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(e.getMessage());
         } catch (Exception e) {
             log.error("RpcService deleteCredential error {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
@@ -102,6 +105,9 @@ public class ProjectCredentialGrpcService extends ProjectCredentialServiceGrpc.P
             builder.addAllData(toProtobufCredentialList(credentials))
                     .setCode(CodeProto.Code.SUCCESS)
                     .build();
+        } catch (CoreException e) {
+            builder.setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(e.getMessage());
         } catch (Exception e) {
             log.error("RpcService getCredential error {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
@@ -130,6 +136,9 @@ public class ProjectCredentialGrpcService extends ProjectCredentialServiceGrpc.P
             if (id > 0) {
                 builder.setCode(CodeProto.Code.SUCCESS);
             }
+        } catch (CoreException e) {
+            builder.setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(e.getMessage());
         } catch (Exception e) {
             log.error("RpcService updateUsernamePassword error {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
@@ -152,6 +161,9 @@ public class ProjectCredentialGrpcService extends ProjectCredentialServiceGrpc.P
                         .setData(protobufCredential)
                         .build();
             }
+        } catch (CoreException e) {
+            builder.setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(e.getMessage());
         } catch (Exception e) {
             log.error("RpcService getById error {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
@@ -174,6 +186,9 @@ public class ProjectCredentialGrpcService extends ProjectCredentialServiceGrpc.P
             builder.setCode(CodeProto.Code.SUCCESS)
                     .addAllData(protobufCredentialList)
                     .build();
+        } catch (CoreException e) {
+            builder.setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(e.getMessage());
         } catch (Exception e) {
             log.error("RpcService getByIdList error {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
@@ -202,6 +217,9 @@ public class ProjectCredentialGrpcService extends ProjectCredentialServiceGrpc.P
             if (result > 0) {
                 builder.setCode(CodeProto.Code.SUCCESS);
             }
+        } catch (CoreException e) {
+            builder.setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(e.getMessage());
         } catch (Exception e) {
             log.error("RpcService getByIdList error {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
@@ -229,6 +247,9 @@ public class ProjectCredentialGrpcService extends ProjectCredentialServiceGrpc.P
                 builder.setCredential(toBuildCredential(credential));
                 builder.setCode(CodeProto.Code.SUCCESS);
             }
+        } catch (CoreException e) {
+            builder.setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(e.getMessage());
         } catch (Exception e) {
             log.error("RpcService getByCredential error {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
@@ -266,6 +287,9 @@ public class ProjectCredentialGrpcService extends ProjectCredentialServiceGrpc.P
             );
             builder.addAllCredential(toProtobufCredentialList(credential));
             builder.setCode(CodeProto.Code.SUCCESS);
+        } catch (CoreException e) {
+            builder.setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(e.getMessage());
         } catch (Exception e) {
             log.error("RpcService listByProjectAndUser error {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
@@ -297,6 +321,9 @@ public class ProjectCredentialGrpcService extends ProjectCredentialServiceGrpc.P
             );
             builder.addAllCredential(toProtobufCredentialList(credential));
             builder.setCode(CodeProto.Code.SUCCESS);
+        } catch (CoreException e) {
+            builder.setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(e.getMessage());
         } catch (Exception e) {
             log.error("RpcService listByProjectAndGenerateBy error {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
@@ -330,7 +357,7 @@ public class ProjectCredentialGrpcService extends ProjectCredentialServiceGrpc.P
                 .map(Credential::getCreatorId)
                 .collect(Collectors.toSet());
         Map<Integer, String> userMap = Optional.ofNullable(
-                        userGrpcClient.findUserByIds(new ArrayList<>(creatorIds)))
+                userGrpcClient.findUserByIds(new ArrayList<>(creatorIds)))
                 .filter(CollectionUtils::isNotEmpty)
                 .map(users -> users.stream()
                         .filter(Objects::nonNull)
@@ -338,7 +365,7 @@ public class ProjectCredentialGrpcService extends ProjectCredentialServiceGrpc.P
                 )
                 .orElse(new HashMap<>());
         return Optional.of(credentials.stream()
-                        .map(this::toBuildCredential).collect(toList()))
+                .map(this::toBuildCredential).collect(toList()))
                 .filter(CollectionUtils::isNotEmpty)
                 .map(vs -> vs.stream()
                         .filter(Objects::nonNull)

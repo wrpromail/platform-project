@@ -107,6 +107,11 @@ public class ProjectDeployTokenGrpcService extends ProjectDeployTokenServiceGrpc
             );
             builder.setCode(CodeProto.Code.SUCCESS_VALUE)
                     .setData(toDeployToken(projectToken));
+        } catch (CoreException e) {
+            responseObserver.onError(Status.INTERNAL
+                    .withCause(e)
+                    .withDescription(StringUtils.defaultString(e.getMessage()))
+                    .asRuntimeException());
         } catch (Exception e) {
             log.error("RpcService addDeployToken is error {}", e.getMessage());
             responseObserver.onError(Status.INTERNAL
@@ -191,6 +196,9 @@ public class ProjectDeployTokenGrpcService extends ProjectDeployTokenServiceGrpc
                     .setProjectId(project.getId())
                     .setProjectName(StringUtils.isNotEmpty(project.getName()) ? project.getName() : StringUtils.EMPTY)
                     .setTeamHost(StringUtils.isNotEmpty(teamHost) ? teamHost : StringUtils.EMPTY);
+        } catch (CoreException e) {
+            builder.setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(e.getMessage());
         } catch (Exception e) {
             log.error("RpcService getProjectByToken error CoreException {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
@@ -268,6 +276,9 @@ public class ProjectDeployTokenGrpcService extends ProjectDeployTokenServiceGrpc
                 newBuilder.setCode(SUCCESS)
                         .setData(toDeployToken(projectToken));
             }
+        } catch (CoreException e) {
+            newBuilder.setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(e.getMessage());
         } catch (Exception e) {
             log.error("RpcService getDeployTokenByTokenAndTeamGKAndProjectName error {}", e.getMessage());
             newBuilder.setCode(INTERNAL_ERROR)
@@ -298,6 +309,9 @@ public class ProjectDeployTokenGrpcService extends ProjectDeployTokenServiceGrpc
                 newBuilder.setCode(SUCCESS)
                         .setData(toDeployToken(token));
             }
+        } catch (CoreException e) {
+            newBuilder.setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(e.getMessage());
         } catch (Exception e) {
             log.error("RpcService.getDeployTokenByTokenAndGlobalKey token {}, globalKey {}, error {}",
                     DesensitizationUtil.left(request.getToken(), 10),
@@ -326,8 +340,8 @@ public class ProjectDeployTokenGrpcService extends ProjectDeployTokenServiceGrpc
             List<ProjectToken> tokens = projectTokenService.selectUserProjectToken(request.getProjectId());
             if (CollectionUtils.isNotEmpty(tokens)) {
                 newBuilder.addAllTokens(tokens.stream()
-                                .map(this::toDeployToken)
-                                .collect(Collectors.toList()))
+                        .map(this::toDeployToken)
+                        .collect(Collectors.toList()))
                         .setCode(SUCCESS);
             } else {
                 newBuilder.setCode(NOT_FOUND);
@@ -395,6 +409,9 @@ public class ProjectDeployTokenGrpcService extends ProjectDeployTokenServiceGrpc
                         .setToken(tokenKeyDTO.getToken())
                         .build();
             }
+        } catch (CoreException e) {
+            builder.setCode(INTERNAL_ERROR)
+                    .setMessage(e.getMessage());
         } catch (Exception e) {
             log.error("RpcService.obtainDefaultTokenKey error:{}", e.getMessage());
             builder.setCode(INTERNAL_ERROR)
@@ -466,6 +483,11 @@ public class ProjectDeployTokenGrpcService extends ProjectDeployTokenServiceGrpc
             }
 
             responseObserver.onNext(builder.build());
+        } catch (CoreException e) {
+            responseObserver.onNext(builder
+                    .setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(e.getMessage())
+                    .build());
         } catch (Exception e) {
             log.error("RpcService refreshInternalAccessToken error CoreException {}", e.getMessage());
             responseObserver.onNext(builder
