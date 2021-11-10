@@ -524,7 +524,7 @@ public class ProjectService {
                 .postProjectUnArchiveEvent(userId, project, ACTION_UNARCHIVE);
     }
 
-    public ProjectDTO getProjectByNameAndTeamId(Integer teamId, Integer userId, String projectName) throws CoreException {
+    public ProjectDTO getJoinProjectByName(Integer teamId, Integer userId, String projectName) throws CoreException {
         Project project = getByNameAndTeamId(projectName, teamId);
         if (Objects.isNull(project)) {
             throw CoreException.of(RESOURCE_NO_FOUND);
@@ -558,6 +558,17 @@ public class ProjectService {
                 ));
         return projectDTOService.toDetailDTO(project);
     }
+
+    public ProjectDTO getProjectViewByName(Integer teamId, Integer userId, String projectName) throws CoreException {
+        Project project = getByNameAndTeamId(projectName, teamId);
+        if (Objects.isNull(project)) {
+            throw CoreException.of(RESOURCE_NO_FOUND);
+        }
+        projectAdaptorFactory.create(project.getPmType())
+                .hasPermissionInEnterprise(teamId, userId, project.getPmType(), ACTION_VIEW);
+        return projectDTOService.toDetailDTO(project);
+    }
+
 
     /**
      * 新上传逻辑采用icon
