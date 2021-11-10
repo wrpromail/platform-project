@@ -113,12 +113,23 @@ public class ProjectController {
     @ApiOperation(value = "query_project_by_name", notes = "项目名称查询项目信息")
     @ProtectedAPI
     @GetMapping("/{projectName:.+}")
-    public ProjectDTO queryProjectByName(
+    public ProjectDTO queryJoinProjectByName(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
             @RequestHeader(GatewayHeader.USER_ID) Integer userId,
             @PathVariable("projectName") String projectName
     ) throws CoreException {
-        return projectService.getProjectByNameAndTeamId(teamId, userId, projectName);
+        return projectService.getJoinProjectByName(teamId, userId, projectName);
+    }
+
+    @ApiOperation(value = "query_project_by_name", notes = "项目名称查询项目信息-是否有查看全部项目权限")
+    @ProtectedAPI
+    @GetMapping("/{projectName:.+}/view")
+    public ProjectDTO queryProjectViewByName(
+            @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
+            @RequestHeader(GatewayHeader.USER_ID) Integer userId,
+            @PathVariable("projectName") String projectName
+    ) throws CoreException {
+        return projectService.getProjectViewByName(teamId, userId, projectName);
     }
 
     @ApiOperation(value = "archive_project", notes = "归档项目")
