@@ -38,7 +38,6 @@ public class ProgramGRpcService extends ProgramServiceGrpc.ProgramServiceImplBas
             getProgramByIdResponse(responseObserver, CodeProto.Code.SUCCESS,
                     CodeProto.Code.SUCCESS.name(), program);
         } catch (CoreException e) {
-            log.error("RpcService getProgramById error CoreException , message {}", e.getMessage());
             getProgramByIdResponse(responseObserver, CodeProto.Code.NOT_FOUND,
                     e.getMsg(), null);
         } catch (Exception e) {
@@ -56,6 +55,9 @@ public class ProgramGRpcService extends ProgramServiceGrpc.ProgramServiceImplBas
                     request.getTeamId(), request.getProjectId(), request.getUserId());
             getProgramListResponse(responseObserver, CodeProto.Code.SUCCESS,
                     CodeProto.Code.SUCCESS.name(), programs);
+        } catch (CoreException e) {
+            getProgramListResponse(responseObserver, CodeProto.Code.NOT_FOUND,
+                    e.getMsg(), null);
         } catch (Exception e) {
             log.error("rpcService getProgramList error Exception ", e);
             getProgramListResponse(responseObserver, CodeProto.Code.INTERNAL_ERROR,

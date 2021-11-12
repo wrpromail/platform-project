@@ -88,7 +88,6 @@ public class OpenApiProjectMemberTwoGRpcService extends ProjectMemberServiceGrpc
             describeProjectMembersResponse(responseObserver, SUCCESS,
                     SUCCESS.name().toLowerCase(), resultPage);
         } catch (CoreException e) {
-            log.error("RpcService describeProjectMembers error CoreException, message {} ", e.getMessage());
             describeProjectMembersResponse(responseObserver, NOT_FOUND,
                     localeMessageSource.getMessage(e.getKey()), null);
         } catch (Exception e) {

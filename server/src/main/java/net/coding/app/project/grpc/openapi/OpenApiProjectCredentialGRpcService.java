@@ -37,6 +37,7 @@ import proto.platform.user.UserProto;
 
 import static proto.open.api.CodeProto.Code.INTERNAL_ERROR;
 import static proto.open.api.CodeProto.Code.INVALID_PARAMETER;
+import static proto.open.api.CodeProto.Code.NOT_FOUND;
 import static proto.open.api.CodeProto.Code.SUCCESS;
 
 @Slf4j
@@ -98,7 +99,7 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
         try {
             valid(request.getUser().getId(), request.getProjectId());
             CredentialTypeEnums credentialType = Optional.ofNullable(CredentialTypeEnums
-                            .of(request.getCredentialType().name()))
+                    .of(request.getCredentialType().name()))
                     .orElse(CredentialTypeEnums.USERNAME_PASSWORD);
 
             // 支持的类型判断
@@ -151,15 +152,14 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
                     SUCCESS.name().toLowerCase(),
                     credential
             );
+        } catch (CoreException e) {
+            createCredentialsResponse(
+                    responseObserver,
+                    INTERNAL_ERROR,
+                    e.getMessage(),
+                    null
+            );
         } catch (Exception e) {
-            if (e instanceof CoreException) {
-                createCredentialsResponse(
-                        responseObserver,
-                        INTERNAL_ERROR,
-                        e.getMessage(),
-                        null
-                );
-            }
             log.error("RpcService createProjectCredential error {}", e.getMessage());
             createCredentialsResponse(
                     responseObserver,

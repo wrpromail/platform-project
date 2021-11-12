@@ -51,6 +51,9 @@ public class ProjectPreferenceGrpcService extends ProjectPreferenceServiceGrpc.P
             } else {
                 builder.setCode(CodeProto.Code.NOT_FOUND);
             }
+        } catch (CoreException e) {
+            builder.setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(e.getMessage());
         } catch (Exception e) {
             log.error("RpcService ProjectPreferenceGet error CoreException {}", e.getMessage());
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
@@ -87,6 +90,9 @@ public class ProjectPreferenceGrpcService extends ProjectPreferenceServiceGrpc.P
             } else {
                 newBuilder.setCode(CodeProto.Code.NOT_FOUND);
             }
+        } catch (CoreException e) {
+            newBuilder.setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(e.getMessage());
         } catch (Exception e) {
             log.error("RpcService ProjectPreferenceSet error CoreException {}", e.getMessage());
             newBuilder.setCode(CodeProto.Code.INTERNAL_ERROR)
