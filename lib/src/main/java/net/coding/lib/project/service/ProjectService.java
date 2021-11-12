@@ -81,6 +81,7 @@ import lombok.extern.slf4j.Slf4j;
 import one.util.streamex.StreamEx;
 import proto.platform.user.UserProto;
 
+import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_DISPLAY_NAME_MIN_LENGTH;
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_NAME_CLOUD_MAX_LENGTH;
@@ -367,26 +368,31 @@ public class ProjectService {
             if (Objects.isNull(ownFunctions)) {
                 throw CoreException.of(PARAMETER_INVALID);
             }
-            List<CreateProjectForm.ProjectFunction> FunctionModule =
+            List<CreateProjectForm.ProjectFunction> functionModules =
                     Optional.ofNullable(parameter.getFunctionModule()).orElseGet(ArrayList::new);
             // 根据模版类型初始化部分项目开关
             Set<String> noOpenFunction = StreamEx.of(projectSettingFunctionService.getFunctions())
                     .map(ProjectSettingDefault::getCode)
                     .filter(code -> !ownFunctions.contains(code))
-                    .filter(code -> !FunctionModule.contains(CreateProjectForm.ProjectFunction.codeOf(code)))
+                    .filter(code -> !functionModules.contains(CreateProjectForm.ProjectFunction.codeOf(code)))
                     .collect(Collectors.toSet());
             noOpenFunction
-                    .forEach(code -> projectSettingService.update(projectId, code, String.valueOf(BooleanUtils.toInteger(false))));
+                    .forEach(code -> projectSettingService.update(projectId, code, String.valueOf(BooleanUtils.toInteger(FALSE))));
             //发送事件开启的功能开关
             StreamEx.of(projectSettingFunctionService.getFunctions())
                     .filter(e -> !noOpenFunction.contains(e.getCode()))
-                    .forEach(e -> projectSettingService.sendChangeEvent(
-                            parameter.getTeamId(),
-                            projectId,
-                            parameter.getUserId(),
-                            e.getCode(),
-                            String.valueOf(BooleanUtils.toInteger(TRUE)),
-                            EMPTY));
+                    .forEach(e -> {
+                        if (!e.getDefaultValue().equals(String.valueOf(BooleanUtils.toInteger(TRUE)))) {
+                            projectSettingService.update(projectId, e.getCode(), String.valueOf(BooleanUtils.toInteger(TRUE)));
+                        }
+                        projectSettingService.sendChangeEvent(
+                                parameter.getTeamId(),
+                                projectId,
+                                parameter.getUserId(),
+                                e.getCode(),
+                                String.valueOf(BooleanUtils.toInteger(TRUE)),
+                                EMPTY);
+                    });
             // demo模版初始化数据
             if (Objects.nonNull(projectTemplateDemoType)) {
                 agileTemplateGRpcClient.dataInitByProjectTemplate(
@@ -486,10 +492,10 @@ public class ProjectService {
         project.setDeletedAt(DateUtil.strToDate(ARCHIVE_PROJECT_DELETED_AT));
         projectDao.updateByPrimaryKeySelective(project);
         Optional.ofNullable(
-                        teamProjectDao.selectOne(TeamProject.builder()
-                                .projectId(projectId)
-                                .teamId(teamId)
-                                .build()))
+                teamProjectDao.selectOne(TeamProject.builder()
+                        .projectId(projectId)
+                        .teamId(teamId)
+                        .build()))
                 .ifPresent(tp -> {
                     tp.setDeletedAt(DateUtil.strToDate(ARCHIVE_PROJECT_DELETED_AT));
                     teamProjectDao.updateByPrimaryKeySelective(tp);
@@ -520,10 +526,10 @@ public class ProjectService {
         project.setDeletedAt(DateUtil.strToDate(BeanUtils.NOT_DELETED_AT));
         projectDao.updateByPrimaryKeySelective(project);
         Optional.ofNullable(
-                        teamProjectDao.selectOne(TeamProject.builder()
-                                .projectId(projectId)
-                                .teamId(teamId)
-                                .build()))
+                teamProjectDao.selectOne(TeamProject.builder()
+                        .projectId(projectId)
+                        .teamId(teamId)
+                        .build()))
                 .ifPresent(tp -> {
                     tp.setDeletedAt(DateUtil.strToDate(BeanUtils.NOT_DELETED_AT));
                     teamProjectDao.updateByPrimaryKeySelective(tp);
@@ -547,12 +553,12 @@ public class ProjectService {
                 .checkProgramPay(teamId);
 
         Optional.ofNullable(
-                        projectRecentViewDao.selectOne(ProjectRecentView.builder()
-                                .teamId(teamId)
-                                .userId(userId)
-                                .projectId(project.getId())
-                                .deletedAt(BeanUtils.getDefaultDeletedAt())
-                                .build()))
+                projectRecentViewDao.selectOne(ProjectRecentView.builder()
+                        .teamId(teamId)
+                        .userId(userId)
+                        .projectId(project.getId())
+                        .deletedAt(BeanUtils.getDefaultDeletedAt())
+                        .build()))
                 .map(projectRecentView -> {
                     projectRecentView.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
                     return projectRecentViewDao.updateByPrimaryKeySelective(projectRecentView);
