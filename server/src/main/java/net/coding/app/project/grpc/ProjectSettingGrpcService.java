@@ -16,6 +16,7 @@ import org.lognet.springboot.grpc.GRpcService;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import io.grpc.stub.StreamObserver;
@@ -213,9 +214,9 @@ public class ProjectSettingGrpcService extends ProjectSettingServiceGrpc.Project
         }
         return ProjectSettingProto.ProjectSettingMessage.newBuilder()
                 .setProjectId(setting.getProjectId())
-                .setCode(setting.getCode())
-                .setValue(setting.getValue())
-                .setId(setting.getId())
+                .setCode(Optional.ofNullable(setting.getCode()).orElse(StringUtils.EMPTY))
+                .setValue(Optional.ofNullable(setting.getValue()).orElse(StringUtils.EMPTY))
+                .setId(Optional.ofNullable(setting.getId()).orElse(0))
                 .build();
     }
 }
