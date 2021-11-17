@@ -153,7 +153,7 @@ public class ProjectResourceService {
     public ProjectResource getByProjectIdAndCode(Integer projectId, Integer code) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("projectId", projectId);
-        parameters.put("code", code);
+        parameters.put("code", String.valueOf(code));
         //排除不需要搜索的目标类型
         parameters.put("targetTypes", NotSearchTargetTypeEnum.getTargetTypes());
         parameters.put("deletedAt", "1970-01-01 00:00:00");
@@ -186,7 +186,7 @@ public class ProjectResourceService {
     public ProjectResource getProjectResourceWithDeleted(Integer projectId, Integer code) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("projectId", projectId);
-        parameters.put("code", code);
+        parameters.put("code", String.valueOf(code));
         //排除不需要搜索的目标类型
         parameters.put("targetTypes", NotSearchTargetTypeEnum.getTargetTypes());
         //parameters.put("deletedAt", "1970-01-01 00:00:00");
