@@ -6,7 +6,6 @@ import net.coding.common.annotation.ProtectedAPI;
 import net.coding.common.annotation.enums.Action;
 import net.coding.common.annotation.enums.Function;
 import net.coding.common.util.TextUtils;
-import net.coding.lib.project.dao.MergeRequestLabelDao;
 import net.coding.lib.project.dto.ProjectLabelDTO;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectLabel;
@@ -35,6 +34,8 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
+import proto.git.GitDepotGrpcClient;
+import proto.git.GitDepotProto;
 
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NOT_EXIST;
 
@@ -45,7 +46,7 @@ import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJE
 public class ProjectLableController {
 
     private final ProjectLabelService projectLabelService;
-    private final MergeRequestLabelDao mrLabelDao;
+    private final GitDepotGrpcClient gitDepotGrpcClient;
     private final ProjectService projectService;
 
 
@@ -91,7 +92,10 @@ public class ProjectLableController {
                                 .name(TextUtils.htmlEscape(item.getName()))
                                 .color(item.getColor())
                                 .owner_id(item.getOwnerId())
-                                .merge_request_count(mrLabelDao.countByLabel(item.getId()))
+                                .merge_request_count(gitDepotGrpcClient.getMergeRequestCountByLabelId(
+                                        GitDepotProto.GetMergeRequestCountByLabelIdRequest.newBuilder()
+                                                .setLabelId(item.getId())
+                                                .build()).getCount())
                                 .build()
                 )
                 .collect(Collectors.toList());

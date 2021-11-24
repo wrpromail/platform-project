@@ -56,6 +56,7 @@ dependencies {
     compile("net.coding.grpc.client:permission:20210830.1") {
         exclude(group: "net.coding.common")
     }
+    compile "net.coding.proto:vcs-client:20211123.2"
     compile "net.coding.platform.charge:grpc-client:20210512.2"
     compile "net.coding.platform.framework:degradation:202109027.1"
     compile 'net.coding.proto:storage:20201027.1'
@@ -66,7 +67,7 @@ dependencies {
     compile "net.coding.proto:permission:20210830.1"
     compile "net.coding.proto:open-api:20210615.2"
     compile "net.coding.proto:platform-open-api:20211029.1"
-    compile "net.coding.grpc.client:collaboration:20210917.1"
+    compile "net.coding.grpc.client:collaboration:20211123.1"
     compile "net.coding.platform.framework:degradation:20210906.1"
     compile("tk.mybatis:mapper-spring-boot-starter:2.1.5")
 
