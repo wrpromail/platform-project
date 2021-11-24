@@ -18,6 +18,7 @@ buildscript {
     }
 
     dependencies {
+        classpath "net.coding.common:gradle-youdao-translator:1.0.1"
         classpath "net.coding.common:coding-plugin-collection:1.2.2"
     }
 }
@@ -33,6 +34,7 @@ subprojects {
         protobufVersion = '3.12.0'
     }
     apply plugin: "coding-plugin"
+    apply plugin: "net.coding.translate"
     // 请勿删除，否则后果自负，会导致 mariadb client 版本异常，数据时间写入会有异常
     ext['mariadb.version'] = '2.2.5'
     ext['hikaricp.version'] = '2.4.5'
