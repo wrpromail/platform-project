@@ -6,12 +6,12 @@ import java.text.MessageFormat;
 
 public class ResourceUtil {
     public static String ui(String key, Object... args) {
-        String text = LocaleMessageSourceUtil.getMessageByBaseName("ui", key);
+        String text = LocaleMessageSourceUtil.getMessageByBaseName("messages", key);
         return (text != null) ? MessageFormat.format(text, args) : null;
     }
 
     public static String error(String key, Object... args) {
-        String text = LocaleMessageSourceUtil.getMessageByBaseName("platform-project", key);
+        String text = LocaleMessageSourceUtil.getMessageByBaseName("messages", key);
         return (text != null) ? MessageFormat.format(text, args) : null;
     }
 }

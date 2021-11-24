@@ -72,3 +72,13 @@ dependencies {
     compile("tk.mybatis:mapper-spring-boot-starter:2.1.5")
 
 }
+
+translate {
+    i18nPath = "src/main/resources/i18n"
+    i18nFileName = ["messages_zh_CN.properties"]
+    form = "zh_CN"
+    to = ['zh_HK', 'en_US']
+    youDaoAppKey = "05e930830a7290e1"
+    youDaoAppSecret = "PkM8t2Gw2ZXKUfnwPV4wWzhEmOnRByIn"
+}
+
