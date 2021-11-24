@@ -67,8 +67,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -368,13 +368,12 @@ public class ProjectService {
             if (Objects.isNull(ownFunctions)) {
                 throw CoreException.of(PARAMETER_INVALID);
             }
-            List<CreateProjectForm.ProjectFunction> functionModules =
-                    Optional.ofNullable(parameter.getFunctionModule()).orElseGet(ArrayList::new);
+            Set<String> functionModules = Optional.ofNullable(parameter.getFunctionModules()).orElse(new HashSet<>());
             // 根据模版类型初始化部分项目开关
             Set<String> noOpenFunction = StreamEx.of(projectSettingFunctionService.getFunctions())
                     .map(ProjectSettingDefault::getCode)
                     .filter(code -> !ownFunctions.contains(code))
-                    .filter(code -> !functionModules.contains(CreateProjectForm.ProjectFunction.codeOf(code)))
+                    .filter(code -> !functionModules.contains(code))
                     .collect(Collectors.toSet());
             noOpenFunction
                     .forEach(code -> projectSettingService.update(projectId, code, String.valueOf(BooleanUtils.toInteger(FALSE))));

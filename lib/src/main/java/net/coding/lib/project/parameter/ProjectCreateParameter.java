@@ -1,8 +1,7 @@
 package net.coding.lib.project.parameter;
 
-import net.coding.lib.project.form.CreateProjectForm;
-
 import java.util.List;
+import java.util.Set;
 
 import lombok.Builder;
 import lombok.Data;
@@ -90,6 +89,6 @@ public class ProjectCreateParameter {
 
     private BaseCredentialParameter baseCredentialParameter;
 
-    private List<CreateProjectForm.ProjectFunction> functionModule;
+    private Set<String> functionModules;
 
 }

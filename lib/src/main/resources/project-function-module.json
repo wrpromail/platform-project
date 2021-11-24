@@ -1,0 +1,81 @@
+{
+  "functions": [
+    {
+      "code": "repo",
+      "name": "代码托管",
+      "description": "代码托管",
+      "codes": [
+        "code_management",
+        "code_analysis"
+      ]
+    },
+    {
+      "code": "agile",
+      "name": "需求搜集 & 事项跟踪 & 迭代管理",
+      "description": "需求搜集 & 事项跟踪 & 迭代管理",
+      "codes": [
+        "agile_development"
+      ]
+    },
+    {
+      "code": "ci",
+      "name": "构建流水线 & 自动化测试",
+      "description": "构建流水线 & 自动化测试",
+      "codes": [
+        "continue_integration",
+        "qta"
+      ]
+    },
+    {
+      "code": "artifact",
+      "name": "制品管理",
+      "description": "制品管理",
+      "codes": [
+        "artifact"
+      ]
+    },
+    {
+      "code": "cd",
+      "name": "自动化部署",
+      "description": "自动化部署",
+      "codes": [
+        "deployment_management"
+      ]
+    },
+    {
+      "code": "testing",
+      "name": "测试用例管理",
+      "description": "测试用例管理",
+      "codes": [
+        "test_management"
+      ]
+    },
+    {
+      "code": "knowledge",
+      "name": "知识管理",
+      "description": "知识管理",
+      "codes": [
+        "knowledge",
+        "wiki",
+        "file",
+        "api_docs"
+      ]
+    },
+    {
+      "code": "compass",
+      "name": "Compass",
+      "description": "企业 DevOps 全流程的管控，透视与价值流分析。",
+      "codes": [
+        "compass"
+      ]
+    },
+    {
+      "code": "app_ops",
+      "name": "应用管理",
+      "description": "应用管理",
+      "codes": [
+        "app_ops"
+      ]
+    }
+  ]
+}
