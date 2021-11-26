@@ -7,8 +7,8 @@ import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.validation.Errors;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
+
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -58,49 +58,11 @@ public class CreateProjectForm extends BaseForm {
     @NotEmpty(message = "project_icon_not_empty")
     private String icon;
 
-    @ApiModelProperty("凭据类型")
-    private String credentialType;
-
     @ApiModelProperty("项目分组id")
     private Integer groupId;
 
     @ApiModelProperty("所需功能模块")
-    private List<ProjectFunction> functionModule;
-
-    public enum ProjectFunction {
-        FUNCTION_AGILE_DEVELOPMENT("agile_development", "agile_project_development"),
-        FUNCTION_TEST_MANAGEMENT("test_management", "test_manage"),
-        FUNCTION_CODE_MANAGEMENT("code_management", "code_deposit"),
-        FUNCTION_CONTINUE_INTEGRATION("continue_integration", "ci"),
-        FUNCTION_DEPLOYMENT_MANAGEMENT("deployment_management", "deployment_manage"),
-        FUNCTION_ARTIFACT("artifact", "artifact"),
-        FUNCTION_WIKI("wiki", "wiki"),
-        FUNCTION_STATISTICS("statistics", "statistics"),
-        FUNCTION_CODE_ANALYSIS("code_analysis", "code_analysis"),
-        FUNCTION_API_DOCS("api_docs", "api_doc"),
-        FUNCTION_QTA("qta", "test_auto"),
-        FUNCTION_FILE("file", "file_pan"),
-        FUNCTION_KM("knowledge", "knowledge"),
-        FUNCTION_APP_OPS("app_ops", "app_ops"),
-        FUNCTION_COMPASS("compass", "compass");
-        private String code;
-        private String description;
-
-        ProjectFunction(String code, String description) {
-            this.code = code;
-            this.description = description;
-        }
-
-        public static ProjectFunction codeOf(String code) {
-            return Arrays.stream(values())
-                    .filter(value -> value.code.equals(code))
-                    .findFirst()
-                    .orElse(null);
-        }
-
-
-    }
-
+    private Set<String> functionModules;
 
     @Override
     public boolean validate(Errors errors) {

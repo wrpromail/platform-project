@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.validation.Valid;
 
@@ -36,6 +37,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import one.util.streamex.StreamEx;
 import proto.platform.user.UserProto;
 
 @Slf4j
@@ -66,7 +68,7 @@ public class ProjectController {
                 .groupId(form.getGroupId())
                 .projectTemplate(form.getProjectTemplate())
                 .template(form.getTemplate())
-                .functionModule(form.getFunctionModule())
+                .functionModules(form.getFunctionModules())
                 .build());
         return getProjectPath(project);
     }
