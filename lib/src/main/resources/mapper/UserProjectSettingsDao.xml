@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.coding.lib.project.dao.UserProjectSettingDao">
+    <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.UserProjectSetting">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="project_id" jdbcType="INTEGER" property="projectId"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="code" jdbcType="VARCHAR" property="code"/>
+        <result column="value" jdbcType="VARCHAR" property="value"/>
+        <result column="description" jdbcType="VARCHAR" property="description"/>
+        <result column="created_at" jdbcType="TIMESTAMP" property="createdAt"/>
+        <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt"/>
+        <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, project_id,user_id, code, `value`, description, created_at, updated_at, deleted_at
+    </sql>
+
+    <select id="getUserProjectSettingsByCodes" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_project_settings
+        where
+        project_id = #{projectId}
+        AND user_id = #{userId}
+        AND deleted_at = #{deletedAt}
+        AND code in
+        <foreach item="item" index="index" collection="list" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+    <select id="getUserProjectSetting" resultMap="BaseResultMap">
+
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user_project_settings
+        where
+        project_id = #{projectId}
+        AND user_id = #{userId}
+        AND deleted_at = #{deletedAt}
+        AND code = #{code}
+    </select>
+
+        <insert id="insert" keyColumn="id" keyProperty="id"
+            parameterType="net.coding.lib.project.entity.UserProjectSetting" useGeneratedKeys="true">
+            insert into user_project_settings
+            (project_id,
+             code,
+             user_id,
+             `value`,
+             description,
+             created_at,
+             updated_at,
+             deleted_at
+             )
+            value
+                (#{projectId,jdbcType=INTEGER},
+                #{code,jdbcType=VARCHAR},
+                #{userId,jdbcType=INTEGER},
+                #{value,jdbcType=VARCHAR},
+                #{description,jdbcType=VARCHAR},
+                NOW(),
+                NOW(),
+                #{deletedAt,jdbcType=TIMESTAMP})
+        </insert>
+
+    <update id="updateValue">
+        update user_project_settings
+        set  `value` = #{value},
+             updated_at = NOW()
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+</mapper>
