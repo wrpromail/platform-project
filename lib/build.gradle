@@ -78,7 +78,7 @@ translate {
     i18nFileName = ["messages_zh_CN.properties"]
     form = "zh_CN"
     to = ['zh_HK', 'en_US']
-    youDaoAppKey = "05e930830a7290e1"
-    youDaoAppSecret = "PkM8t2Gw2ZXKUfnwPV4wWzhEmOnRByIn"
+    youDaoAppKey = "5b38be1b7f50f962"
+    youDaoAppSecret = "JhVOzXzJ8Dbsp7bSsejiB8cwbOIfGA5N"
 }
 
