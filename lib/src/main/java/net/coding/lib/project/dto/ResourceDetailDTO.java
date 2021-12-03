@@ -1,6 +1,8 @@
 package net.coding.lib.project.dto;
 
+import net.coding.common.util.ApplicationHelper;
 import net.coding.lib.project.entity.ProjectResource;
+import net.coding.lib.project.service.ProjectResourceLinkService;
 
 import lombok.Data;
 
@@ -9,6 +11,8 @@ import lombok.Data;
  */
 @Data
 public class ResourceDetailDTO {
+
+    private static ProjectResourceLinkService projectResourceLinkService = ApplicationHelper.get(ProjectResourceLinkService.class);
 
     private Integer id;
 
@@ -40,5 +44,16 @@ public class ResourceDetailDTO {
         this.code = projectResource.getCode();
         this.title = projectResource.getTitle();
         this.resourceUrl = projectResource.getResourceUrl();
+    }
+
+    public ResourceDetailDTO(ProjectResource projectResource, String projectGk) {
+        this.id = projectResource.getId();
+        this.scopeId = projectResource.getProjectId();
+        this.scopeType = projectResource.getScopeType();
+        this.targetType = projectResource.getTargetType();
+        this.targetId = projectResource.getTargetId();
+        this.code = projectResource.getCode();
+        this.title = projectResource.getTitle();
+        this.resourceUrl = projectResourceLinkService.getResourceLink(projectResource, projectGk);
     }
 }

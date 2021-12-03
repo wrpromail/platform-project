@@ -78,6 +78,7 @@ public class ProjectResourceLinkService {
         put("testing-plan-case-result", "_buildTestingPlanCaseResultUrl");
         put("work-item", "plan/work-items");
         put("risk", "risks");
+        put("knowledge", "knowledge");
     }};
 
     private static final Set<String> useCodeTypeSet = new HashSet<String>() {{
@@ -302,6 +303,10 @@ public class ProjectResourceLinkService {
         return projectPath + "/program/" + urlType + "/" + projectResource.getCode() + "/detail";
     }
 
+    private String buildKnowledgeLink(ProjectResource projectResource) {
+        return "/api/km/v1/spaces/pages/" + projectResource.getTargetId();
+    }
+
     public String getResourceLink(ProjectResource projectResource, String projectPath) {
         String type = Inflector.underscore(projectResource.getTargetType()).replace('_', '-');
         String urlType = typeToUrlMap.get(type);
@@ -330,6 +335,8 @@ public class ProjectResourceLinkService {
                 return buildIterationLink(projectResource, projectPath);
             } else if (programCodeTypeSet.contains(type)) {
                 return buildProgramLink(projectResource, projectPath, urlType);
+            } else if("knowledge".equals(urlType)) {
+                return buildKnowledgeLink(projectResource);
             } else {
                 return projectPath + "/" + urlType + "/" + projectResource.getTargetId();
             }

@@ -202,7 +202,7 @@ public class GlobalResourcesController {
             if (projectResource == null) {
                 return Result.success(null);
             }
-            ResourceDetailDTO resourceDetailDTO = new ResourceDetailDTO(projectResource);
+            ResourceDetailDTO resourceDetailDTO = new ResourceDetailDTO(projectResource, projectGK);
             resourceDetailDTO.setScopeName(project.getDisplayName());
             resourceDetailDTO.setScopeAvatar(project.getIcon());
             resourceDetailDTO = dealAgileResourceDetail(resourceDetailDTO);
@@ -213,7 +213,7 @@ public class GlobalResourcesController {
         if (projectResource == null) {
             return Result.success(null);
         }
-        ResourceDetailDTO resourceDetailDTO = new ResourceDetailDTO(projectResource);
+        ResourceDetailDTO resourceDetailDTO = new ResourceDetailDTO(projectResource, null);
         resourceDetailDTO.setScopeName(team.getName());
         resourceDetailDTO.setScopeAvatar(team.getAvatar());
         resourceDetailDTO = dealAgileResourceDetail(resourceDetailDTO);
