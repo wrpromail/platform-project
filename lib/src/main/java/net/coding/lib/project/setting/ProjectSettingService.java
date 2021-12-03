@@ -153,7 +153,7 @@ public class ProjectSettingService {
         List<ProjectSetting> settings = defineOptional
                 .map(
                         define -> StreamEx
-                                .of(projectIds)
+                                .of(visibleProject)
                                 .map(projectId -> mapping.getOrDefault(projectId,
                                         ProjectSetting
                                                 .builder()
