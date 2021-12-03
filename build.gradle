@@ -18,7 +18,7 @@ buildscript {
     }
 
     dependencies {
-        classpath "net.coding.common:gradle-youdao-translator:1.0.1"
+        classpath "net.coding.common:gradle-youdao-translator:1.0.3"
         classpath "net.coding.common:coding-plugin-collection:1.2.2"
     }
 }
