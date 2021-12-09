@@ -12,7 +12,6 @@
     "qta",
     "file",
     "knowledge",
-    "compass",
     "app_ops"
   ],
   "projectManage": [
@@ -20,8 +19,7 @@
     "wiki",
     "api_docs",
     "file",
-    "knowledge",
-    "compass"
+    "knowledge"
   ],
   "testingManage": [
     "agile_development",
@@ -40,7 +38,6 @@
     "wiki",
     "api_docs",
     "file",
-    "knowledge",
-    "compass"
+    "knowledge"
   ]
 }
