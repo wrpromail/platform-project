@@ -62,14 +62,6 @@
       ]
     },
     {
-      "code": "compass",
-      "name": "Compass",
-      "description": "企业 DevOps 全流程的管控，透视与价值流分析。",
-      "codes": [
-        "compass"
-      ]
-    },
-    {
       "code": "app_ops",
       "name": "应用管理",
       "description": "应用管理",
