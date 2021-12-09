@@ -82,6 +82,7 @@ public class ProjectHandCacheService {
             EvictCacheManager.evictTableCache(TABLE_NAME, CacheType.bean, "userId", pm.getUserId(), "projectId", pm.getProjectId());
         }
         // 项目成员变动时，清除getProjectMembersWithArchived（）方法的缓存
+        //todo henry: member type
         EvictCacheManager.evictTableCache(TABLE_NAME, CacheType.list, "getProjectMembersWithArchived", pm.getProjectId(), pm.getType());
         // 清除成员统计缓存
         EvictCacheManager.evictTableCache(TABLE_NAME, CacheType.count, "countProjectMembers:", pm.getProjectId());

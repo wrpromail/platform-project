@@ -68,11 +68,17 @@ public class ProjectDTO {
     @ApiModelProperty(value = "星标")
     private Boolean pin;
 
+    @ApiModelProperty(value = "星标排序")
+    private Integer pinSort;
+
     @ApiModelProperty(value = "未读的项目动态数")
     private Integer un_read_activities_count;
 
     @ApiModelProperty(value = "创建时间")
     public Timestamp created_at;
+
+    @ApiModelProperty(value = "归档时间")
+    public Timestamp updated_at;
 
     @JsonIgnore
     @ApiModelProperty(value = "删除时间", hidden = true)

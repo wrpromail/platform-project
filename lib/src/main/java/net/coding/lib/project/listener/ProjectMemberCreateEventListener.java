@@ -3,27 +3,15 @@ package net.coding.lib.project.listener;
 import com.google.common.eventbus.Subscribe;
 
 import net.coding.common.base.event.ProjectMemberCreateEvent;
-import net.coding.common.base.gson.JSON;
 import net.coding.lib.project.dao.ProgramDao;
-import net.coding.lib.project.entity.Project;
-import net.coding.lib.project.entity.ProjectMember;
-import net.coding.lib.project.enums.PmTypeEnums;
-import net.coding.lib.project.exception.CoreException;
-import net.coding.lib.project.parameter.ProgramQueryParameter;
 import net.coding.lib.project.service.ProjectMemberService;
 import net.coding.lib.project.service.ProjectService;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import static net.coding.lib.project.enums.ProgramProjectRoleTypeEnum.ProgramRoleTypeEnum;
 
 @Slf4j
 @Component
@@ -38,7 +26,7 @@ public class ProjectMemberCreateEventListener {
     @Subscribe
     @Transactional
     public void handle(ProjectMemberCreateEvent event) {
-        try {
+      /*  try {
             log.info("ProjectMemberCreateEvent , event :{}", JSON.toJson(event));
             Project project = projectService.getById(event.getProjectId());
             if (Objects.isNull(project)) {
@@ -75,6 +63,6 @@ public class ProjectMemberCreateEventListener {
             log.error("ProjectMemberCreateEvent Error, projectId = {}, userId = {}",
                     event.getProjectId(),
                     event.getUserId());
-        }
+        }*/
     }
 }

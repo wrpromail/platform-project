@@ -12,6 +12,7 @@ import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.grpc.client.platform.TeamServiceGrpcClient;
 import net.coding.lib.project.dao.ProgramDao;
 import net.coding.lib.project.dao.ProgramProjectDao;
+import net.coding.lib.project.dao.ProjectDao;
 import net.coding.lib.project.dao.ProjectMemberDao;
 import net.coding.lib.project.dao.TeamProjectDao;
 import net.coding.lib.project.dto.ProgramDTO;
@@ -19,12 +20,17 @@ import net.coding.lib.project.dto.ProgramPathDTO;
 import net.coding.lib.project.dto.ProgramUserDTO;
 import net.coding.lib.project.dto.ProjectDTO;
 import net.coding.lib.project.dto.ProjectUserDTO;
+import net.coding.lib.project.dto.request.ProjectMemberAddReqDTO;
+import net.coding.lib.project.dto.request.ProjectMemberReqDTO;
 import net.coding.lib.project.entity.ProgramProject;
 import net.coding.lib.project.entity.Project;
+import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.entity.TeamProject;
 import net.coding.lib.project.enums.PmTypeEnums;
 import net.coding.lib.project.enums.ProgramProjectEventEnums;
 import net.coding.lib.project.enums.ProgramWorkflowEnums;
+import net.coding.lib.project.enums.ProjectMemberPrincipalTypeEnum;
+import net.coding.lib.project.enums.RoleType;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.CreateProgramForm;
 import net.coding.lib.project.form.QueryProgramForm;
@@ -34,19 +40,29 @@ import net.coding.lib.project.infra.PinyinService;
 import net.coding.lib.project.parameter.ProgramPageQueryParameter;
 import net.coding.lib.project.parameter.ProgramProjectQueryParameter;
 import net.coding.lib.project.parameter.ProgramQueryParameter;
-import net.coding.lib.project.service.project.adaptor.ProjectAdaptorFactory;
+import net.coding.lib.project.parameter.ProjectMemberPrincipalQueryParameter;
+import net.coding.lib.project.service.member.ProjectMemberInspectService;
+import net.coding.lib.project.service.member.ProjectMemberPrincipalWriteService;
+import net.coding.lib.project.service.project.ProjectAdaptorFactory;
+import net.coding.lib.project.service.project.ProjectsService;
 import net.coding.lib.project.utils.DateUtil;
 import net.coding.platform.permission.proto.CommonProto;
+import net.coding.platform.ram.constans.GrantScopeEnum;
+import net.coding.platform.ram.pojo.dto.GrantDTO;
+import net.coding.platform.ram.pojo.dto.response.GrantObjectIdResponseDTO;
+import net.coding.platform.ram.pojo.dto.response.PolicyResponseDTO;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -61,8 +77,8 @@ import lombok.extern.slf4j.Slf4j;
 import one.util.streamex.StreamEx;
 import proto.platform.user.UserProto;
 
+import static java.util.stream.Collectors.toList;
 import static net.coding.common.base.bean.ProjectTweet.ACTION_CREATE;
-import static net.coding.common.constants.RoleConstants.OWNER;
 import static net.coding.lib.project.enums.ProgramProjectEventEnums.ACTION.ACTION_VIEW;
 import static net.coding.lib.project.enums.ProgramProjectRoleTypeEnum.ProgramRoleTypeEnum;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PERMISSION_DENIED;
@@ -72,6 +88,7 @@ import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJE
 import static net.coding.lib.project.exception.CoreException.ExceptionType.RESOURCE_NO_FOUND;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.TEAM_MEMBER_NOT_EXISTS;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.TEAM_NOT_EXIST;
+import static org.apache.logging.log4j.util.Strings.EMPTY;
 
 @Service
 @Slf4j
@@ -92,6 +109,8 @@ public class ProgramService {
 
     private final ProjectService projectService;
 
+    private final ProjectsService projectsService;
+
     private final ProjectMemberService projectMemberService;
 
     private final ProjectValidateService projectValidateService;
@@ -99,6 +118,8 @@ public class ProgramService {
     private final ProjectPreferenceService projectPreferenceService;
 
     private final ProgramDao programDao;
+
+    private final ProjectDao projectDao;
 
     private final ProgramProjectDao programProjectDao;
 
@@ -115,6 +136,13 @@ public class ProgramService {
     private final ProjectDTOService projectDTOService;
 
     private final PinyinService pinyinService;
+
+    private final RamTransformTeamService ramTransformTeamService;
+
+    private final ProjectMemberInspectService projectMemberInspectService;
+
+    private final ProjectMemberPrincipalWriteService projectMemberPrincipalWriteService;
+
 
     public ProgramPathDTO createProgram(Integer currentTeamId, Integer currentUserId, CreateProgramForm form) throws Exception {
         Team team = teamServiceGrpcClient.getTeam(currentTeamId);
@@ -195,6 +223,7 @@ public class ProgramService {
                 .build();
     }
 
+    @Transactional
     public ProgramPathDTO addProgramProject(Integer currentTeamId, Integer currentUserId,
                                             Integer programId, Set<Integer> projectIds,
                                             Set<Integer> adminIds) throws Exception {
@@ -217,16 +246,16 @@ public class ProgramService {
             Set<Integer> targetUserIds = new HashSet<>();
             //我参与的项目
             List<Integer> joinedProjectIds =
-                    StreamEx.of(projectService.getJoinedProjects(currentTeamId, currentUserId))
+                    StreamEx.of(projectsService.getJoinedProjects(currentTeamId, currentUserId, EMPTY))
                             .map(Project::getId)
                             .collect(Collectors.toList());
             //项目集中已存在项目
             List<Integer> programProjectIds =
                     StreamEx.of(programProjectDao.select(ProgramProject.builder()
-                                    .programId(program.getId())
-                                    .deletedAt(BeanUtils.getDefaultDeletedAt())
-                                    .build())
-                            )
+                            .programId(program.getId())
+                            .deletedAt(BeanUtils.getDefaultDeletedAt())
+                            .build())
+                    )
                             .map(ProgramProject::getProjectId)
                             .collect(Collectors.toList());
             StreamEx.of(projectIds)
@@ -254,6 +283,96 @@ public class ProgramService {
                 .build();
     }
 
+
+    @Transactional
+    public ProgramPathDTO addProgramProjectPrincipal(Integer currentTeamId, Integer currentUserId,
+                                                     Integer programId, Set<Integer> projectIds,
+                                                     Set<Integer> adminIds) throws Exception {
+        Project program = programDao.selectByIdAndTeamId(programId, currentTeamId);
+        if (Objects.isNull(program)) {
+            throw CoreException.of(RESOURCE_NO_FOUND);
+        }
+        if (CollectionUtils.isNotEmpty(adminIds)) {
+            List<UserProto.User> users = userGrpcClient.findUserByIds(new ArrayList<>(adminIds));
+            if (CollectionUtils.isNotEmpty(users)) {
+                Set<Integer> targetUserIds = users.stream()
+                        .filter(user -> user.getTeamId() == currentTeamId)
+                        .map(UserProto.User::getId)
+                        .collect(Collectors.toSet());
+                projectMemberService.doAddMember(currentUserId, new ArrayList<>(targetUserIds),
+                        ProgramRoleTypeEnum.ProgramAdmin.getCode(), program, false);
+            }
+        }
+        if (CollectionUtils.isNotEmpty(projectIds)) {
+            //我参与的项目
+            List<Integer> joinedProjectIds =
+                    StreamEx.of(projectsService.getJoinedProjects(currentTeamId, currentUserId, EMPTY))
+                            .map(Project::getId)
+                            .toList();
+            //项目集中已存在项目
+            List<Integer> programProjectIds =
+                    StreamEx.of(programProjectDao.select(ProgramProject.builder()
+                            .programId(program.getId())
+                            .deletedAt(BeanUtils.getDefaultDeletedAt())
+                            .build())
+                    )
+                            .map(ProgramProject::getProjectId)
+                            .toList();
+            PolicyResponseDTO policyDTO = projectMemberInspectService.getPolicyByName(currentUserId, RoleType.ProgramProjectMember.name());
+            List<GrantDTO> grantDTOS = new ArrayList<>();
+            StreamEx.of(projectIds)
+                    .filter(joinedProjectIds::contains)
+                    .filter(projectId -> !programProjectIds.contains(projectId))
+                    .forEach(projectId -> {
+                        List<ProjectMemberAddReqDTO> principals =
+                                projectMemberDao.findListByProjectId(projectId, BeanUtils.getDefaultDeletedAt())
+                                        .stream()
+                                        .map(member -> {
+                                            grantDTOS.add(new GrantDTO()
+                                                    .setGrantScope(member.getPrincipalType().toLowerCase())
+                                                    .setGrantObjectId(member.getPrincipalId())
+                                                    .setPolicyId(policyDTO.getPolicyId())
+                                                    .setResourceType(PmTypeEnums.of(program.getPmType()).name().toLowerCase())
+                                                    .setResourceId(String.valueOf(program.getId())));
+                                            return ProjectMemberAddReqDTO.builder()
+                                                    .principalType(ProjectMemberPrincipalTypeEnum.valueOf(member.getPrincipalType()))
+                                                    .principalId(member.getPrincipalId())
+                                                    .policyIds(StreamEx.of(policyDTO)
+                                                            .map(PolicyResponseDTO::getPolicyId)
+                                                            .toSet())
+                                                    .build();
+
+                                        })
+                                        .collect(toList());
+                        try {
+                            //项目集关联项目
+                            programProjectDao.insertSelective(ProgramProject.builder()
+                                    .programId(program.getId())
+                                    .projectId(projectId)
+                                    .createdAt(new Timestamp(System.currentTimeMillis()))
+                                    .updatedAt(new Timestamp(System.currentTimeMillis()))
+                                    .deletedAt(BeanUtils.getDefaultDeletedAt())
+                                    .build());
+                            projectMemberPrincipalWriteService.addMember(
+                                    currentTeamId,
+                                    currentUserId,
+                                    program.getId(),
+                                    principals);
+                        } catch (CoreException e) {
+                            log.error("addProgramProject addManyMemberToProject Error, programId = {}, operatorId = {}",
+                                    program.getId(),
+                                    currentUserId);
+                        }
+                    });
+            projectMemberInspectService.attachGrant(currentUserId, grantDTOS);
+        }
+        return ProgramPathDTO.builder()
+                .id(program.getId())
+                .path(getProgramPath(program))
+                .build();
+
+    }
+
     public ResultPage<ProgramDTO> getProgramPages(ProgramPageQueryParameter parameter) throws CoreException {
         if (parameter.getQueryType().equals(QueryProgramForm.QueryType.ALL.name())) {
             projectAdaptorFactory.create(PmTypeEnums.PROGRAM.getType())
@@ -262,27 +381,69 @@ public class ProgramService {
                             parameter.getUserId(),
                             PmTypeEnums.PROGRAM.getType(),
                             ACTION_VIEW);
+        } else {
+            //参与的项目集
+            Set<Integer> joinedProgramIds = projectMemberInspectService.getJoinedProjectIds(
+                    ProjectMemberPrincipalQueryParameter.builder()
+                            .teamId(parameter.getTeamId())
+                            .userId(parameter.getUserId())
+                            .pmType(PmTypeEnums.PROGRAM.getType())
+                            .deletedAt(parameter.getDeletedAt())
+                            .build());
+            if (parameter.getQueryType().equals(QueryProgramForm.QueryType.MANAGED.name())) {
+                Set<Integer> manageProgramIds = projectMemberInspectService.listResourcesOnUser(
+                        parameter.getUserId(),
+                        PmTypeEnums.PROJECT.name(),
+                        joinedProgramIds,
+                        parameter.getUserId().longValue(),
+                        RoleType.ProjectAdmin.name()
+                );
+                parameter.setJoinedProjectIds(manageProgramIds);
+            }
+            if (parameter.getQueryType().equals(QueryProgramForm.QueryType.JOINED.name())) {
+                parameter.setJoinedProjectIds(joinedProgramIds);
+            }
+            if (CollectionUtils.isEmpty(parameter.getJoinedProjectIds())) {
+                List<ProgramDTO> programDTOList = new ArrayList<>();
+                return new ResultPage<>(programDTOList, parameter.getPage(), parameter.getPageSize(), programDTOList.size());
+            }
+        }
+        if (CollectionUtils.isNotEmpty(parameter.getUserIds())) {
+            Set<Integer> adminProgramIds = StreamEx.of(parameter.getUserIds())
+                    .flatMap(userId -> projectMemberInspectService.listResourcesOnUser(
+                            parameter.getUserId(),
+                            PmTypeEnums.PROGRAM.name(),
+                            parameter.getJoinedProjectIds(),
+                            userId.longValue(),
+                            RoleType.ProgramAdmin.name()
+                            ).stream()
+                    )
+                    .toSet();
+            parameter.setJoinedProjectIds(adminProgramIds);
         }
         PageInfo<ProgramDTO> pageInfo = PageHelper.startPage(parameter.getPage(), parameter.getPageSize())
                 .doSelectPageInfo(() -> programDao.selectProgramPages(parameter));
         List<ProgramDTO> programDTOList = pageInfo.getList().stream()
                 .peek(p -> {
-                    p.setProgramUser(toProgramUserDTO(p.getId()));
+                    p.setProgramUser(toProgramUserDTO(parameter.getTeamId(), parameter.getUserId(), p.getId()));
                     p.setProjects(toProjectDTO(parameter.getTeamId(), p.getId()));
                 })
-                .collect(Collectors.toList());
+                .collect(toList());
         return new ResultPage<>(programDTOList, parameter.getPage(), parameter.getPageSize(), pageInfo.getTotal());
     }
 
-    public List<ProgramDTO> getProgramDTOs(Integer teamId, Integer projectId, Integer userId) throws CoreException {
+    public List<ProgramDTO> getProgramDTOs(Integer teamId, Integer projectId, Integer userId) throws
+            CoreException {
         return getPrograms(teamId, projectId, userId)
                 .stream()
+                .filter(p -> p.getDeletedAt().equals(BeanUtils.getDefaultDeletedAt()))
                 .map(this::toProgramDTO)
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
-    public List<Project> getPrograms(Integer teamId, Integer projectId, Integer userId) throws CoreException {
+    public List<Project> getPrograms(Integer teamId, Integer projectId, Integer userId) throws
+            CoreException {
         ProgramQueryParameter parameter = ProgramQueryParameter.builder()
                 .teamId(teamId)
                 .projectId(projectId)
@@ -292,12 +453,24 @@ public class ProgramService {
                     .hasEnterprisePermission(teamId, userId, PmTypeEnums.PROGRAM.getType(), ACTION_VIEW);
             if (!hasEnterprisePermission) {
                 parameter.setUserId(userId);
+                Set<Integer> joinedProjectIds = projectMemberInspectService.getJoinedProjectIds(
+                        ProjectMemberPrincipalQueryParameter.builder()
+                                .teamId(parameter.getTeamId())
+                                .userId(parameter.getUserId())
+                                .pmType(PmTypeEnums.PROGRAM.getType())
+                                .deletedAt(BeanUtils.getDefaultDeletedAt())
+                                .build());
+                if (CollectionUtils.isEmpty(joinedProjectIds)) {
+                    return Collections.emptyList();
+                }
+                parameter.setJoinedProjectIds(joinedProjectIds);
             }
         }
         return programDao.selectPrograms(parameter);
     }
 
-    public Project getProgram(Integer teamId, Integer userId, Integer programId) throws CoreException {
+    public Project getProgram(Integer teamId, Integer userId, Integer programId) throws
+            CoreException {
         Project program = programDao.selectByIdAndTeamId(programId, teamId);
         if (Objects.isNull(program)) {
             throw CoreException.of(RESOURCE_NO_FOUND);
@@ -309,7 +482,8 @@ public class ProgramService {
         return program;
     }
 
-    public List<ProjectDTO> getProgramAllProjects(ProgramProjectQueryParameter parameter) throws CoreException {
+    public List<ProjectDTO> getProgramAllProjects(ProgramProjectQueryParameter parameter) throws
+            CoreException {
         if (parameter.getQueryType().equals(QueryProgramForm.QueryType.ALL.name())) {
             projectAdaptorFactory.create(PmTypeEnums.PROGRAM.getType())
                     .hasPermissionInEnterprise(
@@ -317,30 +491,68 @@ public class ProgramService {
                             parameter.getUserId(),
                             PmTypeEnums.PROGRAM.getType(),
                             ACTION_VIEW);
+        } else {
+            Set<Integer> joinedProjectIds = projectMemberInspectService.getJoinedProjectIds(
+                    ProjectMemberPrincipalQueryParameter.builder()
+                            .teamId(parameter.getTeamId())
+                            .userId(parameter.getUserId())
+                            .pmType(PmTypeEnums.PROGRAM.getType())
+                            .deletedAt(parameter.getDeletedAt())
+                            .build());
+            if (parameter.getQueryType().equals(QueryProgramForm.QueryType.MANAGED.name())) {
+                Set<Integer> manageProjectIds = projectMemberInspectService.listResourcesOnUser(
+                        parameter.getUserId(),
+                        PmTypeEnums.PROGRAM.name(),
+                        joinedProjectIds,
+                        parameter.getUserId().longValue(),
+                        RoleType.ProgramAdmin.name()
+                );
+                parameter.setJoinedProjectIds(manageProjectIds);
+            }
+            if (parameter.getQueryType().equals(QueryProgramForm.QueryType.JOINED.name())) {
+                parameter.setJoinedProjectIds(joinedProjectIds);
+            }
+            if (CollectionUtils.isEmpty(parameter.getJoinedProjectIds())) {
+                return Collections.emptyList();
+            }
         }
         return StreamEx.of(programDao.selectProgramAllProjects(parameter))
                 .map(projectDTOService::toDetailDTO)
                 .nonNull()
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     public List<ProjectDTO> getProgramProjectDTOs(Integer currentTeamId, Integer currentUserId,
                                                   Integer programId, Boolean queryJoined) throws CoreException {
         getProgram(currentTeamId, currentUserId, programId);
         return StreamEx.of(
-                        getProgramProjects(ProgramProjectQueryParameter.builder()
-                                .teamId(currentTeamId)
-                                .programId(programId)
-                                .userId(queryJoined ? currentUserId : 0)
-                                .build())
-                )
+                getProgramProjects(ProgramProjectQueryParameter.builder()
+                        .teamId(currentTeamId)
+                        .programId(programId)
+                        .userId(queryJoined ? currentUserId : 0)
+                        .build())
+        )
                 .map(projectDTOService::toDetailDTO)
                 .nonNull()
                 .peek(p -> p.setMemberCount(projectMemberDao.findListByProjectId(p.getId(), p.getDeleted_at()).size()))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     public List<Project> getProgramProjects(ProgramProjectQueryParameter parameter) {
+        if (Objects.nonNull(parameter.getUserId()) && parameter.getUserId() > 0) {
+            Set<Integer> joinedProjectIds = projectMemberInspectService.getJoinedProjectIds(
+                    ProjectMemberPrincipalQueryParameter.builder()
+                            .teamId(parameter.getTeamId())
+                            .userId(parameter.getUserId())
+                            .pmType(PmTypeEnums.PROJECT.getType())
+                            .deletedAt(BeanUtils.getDefaultDeletedAt())
+                            .archivedAt(BeanUtils.getDefaultArchivedAt())
+                            .build());
+            if (CollectionUtils.isEmpty(joinedProjectIds)) {
+                return Collections.emptyList();
+            }
+            parameter.setJoinedProjectIds(joinedProjectIds);
+        }
         return programDao.selectProgramProjects(parameter);
     }
 
@@ -353,27 +565,111 @@ public class ProgramService {
         return StreamEx.of(userIds)
                 .map(userId -> {
                     List<ProjectDTO> projects = StreamEx.of(
-                                    programDao.selectProgramProjects(ProgramProjectQueryParameter.builder()
-                                            .teamId(currentTeamId)
-                                            .userId(userId)
-                                            .programId(programId).build())
-                            )
+                            getProgramProjects(ProgramProjectQueryParameter.builder()
+                                    .teamId(currentTeamId)
+                                    .userId(userId)
+                                    .programId(programId).build())
+                    )
                             .map(projectDTOService::toDetailDTO)
                             .nonNull()
-                            .collect(Collectors.toList());
+                            .collect(toList());
                     return ProjectUserDTO.builder()
                             .userId(userId)
                             .projects(projects)
                             .build();
 
                 }).nonNull()
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
-    private List<ProgramUserDTO> toProgramUserDTO(Integer programId) {
-        return StreamEx.of(projectMemberService.findListByProjectId(programId))
-                .filter(m -> Objects.equals(m.getType(), OWNER))
-                .map(m -> Optional.ofNullable(userGrpcClient.getUserById(m.getUserId()))
+    public List<ProjectUserDTO> getBatchPrincipalProgramProjects(Integer currentTeamId,
+                                                                 Integer currentUserId,
+                                                                 Integer programId,
+                                                                 List<ProjectMemberReqDTO> principals) throws CoreException {
+        Project program = getProgram(currentTeamId, currentUserId, programId);
+        if (!Optional.ofNullable(projectMemberService.getByProjectIdAndUserId(program.getId(), currentUserId))
+                .isPresent()) {
+            throw CoreException.of(PERMISSION_DENIED);
+        }
+        return StreamEx.of(principals)
+                .map(principal -> {
+                    ProjectMemberPrincipalQueryParameter parameter = ProjectMemberPrincipalQueryParameter.builder()
+                            .teamId(currentTeamId)
+                            .principalType(principal.getPrincipalType().name())
+                            .principalIds(StreamEx.of(principal.getPrincipalId()).toSet())
+                            .pmType(PmTypeEnums.PROJECT.getType())
+                            .deletedAt(BeanUtils.getDefaultDeletedAt())
+                            .archivedAt(BeanUtils.getDefaultArchivedAt())
+                            .build();
+
+                    List<ProjectMember> joinedUserMembers = new ArrayList<>();
+                    if (ProjectMemberPrincipalTypeEnum.USER.equals(principal.getPrincipalType())) {
+                        parameter.setUserId(Integer.valueOf(principal.getPrincipalId()));
+                        joinedUserMembers = projectMemberDao.findJoinPrincipalMembers(parameter);
+                    }
+                    Set<Integer> joinedProjectIds = StreamEx.of(joinedUserMembers, projectMemberDao.findPrincipalMembers(parameter))
+                            .flatMap(Collection::stream)
+                            .nonNull()
+                            .map(ProjectMember::getProjectId)
+                            .toSet();
+                    if (CollectionUtils.isEmpty(joinedProjectIds)) {
+                        return ProjectUserDTO.builder()
+                                .principalType(principal.getPrincipalType().name())
+                                .principalId(principal.getPrincipalId())
+                                .projects(Collections.emptyList())
+                                .build();
+                    }
+                    List<ProjectDTO> projects = StreamEx.of(
+                            getProgramProjects(ProgramProjectQueryParameter.builder()
+                                    .teamId(currentTeamId)
+                                    .programId(program.getId())
+                                    .joinedProjectIds(joinedProjectIds)
+                                    .build()
+                            ))
+                            .map(projectDTOService::toDetailDTO)
+                            .nonNull()
+                            .collect(toList());
+                    return ProjectUserDTO.builder()
+                            .principalType(principal.getPrincipalType().name())
+                            .principalId(principal.getPrincipalId())
+                            .projects(projects)
+                            .build();
+
+                }).nonNull()
+                .collect(toList());
+    }
+
+    private List<ProgramUserDTO> toProgramUserDTO(Integer teamId, Integer operatorId, Integer programId) {
+        Project program = projectDao.getProjectNotDeleteByIdAndTeamId(programId, teamId);
+        List<GrantObjectIdResponseDTO> grantDTOs = new ArrayList<>();
+        if (ramTransformTeamService.ramOnline(teamId)) {
+            PolicyResponseDTO policyDTO = projectMemberInspectService.getPolicyByName(operatorId, RoleType.ProgramOwner.name());
+            grantDTOs = projectMemberInspectService.listGrantObjectIds(operatorId, program, policyDTO.getPolicyId());
+        } else {
+            try {
+                grantDTOs = advancedRoleServiceGrpcClient.findProjectRoles(program.getId())
+                        .stream()
+                        .filter(role -> RoleType.ProgramOwner.name().equals(role.getType()))
+                        .flatMap(role -> {
+                            try {
+                                return advancedRoleServiceGrpcClient.findUsersOfRole(role).stream();
+                            } catch (Exception e) {
+                                log.error("advancedRoleServiceGrpcClient findUsersOfRole error");
+                            }
+                            return null;
+                        })
+                        .filter(Objects::nonNull)
+                        .map(userId -> new GrantObjectIdResponseDTO()
+                                .setGrantObjectId(String.valueOf(userId))
+                                .setGrantScope(GrantScopeEnum.USER.name()))
+                        .collect(toList());
+            } catch (Exception ex) {
+                log.error("advancedRoleServiceGrpcClient findProjectRoles error");
+            }
+        }
+        return StreamEx.of(grantDTOs)
+                .filter(grant -> GrantScopeEnum.USER.name().equals(grant.getGrantScope()))
+                .map(grant -> Optional.ofNullable(userGrpcClient.getUserById(Integer.valueOf(grant.getGrantObjectId())))
                         .map(u -> ProgramUserDTO.builder()
                                 .id(u.getId())
                                 .name(u.getName())
@@ -381,19 +677,19 @@ public class ProgramService {
                                 .build())
                         .orElse(null))
                 .nonNull()
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private List<ProjectDTO> toProjectDTO(Integer teamId, Integer programId) {
         return StreamEx.of(
-                        programDao.selectProgramProjects(ProgramProjectQueryParameter.builder()
-                                .teamId(teamId)
-                                .programId(programId)
-                                .build())
-                )
+                getProgramProjects(ProgramProjectQueryParameter.builder()
+                        .teamId(teamId)
+                        .programId(programId)
+                        .build())
+        )
                 .map(projectDTOService::toDetailDTO)
                 .nonNull()
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private ProgramDTO toProgramDTO(Project program) {
@@ -411,7 +707,8 @@ public class ProgramService {
                 .build();
     }
 
-    public void initProgramWorkflow(Integer currentTeamId, Integer currentUserId, Integer programId,
+    public void initProgramWorkflow(Integer currentTeamId, Integer currentUserId, Integer
+            programId,
                                     ProgramWorkflowEnums programWorkflow, Integer workflowProgramId) {
         try {
             issueWorkflowGrpcClient.initProgramWorkflow(currentTeamId, programId, currentUserId,

@@ -1,20 +1,28 @@
 package net.coding.lib.project.service;
 
 import net.coding.grpc.client.platform.TeamProjectServiceGrpcClient;
+import net.coding.lib.project.AppProperties;
+import net.coding.lib.project.dao.ProjectDao;
 import net.coding.lib.project.entity.Project;
-import net.coding.lib.project.template.ProjectTemplateDemoType;
-import net.coding.lib.project.template.ProjectTemplateType;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.UpdateProjectForm;
+import net.coding.lib.project.group.ProjectGroup;
+import net.coding.lib.project.group.ProjectGroupService;
+import net.coding.lib.project.infra.TextModerationService;
 import net.coding.lib.project.parameter.ProjectCreateParameter;
+import net.coding.lib.project.parameter.ProjectPageQueryParameter;
+import net.coding.lib.project.template.ProjectTemplateDemoType;
+import net.coding.lib.project.template.ProjectTemplateType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.validator.UrlValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.Errors;
 
 import java.sql.Date;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import lombok.AllArgsConstructor;
@@ -27,12 +35,16 @@ import static net.coding.common.base.validator.ValidationConstants.PROJECT_NAME_
 import static net.coding.common.constants.CommonConstants.DATA_REGEX;
 import static net.coding.common.constants.ProjectConstants.PROJECT_NAME_CLOUD_REGEX;
 import static net.coding.common.constants.ProjectConstants.PROJECT_NAME_REGEX;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.CONTENT_INCLUDE_SENSITIVE_WORDS;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PARAMETER_INVALID;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_DISPLAY_NAME_EXISTS;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_DISPLAY_NAME_IS_EMPTY;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_DISPLAY_NAME_LENGTH_ERROR;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NAME_ERROR;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NAME_EXISTS;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NAME_IS_EMPTY;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NAME_LENGTH_ERROR;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_TEMPLATE_NOT_EXIST;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_TYPE_INVALID;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_VCS_TYPE_INVALID;
 
@@ -50,9 +62,17 @@ public class ProjectValidateService {
 
     private static final short DISABLE_SHARED = 0;
 
+    private final ProjectDao projectDao;
+
+    private final AppProperties appProperties;
+
+    private final TextModerationService textModerationService;
+
     private final TeamProjectServiceGrpcClient teamProjectServiceGrpcClient;
 
     private final ProfanityWordService profanityWordService;
+
+    private final ProjectGroupService projectGroupService;
 
 
     public void validate(Project project, UpdateProjectForm updateProjectForm, Errors errors) throws CoreException {
@@ -266,5 +286,148 @@ public class ProjectValidateService {
                 && ProjectTemplateDemoType.valueFrom(template) == null) {
             throw CoreException.of(PARAMETER_INVALID);
         }
+    }
+
+    public void validateCreateProjectParameter(ProjectCreateParameter parameter) throws CoreException {
+        if (!validateProjectTemplate(parameter.getProjectTemplate())) {
+            throw CoreException.of(PROJECT_TEMPLATE_NOT_EXIST);
+        }
+        validateTemplate(parameter.getTemplate());
+        // 校验项目分组
+        if (Objects.nonNull(parameter.getGroupId())) {
+            ProjectGroup projectGroup = projectGroupService.getById(parameter.getGroupId());
+            if (Objects.isNull(projectGroup) || !projectGroup.getOwnerId().equals(parameter.getUserId())) {
+                throw CoreException.of(PARAMETER_INVALID);
+            }
+        }
+        if (!checkCloudProjectName(parameter.getName())) {
+            throw CoreException.of(PROJECT_NAME_ERROR);
+        }
+        Project existProjectDisplayName = projectDao.getProjectByDisplayNameAndTeamId(parameter.getDisplayName(), parameter.getTeamId());
+        if (Objects.nonNull(existProjectDisplayName)) {
+            throw CoreException.of(PROJECT_DISPLAY_NAME_EXISTS);
+        }
+        Project existProjectName = projectDao.getProjectByNameAndTeamId(parameter.getName(), parameter.getTeamId());
+        if (Objects.nonNull(existProjectName)) {
+            throw CoreException.of(PROJECT_NAME_EXISTS);
+        }
+        String nameProfanityWord = textModerationService.checkContent(parameter.getName());
+        if (org.apache.commons.lang3.StringUtils.isNotEmpty(nameProfanityWord)) {
+            throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, nameProfanityWord);
+        }
+        String displayNameProfanityWord = textModerationService.checkContent(parameter.getDisplayName());
+        if (org.apache.commons.lang3.StringUtils.isNotEmpty(displayNameProfanityWord)) {
+            throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, displayNameProfanityWord);
+        }
+        String descriptionProfanityWord = textModerationService.checkContent(parameter.getDescription());
+        if (org.apache.commons.lang3.StringUtils.isNotEmpty(descriptionProfanityWord)) {
+            throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, descriptionProfanityWord);
+        }
+        if (1024 < parameter.getDescription().length()) {
+            throw CoreException.of(CoreException.ExceptionType.PROJECT_DESCRIPTION_TOO_LONG);
+        }
+    }
+
+    public void validateUpdateProjectParameter(UpdateProjectForm form) throws CoreException {
+        if (StringUtils.isBlank(form.getName())) {
+            throw CoreException.of(PROJECT_NAME_IS_EMPTY);
+        }
+        if (form.getName().length() < PROJECT_NAME_MIN_LENGTH
+                || form.getName().length() > PROJECT_NAME_CLOUD_MAX_LENGTH) {
+            throw CoreException.of(PROJECT_NAME_LENGTH_ERROR,
+                    PROJECT_NAME_MIN_LENGTH, PROJECT_NAME_CLOUD_MAX_LENGTH);
+        }
+        String name = form.getName().replace(" ", "-");
+        boolean check = checkCloudProjectName(name);
+        if (!check) {
+            throw CoreException.of(PROJECT_NAME_ERROR);
+        }
+        if (org.apache.commons.lang3.StringUtils.isBlank(form.getDisplayName())) {
+            throw CoreException.of(PROJECT_DISPLAY_NAME_IS_EMPTY);
+        }
+        if (form.getDisplayName().length() < PROJECT_DISPLAY_NAME_MIN_LENGTH
+                || form.getDisplayName().length() > PROJECT_NAME_CLOUD_MAX_LENGTH) {
+            throw CoreException.of(PROJECT_DISPLAY_NAME_LENGTH_ERROR,
+                    PROJECT_DISPLAY_NAME_MIN_LENGTH, PROJECT_NAME_CLOUD_MAX_LENGTH);
+        }
+        //敏感词
+        String nameProfanityWord = textModerationService.checkContent(form.getName());
+        if (org.apache.commons.lang3.StringUtils.isNotEmpty(nameProfanityWord)) {
+            throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, nameProfanityWord);
+        }
+        String displayNameProfanityWord = textModerationService.checkContent(form.getDisplayName());
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(displayNameProfanityWord)) {
+            throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, displayNameProfanityWord);
+        }
+        String descriptionProfanityWord = textModerationService.checkContent(form.getDescription());
+        if (org.apache.commons.lang3.StringUtils.isNotEmpty(descriptionProfanityWord)) {
+            throw CoreException.of(CONTENT_INCLUDE_SENSITIVE_WORDS, descriptionProfanityWord);
+        }
+
+        String startDate = form.getStartDate();
+        String endDate = form.getEndDate();
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(startDate) && org.apache.commons.lang3.StringUtils.isBlank(endDate)) {
+            throw CoreException.of(CoreException.ExceptionType.PROJECT_END_DATE_NOT_EMPTY);
+        }
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(endDate) && org.apache.commons.lang3.StringUtils.isBlank(startDate)) {
+            throw CoreException.of(CoreException.ExceptionType.PROJECT_START_DATE_NOT_EMPTY);
+        }
+        if (org.apache.commons.lang3.StringUtils.isNotBlank(startDate) && org.apache.commons.lang3.StringUtils.isNotBlank(endDate)) {
+            boolean result = Pattern.compile(DATA_REGEX).matcher(endDate).matches();
+            if (!result) {
+                throw CoreException.of(CoreException.ExceptionType.PROJECT_END_DATE_ERROR);
+            }
+            result = Pattern.compile(DATA_REGEX).matcher(startDate).matches();
+            if (!result) {
+                throw CoreException.of(CoreException.ExceptionType.PROJECT_START_DATE_ERROR);
+            }
+            if (getEndDate(endDate)
+                    .before(getStartDate(startDate))) {
+                throw CoreException.of(CoreException.ExceptionType.PROJECT_END_DATE_BEFORE_START_DATE);
+            }
+        }
+    }
+
+    public void validateGroupId(ProjectPageQueryParameter parameter) throws CoreException {
+        if (parameter.getGroupId() != null && parameter.getGroupId() > 0) {
+            ProjectGroup projectGroup = projectGroupService.getById(parameter.getGroupId());
+            if (Objects.isNull(projectGroup)
+                    || (Objects.nonNull(parameter.getUserId())
+                    && !parameter.getUserId().equals(projectGroup.getOwnerId()))) {
+                throw CoreException.of(PARAMETER_INVALID);
+            }
+            if (ProjectGroup.TYPE.ALL.toString().equals(projectGroup.getType())) {
+                // 全部项目，将groupId置空
+                parameter.setGroupId(null);
+            } else if (ProjectGroup.TYPE.NO_GROUP.toString().equals(projectGroup.getType())) {
+                // 未分组项目 置0
+                parameter.setGroupId(ProjectGroup.NO_GROUP_ID);
+            }
+        }
+    }
+
+
+    /**
+     * 新上传逻辑采用icon
+     *
+     * @param icon
+     * @return
+     * @throws CoreException
+     */
+    public String validateIcon(String icon) throws CoreException {
+        if (org.apache.commons.lang3.StringUtils.isNoneBlank(icon)) {
+            if (!validateImageURL(icon) || !new UrlValidator().isValid(icon)) {
+                throw CoreException.of(CoreException.ExceptionType.UPDATE_PROJECT_ICON_ERROR);
+            }
+            return icon;
+        }
+        throw CoreException.of(CoreException.ExceptionType.UPDATE_PROJECT_ICON_ERROR);
+    }
+
+    public boolean validateImageURL(String url) {
+        if (org.apache.commons.lang3.StringUtils.isBlank(appProperties.getIcon().getDomain())) {
+            return true;
+        }
+        return Pattern.compile("^(?:https?|ftp)://[^.]+.(" + appProperties.getIcon().getDomain() + ")/.*$").matcher(url).find();
     }
 }

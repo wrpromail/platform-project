@@ -55,7 +55,7 @@ import static net.coding.common.constants.ProjectConstants.ACTION_CREATE;
 import static net.coding.lib.project.entity.ProjectPreference.PREFERENCE_STATUS_TRUE;
 import static net.coding.lib.project.entity.ProjectPreference.PREFERENCE_TYPE_PROJECT_TWEET;
 import static net.coding.lib.project.enums.ProgramProjectEventEnums.createProject;
-import static org.apache.logging.log4j.util.Strings.EMPTY;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 @Component
 @Slf4j
@@ -101,7 +101,7 @@ public class ProjectServiceHelper {
                 // 站内通知
                 notificationGrpcClient.send(NotificationProto.NotificationSendRequest.newBuilder()
                         .addAllUserId(userIds)
-                        .setContent(StringUtils.defaultIfBlank(message, StringUtils.EMPTY))
+                        .setContent(StringUtils.defaultIfBlank(message, EMPTY))
                         .setTargetType(TargetType.ProjectTweet)
                         .setTargetId(tweet.getId().toString())
                         .setSetting(NotificationProto.Setting.AtSetting)
@@ -139,7 +139,7 @@ public class ProjectServiceHelper {
 
                 notificationGrpcClient.send(NotificationProto.NotificationSendRequest.newBuilder()
                         .addAllUserId(userIds)
-                        .setContent(StringUtils.defaultIfBlank(message, StringUtils.EMPTY))
+                        .setContent(StringUtils.defaultIfBlank(message, EMPTY))
                         .setTargetType(NotificationProto.TargetType.Project)
                         .setTargetId(tweet.getId().toString())
                         .setSetting(NotificationProto.Setting.AtSetting)
@@ -163,11 +163,11 @@ public class ProjectServiceHelper {
 
     public String tweetPath(ProjectTweet projectTweet, Project project, String projectPath) {
         if (userGrpcClient.getUserById(projectTweet.getOwnerId()) == null) {
-            return StringUtils.EMPTY;
+            return EMPTY;
         }
 
         if (project == null) {
-            return StringUtils.EMPTY;
+            return EMPTY;
         }
 
         return projectPath + "/setting/notice/" + projectTweet.getId();
@@ -203,13 +203,13 @@ public class ProjectServiceHelper {
             notification = ResourceUtil.ui(
                     "notification_project_tweet_refer_user", userLink,
                     this.getTweetHtmlLink(tweet, project, projectPath),
-                    StringUtils.EMPTY);
+                    EMPTY);
         }
 
         // 站内通知
         notificationGrpcClient.send(NotificationProto.NotificationSendRequest.newBuilder()
                 .addAllUserId(userIds)
-                .setContent(StringUtils.defaultIfBlank(notification, StringUtils.EMPTY))
+                .setContent(StringUtils.defaultIfBlank(notification, EMPTY))
                 .setTargetType(NotificationProto.TargetType.ProjectTweet)
                 .setTargetId(tweet.getId().toString())
                 .setSetting(NotificationProto.Setting.AtSetting)

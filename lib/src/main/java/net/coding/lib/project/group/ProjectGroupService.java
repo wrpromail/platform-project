@@ -3,11 +3,13 @@ package net.coding.lib.project.group;
 import net.coding.common.i18n.utils.LocaleMessageSource;
 import net.coding.common.util.BeanUtils;
 import net.coding.lib.project.dao.ProjectDao;
-import net.coding.lib.project.dao.pojo.ProjectSearchFilter;
 import net.coding.lib.project.entity.Project;
+import net.coding.lib.project.enums.PmTypeEnums;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.exception.ProjectGroupSameNameException;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
+import net.coding.lib.project.parameter.ProjectMemberPrincipalQueryParameter;
+import net.coding.lib.project.service.member.ProjectMemberInspectService;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -19,6 +21,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,6 +39,7 @@ public class ProjectGroupService {
     private final ProjectDao projectDao;
     private final UserGrpcClient userGrpcClient;
     private final LocaleMessageSource localeMessageSource;
+    private final ProjectMemberInspectService projectMemberInspectService;
 
 
     public ProjectGroup getById(Integer id) {
@@ -48,11 +52,11 @@ public class ProjectGroupService {
 
     public ProjectGroup getByProjectAndUser(Integer projectId, Integer userId) {
         return Optional.ofNullable(
-                        projectGroupProjectDao.getByProjectIdsAndUserId(
-                                Collections.singletonList(projectId),
-                                userId, BeanUtils.getDefaultDeletedAt()
-                        )
-                ).map(Collection::stream)
+                projectGroupProjectDao.getByProjectIdsAndUserId(
+                        Collections.singletonList(projectId),
+                        userId, BeanUtils.getDefaultDeletedAt()
+                )
+        ).map(Collection::stream)
                 .orElse(Stream.empty())
                 .findFirst()
                 .map(gp -> projectGroupDao.getById(gp.getProjectGroupId(), BeanUtils.getDefaultDeletedAt()))
@@ -185,31 +189,25 @@ public class ProjectGroupService {
             return 0;
         }
         UserProto.User user = userGrpcClient.getUserById(projectGroup.getOwnerId());
-
-        ProjectSearchFilter filter = new ProjectSearchFilter();
-        filter.setTeamId(user.getTeamId());
-        filter.setUserId(user.getId());
-
+        Set<Integer> joinedProjectIds = projectMemberInspectService.getJoinedProjectIds(
+                ProjectMemberPrincipalQueryParameter.builder()
+                        .teamId(user.getTeamId())
+                        .userId(user.getId())
+                        .pmType(PmTypeEnums.PROJECT.getType())
+                        .deletedAt(BeanUtils.getDefaultDeletedAt())
+                        .build());
         if (projectGroup.isAll()) {
-            return projectDao.countProjectsByFilter(
-                    filter.getTeamId(),
-                    filter.getUserId(),
-                    BeanUtils.getDefaultDeletedAt()
-            );
+            return joinedProjectIds.size();
         }
-
-        filter.setCountWithGroup(true);
-        if (projectGroup.isNoGroup()) {
-            filter.setGroupId(ProjectGroup.NO_GROUP_ID);
-        } else {
-            filter.setGroupId(projectGroup.getId());
-        }
-        return projectGroupDao.countProjectsByFilterGroup(
-                filter.getTeamId(),
-                filter.getUserId(),
-                filter.getGroupId(),
+        return projectGroupProjectDao.listByOwner(
+                user.getTeamId(),
+                projectGroup.isNoGroup()? ProjectGroup.NO_GROUP_ID : projectGroup.getId(),
                 BeanUtils.getDefaultDeletedAt()
-        );
+        )
+                .stream()
+                .map(ProjectGroupProject::getProjectId)
+                .filter(joinedProjectIds::contains)
+                .count();
     }
 
     public void delRelationOfProAndGro(

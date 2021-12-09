@@ -35,7 +35,7 @@ public class ProjectMemberDeleteEventListener {
     @Subscribe
     @Transactional
     public void handle(ProjectMemberDeleteEvent event) {
-        try {
+    /*    try {
             log.info("ProjectMemberDeleteEvent , event :{}", JSON.toJson(event));
             Project project = projectService.getById(event.getProjectId());
             if (Objects.isNull(project)) {
@@ -69,6 +69,6 @@ public class ProjectMemberDeleteEventListener {
             log.error("ProjectMemberDeleteEvent Exception Error, projectId = {}, targetUserId = {}",
                     event.getProjectId(),
                     event.getUserId());
-        }
+        }*/
     }
 }

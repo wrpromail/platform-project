@@ -28,6 +28,7 @@ public interface ProjectGroupProjectDao extends tk.mybatis.mapper.common.Mapper<
 
     List<ProjectGroupProject> listByOwner(
             @Param("ownerId") Integer ownerId,
+            @Param("groupId") Integer groupId,
             @Param("deleted") Timestamp deletedAt
     );
 

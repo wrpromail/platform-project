@@ -11,16 +11,63 @@
         <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt"/>
         <result column="last_visit_at" jdbcType="TIMESTAMP" property="lastVisitAt"/>
         <result column="alias" jdbcType="VARCHAR" property="alias"/>
+        <result column="principal_type" jdbcType="VARCHAR" property="principalType"/>
+        <result column="principal_id" jdbcType="VARCHAR" property="principalId"/>
+        <result column="principal_sort" jdbcType="VARCHAR" property="principalSort"/>
     </resultMap>
     <sql id="Base_Column_List">
-        id, project_id, user_id, `type`, created_at, deleted_at, last_visit_at, `alias`
+        id, project_id, user_id, `type`, created_at, deleted_at, last_visit_at, `alias`, principal_type, principal_id, principal_sort
     </sql>
-    <select id="getById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from project_members
-        where id = #{id,jdbcType=INTEGER}
-    </select>
+
+    <insert id="batchInsert">
+        insert into project_members
+        (project_id,
+        user_id,
+        `type`,
+        `alias`,
+        principal_type,
+        principal_id,
+        principal_sort,
+        created_at,
+        last_visit_at,
+        deleted_at)
+        values
+        <foreach collection="members" item="item" index="index" separator=",">
+            (#{item.projectId},
+            #{item.userId},
+            #{item.type},
+            #{item.alias},
+            #{item.principalType},
+            #{item.principalId},
+            #{item.principalSort},
+            #{item.createdAt},
+            #{item.lastVisitAt},
+            #{item.deletedAt})
+        </foreach>
+
+    </insert>
+
+    <update id="batchDelete">
+        update project_members
+        <set>
+            deleted_at = NOW()
+        </set>
+        where id in
+        <foreach collection="members" item="item" index="index" open="(" close=")" separator=",">
+            #{item.id}
+        </foreach>
+    </update>
+
+    <update id="batchUpdate">
+        update project_members
+        <set>
+            deleted_at = #{deletedAt}
+        </set>
+        where id in
+        <foreach collection="members" item="item" index="index" open="(" close=")" separator=",">
+            #{item.id}
+        </foreach>
+    </update>
 
     <insert id="insertList" keyColumn="id" keyProperty="id">
         insert into project_members
@@ -28,102 +75,27 @@
         user_id,
         `type`,
         `alias`,
+        principal_type,
+        principal_id,
+        principal_sort,
         created_at,
         last_visit_at,
         deleted_at)
         values
         <foreach collection="list" item="item" index="index" separator=",">
             (#{record.projectId},
-
             #{item},
             #{record.type},
             #{record.alias},
+            #{record.principalType},
+            #{item},
+            #{record.principalSort},
             #{record.createdAt},
             #{record.lastVisitAt},
             #{record.deletedAt})
         </foreach>
 
     </insert>
-
-    <insert id="insert" keyColumn="id" keyProperty="id"
-            parameterType="net.coding.lib.project.entity.ProjectMember" useGeneratedKeys="true">
-        insert into project_members
-        <trim prefix="(" suffix=")" suffixOverrides=",">
-            <if test="projectId != null">
-                project_id,
-            </if>
-            <if test="userId != null">
-                user_id,
-            </if>
-            <if test="type != null">
-                `type`,
-            </if>
-            <if test="createdAt != null">
-                created_at,
-            </if>
-            <if test="deletedAt != null">
-                deleted_at,
-            </if>
-            <if test="lastVisitAt != null">
-                last_visit_at,
-            </if>
-            <if test="alias != null">
-                `alias`,
-            </if>
-        </trim>
-        <trim prefix="values (" suffix=")" suffixOverrides=",">
-            <if test="projectId != null">
-                #{projectId,jdbcType=INTEGER},
-            </if>
-            <if test="userId != null">
-                #{userId,jdbcType=INTEGER},
-            </if>
-            <if test="type != null">
-                #{type,jdbcType=TINYINT},
-            </if>
-            <if test="createdAt != null">
-                #{createdAt,jdbcType=TIMESTAMP},
-            </if>
-            <if test="deletedAt != null">
-                #{deletedAt,jdbcType=TIMESTAMP},
-            </if>
-            <if test="lastVisitAt != null">
-                #{lastVisitAt,jdbcType=TIMESTAMP},
-            </if>
-            <if test="alias != null">
-                #{alias,jdbcType=VARCHAR},
-            </if>
-        </trim>
-    </insert>
-
-    <update id="update" parameterType="net.coding.lib.project.entity.ProjectMember">
-        update project_members
-        <set>
-            <if test="projectId != null">
-                project_id = #{projectId,jdbcType=INTEGER},
-            </if>
-            <if test="userId != null">
-                user_id = #{userId,jdbcType=INTEGER},
-            </if>
-            <if test="type != null">
-                `type` = #{type,jdbcType=TINYINT},
-            </if>
-            <if test="createdAt != null">
-                created_at = #{createdAt,jdbcType=TIMESTAMP},
-            </if>
-            <if test="deletedAt != null">
-                deleted_at = #{deletedAt,jdbcType=TIMESTAMP},
-            </if>
-            <if test="lastVisitAt != null">
-                last_visit_at = #{lastVisitAt,jdbcType=TIMESTAMP},
-            </if>
-            <if test="alias != null">
-                `alias` = #{alias,jdbcType=VARCHAR},
-            </if>
-        </set>
-        where id = #{id,jdbcType=INTEGER}
-    </update>
-
 
     <select id="findListByProjectId" parameterType="map" resultMap="BaseResultMap">
         SELECT
@@ -134,6 +106,77 @@
             AND deleted_at = #{deletedAt}
         </where>
         ORDER BY id DESC
+    </select>
+
+    <select id="findPrincipalMembers" resultMap="BaseResultMap">
+        select pm.* from projects p
+        inner join project_members pm on p.id = pm.project_id
+        <where>
+            (p.deleted_at = #{deletedAt}
+            <if test="archivedAt != null">
+                or p.deleted_at = #{archivedAt}
+            </if>
+            )
+            and p.team_owner_id = #{teamId}
+            and p.invisible = 0
+            <if test="pmType != null">
+                and p.pm_type = #{pmType}
+            </if>
+            and(pm.deleted_at = #{deletedAt}
+            <if test="archivedAt != null">
+                or pm.deleted_at = #{archivedAt}
+            </if>
+            )
+            and pm.principal_type = #{principalType}
+            <if test="principalIds != null and principalIds.size() &gt; 0">
+                AND pm.principal_id in
+                <foreach item="principalId" index="index" collection="principalIds" open="("
+                         close=")"
+                         separator=",">
+                    #{principalId}
+                </foreach>
+            </if>
+        </where>
+        group by pm.id
+    </select>
+
+    <select id="findJoinPrincipalMembers" resultMap="BaseResultMap">
+        select pm.* from projects p
+        inner join project_members pm on p.id = pm.project_id
+        <where>
+            (p.deleted_at = #{deletedAt}
+            <if test="archivedAt != null">
+                or p.deleted_at = #{archivedAt}
+            </if>
+            )
+            and p.team_owner_id = #{teamId}
+            and p.invisible = 0
+            <if test="pmType != null">
+                and p.pm_type = #{pmType}
+            </if>
+            and(pm.deleted_at = #{deletedAt}
+            <if test="archivedAt != null">
+                or pm.deleted_at = #{archivedAt}
+            </if>
+            )
+            and pm.principal_type is null
+            and pm.principal_id is null
+            and pm.user_id =#{userId}
+        </where>
+        group by pm.id
+    </select>
+
+    <select id="findPrincipalMember" parameterType="map" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM project_members
+        <where>
+            project_id = #{projectId}
+            AND principal_type = #{principalType}
+            AND principal_id = #{principalId}
+            AND deleted_at = #{deletedAt}
+        </where>
+        Limit 1
     </select>
 
     <select id="getByProjectIdAndUserId" parameterType="map" resultMap="BaseResultMap">

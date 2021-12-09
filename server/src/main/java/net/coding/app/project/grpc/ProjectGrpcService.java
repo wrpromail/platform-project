@@ -3,13 +3,19 @@ package net.coding.app.project.grpc;
 
 import net.coding.common.util.BeanUtils;
 import net.coding.grpc.client.permission.AclServiceGrpcClient;
+import net.coding.lib.project.dao.ProjectDao;
 import net.coding.lib.project.entity.Project;
-import net.coding.lib.project.template.ProjectTemplateType;
+import net.coding.lib.project.enums.PmTypeEnums;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.parameter.ProjectCreateParameter;
+import net.coding.lib.project.parameter.ProjectQueryParameter;
 import net.coding.lib.project.service.ProjectService;
+import net.coding.lib.project.service.ProjectTokenService;
+import net.coding.lib.project.service.ProjectValidateService;
+import net.coding.lib.project.service.project.ProjectsService;
+import net.coding.lib.project.template.ProjectTemplateType;
 import net.coding.proto.platform.project.ProjectProto;
 import net.coding.proto.platform.project.ProjectServiceGrpc;
 
@@ -18,10 +24,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.lognet.springboot.grpc.GRpcService;
 import org.springframework.util.ObjectUtils;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import io.grpc.stub.StreamObserver;
@@ -34,6 +40,7 @@ import proto.platform.team.TeamProto;
 import proto.platform.user.UserProto;
 
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PERMISSION_DENIED;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.RESOURCE_NO_FOUND;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.TEAM_NOT_EXIST;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.USER_NOT_LOGIN;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -50,10 +57,51 @@ import static proto.platform.permission.PermissionProto.Function.EnterpriseProje
 @GRpcService
 public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBase {
 
+    private final ProjectDao projectDao;
     private final ProjectService projectService;
+    private final ProjectsService projectsService;
+    private final ProjectValidateService projectValidateService;
     private final TeamGrpcClient teamGrpcClient;
     private final UserGrpcClient userGrpcClient;
     private final AclServiceGrpcClient aclServiceGrpcClient;
+    private final ProjectTokenService projectTokenService;
+
+    @Override
+    public void containArchivedProjectsGet(
+            ProjectProto.ContainArchivedProjectsGetRequest request,
+            StreamObserver<ProjectProto.ContainArchivedProjectsGetResponse> responseObserver) {
+        ProjectProto.ContainArchivedProjectsGetResponse.Builder builder =
+                ProjectProto.ContainArchivedProjectsGetResponse.newBuilder();
+        try {
+            if (request.getTeamId() <= 0) {
+                throw CoreException.of(CoreException.ExceptionType.PARAMETER_INVALID);
+            }
+            TeamProto.GetTeamResponse response = teamGrpcClient.getTeam(request.getTeamId());
+            if (SUCCESS != response.getCode()) {
+                builder.setCode(CodeProto.Code.NOT_FOUND);
+                builder.setMessage("Team is not found");
+                log.warn("Team is not found ,teamId : {}", request.getTeamId());
+            } else {
+                List<Project> projects = projectService.getContainArchivedProjects(request.getTeamId());
+                if (CollectionUtils.isNotEmpty(projects)) {
+                    builder.addAllProject(projects.stream()
+                            .map(this::toProtoProject)
+                            .collect(Collectors.toList()));
+                    builder.setCode(SUCCESS);
+                } else {
+                    builder.setCode(CodeProto.Code.NOT_FOUND);
+                    builder.setMessage("Project is not found");
+                    log.warn("ContainArchivedProjectsGet is not found ,teamId : {}", request.getTeamId());
+                }
+            }
+        } catch (Exception e) {
+            log.error("RpcService containArchivedProjectsGet error {} ", e.getMessage());
+            builder.setCode(INTERNAL_ERROR)
+                    .setMessage(e.getMessage());
+        }
+        responseObserver.onNext(builder.build());
+        responseObserver.onCompleted();
+    }
 
     @Override
     public void createProject(
@@ -139,7 +187,7 @@ public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBas
                     || ObjectUtils.isEmpty(response.getData())) {
                 throw CoreException.of(TEAM_NOT_EXIST);
             }
-            projectService.validateCreateProjectParameter(ProjectCreateParameter.builder()
+            projectValidateService.validateCreateProjectParameter(ProjectCreateParameter.builder()
                     .teamId(response.getData().getId())
                     .name(request.getProjectName().replace(" ", "-"))
                     .displayName(request.getProjectName())
@@ -160,7 +208,12 @@ public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBas
             ProjectProto.GetWithArchivedProjectRequest request,
             StreamObserver<ProjectProto.GetWithArchivedProjectResponse> responseObserver) {
         try {
-            Project project = projectService.getWithArchivedByIdAndTeamId(request.getProjectId(), request.getTeamId());
+            Project project;
+            if (request.getTeamId() > 0) {
+                project = projectService.getWithArchivedByIdAndTeamId(request.getProjectId(), request.getTeamId());
+            } else {
+                project = projectDao.getProjectNotDeleteById(request.getProjectId());
+            }
             getWithArchivedProjectResponse(responseObserver, SUCCESS, SUCCESS.name(), project);
         } catch (Exception e) {
             log.error("rpcService getWithArchivedProject error Exception ", e);
@@ -173,7 +226,9 @@ public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBas
             ProjectProto.GetJoinedProjectsRequest request,
             StreamObserver<ProjectProto.GetJoinedProjectsResponse> responseObserver) {
         try {
-            List<Project> projects = projectService.getJoinedProjects(request.getTeamId(), request.getUserId());
+            List<Project> projects = projectsService.getJoinedProjects(request.getTeamId(),
+                    request.getUserId(),
+                    request.getKeyword());
             getJoinedProjectsResponse(responseObserver, SUCCESS, SUCCESS.name(), projects);
         } catch (Exception e) {
             log.error("rpcService getJoinedProjects error Exception ", e);
@@ -182,40 +237,147 @@ public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBas
     }
 
     @Override
-    public void containArchivedProjectsGet(
-            ProjectProto.ContainArchivedProjectsGetRequest request,
-            StreamObserver<ProjectProto.ContainArchivedProjectsGetResponse> responseObserver) {
-        ProjectProto.ContainArchivedProjectsGetResponse.Builder builder =
-                ProjectProto.ContainArchivedProjectsGetResponse.newBuilder();
+    public void getUserProjects(ProjectProto.GetJoinedProjectsRequest request,
+                                StreamObserver<ProjectProto.GetProjectsResponse> responseObserver) {
+        ProjectProto.GetProjectsResponse.Builder builder = ProjectProto.GetProjectsResponse.newBuilder();
         try {
-            if (request.getTeamId() <= 0) {
-                throw CoreException.of(CoreException.ExceptionType.PARAMETER_INVALID);
-            }
-            TeamProto.GetTeamResponse response = teamGrpcClient.getTeam(request.getTeamId());
-            if (SUCCESS != response.getCode()) {
-                builder.setCode(CodeProto.Code.NOT_FOUND);
-                builder.setMessage("Team is not found");
-                log.warn("Team is not found ,teamId : {}", request.getTeamId());
-            } else {
-                List<Project> projects = projectService.getContainArchivedProjects(request.getTeamId());
-                if (CollectionUtils.isNotEmpty(projects)) {
-                    builder.addAllProject(projects.stream()
-                            .map(this::toProtoProject)
-                            .collect(Collectors.toList()));
-                    builder.setCode(SUCCESS);
-                } else {
-                    builder.setCode(CodeProto.Code.NOT_FOUND);
-                    builder.setMessage("Project is not found");
-                    log.warn("ContainArchivedProjectsGet is not found ,teamId : {}", request.getTeamId());
-                }
-            }
+            List<Project> projects = projectsService.getJoinedPrincipalProjects(request.getTeamId(),
+                    request.getUserId(),
+                    request.getKeyword());
+            builder.setCode(SUCCESS).addAllData(toProtoProjects(projects));
         } catch (Exception e) {
-            log.error("RpcService containArchivedProjectsGet error {} ", e.getMessage());
-            builder.setCode(INTERNAL_ERROR)
-                    .setMessage(e.getMessage());
+            log.error("rpcService getUserProjects error Exception ", e);
+            builder.setCode(INTERNAL_ERROR).setMessage(e.getMessage());
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
         }
-        responseObserver.onNext(builder.build());
-        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void isProjectRobotUser(ProjectProto.IsProjectRobotUserRequest request,
+                                   StreamObserver<ProjectProto.IsProjectRobotUserResponse> responseObserver) {
+        ProjectProto.IsProjectRobotUserResponse.Builder builder = ProjectProto.IsProjectRobotUserResponse.newBuilder();
+        try {
+            builder.setCode(SUCCESS)
+                    .setResult(projectTokenService.isProjectRobotUser(request.getUserGK()));
+        } catch (Exception e) {
+            log.error("rpcService isProjectRobotUser error Exception ", e);
+            builder.setCode(INTERNAL_ERROR).setMessage(e.getMessage());
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        }
+    }
+
+    @Override
+    public void getProjectById(ProjectProto.GetProjectByIdRequest request,
+                               StreamObserver<ProjectProto.GetProjectResponse> responseObserver) {
+        ProjectProto.GetProjectResponse.Builder builder = ProjectProto.GetProjectResponse.newBuilder();
+        try {
+            Project project = Optional.of(request)
+                    .filter(req -> request.getWithDeleted() == Boolean.TRUE)
+                    .map(req -> projectService.getProjectWithDeleted(req.getProjectId()))
+                    .orElse(projectService.getById(request.getProjectId()));
+            if (Objects.isNull(project)) {
+                throw CoreException.of(RESOURCE_NO_FOUND);
+            }
+            builder.setCode(SUCCESS).setData(toProtoProject(project));
+        } catch (CoreException e) {
+            builder.setCode(CodeProto.Code.NOT_FOUND).setMessage(e.getMsg());
+        } catch (Exception e) {
+            log.error("rpcService getProjectById error Exception ", e);
+            builder.setCode(INTERNAL_ERROR).setMessage(e.getMessage());
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        }
+    }
+
+    @Override
+    public void getProjectByTeamIdAndName(ProjectProto.GetProjectByTeamIdAndNameRequest request,
+                                          StreamObserver<ProjectProto.GetProjectResponse> responseObserver) {
+        ProjectProto.GetProjectResponse.Builder builder = ProjectProto.GetProjectResponse.newBuilder();
+        try {
+            Project project = projectService.getByNameAndTeamId(request.getProjectName(), request.getTeamId());
+            if (Objects.isNull(project)) {
+                throw CoreException.of(RESOURCE_NO_FOUND);
+            }
+            builder.setCode(SUCCESS).setData(toProtoProject(project));
+        } catch (CoreException e) {
+            builder.setCode(CodeProto.Code.NOT_FOUND).setMessage(e.getMsg());
+        } catch (Exception e) {
+            log.error("rpcService getProjectByTeamIdAndName error Exception ", e);
+            builder.setCode(INTERNAL_ERROR).setMessage(e.getMessage());
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        }
+    }
+
+    @Override
+    public void getProjectByTeamIdAndDisplayName(ProjectProto.GetProjectByTeamIdAndDisplayNameRequest request,
+                                                 StreamObserver<ProjectProto.GetProjectResponse> responseObserver) {
+        ProjectProto.GetProjectResponse.Builder builder = ProjectProto.GetProjectResponse.newBuilder();
+        try {
+            Project project = projectService.getByDisplayNameAndTeamId(request.getDisplayName(), request.getTeamId());
+            if (Objects.isNull(project)) {
+                throw CoreException.of(RESOURCE_NO_FOUND);
+            }
+            builder.setCode(SUCCESS).setData(toProtoProject(project));
+        } catch (CoreException e) {
+            builder.setCode(CodeProto.Code.NOT_FOUND).setMessage(e.getMsg());
+        } catch (Exception e) {
+            log.error("rpcService getProjectByTeamIdAndDisplayName error Exception ", e);
+            builder.setCode(INTERNAL_ERROR).setMessage(e.getMessage());
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        }
+    }
+
+    @Override
+    public void getProjectsByIds(ProjectProto.GetProjectByIdsRequest request,
+                                 StreamObserver<ProjectProto.GetProjectsResponse> responseObserver) {
+        ProjectProto.GetProjectsResponse.Builder builder = ProjectProto.GetProjectsResponse.newBuilder();
+        try {
+            List<Project> projects = Optional.of(request)
+                    .filter(req -> request.getWithDeleted() == Boolean.TRUE)
+                    .map(req -> projectsService.getByProjectIdsWithDeleted(StreamEx.of(request.getProjectIdsList()).toSet()))
+                    .orElse(projectsService.getByProjectIds(StreamEx.of(request.getProjectIdsList()).toSet()));
+            builder.setCode(SUCCESS).addAllData(toProtoProjects(projects));
+        } catch (Exception e) {
+            log.error("rpcService getProjectsByIds error Exception ", e);
+            builder.setCode(INTERNAL_ERROR).setMessage(e.getMessage());
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        }
+    }
+
+    @Override
+    public void getProjectsByTeamId(ProjectProto.GetProjectsByTeamIdRequest request,
+                                    StreamObserver<ProjectProto.GetProjectsResponse> responseObserver) {
+        ProjectProto.GetProjectsResponse.Builder builder = ProjectProto.GetProjectsResponse.newBuilder();
+        try {
+            List<Project> projects = Optional.of(request)
+                    .filter(req -> request.getWithDeleted() == Boolean.TRUE)
+                    .map(req -> projectsService.getProjectsWithDeleted(ProjectQueryParameter.builder()
+                            .teamId(request.getTeamId())
+                            .keyword(request.getKeyword())
+                            .build()))
+                    .orElse(projectsService.getProjects(ProjectQueryParameter.builder()
+                            .teamId(request.getTeamId())
+                            .keyword(request.getKeyword())
+                            .build()));
+            builder.setCode(SUCCESS).addAllData(toProtoProjects(projects));
+        } catch (Exception e) {
+            log.error("rpcService getProjectsByTeamId error Exception ", e);
+            builder.setCode(INTERNAL_ERROR).setMessage(e.getMessage());
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        }
     }
 
     public void createProjectResponse(
@@ -310,6 +472,8 @@ public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBas
                 .setHtmlUrl(StringUtils.defaultString(htmlUrl))
                 .setLabel(StringUtils.defaultString(project.getLabel()))
                 .setIsArchived(project.getDeletedAt().equals(BeanUtils.getDefaultArchivedAt()))
+                .setPmType(project.getPmType())
+                .setPmTypeName(PmTypeEnums.of(project.getPmType()).name())
                 .build();
     }
 

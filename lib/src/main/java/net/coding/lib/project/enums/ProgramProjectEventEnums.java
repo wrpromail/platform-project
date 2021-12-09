@@ -14,7 +14,7 @@ import static net.coding.common.constants.ProjectConstants.ACTION_UPDATE;
 import static net.coding.lib.project.enums.PmTypeEnums.PROGRAM;
 import static net.coding.lib.project.enums.PmTypeEnums.PROJECT;
 import static net.coding.lib.project.enums.ProgramProjectEventEnums.ACTION.ACTION_VIEW;
-import static org.apache.logging.log4j.util.Strings.EMPTY;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static proto.platform.permission.PermissionProto.Action.Create;
 import static proto.platform.permission.PermissionProto.Action.Delete;
 import static proto.platform.permission.PermissionProto.Action.Update;

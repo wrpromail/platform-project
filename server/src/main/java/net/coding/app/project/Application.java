@@ -4,14 +4,17 @@ import net.coding.common.server.BaseConfig;
 import net.coding.common.server.BaseServer;
 import net.coding.common.verification.VerificationAutoConfiguration;
 import net.coding.platform.degradation.ServiceDegradationAutoConfiguration;
+import net.coding.platform.ram.action.discovery.EnableActionDiscovery;
 
 import org.lognet.springboot.grpc.autoconfigure.GRpcAutoConfiguration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RestController;
@@ -51,7 +54,8 @@ import static springfox.documentation.builders.PathSelectors.regex;
         net.coding.grpc.client.platform.infra.text.pinyin.Config.class,
         net.coding.grpc.client.platform.infra.text.moderation.Config.class,
         net.coding.platform.charge.client.grpc.EnterpriseGrpcClient.class,
-        proto.git.Config.class
+        proto.git.Config.class,
+        net.coding.platform.ram.Config.class
 
 })
 @ImportAutoConfiguration(
@@ -62,8 +66,10 @@ import static springfox.documentation.builders.PathSelectors.regex;
                 ServiceDegradationAutoConfiguration.class,
         }
 )
+@EnableAsync
 @EnableScheduling
 @EnableSwagger2
+@SpringBootApplication
 public class Application {
     @Value("${production:false}")
     private boolean production;

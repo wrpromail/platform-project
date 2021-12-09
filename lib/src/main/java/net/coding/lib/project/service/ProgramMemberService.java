@@ -54,19 +54,19 @@ public class ProgramMemberService {
      * <p>
      * 成员要求 项目集项目普通成员且成员只在要删除的项目下存在，其他项目不存在时则可删
      */
-    public void removeProgramProjects(Integer teamId, Project project) {
+    public void removeProgramProjects(Integer teamId, Integer userId, Project project) {
         List<ProjectMember> projectMembers = projectMemberService.findListByProjectId(project.getId());
         programDao.selectPrograms(ProgramQueryParameter.builder()
                 .teamId(teamId)
                 .projectId(project.getId())
                 .build()
-        ).forEach(program -> removeProgramProjectMember(teamId, program, project, projectMembers));
+        ).forEach(program -> removeProgramProjectMember(teamId, userId, program, project, projectMembers));
     }
 
     /**
      * 移除项目集中项目时
      */
-    public void removeProgramProject(Integer teamId, Integer programId, Integer projectId) {
+    public void removeProgramProject(Integer teamId, Integer userId, Integer programId, Integer projectId) {
         Project program = programDao.selectByIdAndTeamId(programId, teamId);
         if (Objects.isNull(program)) {
             log.info("RemoveProgramProject Error, program is null programId  = {}", programId);
@@ -90,20 +90,21 @@ public class ProgramMemberService {
         List<ProjectMember> projectMembers = projectMemberDao.findListByProjectId(project.getId(),
                 new Timestamp(project.getDeletedAt().getTime()));
 
-        removeProgramProjectMember(teamId, program, project, projectMembers);
+        removeProgramProjectMember(teamId, userId, program, project, projectMembers);
         removeProgramIssueRelation(program.getId(), project.getId());
     }
 
     public void removeProgramProjectMember(Integer teamId,
+                                           Integer userId,
                                            Project program,
                                            Project project,
                                            List<ProjectMember> projectMembers) {
         //项目集下其他项目成员
         Set<Integer> otherMembers = StreamEx.of(
-                        programDao.selectProgramProjects(ProgramProjectQueryParameter.builder()
-                                .teamId(teamId)
-                                .programId(program.getId())
-                                .build()))
+                programDao.selectProgramProjects(ProgramProjectQueryParameter.builder()
+                        .teamId(teamId)
+                        .programId(program.getId())
+                        .build()))
                 .filter(p -> !p.getId().equals(project.getId()))
                 .flatMap(p -> projectMemberDao.findListByProjectId(p.getId(),
                         new Timestamp(p.getDeletedAt().getTime())).stream())
@@ -123,14 +124,14 @@ public class ProgramMemberService {
                 .map(ProjectMember::getUserId)
                 .collect(Collectors.toList());
 
-        programUserIds.forEach(targetUserId -> delMember(teamId, program, targetUserId));
+        programUserIds.forEach(targetUserId -> delMember(teamId, userId, program, targetUserId));
 
         Optional.ofNullable(
-                        programProjectDao.selectOne(ProgramProject.builder()
-                                .programId(program.getId())
-                                .projectId(project.getId())
-                                .deletedAt(BeanUtils.getDefaultDeletedAt())
-                                .build()))
+                programProjectDao.selectOne(ProgramProject.builder()
+                        .programId(program.getId())
+                        .projectId(project.getId())
+                        .deletedAt(BeanUtils.getDefaultDeletedAt())
+                        .build()))
                 .ifPresent(pp -> {
                     pp.setDeletedAt(new Timestamp(System.currentTimeMillis()));
                     programProjectDao.updateByPrimaryKeySelective(pp);
@@ -138,7 +139,7 @@ public class ProgramMemberService {
     }
 
 
-    public void delMember(Integer teamId, Project program, Integer targetUserId) {
+    public void delMember(Integer teamId, Integer userId, Project program, Integer targetUserId) {
         List<AclProto.Role> roles =
                 advancedRoleServiceGrpcClient.findUserRolesInProject(targetUserId, teamId, program.getId());
         //如果用户有多重角色 则删除项目成员角色
@@ -158,17 +159,11 @@ public class ProgramMemberService {
                     });
             return;
         }
-        StreamEx.of(projectMemberService.findListByProjectId(program.getId()))
-                .filter(member -> member.getType().equals(ProgramRoleTypeEnum.ProgramOwner.getCode()))
-                .map(ProjectMember::getUserId)
-                .findFirst()
-                .ifPresent(currentUserId -> {
-                    try {
-                        projectMemberService.delMember(currentUserId, program, targetUserId);
-                    } catch (CoreException e) {
-                        log.error("DelMember Error, programId = {}, targetUserId = {}", program.getId(), targetUserId);
-                    }
-                });
+        try {
+            projectMemberService.delMember(userId, program, targetUserId);
+        } catch (CoreException e) {
+            log.error("DelMember Error, programId = {}, targetUserId = {}", program.getId(), targetUserId);
+        }
     }
 
     public void removeProgramIssueRelation(Integer programId, Integer projectId) {

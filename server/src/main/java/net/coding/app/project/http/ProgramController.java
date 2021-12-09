@@ -14,6 +14,7 @@ import net.coding.lib.project.dto.ProgramDTO;
 import net.coding.lib.project.dto.ProgramPathDTO;
 import net.coding.lib.project.dto.ProjectDTO;
 import net.coding.lib.project.dto.ProjectUserDTO;
+import net.coding.lib.project.dto.request.ProjectMemberReqDTO;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.CreateProgramForm;
 import net.coding.lib.project.form.QueryProgramForm;
@@ -21,6 +22,8 @@ import net.coding.lib.project.parameter.ProgramPageQueryParameter;
 import net.coding.lib.project.parameter.ProgramProjectQueryParameter;
 import net.coding.lib.project.service.ProgramMemberService;
 import net.coding.lib.project.service.ProgramService;
+import net.coding.lib.project.service.RamTransformTeamService;
+import net.coding.lib.project.service.member.ProgramMemberPrincipalService;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -47,9 +50,13 @@ import lombok.AllArgsConstructor;
 @RequestMapping("/api/platform/program")
 public class ProgramController {
 
+    private final RamTransformTeamService ramTransformTeamService;
+
     private final ProgramService programService;
 
     private final ProgramMemberService programMemberService;
+
+    private final ProgramMemberPrincipalService programMemberPrincipalService;
 
     @ApiOperation("项目集-创建")
     @EnterpriseApiProtector(function = Function.EnterpriseProgram, action = Action.Create)
@@ -181,6 +188,7 @@ public class ProgramController {
         return programService.getProgramProjectDTOs(teamId, userId, programId, queryJoined);
     }
 
+    @Deprecated
     @ApiOperation("项目集-成员所在项目集关联项目列表")
     @ProtectedAPI
     @GetMapping("/batch/user/projects")
@@ -193,6 +201,18 @@ public class ProgramController {
         return programService.getBatchUserProgramProjects(teamId, userId, programId, userIds);
     }
 
+    @ApiOperation("项目集-主体所在项目集关联项目列表")
+    @ProtectedAPI
+    @PostMapping("/{projectId}/principal/projects")
+    public List<ProjectUserDTO> queryBatchPrincipalProgramProjects(
+            @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
+            @RequestHeader(GatewayHeader.USER_ID) Integer userId,
+            @PathVariable Integer projectId,//项目集Id
+            @RequestBody @Valid List<ProjectMemberReqDTO> principals)
+            throws CoreException {
+        return programService.getBatchPrincipalProgramProjects(teamId, userId, projectId, principals);
+    }
+
     @ApiOperation("项目集-添加项目/项目集管理员")
     @ProjectApiProtector(function = Function.ProgramProject, action = Action.Create)
     @PostMapping("/{projectId}/add/project")
@@ -203,7 +223,11 @@ public class ProgramController {
             @ApiParam("协作项目") @RequestParam(required = false) Set<Integer> projectIds,
             @ApiParam("管理员") @RequestParam(required = false) Set<Integer> userIds
     ) throws Exception {
-        return programService.addProgramProject(teamId, userId, projectId, projectIds, userIds);
+        if (ramTransformTeamService.ramOnline(teamId)) {
+            return programService.addProgramProjectPrincipal(teamId, userId, projectId, projectIds, userIds);
+        } else {
+            return programService.addProgramProject(teamId, userId, projectId, projectIds, userIds);
+        }
     }
 
     @ApiOperation("项目集-移除项目")
@@ -211,9 +235,14 @@ public class ProgramController {
     @PostMapping("/{projectId}/remove/project")
     public Result deleteProgramProject(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
+            @RequestHeader(GatewayHeader.USER_ID) Integer userId,
             @PathVariable Integer projectId,//项目集Id
-            @ApiParam("项目Id") @RequestParam(required = false) Integer removeProjectId) {
-        programMemberService.removeProgramProject(teamId, projectId, removeProjectId);
+            @ApiParam("项目Id") @RequestParam(required = false) Integer removeProjectId) throws CoreException {
+        if (ramTransformTeamService.ramOnline(teamId)) {
+            programMemberPrincipalService.removeProgramProject(teamId, userId, projectId, removeProjectId);
+        } else {
+            programMemberService.removeProgramProject(teamId, userId, projectId, removeProjectId);
+        }
         return Result.success();
     }
 }

@@ -6,7 +6,7 @@ import proto.platform.user.UserProto.User;
 
 public class SystemContextHolder {
 
-    private static final ThreadLocal<UserProto.User> threadLocal = new ThreadLocal<>();
+    private static final ThreadLocal<UserProto.User> threadLocal = new InheritableThreadLocal<>();
 
     public static void set(User user) {
         threadLocal.set(user);

@@ -41,26 +41,23 @@
         select p.* from team_projects tp
         inner join projects p on p.id = tp.project_id
         <if test="queryType == 'JOINED' or queryType == 'MANAGED'">
-            inner join project_members pm on pm.project_id = tp.project_id
             left join project_group_projects pgp on pgp.project_id = tp.project_id
-            and pgp.owner_id = pm.user_id and pgp.deleted_at = '1970-01-01 00:00:00'
+            and pgp.owner_id = #{userId} and pgp.deleted_at = '1970-01-01 00:00:00'
         </if>
         <if test="sortKey != null and sortKey == 'VISIT'">
-            left join project_recent_views prv on tp.team_id = prv.team_id
-            and pm.project_id =prv.project_id and pm.user_id = prv.user_id
+            left join project_recent_views prv on prv.team_id = tp.team_id
+            and prv.project_id = tp.project_id and prv.user_id = #{userId}
             and prv.deleted_at ='1970-01-01 00:00:00'
         </if>
         where tp.team_id = #{teamId} and tp.deleted_at = #{deletedAt}
         and p.invisible = 0 and p.pm_type = 0
         and p.deleted_at = #{deletedAt}
-        <if test="queryType == 'JOINED' or queryType == 'MANAGED'">
-            and pm.deleted_at = #{deletedAt} and pm.user_id = #{userId}
-            <if test="queryType == 'MANAGED'">
-                and pm.type &gt;= 90
-            </if>
-            <if test="queryType == 'JOINED'">
-                and pm.id &gt; 0
-            </if>
+        <if test="joinedProjectIds != null and joinedProjectIds.size() &gt; 0">
+            AND p.id in
+            <foreach item="projectId" index="index" collection="joinedProjectIds" open="(" close=")"
+                     separator=",">
+                #{projectId}
+            </foreach>
         </if>
         <if test="keyword != null and keyword != ''">
             and (
@@ -154,6 +151,15 @@
         and (deleted_at = '1970-01-01 00:00:00' or deleted_at = '1990-01-01 00:00:00')
     </select>
 
+    <select id="getProjectNotDeleteById" parameterType="java.lang.Integer"
+            resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM projects
+        where id = #{id}
+        and (deleted_at = '1970-01-01 00:00:00' or deleted_at = '1990-01-01 00:00:00')
+    </select>
+
     <select id="getProjectById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
@@ -186,18 +192,25 @@
 
     <select id="getUserProjects" resultMap="BaseResultMap">
         SELECT p.*
-        FROM projects p LEFT JOIN project_members pm
-        ON pm.project_id = p.id
+        FROM projects p
         <where>
             p.deleted_at = '1970-01-01 00:00:00'
             AND p.team_owner_id = #{teamId}
             AND p.pm_type = 0
-            <if test="userId != null">
-                AND pm.deleted_at = '1970-01-01 00:00:00'
-                AND pm.user_id = #{userId}
+            <if test="joinedProjectIds != null and joinedProjectIds.size() &gt; 0">
+                AND p.id in
+                <foreach item="projectId" index="index" collection="joinedProjectIds" open="("
+                         close=")"
+                         separator=",">
+                    #{projectId}
+                </foreach>
             </if>
-            <if test="projectName != null and projectName != ''">
-                AND p.`name` = #{projectName}
+            <if test="keyword != null and keyword != ''">
+                and (
+                p.name like CONCAT('%',#{keyword},'%')
+                or p.name_pinyin like CONCAT('%',#{keyword},'%')
+                or p.display_name like CONCAT('%',#{keyword},'%')
+                )
             </if>
             <if test="label != null and label != ''">
                 AND p.label = #{label}
@@ -218,10 +231,90 @@
             AND p.team_owner_id = #{teamId}
             AND p.invisible = 0
             AND p.pm_type = 0
-            <if test="projectName != null and projectName != ''">
-                AND p.`name` = #{projectName}
+            <if test="keyword != null and keyword != ''">
+                and (
+                p.name like CONCAT('%',#{keyword},'%')
+                or p.name_pinyin like CONCAT('%',#{keyword},'%')
+                or p.display_name like CONCAT('%',#{keyword},'%')
+                )
             </if>
 
+        </where>
+        order by p.id desc
+    </select>
+
+    <select id="getProjectsWithDeleted" resultMap="BaseResultMap">
+        SELECT p.*
+        FROM projects p
+        <where>
+            AND p.team_owner_id = #{teamId}
+            AND p.invisible = 0
+            AND p.pm_type = 0
+            <if test="keyword != null and keyword != ''">
+                and (
+                p.name like CONCAT('%',#{keyword},'%')
+                or p.name_pinyin like CONCAT('%',#{keyword},'%')
+                or p.display_name like CONCAT('%',#{keyword},'%')
+                )
+            </if>
+        </where>
+        order by p.id desc
+    </select>
+
+    <select id="getPrincipalProjects" resultMap="BaseResultMap">
+        SELECT p.*
+        FROM projects p INNER JOIN project_members pm
+        ON pm.project_id = p.id
+        AND pm.deleted_at = '1970-01-01 00:00:00'
+        <where>
+            p.deleted_at = '1970-01-01 00:00:00'
+            AND p.team_owner_id = #{teamId}
+            AND p.pm_type = 0
+            AND p.invisible = 0
+            AND pm.principal_type = #{principalType}
+            AND pm.principal_id = #{principalId}
+            <if test="projectIds != null and projectIds.size() &gt; 0">
+                AND p.id in
+                <foreach item="projectId" index="index" collection="projectIds" open="("
+                         close=")"
+                         separator=",">
+                    #{projectId}
+                </foreach>
+            </if>
+            <if test="keyword != null and keyword != ''">
+                and (
+                p.name like CONCAT('%',#{keyword},'%')
+                or p.name_pinyin like CONCAT('%',#{keyword},'%')
+                or p.display_name like CONCAT('%',#{keyword},'%')
+                )
+            </if>
+        </where>
+        order by p.id desc
+    </select>
+
+    <select id="getJoinedPrincipalProjects" resultMap="BaseResultMap">
+        SELECT p.*
+        FROM projects p
+        <where>
+            p.deleted_at = '1970-01-01 00:00:00'
+            AND p.team_owner_id = #{teamId}
+            AND p.pm_type = 0
+            AND p.invisible = 0
+            <if test="joinedProjectIds != null and joinedProjectIds.size() &gt; 0">
+                AND p.id in
+                <foreach item="projectId" index="index" collection="joinedProjectIds" open="("
+                         close=")"
+                         separator=",">
+                    #{projectId}
+                </foreach>
+            </if>
+            <if test="keyword != null and keyword != ''">
+                and (
+                p.name like CONCAT('%',#{keyword},'%')
+                or p.name_pinyin like CONCAT('%',#{keyword},'%')
+                or p.display_name like CONCAT('%',#{keyword},'%')
+                )
+            </if>
         </where>
         order by p.id desc
     </select>
@@ -249,35 +342,26 @@
         </foreach>
         and deleted_at=#{deletedAt}
     </select>
-    <select id="countProjectsByFilter" resultType="java.lang.Long">
-        select count(p.id)
-        from team_projects tp
-                 inner join projects p on p.id = tp.project_id and p.invisible = 0
-                 inner join project_members pm on pm.project_id = tp.project_id
-                 left join project_group_projects pgp
-                           on pgp.project_id = tp.project_id and pgp.owner_id = pm.user_id and
-                              pgp.deleted_at = #{deletedAt}
-        where tp.team_id = #{teamId}
-          and tp.deleted_at = #{deletedAt}
-          and p.deleted_at = #{deletedAt}
-          and pm.deleted_at = #{deletedAt}
-          and pm.user_id = #{userId}
-    </select>
+
     <select id="findByUserProjects" resultType="net.coding.lib.project.entity.Project">
         select p.*
         from team_projects tp
         inner join projects p on p.id = tp.project_id and p.invisible = 0
-        inner join project_members pm on pm.project_id = tp.project_id
         left join project_group_projects pgp
-        on pgp.project_id = tp.project_id and pgp.owner_id = pm.user_id and
+        on pgp.project_id = tp.project_id and pgp.owner_id = #{userId} and
         pgp.deleted_at = #{deletedAt}
         where tp.team_id = #{teamId}
         and tp.deleted_at = #{deletedAt}
         and p.deleted_at = #{deletedAt}
-        and pm.deleted_at = #{deletedAt}
-        and pm.user_id =#{userId}
-        AND pm.id > 0
-        <if test="keyword != null and keyword != ' '">
+        <if test="joinedProjectIds != null and joinedProjectIds.size() &gt; 0">
+            AND p.id in
+            <foreach item="projectId" index="index" collection="joinedProjectIds" open="("
+                     close=")"
+                     separator=",">
+                #{projectId}
+            </foreach>
+        </if>
+        <if test="keyword != null and keyword != ''">
             and (
             p.name like CONCAT('%',#{keyword},'%')
             or p.name_pinyin like CONCAT('%',#{keyword},'%')

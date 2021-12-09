@@ -16,6 +16,7 @@ import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.AddMemberForm;
 import net.coding.lib.project.pager.PagerResolve;
 import net.coding.lib.project.service.ProjectMemberService;
+import net.coding.lib.project.service.member.ProjectMemberPrincipalService;
 
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -42,6 +43,8 @@ public class ProjectMemberController {
 
     private final ProjectMemberService projectMemberService;
 
+    private final ProjectMemberPrincipalService projectMemberPrincipalService;
+
     @ApiOperation(value = "项目成员列表", notes = "项目成员列表")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "projectId", value = "项目 ID（必填）", paramType = "integer", required = true),
@@ -55,10 +58,8 @@ public class ProjectMemberController {
             @RequestParam(required = false) String keyWord,
             @PagerResolve PageRowBounds pager
     ) throws CoreException {
-
-        return Result.success(projectMemberService.getProjectMembers(teamId, projectId, keyWord, null, pager));
+        return Result.success(projectMemberPrincipalService.getProjectMembers(teamId, projectId, keyWord, null, pager));
     }
-
 
     @ApiOperation(value = "项目角色列表", notes = "项目角色列表")
     @ApiImplicitParams({
@@ -107,11 +108,12 @@ public class ProjectMemberController {
     @ProtectedAPI
     @RequestMapping(value = "/with/team-member", method = RequestMethod.GET)
     public Result memberList(
+            @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
             @PathVariable(value = "projectId") Integer projectId,
             @RequestParam(required = false) String keyWord,
             @PagerResolve PageRowBounds pager
     ) throws CoreException {
-        return Result.success(projectMemberService.getMemberWithProjectAndTeam(projectId, keyWord, pager));
+        return Result.success(projectMemberPrincipalService.getMemberWithProjectAndTeam(teamId, projectId, keyWord, pager));
     }
 
     @ApiOperation(value = "quit", notes = "退出当前项目")

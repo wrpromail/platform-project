@@ -120,27 +120,7 @@
           and deleted_at = #{deletedAt}
           and type = #{type}
     </select>
-    <select id="countProjectsByFilterGroup" resultType="java.lang.Long">
-        select count(p.id)
-        from team_projects tp
-        inner join projects p on p.id = tp.project_id and p.invisible = 0
-        inner join project_members pm on pm.project_id = tp.project_id
-        left join project_group_projects pgp
-        on pgp.project_id = tp.project_id and pgp.owner_id = pm.user_id and
-        pgp.deleted_at = #{deletedAt}
-        where tp.team_id = #{teamId}
-        and tp.deleted_at = #{deletedAt}
-        and p.deleted_at = #{deletedAt}
-        and pm.deleted_at = #{deletedAt}
-        and pm.user_id = #{userId}
-        <if test="groupId == 0">
-            and pgp.project_group_id is null
-        </if>
-        <if test="groupId !=  null and groupId > 0">
-            and pgp.project_group_id = #{groupId}
-        </if>
 
-    </select>
     <select id="findAllByOwnerId" resultType="net.coding.lib.project.group.ProjectGroup">
         select
         <include refid="Base_Column_List"/>

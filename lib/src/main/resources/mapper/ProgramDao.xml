@@ -39,6 +39,7 @@
         <result column="icon" jdbcType="VARCHAR" property="icon"/>
         <result column="start_date" jdbcType="DATE" property="startDate"/>
         <result column="end_date" jdbcType="DATE" property="endDate"/>
+        <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -49,31 +50,22 @@
 
     <select id="selectProgramPages" resultMap="ProgramMap">
         SELECT
-        <include refid="Base_Column_List"/>
-        from projects p
-        left join program_projects pp on p.id = pp.program_id
+        program.*
+        from projects program
+        left join program_projects pp on program.id = pp.program_id
         and pp.deleted_at = '1970-01-01 00:00:00'
-        <if test="queryType == 'JOINED' or queryType == 'MANAGED'">
-            inner join project_members pm on pm.project_id = p.id
-            and pm.deleted_at = '1970-01-01 00:00:00'
-            and pm.user_id = #{userId}
-            <if test="queryType == 'MANAGED'">
-                and pm.type &gt;= 90
-            </if>
-            left join project_recent_views prv on pm.project_id = prv.project_id
-            and pm.user_id = prv.user_id and prv.deleted_at ='1970-01-01 00:00:00'
+        <if test="sortKey != null and sortKey == 'VISIT'">
+            left join project_recent_views prv on program.id = prv.project_id
+            and prv.user_id = #{userId} and prv.deleted_at ='1970-01-01 00:00:00'
         </if>
-        <if test="userIds != null and userIds.size() &gt; 0">
-            inner join project_members pmm on pmm.project_id = p.id
-            and pmm.deleted_at = '1970-01-01 00:00:00'
-        </if>
-        where p.team_owner_id = #{teamId}
-        and p.deleted_at = #{deletedAt}
-        and p.pm_type = 1
-        <if test="userIds != null and userIds.size() &gt; 0">
-            and pmm.type = 100 and pmm.user_id in
-            <foreach collection="userIds" item="userId" open="(" close=")" separator=",">
-                #{userId}
+        where program.team_owner_id = #{teamId}
+        and program.deleted_at = #{deletedAt}
+        and program.pm_type = 1
+        <if test="joinedProjectIds != null and joinedProjectIds.size() &gt; 0">
+            AND program.id in
+            <foreach item="projectId" index="index" collection="joinedProjectIds" open="(" close=")"
+                     separator=",">
+                #{projectId}
             </foreach>
         </if>
         <if test="projectIds != null and projectIds.size() &gt; 0">
@@ -83,33 +75,31 @@
             </foreach>
         </if>
         <if test="startDate != null and startDate != ''">
-            and p.start_date &gt;= #{startDate}
+            and program.start_date &gt;= #{startDate}
         </if>
         <if test="endDate != null and endDate != ''">
-            and p.end_date &lt;= #{endDate}
+            and program.end_date &lt;= #{endDate}
         </if>
         <if test="keyword != null and keyword != ''">
             and (
-            p.name like CONCAT('%',#{keyword},'%')
-            or p.name_pinyin like CONCAT('%',#{keyword},'%')
-            or p.display_name like CONCAT('%',#{keyword},'%')
+            program.name like CONCAT('%',#{keyword},'%')
+            or program.name_pinyin like CONCAT('%',#{keyword},'%')
+            or program.display_name like CONCAT('%',#{keyword},'%')
             )
         </if>
-        group by p.id
+        group by program.id
         order by
         <if test="sortKey != null and sortKey == 'CREATE'">
-            p.created_at
+            program.created_at
         </if>
         <if test="sortKey != null and sortKey == 'START'">
-            p.start_date
+            program.start_date
         </if>
-        <if test="queryType == 'JOINED' or queryType == 'MANAGED'">
-            <if test="sortKey != null and sortKey == 'VISIT'">
-                prv.updated_at
-            </if>
+        <if test="sortKey != null and sortKey == 'VISIT'">
+            prv.updated_at
         </if>
         <if test="sortKey != null and sortKey == 'NAME'">
-            convert(p.display_name using gbk)
+            convert(program.display_name using gbk)
         </if>
         <if test="sortValue != null and sortValue == 'DESC'">
             desc ,
@@ -117,7 +107,7 @@
         <if test="sortValue != null and sortValue == 'ASC'">
             asc ,
         </if>
-        p.id desc
+        program.id desc
     </select>
 
     <select id="selectPrograms" resultMap="BaseResultMap">
@@ -125,23 +115,29 @@
         from projects program
         left join program_projects pp on program.id = pp.program_id
         and pp.deleted_at = '1970-01-01 00:00:00'
-        left join project_members pm on program.id = pm.project_id
-        and pm.deleted_at = '1970-01-01 00:00:00'
-        left join project_recent_views prv on pm.project_id = prv.project_id
-        and pm.user_id = prv.user_id and prv.deleted_at ='1970-01-01 00:00:00'
+        <if test="joinedProjectIds != null and joinedProjectIds.size() &gt; 0">
+            left join project_recent_views prv on program.id = prv.project_id
+            and prv.user_id = #{userId} and prv.deleted_at ='1970-01-01 00:00:00'
+        </if>
         where (program.deleted_at = '1970-01-01 00:00:00'
         or program.deleted_at = '1990-01-01 00:00:00' )
         and program.team_owner_id = #{teamId}
         and program.pm_type = 1
+        <if test="joinedProjectIds != null and joinedProjectIds.size() &gt; 0">
+            AND program.id in
+            <foreach item="projectId" index="index" collection="joinedProjectIds" open="(" close=")"
+                     separator=",">
+                #{projectId}
+            </foreach>
+        </if>
         <if test="projectId != null and projectId &gt; 0">
             and pp.project_id = #{projectId}
         </if>
-        <if test="userId != null and userId &gt; 0">
-            and pm.user_id = #{userId}
-        </if>
         group by program.id
         order by
-        prv.updated_at desc,
+        <if test="joinedProjectIds != null and joinedProjectIds.size() &gt; 0">
+            prv.updated_at desc,
+        </if>
         program.id desc
     </select>
 
@@ -153,17 +149,16 @@
         and pp.deleted_at = '1970-01-01 00:00:00'
         left join projects program on program.id = pp.program_id
         and program.deleted_at = #{deletedAt}
-        left join project_members pm on pm.project_id = program.id
-        and pm.deleted_at = '1970-01-01 00:00:00'
         where (p.deleted_at = '1970-01-01 00:00:00' or p.deleted_at = '1990-01-01 00:00:00')
         and p.team_owner_id = #{teamId}
         and p.pm_type = 0
         and p.invisible = 0
-        <if test="queryType != null and queryType == 'MANAGED'">
-            and pm.user_id = #{userId} and pm.type >= 90
-        </if>
-        <if test="queryType != null and queryType == 'JOINED'">
-            and pm.user_id = #{userId}
+        <if test="joinedProjectIds != null and joinedProjectIds.size() &gt; 0">
+            AND program.id in
+            <foreach item="projectId" index="index" collection="joinedProjectIds" open="(" close=")"
+                     separator=",">
+                #{projectId}
+            </foreach>
         </if>
         group by p.id
     </select>
@@ -177,8 +172,6 @@
         left join projects program on program.id = pp.program_id
         and (program.deleted_at = '1970-01-01 00:00:00'
         or program.deleted_at = '1990-01-01 00:00:00')
-        left join project_members pm on pm.project_id = p.id
-        and (pm.deleted_at = '1970-01-01 00:00:00' or pm.deleted_at = '1990-01-01 00:00:00')
         where (p.deleted_at = '1970-01-01 00:00:00' or p.deleted_at = '1990-01-01 00:00:00')
         and p.team_owner_id = #{teamId}
         and p.pm_type = 0
@@ -186,8 +179,12 @@
         <if test="programId != null and programId &gt; 0">
             and program.id = #{programId}
         </if>
-        <if test="userId != null and userId &gt; 0">
-            and pm.user_id = #{userId}
+        <if test="joinedProjectIds != null and joinedProjectIds.size() &gt; 0">
+            AND p.id in
+            <foreach item="projectId" index="index" collection="joinedProjectIds" open="(" close=")"
+                     separator=",">
+                #{projectId}
+            </foreach>
         </if>
         group by p.id
         order by pp.created_at asc
