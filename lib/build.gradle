@@ -1,5 +1,5 @@
 ext {
-    commonVersion = '20210720.1'
+    commonVersion = '20211209.2'
 
 }
 dependencies {
