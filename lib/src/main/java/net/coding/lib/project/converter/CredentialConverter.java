@@ -51,6 +51,7 @@ public class CredentialConverter {
                     .put(CredentialTypeEnums.IOS_CERTIFICATE, ProjectCredentialProto.CredentialType.IOS_CERTIFICATE)
                     .put(CredentialTypeEnums.TLS_CERTIFICATE, ProjectCredentialProto.CredentialType.TLS_CERTIFICATE)
                     .put(CredentialTypeEnums.TENCENT_SERVERLESS, ProjectCredentialProto.CredentialType.TENCENT_SERVERLESS)
+                    .put(CredentialTypeEnums.CODING_PERSONAL_CREDENTIAL,ProjectCredentialProto.CredentialType.CODING_PERSONAL_CREDENTIAL)
                     .build();
 
     private static final Map<ProjectCredentialProto.CredentialScope, CredentialScopeEnums> SCOPE_MAP =

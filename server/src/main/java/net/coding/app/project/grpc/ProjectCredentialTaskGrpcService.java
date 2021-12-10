@@ -49,7 +49,7 @@ public class ProjectCredentialTaskGrpcService extends ProjectCredentialTaskServi
                 throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
             }
             List<CredentialTask> credentialTasks = projectCredentialTaskService
-                    .getTaskIdsByCredentialId(projectId, request.getId(), request.getDecrypt());
+                    .getTaskIdsByCredentialId(projectId, request.getId());
             builder.addAllTaskId(credentialTasks.stream()
                     .map(CredentialTask::getTaskId)
                     .collect(Collectors.toList()));
@@ -187,5 +187,43 @@ public class ProjectCredentialTaskGrpcService extends ProjectCredentialTaskServi
                 .map(CredentialConverter::toBuildCredential).collect(toList()))
                 .filter(CollectionUtils::isNotEmpty)
                 .orElse(new ArrayList<>());
+    }
+
+    @Override
+    public void toggleTaskPermission(
+            ProjectCredentialProto.ToggleTaskPermissionRequest request,
+            StreamObserver<ProjectCredentialProto.ToggleTaskPermissionResponse> responseObserver
+    ) {
+        ProjectCredentialProto.ToggleTaskPermissionResponse.Builder builder =
+                ProjectCredentialProto.ToggleTaskPermissionResponse.newBuilder();
+        try {
+            if (request == null || request.getProjectId() <= 0) {
+                log.error("Parameter is error {}", request);
+                throw CoreException.of(CoreException.ExceptionType.PARAMETER_INVALID);
+            }
+            if (!request.getSelected()) {
+                return;
+            }
+            int projectId = request.getProjectId();
+            Project project = projectService.getById(projectId);
+            if (project == null) {
+                throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
+            }
+            projectCredentialTaskService.toggleTaskPermission(
+                    projectId,
+                    request.getConnId(),
+                    request.getTaskType(),
+                    request.getTaskId(),
+                    request.getSelected()
+            );
+            builder.setCode(CodeProto.Code.SUCCESS).build();
+        } catch (Exception e) {
+            log.error("RpcService ToggleTaskPermission error {}", e.getMessage());
+            builder.setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage(e.getMessage());
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        }
     }
 }

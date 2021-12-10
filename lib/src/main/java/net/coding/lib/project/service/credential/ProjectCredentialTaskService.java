@@ -156,7 +156,7 @@ public class ProjectCredentialTaskService {
         return credentialType != CredentialTypeEnums.SSH_TOKEN;
     }
 
-    public List<CredentialTask> getTaskIdsByCredentialId(int projectId, int id, boolean decrypt) {
+    public List<CredentialTask> getTaskIdsByCredentialId(int projectId, int id) {
         return Optional.ofNullable(
                 projectCredentialTaskDao.getCredentialTask(projectId, id, null, BeanUtils.getDefaultDeletedAt())
         ).orElse(new ArrayList<>());
