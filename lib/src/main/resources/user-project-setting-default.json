@@ -1,0 +1,40 @@
+{
+  "mails": [
+    {
+      "code": "DAILY_WORK_EMAIL",
+      "name": "每日邮件开关",
+      "description": "daily_work_email",
+      "defaultValue": "0"
+    },
+    {
+      "code": "DAILY_WORK_EMAIL_EXPIRING_THIS_WEEK",
+      "name": "本周即将到期的未完成的",
+      "description": "",
+      "defaultValue": "1"
+    },
+    {
+      "code": "DAILY_WORK_EMAIL_EXPIRED",
+      "name": "已经到期的",
+      "description": "",
+      "defaultValue": "1"
+    },
+    {
+      "code": "DAILY_WORK_EMAIL_DEFECT_ASSIGNED_ME",
+      "name": "分配给我的缺陷",
+      "description": "",
+      "defaultValue": "1"
+    },
+    {
+      "code": "DAILY_WORK_EMAIL_MERGE_REVIEW",
+      "name": "代码合并待评审的",
+      "description": "",
+      "defaultValue": "0"
+    },
+    {
+      "code": "DAILY_WORK_EMAIL_ONLY_WORKDAY",
+      "name": "是否仅工作日发送",
+      "description": "",
+      "defaultValue": "1"
+    }
+  ]
+}

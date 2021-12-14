@@ -228,7 +228,9 @@ public class CoreException extends Exception {
         CREDENTIAL_PASSWORD_BYTES_TOO_LONG(6607, "credential_password_bytes_too_long"),
         CI_JOB_NOT_FOUND(6301, "ci_job_not_found"),
         //全局资源
-        GLOBAL_RESOURCE_SCOPE_TYPE_NOT_EXIST(8001, "global_resource_scope_type_not_exist");
+        GLOBAL_RESOURCE_SCOPE_TYPE_NOT_EXIST(8001, "global_resource_scope_type_not_exist"),
+        // 用户项目配置
+        USER_PROJECT_SETTING_CODE_NOT_EXISTS(8301, "user_project_setting_code_not_exists");
 
         private final int errorCode;
         private final String resourceKey;
