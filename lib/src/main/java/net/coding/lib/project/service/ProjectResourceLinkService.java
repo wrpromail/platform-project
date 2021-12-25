@@ -308,41 +308,46 @@ public class ProjectResourceLinkService {
     }
 
     public String getResourceLink(ProjectResource projectResource, String projectPath) {
-        String type = Inflector.underscore(projectResource.getTargetType()).replace('_', '-');
-        String urlType = typeToUrlMap.get(type);
-        if (null != urlType) {
-            if ("_buildMergeRequestLink".equals(urlType)) {
-                return buildMergeRequestLink(projectResource, projectPath);
-            } else if ("_buildProjectFileLink".equals(urlType)) {
-                return buildProjectFileLink(projectResource, projectPath);
-            } else if ("_buildReleaseLink".equals(urlType)) {
-                return buildReleaseLink(projectResource, projectPath);
-            } else if ("_buildExternalLinkUrl".equals(urlType)) {
-                return buildExternalLinkUrl(projectResource);
-            } else if (useCodeTypeSet.contains(type)) {
-                return projectPath + "/" + urlType + "/" + projectResource.getCode();
-            } else if ("defect".equals(urlType)) {
-                return buildDefectLink(projectResource, projectPath);
-            } else if ("requirement".equals(urlType)) {
-                return buildRequirementLink(projectResource, projectPath);
-            } else if ("mission".equals(urlType)) {
-                return buildMissionLink(projectResource, projectPath);
-            } else if ("subtask".equals(urlType)) {
-                return buildSubTaskLink(projectResource, projectPath);
-            } else if ("epic".equals(urlType)) {
-                return buildEpicLink(projectResource, projectPath);
-            } else if ("iteration".equals(urlType)) {
-                return buildIterationLink(projectResource, projectPath);
-            } else if (programCodeTypeSet.contains(type)) {
-                return buildProgramLink(projectResource, projectPath, urlType);
-            } else if("knowledge".equals(urlType)) {
-                return buildKnowledgeLink(projectResource);
+        try{
+            String type = Inflector.underscore(projectResource.getTargetType()).replace('_', '-');
+            String urlType = typeToUrlMap.get(type);
+            if (null != urlType) {
+                if ("_buildMergeRequestLink".equals(urlType)) {
+                    return buildMergeRequestLink(projectResource, projectPath);
+                } else if ("_buildProjectFileLink".equals(urlType)) {
+                    return buildProjectFileLink(projectResource, projectPath);
+                } else if ("_buildReleaseLink".equals(urlType)) {
+                    return buildReleaseLink(projectResource, projectPath);
+                } else if ("_buildExternalLinkUrl".equals(urlType)) {
+                    return buildExternalLinkUrl(projectResource);
+                } else if (useCodeTypeSet.contains(type)) {
+                    return projectPath + "/" + urlType + "/" + projectResource.getCode();
+                } else if ("defect".equals(urlType)) {
+                    return buildDefectLink(projectResource, projectPath);
+                } else if ("requirement".equals(urlType)) {
+                    return buildRequirementLink(projectResource, projectPath);
+                } else if ("mission".equals(urlType)) {
+                    return buildMissionLink(projectResource, projectPath);
+                } else if ("subtask".equals(urlType)) {
+                    return buildSubTaskLink(projectResource, projectPath);
+                } else if ("epic".equals(urlType)) {
+                    return buildEpicLink(projectResource, projectPath);
+                } else if ("iteration".equals(urlType)) {
+                    return buildIterationLink(projectResource, projectPath);
+                } else if (programCodeTypeSet.contains(type)) {
+                    return buildProgramLink(projectResource, projectPath, urlType);
+                } else if("knowledge".equals(urlType)) {
+                    return buildKnowledgeLink(projectResource);
+                } else {
+                    return projectPath + "/" + urlType + "/" + projectResource.getTargetId();
+                }
             } else {
-                return projectPath + "/" + urlType + "/" + projectResource.getTargetId();
+                return projectPath + "/" + type + "/" + projectResource.getTargetId();
             }
-        } else {
-            return projectPath + "/" + type + "/" + projectResource.getTargetId();
+        } catch (Exception e){
+           return "#" ;
         }
+
     }
 
 }

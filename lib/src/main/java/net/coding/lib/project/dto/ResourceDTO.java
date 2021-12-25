@@ -41,7 +41,7 @@ public class ResourceDTO {
         this.targetId = projectResource.getTargetId();
         this.code = projectResource.getCode();
         this.title = projectResource.getTitle();
-        this.resourceUrl = projectResourceLinkService.getResourceLink(projectResource, projectGK);
+        this.resourceUrl = projectResourceLinkService.getResourceLink(projectResource, projectGK != null ? "/p/"+projectGK : null);
         this.projectGK = projectGK;
     }
 }
