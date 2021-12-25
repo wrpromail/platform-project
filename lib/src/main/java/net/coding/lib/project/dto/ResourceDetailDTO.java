@@ -46,7 +46,7 @@ public class ResourceDetailDTO {
         this.resourceUrl = projectResource.getResourceUrl();
     }
 
-    public ResourceDetailDTO(ProjectResource projectResource, String projectGk) {
+    public ResourceDetailDTO(ProjectResource projectResource, String projectGK) {
         this.id = projectResource.getId();
         this.scopeId = projectResource.getProjectId();
         this.scopeType = projectResource.getScopeType();
@@ -54,6 +54,6 @@ public class ResourceDetailDTO {
         this.targetId = projectResource.getTargetId();
         this.code = projectResource.getCode();
         this.title = projectResource.getTitle();
-        this.resourceUrl = projectResourceLinkService.getResourceLink(projectResource, projectGk);
+        this.resourceUrl = projectResourceLinkService.getResourceLink(projectResource, projectGK != null ? "/p/"+projectGK : null);
     }
 }
