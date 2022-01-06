@@ -264,23 +264,25 @@ public class OpenApiProjectTokenGRpcService extends ProjectTokenServiceGrpc.Proj
             if (response == null) {
                 throw new GlobalKeyCreateErrorException();
             }
-            builder.setProjectToken(ProjectTokenProto.ProjectTokenResp.newBuilder()
-                    .setId(projectToken.getId())
-                    .setCreatedAt(projectToken.getCreatedAt().getTime())
-                    .setCreatorId(projectToken.getCreatorId())
-                    .setEnabled(projectToken.getEnabled())
-                    .setProjectId(projectToken.getProjectId())
-                    .setExpiredAt(projectToken.getExpiredAt().getTime())
-                    .setTokenName(projectToken.getTokenName())
-                    .setUserName(response.getData().getGlobalKey())
-                    .setLastActivityAt(projectToken.getLastActivityAt().getTime())
-                    .setToken(projectToken.getToken())
-                    .setGlobalKey(response.getData().getGlobalKey())
-                    .build())
-                    .setResult(CommonProto.Result.newBuilder()
-                            .setCode(CodeProto.Code.SUCCESS.getNumber())
-                            .setMessage(SUCCESS.name().toLowerCase())
-                            .build());
+            builder.setProjectToken(
+                    ProjectTokenProto.ProjectToken.newBuilder()
+                            .setId(projectToken.getId())
+                            .setCreatedAt(projectToken.getCreatedAt().getTime())
+                            .setCreatorId(projectToken.getCreatorId())
+                            .setEnabled(projectToken.getEnabled())
+                            .setProjectId(projectToken.getProjectId())
+                            .setExpireAt(projectToken.getExpiredAt().getTime())
+                            .setTokenName(projectToken.getTokenName())
+                            .setUserName(response.getData().getGlobalKey())
+                            .setLastActivityAt(projectToken.getLastActivityAt().getTime())
+                            .setToken(projectToken.getToken())
+                            .setGlobalKey(response.getData().getGlobalKey())
+                            .setUpdatedAt(projectToken.getUpdatedAt().getTime())
+                            .build()
+            ).setResult(CommonProto.Result.newBuilder()
+                    .setCode(CodeProto.Code.SUCCESS.getNumber())
+                    .setMessage(SUCCESS.name().toLowerCase())
+                    .build());
         } catch (CoreException e) {
             log.warn("rpcService createProjectToken error CoreException {}", e.getKey());
             result.setCode(NOT_FOUND.getNumber())
@@ -310,10 +312,10 @@ public class OpenApiProjectTokenGRpcService extends ProjectTokenServiceGrpc.Proj
         proTokenPages.getList().stream()
                 .map(dt -> projectTokenService.toProjectTokenDTO(dt, false))
                 .forEach(dto -> {
-                            ProjectTokenProto.ProjectTokenData.Builder dataBuilder = ProjectTokenProto.ProjectTokenData.newBuilder();
+                            ProjectTokenProto.ProjectToken.Builder projectTokenBuilder = ProjectTokenProto.ProjectToken.newBuilder();
                             dto.getScopes().
                                     forEach(scope ->
-                                            dataBuilder.addScopes(ProjectTokenProto.Scope.newBuilder().
+                                            projectTokenBuilder.addScopes(ProjectTokenProto.Scope.newBuilder().
                                                     setText(scope.getText()).
                                                     setValue(scope.getValue()).
                                                     build())
@@ -321,7 +323,7 @@ public class OpenApiProjectTokenGRpcService extends ProjectTokenServiceGrpc.Proj
 
                             dto.getDepotScopes()
                                     .forEach(depotScopeDTO -> depotScopeDTO.getScopes()
-                                            .forEach(d -> dataBuilder.addScopes(ProjectTokenProto.Scope.newBuilder().
+                                            .forEach(d -> projectTokenBuilder.addScopes(ProjectTokenProto.Scope.newBuilder().
                                                     setValue(d.getDepotId()).
                                                     setText(d.getScope()).
                                                     setTarget(depotScopeDTO.getId())
@@ -330,24 +332,25 @@ public class OpenApiProjectTokenGRpcService extends ProjectTokenServiceGrpc.Proj
 
                             dto.getArtifactScopes()
                                     .forEach(artifactScopeDTO -> artifactScopeDTO.getScopes()
-                                            .forEach(a -> dataBuilder.addScopes(ProjectTokenProto.Scope.newBuilder().
+                                            .forEach(a -> projectTokenBuilder.addScopes(ProjectTokenProto.Scope.newBuilder().
                                                     setValue(a.getValue()).
                                                     setText(a.getText()).
                                                     setTarget(artifactScopeDTO.getId())
                                                     .build()))
                                     );
 
-                            dataBuilder.setId(dto.getId())
+                            projectTokenBuilder
+                                    .setId(dto.getId())
                                     .setProjectId(dto.getProjectId())
                                     .setCreatorId(dto.getCreatorId())
                                     .setTokenName(dto.getTokenName())
                                     .setUserName(dto.getUserName())
                                     .setExpireAt(dto.getExpiredAt().getTime())
                                     .setCreatedAt(dto.getCreatedAt())
-                                    .setUpdatedAt(dto.getUpdatedAt())
                                     .setLastActivityAt(dto.getLastActivityAt())
-                                    .setEnabled(dto.isEnabled());
-                            builderData.addTokens(dataBuilder);
+                                    .setEnabled(dto.isEnabled())
+                                    .setUpdatedAt(dto.getUpdatedAt());
+                            builderData.addProjectToken(projectTokenBuilder.build());
                         }
 
                 );
