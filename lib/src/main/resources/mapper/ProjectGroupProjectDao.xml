@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.coding.lib.project.dao.ProjectGroupProjectDao">
+    <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ProjectGroupProject">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="owner_id" jdbcType="INTEGER" property="ownerId"/>
+        <result column="project_group_id" jdbcType="INTEGER" property="projectGroupId"/>
+        <result column="project_id" jdbcType="INTEGER" property="projectId"/>
+        <result column="created_at" jdbcType="TIMESTAMP" property="createdAt"/>
+        <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt"/>
+        <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        id
+        ,owner_id,project_group_id,project_id,created_at,updated_at,deleted_at
+    </sql>
+    <insert id="batchInsert">
+        insert into project_group_projects
+        (
+        owner_id,
+        project_group_id,
+        project_id,
+        created_at,
+        updated_at,
+        deleted_at
+        )
+        values
+        <foreach collection="list" item="item" separator=",">
+            <trim prefix="(" suffix=")" suffixOverrides=",">
+                <if test="item.ownerId != null">
+                    #{item.ownerId,jdbcType=INTEGER},
+                </if>
+                <if test="item.projectGroupId != null">
+                    #{item.projectGroupId,jdbcType=INTEGER},
+                </if>
+                <if test="item.projectId != null">
+                    #{item.projectId,jdbcType=INTEGER},
+                </if>
+                <if test="item.createdAt != null">
+                    #{item.createdAt,jdbcType=TIMESTAMP},
+                </if>
+                <if test="item.updatedAt != null">
+                    #{item.updatedAt,jdbcType=TIMESTAMP},
+                </if>
+                <if test="item.deletedAt != null">
+                    #{item.deletedAt,jdbcType=TIMESTAMP},
+                </if>
+            </trim>
+        </foreach>
+    </insert>
+    <update id="batchDelete">
+        update project_group_projects
+        set deleted_at=NOW()
+        where id in
+        <foreach collection="list" open="(" close=")" separator="," item="item">
+            #{item}
+        </foreach>
+    </update>
+    <update id="batchUpdate">
+        update project_group_projects
+        set project_group_id=
+        case
+        <foreach collection="list" item="item">
+            <if test="item.projectGroupId!=null">
+                when id=#{item.id} then #{item.projectGroupId}
+            </if>
+        </foreach>
+        end,
+        updated_at=
+        case
+        <foreach collection="list" item="item">
+            <if test="item.updatedAt!=null">
+                when id=#{item.id} then NOW()
+            </if>
+        </foreach>
+        end
+        where id
+        in
+        <foreach collection="list" open="(" close=")" separator="," item="item" index="index">
+            #{item.id}
+        </foreach>
+    </update>
+    <delete id="deleteGroupRelation">
+        update project_group_projects
+        set deleted_at=NOW()
+        where owner_id = #{userId}
+          and project_group_id = #{projectGroupId}
+    </delete>
+    <select id="getByProjectId"
+            resultType="net.coding.lib.project.entity.ProjectGroupProject">
+        select
+        <include refid="Base_Column_List"/>
+        from project_group_projects
+        where project_id=#{projectId}
+        and deleted_at=#{deletedAt}
+    </select>
+    <select id="getByProjectIdsAndUserId"
+            resultType="net.coding.lib.project.entity.ProjectGroupProject">
+        select
+        <include refid="Base_Column_List"/>
+        from project_group_projects
+        where project_id
+        in
+        <foreach collection="projectIds" item="ids" separator="," open="(" close=")">
+            #{ids}
+        </foreach>
+        and owner_id=#{userId}
+        and deleted_at=#{deletedAt}
+    </select>
+    <select id="listByOwner"
+            resultType="net.coding.lib.project.entity.ProjectGroupProject">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM project_group_projects
+        WHERE deleted_at = #{deleted}
+        AND owner_id = #{ownerId}
+    </select>
+    <select id="listByGroup"
+            resultType="net.coding.lib.project.entity.ProjectGroupProject">
+        select
+        <include refid="Base_Column_List"/>
+        from project_group_projects
+        WHERE deleted_at = #{deletedAt}
+        AND project_group_id = #{projectGroupId}
+    </select>
+</mapper>

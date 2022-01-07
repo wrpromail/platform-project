@@ -12,4 +12,160 @@
         <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt"/>
         <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt"/>
     </resultMap>
+    <sql id="Base_Column_List">
+        id
+        ,owner_id,`name`,`type`,sort,created_at,updated_at,deleted_at
+    </sql>
+    <insert id="insertAndRetId" useGeneratedKeys="true" keyProperty="id" keyColumn="id"
+            parameterType="net.coding.lib.project.entity.ProjectGroup">
+        insert into project_groups
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="ownerId != null">
+                owner_id,
+            </if>
+            <if test="name != null">
+                `name`,
+            </if>
+            <if test="type != null ">
+                `type`,
+            </if>
+            <if test="sort != null ">
+                sort,
+            </if>
+            <if test="createdAt != null ">
+                created_at,
+            </if>
+            <if test="updatedAt != null ">
+                updated_at,
+            </if>
+            <if test="deletedAt != null ">
+                deleted_at,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="ownerId != null">
+                #{ownerId,jdbcType=INTEGER},
+            </if>
+            <if test="name != null">
+                #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="type != null">
+                #{type,jdbcType=VARCHAR},
+            </if>
+            <if test="sort != null">
+                #{sort,jdbcType=TINYINT},
+            </if>
+            <if test="createdAt != null">
+                #{createdAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedAt != null">
+                #{updatedAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="deletedAt != null">
+                #{deletedAt,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+    <update id="batchUpdate">
+        update project_groups
+        set sort=
+        case
+        <foreach collection="list" item="item" index="index">
+            <if test="item.sort!=null">
+                when id=#{item.id} then #{item.sort}
+            </if>
+        </foreach>
+        end
+        where id
+        in
+        <foreach collection="list" open="(" close=")" separator="," item="item" index="index">
+            #{item.id}
+        </foreach>
+    </update>
+    <delete id="deleteLogical">
+        update project_groups
+        set deleted_at=NOW()
+        where id = #{id}
+          and deleted_at = #{deletedAt}
+    </delete>
+    <select id="getById" resultType="net.coding.lib.project.entity.ProjectGroup">
+        select
+        <include refid="Base_Column_List"/>
+        from project_groups
+        where id=#{id}
+        and deleted_at=#{deletedAt}
+    </select>
+    <select id="getByUserAndName" resultType="net.coding.lib.project.entity.ProjectGroup">
+        select
+        <include refid="Base_Column_List"/>
+        from project_groups
+        where owner_id=#{userId}
+        and `name`=#{name}
+        and deleted_at=#{deletedAt}
+    </select>
+    <select id="getMaxSortProjectGroup"
+            resultType="net.coding.lib.project.entity.ProjectGroup">
+        select
+        <include refid="Base_Column_List"/>
+        from project_groups
+        where owner_id=#{userId}
+        and deleted_at=#{deletedAt}
+        order by sort desc
+        limit 1
+    </select>
+    <select id="countByUserIdAndType" resultType="java.lang.Integer">
+        select count(*)
+        from project_groups
+        where owner_id = #{userId}
+          and deleted_at = #{deletedAt}
+          and type = #{type}
+    </select>
+    <select id="countProjectsByFilterGroup" resultType="java.lang.Long">
+        select count(p.id)
+        from team_projects tp
+        inner join projects p on p.id = tp.project_id and p.invisible = 0
+        inner join project_members pm on pm.project_id = tp.project_id
+        left join project_group_projects pgp
+        on pgp.project_id = tp.project_id and pgp.owner_id = pm.user_id and
+        pgp.deleted_at = #{deletedAt}
+        where tp.team_id = #{teamId}
+        and tp.deleted_at = #{deletedAt}
+        and p.deleted_at = #{deletedAt}
+        and pm.deleted_at = #{deletedAt}
+        and pm.user_id = #{userId}
+        <if test="groupId == 0">
+            and pgp.project_group_id is null
+        </if>
+        <if test="groupId !=  null and groupId > 0">
+            and pgp.project_group_id = #{groupId}
+        </if>
+
+    </select>
+    <select id="findAllByOwnerId" resultType="net.coding.lib.project.entity.ProjectGroup">
+        select
+        <include refid="Base_Column_List"/>
+        from project_groups
+        where owner_id=#{userId}
+        and deleted_at=#{deletedAt}
+        order by sort asc
+    </select>
+    <select id="getMinSortProjectGroup"
+            resultType="net.coding.lib.project.entity.ProjectGroup">
+        select
+        <include refid="Base_Column_List"/>
+        from project_groups
+        where owner_id=#{userId}
+        and deleted_at=#{deletedAt}
+        order by sort asc
+        limit 1
+    </select>
+    <select id="findListAfterId" resultType="net.coding.lib.project.entity.ProjectGroup">
+        select
+        <include refid="Base_Column_List"/>
+        from project_groups
+        where owner_id = #{userId}
+        and deleted_at=#{deletedAt}
+        and sort > #{sort}
+        order by sort asc
+    </select>
 </mapper>

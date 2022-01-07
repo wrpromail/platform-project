@@ -19,6 +19,7 @@ import net.coding.lib.project.dao.ProjectDao;
 import net.coding.lib.project.dao.ProjectGroupProjectDao;
 import net.coding.lib.project.dao.ProjectRecentViewDao;
 import net.coding.lib.project.dao.TeamProjectDao;
+import net.coding.lib.project.dao.pojo.ProjectSearchFilter;
 import net.coding.lib.project.dto.ProjectDTO;
 import net.coding.lib.project.entity.Credential;
 import net.coding.lib.project.entity.Project;
@@ -32,7 +33,6 @@ import net.coding.lib.project.enums.ConnGenerateByEnums;
 import net.coding.lib.project.enums.PmTypeEnums;
 import net.coding.lib.project.enums.TemplateEnums;
 import net.coding.lib.project.exception.CoreException;
-import net.coding.lib.project.form.CreateProjectForm;
 import net.coding.lib.project.form.QueryProgramForm;
 import net.coding.lib.project.form.UpdateProjectForm;
 import net.coding.lib.project.form.credential.CredentialForm;
@@ -824,5 +824,16 @@ public class ProjectService {
                 parameter.setGroupId(ProjectGroup.NO_GROUP_ID);
             }
         }
+    }
+    public List<Project> getSimpleProjectsByFilter(ProjectSearchFilter filter) {
+        return projectDao.findByUserProjects(
+                filter.getTeamId(),
+                filter.getUserId(),
+                filter.getKeyword(),
+                filter.getGroupId(),
+                filter.getOffset(),
+                filter.getPageSize(),
+                BeanUtils.getDefaultDeletedAt()
+        );
     }
 }

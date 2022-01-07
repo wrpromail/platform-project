@@ -1,6 +1,9 @@
 package net.coding.lib.project.entity;
 
 
+import net.coding.common.util.BeanUtils;
+import net.coding.lib.project.utils.DateUtil;
+
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -39,16 +42,16 @@ public class ProjectGroup {
     /**
      * 类型，全部项目ALL/未分组NO_GROUP/自定义CUSTOM
      */
-    private String type;
+    private String type = TYPE.CUSTOM.name();
 
     /**
      * 排序
      */
     private Integer sort;
 
-    private Date createdAt;
-    private Date updatedAt;
-    private Date deletedAt;
+    private Date createdAt = DateUtil.getCurrentDate();
+    private Date updatedAt = DateUtil.getCurrentDate();
+    private Date deletedAt = DateUtil.strToDate(BeanUtils.NOT_DELETED_AT);
 
 
     public enum TYPE {
@@ -57,4 +60,20 @@ public class ProjectGroup {
         CUSTOM
     }
 
+    /**
+     * 系统分组
+     *
+     * @return
+     */
+    public boolean isSystem() {
+        return isAll() || isNoGroup();
+    }
+
+    public boolean isAll() {
+        return TYPE.ALL.toString().equals(this.type);
+    }
+
+    public boolean isNoGroup() {
+        return TYPE.NO_GROUP.toString().equals(this.type);
+    }
 }

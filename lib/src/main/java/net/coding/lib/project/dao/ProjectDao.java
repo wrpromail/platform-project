@@ -52,4 +52,19 @@ public interface ProjectDao extends tk.mybatis.mapper.common.Mapper<Project> {
             @Param("list") List<Integer> id,
             @Param("deletedAt") Timestamp deletedAt
     );
+
+    long countProjectsByFilter(
+            @Param("teamId") Integer teamId,
+            @Param("userId") Integer userId,
+            @Param("deletedAt") Timestamp defaultDeletedAt
+    );
+    List<Project> findByUserProjects(
+            @Param("teamId") Integer teamId,
+            @Param("userId") Integer userId,
+            @Param("keyword") String keyword,
+            @Param("groupId") Integer groupId,
+            @Param("offset") int offset,
+            @Param("pageSize") int pageSize,
+            @Param("deletedAt") Timestamp defaultDeletedAt
+    );
 }
