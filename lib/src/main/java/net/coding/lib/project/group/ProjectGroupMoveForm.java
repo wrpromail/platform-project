@@ -1,4 +1,4 @@
-package net.coding.lib.project.form;
+package net.coding.lib.project.group;
 
 import lombok.Data;
 

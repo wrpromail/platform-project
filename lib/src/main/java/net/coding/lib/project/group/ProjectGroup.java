@@ -1,4 +1,4 @@
-package net.coding.lib.project.entity;
+package net.coding.lib.project.group;
 
 
 import net.coding.common.util.BeanUtils;
@@ -11,13 +11,14 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "project_groups")
@@ -29,24 +30,16 @@ public class ProjectGroup {
     @Column(name = "`id`", updatable = false, nullable = false)
     private Integer id;
 
-    /**
-     * 团队所有者Id
-     */
+    @ApiModelProperty("团队所有者Id")
     private Integer ownerId;
 
-    /**
-     * 分组名称
-     */
+    @ApiModelProperty("分组名称")
     private String name;
 
-    /**
-     * 类型，全部项目ALL/未分组NO_GROUP/自定义CUSTOM
-     */
+    @ApiModelProperty("类型，全部项目ALL/未分组NO_GROUP/自定义CUSTOM")
     private String type = TYPE.CUSTOM.name();
 
-    /**
-     * 排序
-     */
+    @ApiModelProperty("排序")
     private Integer sort;
 
     private Date createdAt = DateUtil.getCurrentDate();

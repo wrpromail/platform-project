@@ -96,7 +96,6 @@ public class ProjectSettingGrpcService extends ProjectSettingServiceGrpc.Project
             ProjectSettingProto.ProjectSettingUpdateRequest request,
             StreamObserver<ProjectSettingProto.ProjectSettingUpdateResponse> responseObserver
     ) {
-        log.info("update project setting {}", request.getCode());
         ProjectSettingProto.ProjectSettingUpdateResponse.Builder builder =
                 ProjectSettingProto.ProjectSettingUpdateResponse.newBuilder();
         try {

@@ -4,16 +4,17 @@ import net.coding.app.project.constant.GatewayHeader;
 import net.coding.common.util.Result;
 import net.coding.common.util.ResultSerializeNull;
 import net.coding.lib.project.dao.pojo.ProjectSearchFilter;
-import net.coding.lib.project.dto.ProjectGroupDTO;
 import net.coding.lib.project.entity.Project;
-import net.coding.lib.project.entity.ProjectGroup;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.exception.ProjectGroupNameNullException;
 import net.coding.lib.project.exception.ProjectGroupNameTooLongException;
 import net.coding.lib.project.exception.ProjectGroupNotExistException;
 import net.coding.lib.project.exception.ProjectGroupSystemNotAllowOperateException;
-import net.coding.lib.project.form.ProjectGroupMoveForm;
-import net.coding.lib.project.service.ProjectGroupService;
+import net.coding.lib.project.group.ProjectGroupMoveForm;
+import net.coding.lib.project.group.ProjectGroup;
+import net.coding.lib.project.group.ProjectGroupDTO;
+import net.coding.lib.project.group.ProjectGroupDTOService;
+import net.coding.lib.project.group.ProjectGroupService;
 import net.coding.lib.project.service.ProjectService;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -46,48 +47,37 @@ import static net.coding.lib.project.exception.CoreException.ExceptionType.PARAM
 @RestController
 @Api(value = "项目分组", tags = "项目分组")
 @AllArgsConstructor
-@RequestMapping(value = "/api/platform/project/groups")
+@RequestMapping(value = "/api/platform/project/groups/group")
 public class ProjectGroupController {
 
     private final ProjectService projectService;
     private final ProjectGroupService projectGroupService;
+    private final ProjectGroupDTOService projectGroupDTOService;
 
     @ApiOperation(value = "list-project-group", notes = "项目分组列表")
     @GetMapping
-    public Result list(
+    public List<ProjectGroupDTO> list(
             @RequestHeader(GatewayHeader.USER_ID) Integer userId,
             @ApiParam(name = "needProjectNum", value = "需要项目数量")
             @RequestParam(value = "needProjectNum", required = false, defaultValue = "false")
                     boolean needProjectNum
     ) {
-        return ResultSerializeNull.success(
-                projectGroupService.findAll(userId)
-                        .stream()
-                        .map(e -> new ProjectGroupDTO(
-                                        e,
-                                        needProjectNum,
-                                        projectGroupService.getProjectNum(e)
-                                )
-                        ).collect(Collectors.toList()));
+        return projectGroupDTOService.toDTO(
+                projectGroupService.findAll(userId),
+                projectGroupService::getProjectNum
+        );
     }
 
     @ApiOperation(value = "create-project-group", notes = "创建项目分组")
     @PostMapping
-    public Result create(
+    public ProjectGroupDTO create(
             @RequestHeader(GatewayHeader.USER_ID) Integer userId,
             @ApiParam(name = "name", value = "项目分组名称", required = true)
             @RequestParam String name
     ) throws CoreException {
         checkNameLength(name);
-        ProjectGroup projectGroup = projectGroupService.createGroup(name, userId);
-
-        return ResultSerializeNull.success(
-                new ProjectGroupDTO(
-                        projectGroup,
-                        false,
-                        projectGroupService.getProjectNum(projectGroup)
-                )
-        );
+        ProjectGroup group = projectGroupService.createGroup(name, userId);
+        return projectGroupDTOService.toDTO(group, projectGroupService::getProjectNum);
     }
 
     private void checkNameLength(String name) {
@@ -201,16 +191,17 @@ public class ProjectGroupController {
     }
 
     private List<Integer> solveIdsToProjectIds(
-            ProjectGroupMoveForm projectGroupMoveForm,
-            Integer teamId, Integer userId
+            ProjectGroupMoveForm form,
+            Integer teamId,
+            Integer userId
     ) throws CoreException {
-        if (projectGroupMoveForm.isSelectAll()) {
+        if (form.isSelectAll()) {
             ProjectSearchFilter selectAllUnderGroupCondition = new ProjectSearchFilter();
             selectAllUnderGroupCondition.setTeamId(teamId);
             selectAllUnderGroupCondition.setUserId(userId);
-            selectAllUnderGroupCondition.setGroupId(projectGroupMoveForm.getFromGroupId());
-            if (!StringUtils.isEmpty(projectGroupMoveForm.getKeyword())) {
-                selectAllUnderGroupCondition.setKeyword(projectGroupMoveForm.getKeyword());
+            selectAllUnderGroupCondition.setGroupId(form.getFromGroupId());
+            if (!StringUtils.isEmpty(form.getKeyword())) {
+                selectAllUnderGroupCondition.setKeyword(form.getKeyword());
             }
             selectAllUnderGroupCondition.setPageSize(1000);
             checkData(selectAllUnderGroupCondition);
@@ -220,17 +211,17 @@ public class ProjectGroupController {
                     .map(Project::getId)
                     .collect(Collectors.toList());
             // 排除掉需要排除的
-            if (!StringUtils.isEmpty(projectGroupMoveForm.getExcludeIds())) {
-                List<Integer> excludeIds = idStringToIntList(projectGroupMoveForm.getExcludeIds());
+            if (!StringUtils.isEmpty(form.getExcludeIds())) {
+                List<Integer> excludeIds = idStringToInt(form.getExcludeIds());
                 projectIds.removeAll(excludeIds);
             }
             return projectIds;
         } else {
-            return idStringToIntList(projectGroupMoveForm.getIds());
+            return idStringToInt(form.getIds());
         }
     }
 
-    private List<Integer> idStringToIntList(String ids) {
+    private List<Integer> idStringToInt(String ids) {
         return StringUtils.commaDelimitedListToSet(ids)
                 .stream()
                 .map(Integer::valueOf)

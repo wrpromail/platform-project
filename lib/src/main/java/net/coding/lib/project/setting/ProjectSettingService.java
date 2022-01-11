@@ -236,7 +236,6 @@ public class ProjectSettingService {
             String value,
             String beforeValue
     ) {
-        log.info("Send project {} setting code {} change event before value is {} current value is {}", projectId, code, beforeValue, value);
         asyncEventBus.post(
                 ProjectSettingChangeEvent
                         .builder()
