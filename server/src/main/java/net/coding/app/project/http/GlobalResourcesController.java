@@ -15,8 +15,6 @@ import net.coding.lib.project.entity.ProjectResource;
 import net.coding.lib.project.enums.ResourceTypeEnum;
 import net.coding.lib.project.enums.ScopeTypeEnum;
 import net.coding.lib.project.exception.CoreException;
-import net.coding.lib.project.grpc.client.ProjectGrpcClient;
-import net.coding.lib.project.service.ProjectResourceLinkService;
 import net.coding.lib.project.service.ProjectResourceService;
 import net.coding.lib.project.service.ProjectService;
 
@@ -31,10 +29,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 
 import static net.coding.lib.project.exception.CoreException.ExceptionType.TEAM_NOT_EXIST;
 
+@Api(tags = "全局资源")
 @RestController
 @Slf4j
 @ProtectedAPI
@@ -43,12 +43,6 @@ public class GlobalResourcesController {
 
     @Autowired
     private ProjectResourceService projectResourceService;
-
-    @Autowired
-    private ProjectResourceLinkService projectResourceLinkService;
-
-    @Autowired
-    private ProjectGrpcClient projectGrpcClient;
 
     @Autowired
     private ProjectService projectService;

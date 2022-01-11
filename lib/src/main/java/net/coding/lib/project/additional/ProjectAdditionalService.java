@@ -1,0 +1,96 @@
+package net.coding.lib.project.additional;
+
+import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
+import net.coding.grpc.client.platform.TeamProjectServiceGrpcClient;
+import net.coding.lib.project.additional.dto.ProjectAdditionalDTO;
+import net.coding.lib.project.additional.dto.ProjectMemberDTO;
+import net.coding.lib.project.grpc.client.UserGrpcClient;
+import net.coding.lib.project.setting.ProjectSettingFunctionService;
+import net.coding.platform.permission.api.RoleType;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import proto.acl.AclProto;
+import proto.platform.team.project.TeamProjectProto;
+
+@Slf4j
+@Service
+@AllArgsConstructor
+public class ProjectAdditionalService {
+    private final ProjectSettingFunctionService projectSettingFunctionService;
+    private final AdvancedRoleServiceGrpcClient advancedRoleServiceGrpcClient;
+    private final UserGrpcClient userGrpcClient;
+    private final TeamProjectServiceGrpcClient teamProjectServiceGrpcClient;
+
+    public Map<Integer, ProjectAdditionalDTO> getWithFunctionAndAdmin(
+            Integer teamId,
+            Set<Integer> projects
+    ) {
+        return Optional.ofNullable(projects)
+                .map(Collection::stream)
+                .orElse(Stream.empty())
+                .filter(p ->
+                        Optional.ofNullable(
+                                        teamProjectServiceGrpcClient
+                                                .getTeamIdOfProject(
+                                                        TeamProjectProto.GetTeamIdOfProjectRequest.newBuilder()
+                                                                .setProjectId(p)
+                                                                .build()
+                                                )
+                                ).map(TeamProjectProto.GetTeamIdOfProjectResponse::getTeamId)
+                                .map(t -> Objects.equals(t, teamId))
+                                .orElse(false)
+                )
+                .collect(
+                        Collectors.toMap(
+                                Function.identity(),
+                                p -> ProjectAdditionalDTO
+                                        .builder()
+                                        .functions(projectSettingFunctionService.getFunctions(p))
+                                        .managers(findAdmin(p))
+                                        .build(),
+                                (a, b) -> a
+                        )
+                );
+    }
+
+    private List<ProjectMemberDTO> findAdmin(Integer project) {
+        try {
+            AclProto.Role adminRole = advancedRoleServiceGrpcClient.findProjectRoles(project)
+                    .stream()
+                    .filter(r -> StringUtils.equals(r.getType(), RoleType.ProjectAdmin.name()))
+                    .findFirst()
+                    .orElse(null);
+            if (adminRole == null) {
+                return Collections.emptyList();
+            }
+            List<Integer> adminUsers = advancedRoleServiceGrpcClient.findUsersOfRole(adminRole);
+            return Optional.ofNullable(userGrpcClient.findUserByIds(adminUsers))
+                    .map(Collection::stream)
+                    .orElse(Stream.empty())
+                    .map(user -> ProjectMemberDTO.builder()
+                            .avatar(user.getAvatar())
+                            .namePinyin(user.getNamePinyin())
+                            .name(user.getName())
+                            .build()
+                    ).collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Find project {} admin failure, cause of {}", project, e.getMessage());
+        }
+        return Collections.emptyList();
+    }
+}
