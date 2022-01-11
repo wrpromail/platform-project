@@ -6,11 +6,11 @@ import net.coding.common.base.event.ProjectDeleteEvent;
 import net.coding.common.base.event.ProjectMemberDeleteEvent;
 import net.coding.common.util.BeanUtils;
 import net.coding.lib.project.dao.ProjectDao;
-import net.coding.lib.project.dao.ProjectGroupDao;
-import net.coding.lib.project.dao.ProjectGroupProjectDao;
+import net.coding.lib.project.group.ProjectGroupDao;
+import net.coding.lib.project.group.ProjectGroupProjectDao;
 import net.coding.lib.project.entity.Project;
-import net.coding.lib.project.entity.ProjectGroup;
-import net.coding.lib.project.entity.ProjectGroupProject;
+import net.coding.lib.project.group.ProjectGroup;
+import net.coding.lib.project.group.ProjectGroupProject;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 

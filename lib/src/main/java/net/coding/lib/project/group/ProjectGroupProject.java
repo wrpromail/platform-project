@@ -1,4 +1,4 @@
-package net.coding.lib.project.entity;
+package net.coding.lib.project.group;
 
 import net.coding.common.util.BeanUtils;
 import net.coding.lib.project.utils.DateUtil;

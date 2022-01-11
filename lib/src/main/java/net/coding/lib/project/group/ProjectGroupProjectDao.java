@@ -1,6 +1,4 @@
-package net.coding.lib.project.dao;
-
-import net.coding.lib.project.entity.ProjectGroupProject;
+package net.coding.lib.project.group;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -12,17 +10,20 @@ import java.util.List;
 public interface ProjectGroupProjectDao extends tk.mybatis.mapper.common.Mapper<ProjectGroupProject> {
     int batchDelete(List<Integer> ids);
 
-    List<ProjectGroupProject> getByProjectId(@Param("projectId") int projectId,
-                                             @Param("deletedAt") Timestamp defaultDeletedAt
+    List<ProjectGroupProject> getByProjectId(
+            @Param("projectId") int projectId,
+            @Param("deletedAt") Timestamp defaultDeletedAt
     );
 
-    List<ProjectGroupProject> getByProjectIdsAndUserId(@Param("projectIds") List<Integer> projectIds,
-                                                       @Param("userId") Integer userId,
-                                                       @Param("deletedAt") Timestamp defaultDeletedAt
+    List<ProjectGroupProject> getByProjectIdsAndUserId(
+            @Param("projectIds") List<Integer> projectIds,
+            @Param("userId") Integer userId,
+            @Param("deletedAt") Timestamp defaultDeletedAt
     );
 
-    void deleteGroupRelation(@Param("projectGroupId") Integer projectGroupId,
-                             @Param("userId") Integer userId
+    void deleteGroupRelation(
+            @Param("projectGroupId") Integer projectGroupId,
+            @Param("userId") Integer userId
     );
 
     List<ProjectGroupProject> listByOwner(

@@ -1,6 +1,4 @@
-package net.coding.lib.project.dao;
-
-import net.coding.lib.project.entity.ProjectGroup;
+package net.coding.lib.project.group;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

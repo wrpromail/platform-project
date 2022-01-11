@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="net.coding.lib.project.dao.ProjectGroupProjectDao">
-    <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ProjectGroupProject">
+<mapper namespace="net.coding.lib.project.group.ProjectGroupProjectDao">
+    <resultMap id="BaseResultMap" type="net.coding.lib.project.group.ProjectGroupProject">
         <id column="id" jdbcType="INTEGER" property="id"/>
         <result column="owner_id" jdbcType="INTEGER" property="ownerId"/>
         <result column="project_group_id" jdbcType="INTEGER" property="projectGroupId"/>
@@ -88,7 +88,7 @@
           and project_group_id = #{projectGroupId}
     </delete>
     <select id="getByProjectId"
-            resultType="net.coding.lib.project.entity.ProjectGroupProject">
+            resultType="net.coding.lib.project.group.ProjectGroupProject">
         select
         <include refid="Base_Column_List"/>
         from project_group_projects
@@ -96,7 +96,7 @@
         and deleted_at=#{deletedAt}
     </select>
     <select id="getByProjectIdsAndUserId"
-            resultType="net.coding.lib.project.entity.ProjectGroupProject">
+            resultType="net.coding.lib.project.group.ProjectGroupProject">
         select
         <include refid="Base_Column_List"/>
         from project_group_projects
@@ -109,7 +109,7 @@
         and deleted_at=#{deletedAt}
     </select>
     <select id="listByOwner"
-            resultType="net.coding.lib.project.entity.ProjectGroupProject">
+            resultType="net.coding.lib.project.group.ProjectGroupProject">
         SELECT
         <include refid="Base_Column_List"/>
         FROM project_group_projects
@@ -117,7 +117,7 @@
         AND owner_id = #{ownerId}
     </select>
     <select id="listByGroup"
-            resultType="net.coding.lib.project.entity.ProjectGroupProject">
+            resultType="net.coding.lib.project.group.ProjectGroupProject">
         select
         <include refid="Base_Column_List"/>
         from project_group_projects
