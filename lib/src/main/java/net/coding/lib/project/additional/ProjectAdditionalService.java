@@ -106,6 +106,7 @@ public class ProjectAdditionalService {
                     .map(Collection::stream)
                     .orElse(Stream.empty())
                     .map(user -> ProjectMemberDTO.builder()
+                            .id(user.getId())
                             .avatar(user.getAvatar())
                             .namePinyin(user.getNamePinyin())
                             .name(user.getName())
