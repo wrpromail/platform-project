@@ -66,7 +66,8 @@ public class ProgramController {
     public ResultPage<ProgramDTO> queryProgramPages(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
             @RequestHeader(GatewayHeader.USER_ID) Integer userId,
-            @RequestBody @Valid QueryProgramForm form) throws CoreException {
+            @RequestBody @Valid QueryProgramForm form
+    ) throws CoreException {
         return programService.getProgramPages(ProgramPageQueryParameter.builder()
                 .teamId(teamId)
                 .userId(userId)

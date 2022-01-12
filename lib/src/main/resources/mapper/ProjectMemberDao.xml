@@ -226,26 +226,33 @@
     </select>
 
     <update id="updateProjectMemberType">
-        update project_members
-        set `type` = #{type,jdbcType=TINYINT}
-        where user_id = #{userId}
+        UPDATE project_members
+        SET `type` = #{type,jdbcType=TINYINT}
+        WHERE user_id = #{userId}
           AND project_id = #{projectId}
           AND deleted_at = #{deletedAt}
     </update>
 
     <update id="deleteMember">
-        update project_members
-        set deleted_at = NOW()
-        where user_id = #{userId}
+        UPDATE project_members
+        SET deleted_at = NOW()
+        WHERE user_id = #{userId}
           AND project_id = #{projectId}
           AND deleted_at = #{deletedAt}
     </update>
 
     <update id="updateVisitTime">
-        update project_members
-        set last_visit_at = NOW()
-        where id = #{id}
+        UPDATE project_members
+        SET last_visit_at = NOW()
+        WHERE id = #{id}
           AND deleted_at = #{deletedAt}
 
     </update>
+
+    <select id="countByProjectId" resultType="long">
+        SELECT COUNT(DISTINCT user_id)
+        FROM project_members
+        WHERE project_id = #{projectId}
+          AND deleted_at = '1970-01-01 00:00:00'
+    </select>
 </mapper>

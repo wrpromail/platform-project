@@ -2,12 +2,11 @@ package net.coding.app.project.http;
 
 import net.coding.app.project.constant.GatewayHeader;
 import net.coding.common.annotation.ProtectedAPI;
+import net.coding.common.util.LimitedPager;
 import net.coding.common.util.Result;
 import net.coding.common.util.ResultPage;
 import net.coding.lib.project.dto.ProjectDTO;
 import net.coding.lib.project.exception.CoreException;
-import net.coding.lib.project.form.QueryProjectForm;
-import net.coding.lib.project.parameter.ProjectPageQueryParameter;
 import net.coding.lib.project.service.ProjectPinService;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -41,15 +39,15 @@ public class ProjectPinController {
     public ResultPage<ProjectDTO> queryProjectPinPages(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
             @RequestHeader(GatewayHeader.USER_ID) Integer userId,
-            @RequestBody QueryProjectForm form) {
+            @RequestParam(required = false) String keyword,
+            LimitedPager pager
+    ) {
         return projectPinService.getProjectPinPages(
-                ProjectPageQueryParameter.builder()
-                        .teamId(teamId)
-                        .userId(userId)
-                        .keyword(form.getKeyword())
-                        .page(form.getPage())
-                        .pageSize(form.getPageSize())
-                        .build());
+                teamId,
+                userId,
+                keyword,
+                pager
+        );
     }
 
     @ProtectedAPI
@@ -58,7 +56,8 @@ public class ProjectPinController {
     public boolean pinProject(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
             @RequestHeader(GatewayHeader.USER_ID) Integer userId,
-            @PathVariable Integer projectId) throws CoreException {
+            @PathVariable Integer projectId
+    ) throws CoreException {
         return projectPinService.pinProject(teamId, userId, projectId);
     }
 
@@ -68,7 +67,8 @@ public class ProjectPinController {
     public boolean cancelPinProject(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
             @RequestHeader(GatewayHeader.USER_ID) Integer userId,
-            @PathVariable Integer projectId)
+            @PathVariable Integer projectId
+    )
             throws CoreException {
         return projectPinService.cancelPinProject(teamId, userId, projectId);
     }

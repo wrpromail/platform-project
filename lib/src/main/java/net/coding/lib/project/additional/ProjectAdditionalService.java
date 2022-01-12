@@ -1,9 +1,13 @@
 package net.coding.lib.project.additional;
 
+import net.coding.common.util.BeanUtils;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
-import net.coding.grpc.client.platform.TeamProjectServiceGrpcClient;
 import net.coding.lib.project.additional.dto.ProjectAdditionalDTO;
 import net.coding.lib.project.additional.dto.ProjectMemberDTO;
+import net.coding.lib.project.dao.ProjectMemberDao;
+import net.coding.lib.project.dao.TeamProjectDao;
+import net.coding.lib.project.group.ProjectGroupDTOService;
+import net.coding.lib.project.group.ProjectGroupService;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.setting.ProjectSettingFunctionService;
 import net.coding.platform.permission.api.RoleType;
@@ -15,7 +19,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -25,7 +28,6 @@ import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import proto.acl.AclProto;
-import proto.platform.team.project.TeamProjectProto;
 
 @Slf4j
 @Service
@@ -34,34 +36,55 @@ public class ProjectAdditionalService {
     private final ProjectSettingFunctionService projectSettingFunctionService;
     private final AdvancedRoleServiceGrpcClient advancedRoleServiceGrpcClient;
     private final UserGrpcClient userGrpcClient;
-    private final TeamProjectServiceGrpcClient teamProjectServiceGrpcClient;
+    private final TeamProjectDao teamProjectDao;
+    private final ProjectMemberDao projectMemberDao;
+    private final ProjectGroupService projectGroupService;
+    private final ProjectGroupDTOService projectGroupDTOService;
 
     public Map<Integer, ProjectAdditionalDTO> getWithFunctionAndAdmin(
             Integer teamId,
-            Set<Integer> projects
+            Integer userId,
+            Set<Integer> projects,
+            ProjectAdditionalPredicate predicate
     ) {
         return Optional.ofNullable(projects)
                 .map(Collection::stream)
                 .orElse(Stream.empty())
                 .filter(p ->
-                        Optional.ofNullable(
-                                        teamProjectServiceGrpcClient
-                                                .getTeamIdOfProject(
-                                                        TeamProjectProto.GetTeamIdOfProjectRequest.newBuilder()
-                                                                .setProjectId(p)
-                                                                .build()
-                                                )
-                                ).map(TeamProjectProto.GetTeamIdOfProjectResponse::getTeamId)
-                                .map(t -> Objects.equals(t, teamId))
-                                .orElse(false)
+                        teamProjectDao.existByTeamIdAndProjectId(
+                                teamId,
+                                p,
+                                BeanUtils.getDefaultDeletedAt(),
+                                BeanUtils.getDefaultArchivedAt()
+                        )
                 )
                 .collect(
                         Collectors.toMap(
                                 Function.identity(),
                                 p -> ProjectAdditionalDTO
                                         .builder()
-                                        .functions(projectSettingFunctionService.getFunctions(p))
-                                        .managers(findAdmin(p))
+                                        .function(
+                                                predicate.withFunction() ?
+                                                        projectSettingFunctionService.getFunctions(p) :
+                                                        Collections.emptyList()
+                                        )
+                                        .admin(
+                                                predicate.withAdmin() ? findAdmin(p) :
+                                                        Collections.emptyList()
+                                        )
+                                        .memberCount(
+                                                predicate.withMemberCount() ?
+                                                        projectMemberDao.countByProjectId(p)
+                                                        : 0L
+                                        )
+                                        .group(
+                                                projectGroupDTOService.toDTO(
+                                                        predicate.withGroup() ?
+                                                                projectGroupService.getByProjectAndUser(p, userId)
+                                                                : null,
+                                                        null
+                                                )
+                                        )
                                         .build(),
                                 (a, b) -> a
                         )

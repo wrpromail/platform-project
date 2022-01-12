@@ -11,7 +11,16 @@ import java.util.List;
 
 @Mapper
 public interface TeamProjectDao extends tk.mybatis.mapper.common.Mapper<TeamProject> {
-    List<TeamProject> getContainArchivedProjects(@Param("teamId") Integer teamId,
-                                                 @Param("deletedAt") Timestamp deletedAt,
-                                                 @Param("archivedAt") Timestamp archivedAt);
+    List<TeamProject> getContainArchivedProjects(
+            @Param("teamId") Integer teamId,
+            @Param("deletedAt") Timestamp deletedAt,
+            @Param("archivedAt") Timestamp archivedAt
+    );
+
+    boolean existByTeamIdAndProjectId(
+            @Param("teamId") Integer teamId,
+            @Param("projectId") Integer projectId,
+            @Param("deletedAt") Timestamp deletedAt,
+            @Param("archivedAt") Timestamp archivedAt
+    );
 }

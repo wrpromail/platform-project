@@ -1,5 +1,6 @@
 package net.coding.lib.project.additional.dto;
 
+import net.coding.lib.project.group.ProjectGroupDTO;
 import net.coding.lib.project.setting.ProjectSettingDTO;
 
 import java.util.List;
@@ -14,6 +15,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProjectAdditionalDTO {
-    private List<ProjectSettingDTO> functions;
-    private List<ProjectMemberDTO> managers;
+    private List<ProjectSettingDTO> function;
+    private List<ProjectMemberDTO> admin;
+    private Long memberCount;
+    private ProjectGroupDTO group;
 }

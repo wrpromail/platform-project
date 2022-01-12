@@ -21,5 +21,12 @@
         and (deleted_at=#{deletedAt} or deleted_at=#{archivedAt})
     </select>
 
+    <select id="existByTeamIdAndProjectId" resultType="boolean">
+        SELECT COUNT(1)
+        FROM team_projects
+        WHERE team_id = #{teamId}
+          AND project_id = #{projectId}
+          AND (deleted_at = #{deletedAt} OR deleted_at = #{archivedAt})
+    </select>
 
 </mapper>

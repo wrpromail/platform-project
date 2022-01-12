@@ -3,12 +3,8 @@ package net.coding.lib.project.group;
 import net.coding.common.i18n.utils.LocaleMessageSource;
 import net.coding.common.util.BeanUtils;
 import net.coding.lib.project.dao.ProjectDao;
-import net.coding.lib.project.group.ProjectGroupDao;
-import net.coding.lib.project.group.ProjectGroupProjectDao;
 import net.coding.lib.project.dao.pojo.ProjectSearchFilter;
 import net.coding.lib.project.entity.Project;
-import net.coding.lib.project.group.ProjectGroup;
-import net.coding.lib.project.group.ProjectGroupProject;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.exception.ProjectGroupSameNameException;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
@@ -19,8 +15,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +44,19 @@ public class ProjectGroupService {
 
     public ProjectGroup getByUserAndName(Integer userId, String name) {
         return projectGroupDao.getByUserAndName(userId, name, BeanUtils.getDefaultDeletedAt());
+    }
+
+    public ProjectGroup getByProjectAndUser(Integer projectId, Integer userId) {
+        return Optional.ofNullable(
+                        projectGroupProjectDao.getByProjectIdsAndUserId(
+                                Collections.singletonList(projectId),
+                                userId, BeanUtils.getDefaultDeletedAt()
+                        )
+                ).map(Collection::stream)
+                .orElse(Stream.empty())
+                .findFirst()
+                .map(gp -> projectGroupDao.getById(gp.getProjectGroupId(), BeanUtils.getDefaultDeletedAt()))
+                .orElse(null);
     }
 
     public ProjectGroup createGroup(String name, Integer userId) throws CoreException {

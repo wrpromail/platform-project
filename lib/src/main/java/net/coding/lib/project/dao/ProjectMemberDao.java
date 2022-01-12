@@ -73,4 +73,6 @@ public interface ProjectMemberDao {
             @Param("keyWord") String keyWord,
             @Param("page") PageRowBounds page
     );
+
+    long countByProjectId(@Param("projectId") Integer projectId);
 }

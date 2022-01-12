@@ -1,6 +1,7 @@
 package net.coding.app.project.http;
 
 import net.coding.app.project.constant.GatewayHeader;
+import net.coding.lib.project.additional.ProjectAdditionalPredicate;
 import net.coding.lib.project.additional.ProjectAdditionalService;
 import net.coding.lib.project.additional.dto.ProjectAdditionalDTO;
 
@@ -28,8 +29,38 @@ public class ProjectAdditionalController {
     @ApiOperation("获取项目附加信息（功能开关和项目管理员）")
     public Map<Integer, ProjectAdditionalDTO> info(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
-            @RequestParam Set<Integer> project
+            @RequestHeader(GatewayHeader.USER_ID) Integer userId,
+            @RequestParam(required = false) Set<Integer> project,
+            @RequestParam(required = false) boolean withFunction,
+            @RequestParam(required = false) boolean withMemberCount,
+            @RequestParam(required = false) boolean withGroup,
+            @RequestParam(required = false) boolean withAdmin
     ) {
-        return projectAdditionalService.getWithFunctionAndAdmin(teamId, project);
+        return projectAdditionalService.getWithFunctionAndAdmin(
+                teamId,
+                userId,
+                project,
+                new ProjectAdditionalPredicate() {
+                    @Override
+                    public boolean withFunction() {
+                        return withFunction;
+                    }
+
+                    @Override
+                    public boolean withAdmin() {
+                        return withAdmin;
+                    }
+
+                    @Override
+                    public boolean withMemberCount() {
+                        return withMemberCount;
+                    }
+
+                    @Override
+                    public boolean withGroup() {
+                        return withGroup;
+                    }
+                }
+        );
     }
 }

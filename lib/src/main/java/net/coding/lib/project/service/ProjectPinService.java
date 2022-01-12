@@ -5,6 +5,7 @@ import com.github.pagehelper.PageInfo;
 
 import net.coding.common.base.dao.BaseDao;
 import net.coding.common.util.BeanUtils;
+import net.coding.common.util.Pager;
 import net.coding.common.util.ResultPage;
 import net.coding.lib.project.dao.ProjectDao;
 import net.coding.lib.project.dao.ProjectPinDao;
@@ -13,7 +14,6 @@ import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectPin;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
-import net.coding.lib.project.parameter.ProjectPageQueryParameter;
 
 import org.springframework.stereotype.Service;
 
@@ -54,17 +54,31 @@ public class ProjectPinService {
     /**
      * 获取星标项目 支持关键字查看 支持分页
      */
-    public ResultPage<ProjectDTO> getProjectPinPages(ProjectPageQueryParameter parameter) {
-        PageInfo<Project> pageInfo = PageHelper.startPage(parameter.getPage(), parameter.getPageSize())
-                .doSelectPageInfo(() -> projectPinDao.getProjectPinPages(parameter));
+    public ResultPage<ProjectDTO> getProjectPinPages(
+            Integer teamId,
+            Integer userId,
+            String keyword,
+            Pager pager
+    ) {
+        PageInfo<Project> pageInfo = PageHelper.startPage(pager.getPage(), pager.getPageSize())
+                .doSelectPageInfo(() -> projectPinDao.getProjectPinPages(
+                        teamId,
+                        userId,
+                        keyword
+                ));
         List<ProjectDTO> projectDTOList = pageInfo.getList().stream()
                 .map(projectDTOService::toDetailDTO)
                 .peek(p -> {
-                    p.setPin(getByProjectIdAndUserId(p.getId(), parameter.getUserId()).isPresent());
+                    p.setPin(getByProjectIdAndUserId(p.getId(), userId).isPresent());
                     p.setUn_read_activities_count(0);
                 })
                 .collect(Collectors.toList());
-        return new ResultPage<>(projectDTOList, parameter.getPage(), parameter.getPageSize(), pageInfo.getTotal());
+        return new ResultPage<>(
+                projectDTOList,
+                pager.getPage(),
+                pager.getPageSize(),
+                pageInfo.getTotal()
+        );
     }
 
     public Boolean pinProject(Integer teamId, Integer userId, Integer projectId) throws CoreException {
