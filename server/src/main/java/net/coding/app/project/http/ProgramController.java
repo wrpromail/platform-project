@@ -7,6 +7,7 @@ import net.coding.common.annotation.ProtectedAPI;
 import net.coding.common.annotation.enums.Action;
 import net.coding.common.annotation.enums.Function;
 import net.coding.common.util.BeanUtils;
+import net.coding.common.util.LimitedPager;
 import net.coding.common.util.Result;
 import net.coding.common.util.ResultPage;
 import net.coding.lib.project.dto.ProgramDTO;
@@ -61,8 +62,46 @@ public class ProgramController {
         return programService.createProgram(teamId, userId, form);
     }
 
+
     @ApiOperation("项目集-分页查询")
+    @GetMapping("/search")
+    public ResultPage<ProgramDTO> search(
+            @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
+            @RequestHeader(GatewayHeader.USER_ID) Integer userId,
+            @ApiParam(value = "查询类型（ALL,JOINED,MANAGED）") @RequestParam(required = false, defaultValue = "JOINED") String type,
+            @ApiParam(value = "状态") @RequestParam(required = false) boolean archived,
+            @ApiParam(value = "负责人") @RequestParam(required = false) Set<Integer> user,
+            @ApiParam(value = "涉及项目") @RequestParam(required = false) Set<Integer> project,
+            @ApiParam(value = "开始时间") @RequestParam(required = false) String start,
+            @ApiParam(value = "结束时间") @RequestParam(required = false) String end,
+            @ApiParam(value = "项目集关键字（名称/标识/拼音）") @RequestParam(required = false) String keyword,
+            @ApiParam(value = "排序字段（VISIT,CREATE,START,NAME）") @RequestParam(required = false, defaultValue = "CREATE") String sort,
+            @ApiParam(value = "排序规则（ASC,DESC）") @RequestParam(required = false, defaultValue = "DESC") String order,
+            LimitedPager pager
+    ) throws CoreException {
+        return programService.getProgramPages(
+                ProgramPageQueryParameter.builder()
+                        .teamId(teamId)
+                        .userId(userId)
+                        .userIds(user)
+                        .projectIds(project)
+                        .startDate(start)
+                        .endDate(end)
+                        .keyword(keyword)
+                        .queryType(type)
+                        .sortKey(sort)
+                        .sortValue(order)
+                        .deletedAt(archived ? BeanUtils.getDefaultArchivedAt()
+                                : BeanUtils.getDefaultDeletedAt())
+                        .page(pager.getPage())
+                        .pageSize(pager.getPageSize())
+                        .build()
+        );
+    }
+
+    @ApiOperation("项目集-分页查询（废弃）")
     @PostMapping("/pages")
+    @Deprecated
     public ResultPage<ProgramDTO> queryProgramPages(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
             @RequestHeader(GatewayHeader.USER_ID) Integer userId,
@@ -86,7 +125,7 @@ public class ProgramController {
                 .build());
     }
 
-    @ApiOperation("项目集-查询")
+    @ApiOperation("项目集-查询全部项目集")
     @GetMapping("/list")
     public List<ProgramDTO> queryPrograms(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
@@ -96,6 +135,24 @@ public class ProgramController {
         return programService.getProgramDTOs(teamId, projectId, userId);
     }
 
+    @ApiOperation("项目集-查询关联项目(涉及所有我参与的项目集下关联项目)")
+    @GetMapping("/projects")
+    public List<ProjectDTO> getProjectsByProgram(
+            @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
+            @RequestHeader(GatewayHeader.USER_ID) Integer userId,
+            @RequestParam(defaultValue = "JOINED") String type,
+            @RequestParam(defaultValue = "false") Boolean archived
+    ) throws CoreException {
+        return programService.getProgramAllProjects(ProgramProjectQueryParameter.builder()
+                .teamId(teamId)
+                .userId(userId)
+                .queryType(type)
+                .deletedAt(archived ? BeanUtils.getDefaultArchivedAt()
+                        : BeanUtils.getDefaultDeletedAt())
+                .build());
+    }
+
+    @Deprecated
     @ApiOperation("项目集-查询关联项目(涉及所有我参与的项目集下关联项目)")
     @PostMapping("/projects")
     public List<ProjectDTO> queryProgramAllProjects(
