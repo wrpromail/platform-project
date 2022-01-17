@@ -1,6 +1,8 @@
 package net.coding.lib.project.grpc.client;
 
 import net.coding.common.rpc.client.EndpointGrpcClient;
+import net.coding.lib.project.exception.AppException;
+import net.coding.lib.project.exception.ArtifactNotExistException;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -42,5 +44,14 @@ public class ArtifactRepositoryGrpcClient extends EndpointGrpcClient<ArtifactRep
         ArtifactRepositoryProto.GetReposResponse response = newStub().getReposByIds(request);
         return response.getRepositoriesList().stream()
                 .collect(Collectors.toMap(ArtifactRepositoryProto.Repository::getId, ArtifactRepositoryProto.Repository::getName));
+    }
+
+    public ArtifactRepositoryProto.Repository getArtifactReposById(Integer id) throws AppException {
+        ArtifactRepositoryProto.GetRepoRequest request = ArtifactRepositoryProto.GetRepoRequest.newBuilder().setId(id).build();
+        ArtifactRepositoryProto.GetRepoResponse response = newStub().getRepo(request);
+        if (!response.hasRepo()) {
+            throw new ArtifactNotExistException();
+        }
+        return response.getRepo();
     }
 }

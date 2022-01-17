@@ -63,10 +63,10 @@ dependencies {
     compile "net.coding.proto:notification:20201030.2"
     compile 'net.coding.proto:file:20201109.2'
     compile "net.coding.proto:wiki:20201113.1"
-    compile "net.coding.proto:artifact:20210112.1"
+    compile "net.coding.proto:artifact:21210208.1"
     compile "net.coding.proto:permission:20210830.1"
     compile "net.coding.proto:open-api:20210615.2"
-    compile "net.coding.proto:platform-open-api:20211029.1"
+    compile "net.coding.proto:platform-open-api:de239e04591a5cad1c77cca444e21682d939b68c"
     compile "net.coding.grpc.client:collaboration:20211123.1"
     compile "net.coding.platform.framework:degradation:20210906.1"
     compile("tk.mybatis:mapper-spring-boot-starter:2.1.5")

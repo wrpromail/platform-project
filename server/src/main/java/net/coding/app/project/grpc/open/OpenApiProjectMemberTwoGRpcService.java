@@ -6,7 +6,6 @@ import net.coding.common.i18n.utils.LocaleMessageSource;
 import net.coding.common.util.ResultPage;
 import net.coding.common.util.TextUtils;
 import net.coding.e.proto.ApiUserProto;
-import net.coding.e.proto.CommonProto;
 import net.coding.grpc.client.permission.AclServiceGrpcClient;
 import net.coding.lib.project.dto.ProjectMemberDTO;
 import net.coding.lib.project.dto.UserDTO;
@@ -15,6 +14,7 @@ import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.service.ProjectMemberService;
 import net.coding.proto.open.api.project.member.ProjectMemberProto;
 import net.coding.proto.open.api.project.member.ProjectMemberServiceGrpc;
+import net.coding.proto.open.api.result.CommonProto;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.lognet.springboot.grpc.GRpcService;

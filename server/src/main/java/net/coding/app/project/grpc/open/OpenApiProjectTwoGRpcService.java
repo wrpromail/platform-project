@@ -2,7 +2,6 @@ package net.coding.app.project.grpc.open;
 
 import net.coding.app.project.utils.ProtoConvertUtils;
 import net.coding.common.i18n.utils.LocaleMessageSource;
-import net.coding.e.proto.CommonProto;
 import net.coding.grpc.client.permission.AclServiceGrpcClient;
 import net.coding.lib.project.common.GRpcMetadataContextHolder;
 import net.coding.lib.project.entity.Project;
@@ -12,6 +11,7 @@ import net.coding.lib.project.interceptor.GRpcHeaderServerInterceptor;
 import net.coding.lib.project.service.ProjectService;
 import net.coding.proto.open.api.project.ProjectProto;
 import net.coding.proto.open.api.project.ProjectServiceGrpc;
+import net.coding.proto.open.api.result.CommonProto;
 
 import org.apache.commons.lang3.StringUtils;
 import org.lognet.springboot.grpc.GRpcService;

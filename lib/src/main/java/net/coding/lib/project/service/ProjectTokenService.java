@@ -1,8 +1,13 @@
 package net.coding.lib.project.service;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+
 import net.coding.common.base.gson.JSON;
 import net.coding.common.constants.DeployTokenScopeEnum;
 import net.coding.common.util.BeanUtils;
+import net.coding.common.util.LimitedPager;
+import net.coding.common.util.ResultPage;
 import net.coding.common.vendor.CodingStringUtils;
 import net.coding.grpc.client.platform.GlobalKeyGrpcClient;
 import net.coding.lib.project.dao.ProjectTokenArtifactDao;
@@ -20,7 +25,9 @@ import net.coding.lib.project.entity.ProjectToken;
 import net.coding.lib.project.entity.ProjectTokenArtifact;
 import net.coding.lib.project.entity.ProjectTokenDepot;
 import net.coding.lib.project.exception.AppException;
+import net.coding.lib.project.exception.ArtifactNotExistException;
 import net.coding.lib.project.exception.CoreException;
+import net.coding.lib.project.exception.DepotNotExistException;
 import net.coding.lib.project.exception.ProjectAuthDenyException;
 import net.coding.lib.project.exception.ProjectAuthTokenDisabledException;
 import net.coding.lib.project.exception.ProjectAuthTokenExpiredException;
@@ -29,6 +36,7 @@ import net.coding.lib.project.grpc.client.ArtifactRepositoryGrpcClient;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
 import net.coding.lib.project.parameter.DeployTokenUpdateParameter;
 import net.coding.lib.project.utils.DateUtil;
+import net.coding.proto.open.api.project.token.ProjectTokenProto;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -50,10 +58,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.grpc.StatusRuntimeException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import proto.artifact.ArtifactRepositoryProto;
 import proto.git.GitDepotGrpcClient;
 import proto.git.GitDepotProto;
+import proto.open.api.CodeProto;
 import proto.platform.globalKey.GlobalKeyProto;
 import proto.platform.user.UserProto;
 
@@ -185,6 +196,7 @@ public class ProjectTokenService {
                             .map(e -> ProjectTokenDepotDTO.builder().depotId(e.getValue()).scope(e.getText()).build())
                             .collect(Collectors.toList());
                     depotScopeDTO.setScopes(scopeDTOs);
+                    depotScopeDTO.setId(it.getId());
                     depotScopes.add(depotScopeDTO);
                 });
             }
@@ -285,6 +297,7 @@ public class ProjectTokenService {
 
     private void insertProjectTokenDepot(Integer id, List<ProjectTokenDepotDTO> depotScopes) {
         Timestamp init_at = new Timestamp(System.currentTimeMillis());
+
         for (ProjectTokenDepotDTO projectTokenDepotDTO : depotScopes) {
             ProjectTokenDepot deployTokenDepot = ProjectTokenDepot.builder()
                     .deployTokenId(id)
@@ -344,11 +357,11 @@ public class ProjectTokenService {
             AddProjectTokenForm form,
             Integer associatedId,
             short type
-    ) throws CoreException {
+    ) throws CoreException, AppException {
 
-        Integer teamId = user.getTeamId();
+        int teamId = user.getTeamId();
         int userId = user.getId();
-        if (teamId == null) {
+        if (teamId <= 0) {
             throw CoreException.of(CoreException.ExceptionType.TEAM_NOT_EXIST);
         }
         int gkId = getGlobalKey(teamId);
@@ -375,22 +388,61 @@ public class ProjectTokenService {
                 .deletedAt(Timestamp.valueOf(BeanUtils.NOT_DELETED_AT))
                 .build();
 
-        Integer id = projectTokenDao.insert(projectToken);
+        int id = projectTokenDao.insert(projectToken);
         if (id < 0) {
             throw CoreException.of(CoreException.ExceptionType.DEPLOY_TOKEN_CREATE_FAIL);
         }
         //关联token与每个仓库的权限
         if (!form.isApplyToAllDepots() && !CollectionUtils.isEmpty(form.getDepotScopes())) {
             List<ProjectTokenDepotDTO> depotScopes = form.getDepotScopes();
+            checkDepotProPermission(depotScopes, projectId);
             insertProjectTokenDepot(projectToken.getId(), depotScopes);
         }
         //关联token与每个制品库的权限
         if (!form.isApplyToAllArtifacts() && !CollectionUtils.isEmpty(form.getArtifactScopes())) {
             List<ProjectTokenArtifactDTO> artifactScopes = form.getArtifactScopes();
+            checkArtifactProPermission(artifactScopes, projectId);
             insertProjectTokenArtifact(projectToken.getId(), artifactScopes);
         }
         return projectToken;
 
+    }
+
+    private void checkArtifactProPermission(List<ProjectTokenArtifactDTO> artifactScopes, Integer projectId) throws AppException {
+        // 制品库是否存在  检查制品库是否存在越权
+        for (ProjectTokenArtifactDTO artifactScope : artifactScopes) {
+            ArtifactRepositoryProto.Repository artifactRepo = artifactRepositoryGrpcClient
+                    .getArtifactReposById(artifactScope.getArtifactId());
+            if (null == artifactRepo) {
+                throw new ArtifactNotExistException();
+            }
+            if (!projectId.equals(artifactRepo.getProjectId())) {
+                throw new ArtifactNotExistException();
+            }
+        }
+
+    }
+
+    private void checkDepotProPermission(List<ProjectTokenDepotDTO> depotScopes, Integer projectId) throws AppException {
+        // 仓库是否存在   检查仓库是否存在越权
+        for (ProjectTokenDepotDTO projectTokenDepotDTO : depotScopes) {
+            GitDepotProto.Depot depot = null;
+            try {
+                depot = gitDepotGrpcClient.getProjectDepotById(GitDepotProto.GetProjectDepotByIdRequest.newBuilder()
+                        .setDepotId(Integer.parseInt(projectTokenDepotDTO.getDepotId()))
+                        .build());
+            } catch (StatusRuntimeException e) {
+                if (CodeProto.Code.NOT_FOUND.name().equals(e.getStatus().getCode().name())) {
+                    throw new DepotNotExistException();
+                }
+            }
+            if (depot == null) {
+                throw new DepotNotExistException();
+            }
+            if (!projectId.equals(depot.getProjectId())) {
+                throw new DepotNotExistException();
+            }
+        }
     }
 
     private String generateProjectToken() {
@@ -628,5 +680,11 @@ public class ProjectTokenService {
             );
         }
         return projectToken;
+    }
+
+    public ResultPage<ProjectToken> getProjectTokenPages(int projectId, LimitedPager pager) {
+        PageInfo<ProjectToken> pageInfo = PageHelper.startPage(pager.getPage(), pager.getPageSize())
+                .doSelectPageInfo(() -> selectUserProjectToken(projectId));
+        return new ResultPage<>(pageInfo.getList(), pager.getPage(), pager.getPageSize(), pageInfo.getTotal());
     }
 }

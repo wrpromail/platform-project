@@ -1,7 +1,6 @@
 package net.coding.app.project.grpc.openapi;
 
 import net.coding.common.i18n.utils.LocaleMessageSource;
-import net.coding.e.proto.CommonProto.Result;
 import net.coding.exchange.exception.ProjectNotExistsException;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
@@ -13,6 +12,7 @@ import net.coding.proto.open.api.project.resource.ResourceReferenceProto.Describ
 import net.coding.proto.open.api.project.resource.ResourceReferenceProto.DescribeResourceReferencesResponse;
 import net.coding.proto.open.api.project.resource.ResourceReferenceProto.ResourceReferenceItem;
 import net.coding.proto.open.api.project.resource.ResourceReferenceServiceGrpc;
+import net.coding.proto.open.api.result.CommonProto;
 
 import org.lognet.springboot.grpc.GRpcService;
 
@@ -52,10 +52,10 @@ public class OpenApiResourceReferenceGRpcService extends
                                            StreamObserver<DescribeResourceReferencesResponse> responseObserver) {
         try {
             int projectId = Optional.ofNullable(
-                            projectService.getByNameAndTeamId(
-                                    request.getProjectName(),
-                                    request.getUser().getTeamId()
-                            ))
+                    projectService.getByNameAndTeamId(
+                            request.getProjectName(),
+                            request.getUser().getTeamId()
+                    ))
                     .map(Project::getId)
                     .orElseThrow(ProjectNotExistsException::new);
             ProjectMember projectMember = projectMemberService.getByProjectIdAndUserId(
@@ -87,7 +87,7 @@ public class OpenApiResourceReferenceGRpcService extends
             List<ResourceReferenceItem> list
     ) {
         responseObserver.onNext(DescribeResourceReferencesResponse.newBuilder()
-                .setResult(Result.newBuilder()
+                .setResult(CommonProto.Result.newBuilder()
                         .setCode(Code.SUCCESS.getNumber())
                         .setMessage(SUCCESS.name().toLowerCase())
                         .build())
@@ -102,7 +102,7 @@ public class OpenApiResourceReferenceGRpcService extends
             String message
     ) {
         responseObserver.onNext(DescribeResourceReferencesResponse.newBuilder()
-                .setResult(Result.newBuilder()
+                .setResult(CommonProto.Result.newBuilder()
                         .setCode(code.getNumber())
                         .setMessage(message)
                         .build())

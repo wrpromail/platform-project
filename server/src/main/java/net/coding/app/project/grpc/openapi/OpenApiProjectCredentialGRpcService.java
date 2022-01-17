@@ -1,6 +1,5 @@
 package net.coding.app.project.grpc.openapi;
 
-import net.coding.e.proto.CommonProto;
 import net.coding.grpc.client.permission.AclServiceGrpcClient;
 import net.coding.lib.project.dto.ConnectionTaskDTO;
 import net.coding.lib.project.entity.Credential;
@@ -16,6 +15,7 @@ import net.coding.lib.project.service.ProjectService;
 import net.coding.lib.project.service.credential.ProjectCredentialService;
 import net.coding.proto.open.api.project.credential.ProjectCredentialProto;
 import net.coding.proto.open.api.project.credential.ProjectCredentialServiceGrpc;
+import net.coding.proto.open.api.result.CommonProto;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -37,7 +37,6 @@ import proto.platform.user.UserProto;
 
 import static proto.open.api.CodeProto.Code.INTERNAL_ERROR;
 import static proto.open.api.CodeProto.Code.INVALID_PARAMETER;
-import static proto.open.api.CodeProto.Code.NOT_FOUND;
 import static proto.open.api.CodeProto.Code.SUCCESS;
 
 @Slf4j
