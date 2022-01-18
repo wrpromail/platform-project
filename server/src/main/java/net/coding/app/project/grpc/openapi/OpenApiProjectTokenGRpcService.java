@@ -27,6 +27,7 @@ import net.coding.proto.open.api.project.token.ProjectTokenProto;
 import net.coding.proto.open.api.project.token.ProjectTokenServiceGrpc;
 import net.coding.proto.open.api.result.CommonProto;
 
+import org.apache.commons.collections4.IterableUtils;
 import org.lognet.springboot.grpc.GRpcService;
 import org.springframework.util.StringUtils;
 
@@ -237,7 +238,7 @@ public class OpenApiProjectTokenGRpcService extends ProjectTokenServiceGrpc.Proj
                 throw CoreException.of(CoreException.ExceptionType.PROJECT_MEMBER_NOT_EXISTS);
             }
             if (QCloudProduct.TCB.name().equals(project.getLabel())) {
-                currentUser = getQcloudOwnerUser(currentUser);
+                currentUser = getQCloudOwnerUser(currentUser);
             }
             if (!aclServiceGrpcClient.hasPermissionInProject(PermissionProto.Permission.newBuilder()
                             .setAction(PermissionProto.Action.Create)
@@ -247,7 +248,7 @@ public class OpenApiProjectTokenGRpcService extends ProjectTokenServiceGrpc.Proj
                     currentUser.getGlobalKey(),
                     currentUser.getId()
             )) {
-                throw new NoPermissionException();
+                throw CoreException.of(PERMISSION_DENIED);
             }
             ProjectToken projectToken = projectTokenService.saveProjectToken(
                     request.getProjectId(),
@@ -264,7 +265,7 @@ public class OpenApiProjectTokenGRpcService extends ProjectTokenServiceGrpc.Proj
             if (response == null) {
                 throw new GlobalKeyCreateErrorException();
             }
-            builder.setProjectToken(
+            builder.setData(
                     ProjectTokenProto.ProjectToken.newBuilder()
                             .setId(projectToken.getId())
                             .setCreatedAt(projectToken.getCreatedAt().getTime())
@@ -278,6 +279,7 @@ public class OpenApiProjectTokenGRpcService extends ProjectTokenServiceGrpc.Proj
                             .setToken(projectToken.getToken())
                             .setGlobalKey(response.getData().getGlobalKey())
                             .setUpdatedAt(projectToken.getUpdatedAt().getTime())
+                            .addAllScopes(request.getScopesList())
                             .build()
             ).setResult(CommonProto.Result.newBuilder()
                     .setCode(CodeProto.Code.SUCCESS.getNumber())
@@ -357,7 +359,7 @@ public class OpenApiProjectTokenGRpcService extends ProjectTokenServiceGrpc.Proj
         builder.setData(builderData.build());
     }
 
-    public UserProto.User getQcloudOwnerUser(UserProto.User user) {
+    public UserProto.User getQCloudOwnerUser(UserProto.User user) {
         Optional<QCloudUserProto.GetUserResponse> response = Optional.ofNullable(qCloudUserGrpcClient.GetQCloudUser(user.getId()));
         if (response.isPresent()) {
             QCloudUserProto.QCloudUser qCloudUser = response.get().getData();
@@ -380,13 +382,13 @@ public class OpenApiProjectTokenGRpcService extends ProjectTokenServiceGrpc.Proj
     private AddProjectTokenForm handleRequestForm(ProjectTokenProto.CreateProjectTokenRequest request) {
 
         List<String> tokenScopes = request.getScopesList().stream()
-                .filter(s -> GLOBAL_SCOPE.contains(s.getValue()))
+                .filter(s -> (s.getTarget() <= 0) || (GLOBAL_SCOPE.contains(s.getValue())))
                 .map(ProjectTokenProto.Scope::getValue)
                 .collect(Collectors.toList());
 
         // 处理仓库scope拼接
         List<ProjectTokenDepotDTO> depotScopes = request.getScopesList().stream()
-                .filter(s -> DEPOT_SCOPE.contains(s.getValue()))
+                .filter(s -> (s.getTarget() > 0 && DEPOT_SCOPE.contains(s.getValue())))
                 .collect(Collectors.groupingBy(
                         ProjectTokenProto.Scope::getTarget, Collectors.mapping(
                                 ProjectTokenProto.Scope::getValue, Collectors.joining(","))))
@@ -401,7 +403,7 @@ public class OpenApiProjectTokenGRpcService extends ProjectTokenServiceGrpc.Proj
 
         // 处理制品库scope拼接
         List<ProjectTokenArtifactDTO> artifactScopes = request.getScopesList().stream()
-                .filter(s -> ARTIFACT_SCOPE.contains(s.getValue()))
+                .filter(s -> (s.getTarget() > 0 && ARTIFACT_SCOPE.contains(s.getValue())))
                 .collect(Collectors.groupingBy(
                         ProjectTokenProto.Scope::getTarget, Collectors.mapping(
                                 ProjectTokenProto.Scope::getValue, Collectors.joining(","))))
