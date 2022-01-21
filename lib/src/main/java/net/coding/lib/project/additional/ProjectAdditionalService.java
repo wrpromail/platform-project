@@ -6,6 +6,7 @@ import net.coding.lib.project.additional.dto.ProjectAdditionalDTO;
 import net.coding.lib.project.additional.dto.ProjectMemberDTO;
 import net.coding.lib.project.dao.ProjectMemberDao;
 import net.coding.lib.project.dao.TeamProjectDao;
+import net.coding.lib.project.group.ProjectGroupDTO;
 import net.coding.lib.project.group.ProjectGroupDTOService;
 import net.coding.lib.project.group.ProjectGroupService;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
@@ -78,12 +79,12 @@ public class ProjectAdditionalService {
                                                         : 0L
                                         )
                                         .group(
-                                                projectGroupDTOService.toDTO(
-                                                        predicate.withGroup() ?
-                                                                projectGroupService.getByProjectAndUser(p, userId)
-                                                                : null,
-                                                        null
-                                                )
+                                                predicate.withGroup() ?
+                                                        Optional.ofNullable(projectGroupDTOService.toDTO(
+                                                                projectGroupService.getByProjectAndUser(p, userId),
+                                                                null
+                                                        )).orElse(ProjectGroupDTO.builder().build())
+                                                        : ProjectGroupDTO.builder().build()
                                         )
                                         .build(),
                                 (a, b) -> a
