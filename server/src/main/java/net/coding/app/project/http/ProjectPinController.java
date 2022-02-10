@@ -10,6 +10,7 @@ import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.service.ProjectPinService;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,10 +34,28 @@ public class ProjectPinController {
 
     private final ProjectPinService projectPinService;
 
+    @Deprecated
     @ProtectedAPI
     @ApiOperation("星标项目-分页查询")
     @PostMapping("/pin/pages")
     public ResultPage<ProjectDTO> queryProjectPinPages(
+            @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
+            @RequestHeader(GatewayHeader.USER_ID) Integer userId,
+            @RequestParam(required = false) String keyword,
+            LimitedPager pager
+    ) {
+        return projectPinService.getProjectPinPages(
+                teamId,
+                userId,
+                keyword,
+                pager
+        );
+    }
+
+    @ProtectedAPI
+    @ApiOperation("星标项目-分页查询")
+    @GetMapping("/pin/projects")
+    public ResultPage<ProjectDTO> pagePinProjects(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
             @RequestHeader(GatewayHeader.USER_ID) Integer userId,
             @RequestParam(required = false) String keyword,
