@@ -2,6 +2,8 @@ package net.coding.app.project.grpc;
 
 
 import net.coding.grpc.client.permission.AclServiceGrpcClient;
+import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
+import net.coding.grpc.client.platform.UserServiceGrpcClient;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.enums.RoleTypeEnum;
@@ -18,16 +20,24 @@ import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import io.grpc.stub.StreamObserver;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import proto.common.CodeProto;
+import one.util.streamex.StreamEx;
+import proto.acl.AclProto;
 import proto.platform.permission.PermissionProto;
 import proto.platform.user.UserProto;
 
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_MEMBER_NOT_EXISTS;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.RESOURCE_NO_FOUND;
+import static proto.common.CodeProto.Code.INTERNAL_ERROR;
+import static proto.common.CodeProto.Code.NOT_FOUND;
+import static proto.common.CodeProto.Code.SUCCESS;
 
 @Slf4j
 @AllArgsConstructor
@@ -40,7 +50,11 @@ public class ProjectMemberGrpcService extends ProjectMemberServiceGrpc.ProjectMe
 
     private final UserGrpcClient userGrpcClient;
 
+    private final UserServiceGrpcClient userServiceGrpcClient;
+
     private final AclServiceGrpcClient aclServiceGrpcClient;
+
+    private final AdvancedRoleServiceGrpcClient advancedRoleServiceGrpcClient;
 
     @Override
     public void addProjectMember(
@@ -84,17 +98,17 @@ public class ProjectMemberGrpcService extends ProjectMemberServiceGrpc.ProjectMe
             }
             projectMemberService.doAddMember(currentUser.getId(), targetUserIds, (short) request.getType(), project, false);
             responseObserver.onNext(ProjectMemberProto.AddProjectMemberResponse.newBuilder()
-                    .setCode(CodeProto.Code.SUCCESS)
+                    .setCode(SUCCESS)
                     .build());
         } catch (CoreException e) {
             responseObserver.onNext(ProjectMemberProto.AddProjectMemberResponse.newBuilder()
-                    .setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setCode(INTERNAL_ERROR)
                     .setMessage(e.getMessage())
                     .build());
         } catch (Exception e) {
             log.error("RpcService AddProjectMember error CoreException ", e);
             responseObserver.onNext(ProjectMemberProto.AddProjectMemberResponse.newBuilder()
-                    .setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setCode(INTERNAL_ERROR)
                     .setMessage(e.getMessage())
                     .build());
         } finally {
@@ -115,18 +129,187 @@ public class ProjectMemberGrpcService extends ProjectMemberServiceGrpc.ProjectMe
             ProjectMember member = projectMemberService.getByProjectIdAndUserId(project.getId(), request.getTargetUserId());
             if (member == null) {
                 log.error("User {} is not member of project {}", request.getTargetUserId(), project.getId());
-                throw CoreException.of(CoreException.ExceptionType.PROJECT_MEMBER_NOT_EXISTS);
+                throw CoreException.of(PROJECT_MEMBER_NOT_EXISTS);
             }
             projectMemberService.delMember(request.getCurrentUserId(), project, request.getTargetUserId(), member);
-            builder.setCode(CodeProto.Code.SUCCESS);
+            builder.setCode(SUCCESS);
         } catch (CoreException e) {
-            builder.setCode(CodeProto.Code.NOT_FOUND).setMessage(e.getMsg());
+            builder.setCode(NOT_FOUND).setMessage(e.getMsg());
         } catch (Exception e) {
             log.error("rpcService delProjectMember error Exception ", e);
-            builder.setCode(CodeProto.Code.INTERNAL_ERROR).setMessage(e.getMessage());
+            builder.setCode(INTERNAL_ERROR).setMessage(e.getMessage());
         } finally {
             responseObserver.onNext(builder.build());
             responseObserver.onCompleted();
         }
+    }
+
+    @Override
+    public void findProjectMembersByProjectId(ProjectMemberProto.FindProjectMembersByProjectIdRequest request,
+                                              StreamObserver<ProjectMemberProto.FindProjectMembersResponse> responseObserver) {
+        ProjectMemberProto.FindProjectMembersResponse.Builder builder = ProjectMemberProto.FindProjectMembersResponse.newBuilder();
+        try {
+            Project project = projectService.getById(request.getProjectId());
+            if (Objects.isNull(project)) {
+                throw CoreException.of(RESOURCE_NO_FOUND);
+            }
+            List<ProjectMember> members = projectMemberService.findListByProjectId(project.getId());
+            builder.setCode(SUCCESS).addAllData(toProtoProjectMembers(project.getId(), members));
+        } catch (CoreException e) {
+            log.error("rpcService findProjectMembersByProjectId error CoreException ", e);
+            builder.setCode(NOT_FOUND).setMessage(e.getMessage());
+        } catch (Exception e) {
+            log.error("rpcService getProjectById error Exception ", e);
+            builder.setCode(INTERNAL_ERROR).setMessage(e.getMessage());
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        }
+    }
+
+    @Override
+    public void getProjectMemberByProjectIdAndUserId(ProjectMemberProto.GetProjectMemberByProjectIdAndUserIdRequest request,
+                                                     StreamObserver<ProjectMemberProto.GetProjectMemberResponse> responseObserver) {
+        ProjectMemberProto.GetProjectMemberResponse.Builder builder = ProjectMemberProto.GetProjectMemberResponse.newBuilder();
+        try {
+            Project project = projectService.getById(request.getProjectId());
+            if (Objects.isNull(project)) {
+                throw CoreException.of(RESOURCE_NO_FOUND);
+            }
+            ProjectMember member = projectMemberService.getByProjectIdAndUserId(project.getId(), request.getUserId());
+            if (Objects.isNull(member)) {
+                throw CoreException.of(PROJECT_MEMBER_NOT_EXISTS);
+            }
+            builder.setCode(SUCCESS).setData(toProtoProjectMember(member));
+        } catch (CoreException e) {
+            log.error("rpcService getProjectMemberByProjectIdAndUserId error CoreException ", e);
+            builder.setCode(NOT_FOUND).setMessage(e.getMessage());
+        } catch (Exception e) {
+            log.error("rpcService getProjectById error Exception ", e);
+            builder.setCode(INTERNAL_ERROR).setMessage(e.getMessage());
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        }
+    }
+
+    @Override
+    public void findProjectMembersByProjectIdAndUserIds(ProjectMemberProto.FindProjectMemberByProjectIdAndUserIdsRequest request,
+                                                        StreamObserver<ProjectMemberProto.FindProjectMembersResponse> responseObserver) {
+        ProjectMemberProto.FindProjectMembersResponse.Builder builder = ProjectMemberProto.FindProjectMembersResponse.newBuilder();
+        try {
+            Project project = projectService.getById(request.getProjectId());
+            if (Objects.isNull(project)) {
+                throw CoreException.of(RESOURCE_NO_FOUND);
+            }
+            List<ProjectMember> members = StreamEx.of(request.getUserIdsList())
+                    .map(userId -> projectMemberService.getByProjectIdAndUserId(project.getId(), userId))
+                    .nonNull()
+                    .toList();
+            builder.setCode(SUCCESS).addAllData(toProtoProjectMembers(project.getId(), members));
+        } catch (Exception e) {
+            log.error("rpcService getProjectById error Exception ", e);
+            builder.setCode(INTERNAL_ERROR).setMessage(e.getMessage());
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        }
+    }
+
+    @Override
+    public void findProjectMembersByProjectIdAndRoleId(ProjectMemberProto.FindProjectMemberByProjectIdAndRoleIdRequest request,
+                                                       StreamObserver<ProjectMemberProto.FindProjectMembersResponse> responseObserver) {
+        ProjectMemberProto.FindProjectMembersResponse.Builder builder = ProjectMemberProto.FindProjectMembersResponse.newBuilder();
+        try {
+            Project project = projectService.getById(request.getProjectId());
+            if (Objects.isNull(project)) {
+                throw CoreException.of(RESOURCE_NO_FOUND);
+            }
+            List<Integer> userIds = advancedRoleServiceGrpcClient.findUsersOfRole(AclProto.Role.newBuilder().setId(request.getRoleId()).build());
+            List<ProjectMember> members = StreamEx.of(projectMemberService.findListByProjectId(project.getId()))
+                    .nonNull()
+                    .filter(member -> userIds.contains(member.getUserId()))
+                    .toList();
+            builder.setCode(SUCCESS).addAllData(toProtoProjectMembers(project.getId(), members));
+        } catch (Exception e) {
+            log.error("rpcService getProjectById error Exception ", e);
+            builder.setCode(INTERNAL_ERROR).setMessage(e.getMessage());
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        }
+    }
+
+    @Override
+    public void findProjectMembersByProjectIdsAndUserId(ProjectMemberProto.FindProjectMemberByProjectIdsAndUserIdRequest request,
+                                                        StreamObserver<ProjectMemberProto.FindProjectMembersResponse> responseObserver) {
+        ProjectMemberProto.FindProjectMembersResponse.Builder builder = ProjectMemberProto.FindProjectMembersResponse.newBuilder();
+        try {
+            List<ProjectMemberProto.ProjectMember> members = StreamEx.of(request.getProjectIdsList())
+                    .map(projectId -> Optional.ofNullable(projectService.getById(projectId))
+                            .flatMap(project -> Optional.of(projectMemberService.getByProjectIdAndUserId(project.getId(), request.getUserId()))
+                                    .map(this::toProtoProjectMember))
+                            .orElse(null))
+                    .nonNull()
+                    .toList();
+            builder.setCode(SUCCESS).addAllData(members);
+        } catch (Exception e) {
+            log.error("rpcService getProjectById error Exception ", e);
+            builder.setCode(INTERNAL_ERROR).setMessage(e.getMessage());
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        }
+    }
+
+    @Override
+    public void isProjectMember(ProjectMemberProto.IsProjectMemberRequest request,
+                                StreamObserver<ProjectMemberProto.IsProjectMemberResponse> responseObserver) {
+        ProjectMemberProto.IsProjectMemberResponse.Builder builder = ProjectMemberProto.IsProjectMemberResponse.newBuilder();
+        try {
+            UserProto.User user = userGrpcClient.getUserById(request.getUserId());
+            if (user == null) {
+                throw CoreException.of(CoreException.ExceptionType.USER_NOT_EXISTS);
+            }
+            boolean isMember = projectMemberService.isMember(user, request.getProjectId());
+            builder.setCode(SUCCESS).setResult(isMember);
+        } catch (Exception e) {
+            log.error("rpcService isProjectMember error Exception ", e);
+            builder.setCode(INTERNAL_ERROR).setMessage(e.getMessage());
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        }
+    }
+
+    private ProjectMemberProto.ProjectMember toProtoProjectMember(ProjectMember member) {
+        return memberToProto(member.getProjectId(), userGrpcClient.getUserById(member.getUserId()));
+    }
+
+    private List<ProjectMemberProto.ProjectMember> toProtoProjectMembers(Integer projectId, List<ProjectMember> members) {
+        if (CollectionUtils.isEmpty(members)) {
+            return Collections.emptyList();
+        }
+        UserProto.FindUserResponse response = userServiceGrpcClient.findUserByIds(StreamEx.of(members).map(ProjectMember::getUserId).toList());
+        return StreamEx.of(response.getDataList())
+                .nonNull()
+                .map(user -> memberToProto(projectId, user))
+                .toList();
+    }
+
+    public ProjectMemberProto.ProjectMember memberToProto(Integer projectId, UserProto.User user) {
+        if (Objects.isNull(user)) {
+            return ProjectMemberProto.ProjectMember.newBuilder().build();
+        }
+        return ProjectMemberProto.ProjectMember.newBuilder()
+                .setProjectId(projectId)
+                .setUserId(user.getId())
+                .setName(user.getName())
+                .setNamePinyin(user.getNamePinyin())
+                .setGlobalKey(user.getGlobalKey())
+                .setEmail(user.getEmail())
+                .setPhone(user.getPhone())
+                .setAvatar(user.getAvatar())
+                .build();
     }
 }

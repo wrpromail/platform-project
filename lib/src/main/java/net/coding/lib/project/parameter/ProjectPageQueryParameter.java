@@ -1,6 +1,7 @@
 package net.coding.lib.project.parameter;
 
 import java.sql.Timestamp;
+import java.util.Set;
 
 import lombok.Builder;
 import lombok.Data;
@@ -34,4 +35,10 @@ public class ProjectPageQueryParameter {
     private Integer page;
 
     private Integer pageSize;
+
+    /**
+     * 参与的项目
+     */
+    private Set<Integer> joinedProjectIds;
+
 }

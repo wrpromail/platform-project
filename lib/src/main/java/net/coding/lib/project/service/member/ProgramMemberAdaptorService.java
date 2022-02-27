@@ -1,4 +1,4 @@
-package net.coding.lib.project.service.project;
+package net.coding.lib.project.service.member;
 
 import com.google.common.eventbus.AsyncEventBus;
 
@@ -10,8 +10,12 @@ import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.grpc.client.NotificationGrpcClient;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
+import net.coding.lib.project.hook.trigger.CreateMemberEventTriggerTrigger;
+import net.coding.lib.project.hook.trigger.DeleteMemberEventTriggerTrigger;
 import net.coding.platform.permission.proto.CommonProto;
+import net.coding.platform.ram.pojo.dto.response.PolicyResponseDTO;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -31,10 +35,13 @@ import static net.coding.lib.project.exception.CoreException.ExceptionType.PERMI
 @Service
 public class ProgramMemberAdaptorService extends AbstractProjectMemberAdaptorService {
 
+    private final ProjectMemberInspectService projectMemberInspectService;
 
-    public ProgramMemberAdaptorService(AdvancedRoleServiceGrpcClient advancedRoleServiceGrpcClient, UserGrpcClient userGrpcClient, TeamGrpcClient teamGrpcClient, NotificationGrpcClient notificationGrpcClient, AsyncEventBus asyncEventBus) {
-        super(advancedRoleServiceGrpcClient, userGrpcClient, teamGrpcClient, notificationGrpcClient, asyncEventBus);
+    public ProgramMemberAdaptorService(AdvancedRoleServiceGrpcClient advancedRoleServiceGrpcClient, ProjectMemberInspectService projectMemberInspectService, UserGrpcClient userGrpcClient, TeamGrpcClient teamGrpcClient, NotificationGrpcClient notificationGrpcClient, CreateMemberEventTriggerTrigger createMemberEventTrigger, DeleteMemberEventTriggerTrigger deleteMemberEventTrigger, AsyncEventBus asyncEventBus, ProjectMemberInspectService projectMemberInspectService1) {
+        super(advancedRoleServiceGrpcClient, projectMemberInspectService, userGrpcClient, teamGrpcClient, notificationGrpcClient, createMemberEventTrigger, deleteMemberEventTrigger, asyncEventBus);
+        this.projectMemberInspectService = projectMemberInspectService1;
     }
+
 
     @Override
     public Integer pmType() {
@@ -59,6 +66,16 @@ public class ProgramMemberAdaptorService extends AbstractProjectMemberAdaptorSer
     @Override
     protected String notificationDeleteMember() {
         return "program_notification_delete_member";
+    }
+
+    @Override
+    protected void postProjectMemberPrincipalCreateEvent(Project project, Integer operationUserId, List<ProjectMember> members) {
+
+    }
+
+    @Override
+    protected void postProjectMemberPrincipalDeleteEvent(Project project, Integer operationUserId, List<ProjectMember> members) {
+
     }
 
     @Override
@@ -94,6 +111,22 @@ public class ProgramMemberAdaptorService extends AbstractProjectMemberAdaptorSer
                 throw CoreException.of(PERMISSION_DENIED);
             }
         }
+    }
+
+    @Override
+    public List<ProjectMember> filterProjectMemberRoleType(Integer operatorId, Project program, List<ProjectMember> members) {
+        PolicyResponseDTO policyOwner = projectMemberInspectService.getPolicyByName(operatorId, ProgramRoleTypeEnum.ProgramOwner.name());
+        PolicyResponseDTO policyMember = projectMemberInspectService.getPolicyByName(operatorId, ProgramRoleTypeEnum.ProgramProjectMember.name());
+        Set<Long> policyIdScope = StreamEx.of(policyOwner.getPolicyId(), policyMember.getPolicyId()).toSet();
+        Set<String> grants = projectMemberInspectService.getResourceGrantPolicies(operatorId, program, members, policyIdScope)
+                .keySet()
+                .stream()
+                .map(policyResponseDTOS -> StringUtils.join(policyResponseDTOS.getGrantObjectId(), policyResponseDTOS.getGrantScope()))
+                .collect(Collectors.toSet());
+        return StreamEx.of(members)
+                .filter(member -> !grants.contains(StringUtils.join(member.getPrincipalId(), member.getPrincipalType())))
+                .nonNull()
+                .toList();
     }
 
     @Override

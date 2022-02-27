@@ -10,6 +10,7 @@ import net.coding.common.util.LimitedPager;
 import net.coding.common.util.ResultPage;
 import net.coding.common.vendor.CodingStringUtils;
 import net.coding.grpc.client.platform.GlobalKeyGrpcClient;
+import net.coding.lib.project.AppProperties;
 import net.coding.lib.project.dao.ProjectTokenArtifactDao;
 import net.coding.lib.project.dao.ProjectTokenDao;
 import net.coding.lib.project.dao.ProjectTokenDepotDao;
@@ -108,6 +109,8 @@ public class ProjectTokenService {
 
     private final ProjectTokenArtifactDao projectTokenArtifactDao;
 
+    private final AppProperties appProperties;
+
     private static final Timestamp KEY_NEVER_EXPIRE = Timestamp.valueOf("9999-12-31 00:00:00");
 
 
@@ -145,6 +148,13 @@ public class ProjectTokenService {
         }
         return deployToken;
 
+    }
+
+    public boolean isProjectRobotUser(String userGK) {
+        if (userGK == null) {
+            return false;
+        }
+        return StringUtils.equals(userGK, appProperties.getTokenUser());
     }
 
 

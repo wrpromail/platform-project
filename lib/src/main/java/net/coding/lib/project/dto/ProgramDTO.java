@@ -1,6 +1,7 @@
 package net.coding.lib.project.dto;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
@@ -28,6 +29,9 @@ public class ProgramDTO implements Serializable {
     @ApiModelProperty(value = "项目集名称")
     private String displayName;
 
+    @ApiModelProperty(value = "项目集名称拼音")
+    private String namePinyin;
+
     @ApiModelProperty("项目集描述")
     private String description;
 
@@ -39,6 +43,9 @@ public class ProgramDTO implements Serializable {
 
     @ApiModelProperty(value = "结束时间")
     private Date endDate;
+
+    @ApiModelProperty(value = "归档时间")
+    public Timestamp updatedAt;
 
     @ApiModelProperty(value = "参与的项目")
     private List<ProjectDTO> projects;

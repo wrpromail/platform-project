@@ -1,5 +1,7 @@
 package net.coding.lib.project.parameter;
 
+import java.util.Set;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -13,7 +15,8 @@ import lombok.Data;
 public class ProjectQueryParameter {
     private Integer userId;
     private Integer teamId;
-    private String projectName;
+    private String keyword;
+    private Set<Integer> joinedProjectIds;
     private String label;
     private Integer invisible;
 }

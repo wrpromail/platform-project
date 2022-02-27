@@ -40,16 +40,16 @@ public class ProgramAdaptorService extends AbstractProjectAdaptorService {
 
     private final EnterpriseGrpcClient enterpriseGrpcClient;
 
-    private final SystemSettingGrpcClient systemSettingGrpcClient;
-
     private final ProgramMemberService programMemberService;
 
-    public ProgramAdaptorService(AsyncEventBus asyncEventBus, LoggingGrpcClient loggingGrpcClient, TeamGrpcClient teamGrpcClient, AclServiceGrpcClient aclServiceGrpcClient, LocaleMessageSource localeMessageSource, MilestoneGrpcClient milestoneGrpcClient, EnterpriseGrpcClient enterpriseGrpcClient, SystemSettingGrpcClient systemSettingGrpcClient, ProgramMemberService programMemberService) {
+    private final SystemSettingGrpcClient systemSettingGrpcClient;
+
+    public ProgramAdaptorService(AsyncEventBus asyncEventBus, LoggingGrpcClient loggingGrpcClient, TeamGrpcClient teamGrpcClient, AclServiceGrpcClient aclServiceGrpcClient, LocaleMessageSource localeMessageSource, MilestoneGrpcClient milestoneGrpcClient, EnterpriseGrpcClient enterpriseGrpcClient, ProgramMemberService programMemberService, SystemSettingGrpcClient systemSettingGrpcClient) {
         super(asyncEventBus, loggingGrpcClient, teamGrpcClient, aclServiceGrpcClient, localeMessageSource);
         this.milestoneGrpcClient = milestoneGrpcClient;
         this.enterpriseGrpcClient = enterpriseGrpcClient;
-        this.systemSettingGrpcClient = systemSettingGrpcClient;
         this.programMemberService = programMemberService;
+        this.systemSettingGrpcClient = systemSettingGrpcClient;
     }
 
     @Override
@@ -98,9 +98,9 @@ public class ProgramAdaptorService extends AbstractProjectAdaptorService {
     }
 
     @Override
-    public void deleteProgramMember(Integer teamId, Project project) {
+    public void deleteProgramMember(Integer teamId, Integer userId, Project program) {
         //删除事项
-        programMemberService.removeProgramIssueRelation(project.getId(), 0);
+        programMemberService.removeProgramIssueRelation(program.getId(), 0);
     }
 
     @Override

@@ -3,4 +3,4 @@ rootProject.name = 'platform-project'
 include 'server'
 include 'lib'
 include 'proto'
-
+include 'external-proto'

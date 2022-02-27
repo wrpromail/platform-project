@@ -1,10 +1,14 @@
 package net.coding.lib.project.utils;
 
 import net.coding.common.util.TextUtils;
+import net.coding.lib.project.dto.RoleDTO;
 import net.coding.lib.project.dto.UserDTO;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
+import proto.acl.AclProto;
 import proto.platform.user.UserProto;
 
 public class UserUtil {
@@ -31,5 +35,15 @@ public class UserUtil {
             builder.phone(user.getPhone());
         }
         return builder.build();
+    }
+
+    public static List<RoleDTO> toRoleDTO(List<AclProto.Role> roles) {
+        List<RoleDTO> list = new ArrayList<>();
+        roles.forEach(role -> list.add(RoleDTO.builder()
+                .name(role.getName())
+                .roleType(role.getType())
+                .roleId(role.getId()).build()));
+        return list;
+
     }
 }

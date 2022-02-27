@@ -115,6 +115,12 @@
         FROM project_group_projects
         WHERE deleted_at = #{deleted}
         AND owner_id = #{ownerId}
+        <if test="groupId == 0">
+            and project_group_id is null
+        </if>
+        <if test="groupId !=  null and groupId > 0">
+            and project_group_id = #{groupId}
+        </if>
     </select>
     <select id="listByGroup"
             resultType="net.coding.lib.project.group.ProjectGroupProject">

@@ -47,12 +47,6 @@ public interface ProjectGroupDao extends tk.mybatis.mapper.common.Mapper<Project
     );
 
     void insertAndRetId(ProjectGroup projectGroup);
-
-    long countProjectsByFilterGroup(
-            @Param("teamId") Integer teamId,
-            @Param("userId") Integer userId,
-            @Param("groupId") Integer groupId,
-            @Param("deletedAt") Timestamp defaultDeletedAt
-    );
+    
 }
 

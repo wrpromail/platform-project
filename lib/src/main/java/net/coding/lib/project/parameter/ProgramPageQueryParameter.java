@@ -41,4 +41,9 @@ public class ProgramPageQueryParameter {
     private Integer page;
 
     private Integer pageSize;
+
+    /**
+     * 参与的项目
+     */
+    private Set<Integer> joinedProjectIds;
 }

@@ -26,7 +26,7 @@ import proto.platform.permission.PermissionProto;
 
 import static net.coding.lib.project.exception.CoreException.ExceptionType.NETWORK_CONNECTION_ERROR;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PERMISSION_DENIED;
-import static org.apache.logging.log4j.util.Strings.EMPTY;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 @Slf4j
 @Service
@@ -60,7 +60,7 @@ public abstract class AbstractProjectAdaptorService {
 
     public abstract void projectUnArchiveEvent(Integer userId, Project project);
 
-    public abstract void deleteProgramMember(Integer teamId, Project project);
+    public abstract void deleteProgramMember(Integer teamId,Integer userId, Project project);
 
     public abstract void checkProgramTime(Project program) throws MilestoneException, CoreException;
 
@@ -123,7 +123,7 @@ public abstract class AbstractProjectAdaptorService {
                 .targetId(project.getId())
                 .projectId(project.getId())
                 .action(action)
-                .content(StringUtils.EMPTY)
+                .content(EMPTY)
                 .build());
     }
 

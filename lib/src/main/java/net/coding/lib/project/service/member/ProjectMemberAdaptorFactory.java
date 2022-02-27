@@ -1,7 +1,6 @@
-package net.coding.lib.project.service.project.adaptor;
+package net.coding.lib.project.service.member;
 
-
-import net.coding.lib.project.service.project.AbstractProjectMemberAdaptorService;
+import net.coding.lib.project.service.adaptor.AdaptorFactory;
 
 import org.springframework.stereotype.Component;
 

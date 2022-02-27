@@ -95,7 +95,7 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
             ResultPage<Project> resultPage = projectService.getProjects(
                     ProjectQueryParameter.builder()
                             .teamId(currentTeamId)
-                            .projectName(request.getProjectName())
+                            .keyword(request.getProjectName())
                             .build(),
                     pager);
             describeCodingProjectsResponse(responseObserver, SUCCESS,
@@ -180,7 +180,7 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
                     ProjectQueryParameter.builder()
                             .userId(request.getUserId())
                             .teamId(currentTeamId)
-                            .projectName(request.getProjectName())
+                            .keyword(request.getProjectName())
                             .invisible(0)
                             .build()
             );

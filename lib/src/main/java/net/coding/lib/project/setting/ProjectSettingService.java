@@ -7,8 +7,14 @@ import net.coding.grpc.client.platform.SystemSettingGrpcClient;
 import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dao.ProjectDao;
 import net.coding.lib.project.entity.Project;
+import net.coding.lib.project.enums.TemplateEnums;
+import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.exception.ProjectNotFoundException;
 import net.coding.lib.project.exception.ProjectSettingInvalidCodeException;
+import net.coding.lib.project.parameter.ProjectCreateParameter;
+import net.coding.lib.project.template.ProjectTemplateDemoType;
+import net.coding.lib.project.template.ProjectTemplateService;
+import net.coding.lib.project.template.ProjectTemplateType;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -18,10 +24,12 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -31,16 +39,25 @@ import one.util.streamex.StreamEx;
 import proto.platform.system.setting.SystemSettingProto;
 import proto.platform.user.UserProto;
 
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PARAMETER_INVALID;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
 @Service
 @Slf4j
 @AllArgsConstructor
 public class ProjectSettingService {
+    private final static String DEMO_TEMPLATE_TYPE = "demo_template_type";
+    private final static String PROJECT_TEMPLATE_TYPE = "project_template_type";
+
 
     private final ProjectSettingsDao projectSettingsDao;
     private final ProjectSettingDefaultReader projectSettingDefaultReader;
     private final ProjectDao projectDao;
     private final AsyncEventBus asyncEventBus;
     private final SystemSettingGrpcClient systemSettingGrpcClient;
+    private final ProjectTemplateService projectTemplateService;
 
     /**
      * 更新模版开关
@@ -227,6 +244,52 @@ public class ProjectSettingService {
                 .filter(Boolean.FALSE::equals)
                 .isPresent();
     }
+
+    /**
+     * 初始化创建项目功能开关
+     */
+    public void initCreateProjectSetting(Integer projectId,
+                                         ProjectCreateParameter parameter,
+                                         List<ProjectSettingDefault> functions) throws CoreException {
+        if (!TemplateEnums.getTencentServerless().contains(parameter.getTemplate())) {
+            ProjectTemplateType projectTemplateType = ProjectTemplateType.valueFrom(parameter.getProjectTemplate());
+            ProjectTemplateDemoType projectTemplateDemoType = ProjectTemplateDemoType.valueFrom(parameter.getTemplate());
+            update(projectId, PROJECT_TEMPLATE_TYPE, parameter.getProjectTemplate());
+
+            if (ProjectTemplateType.DEMO_BEGIN.equals(projectTemplateType)) {
+                update(projectId, DEMO_TEMPLATE_TYPE, parameter.getTemplate());
+            }
+            Set<String> ownFunctions = projectTemplateService.getFunctions(projectTemplateType, projectTemplateDemoType);
+            if (Objects.isNull(ownFunctions)) {
+                throw CoreException.of(PARAMETER_INVALID);
+            }
+            Set<String> functionModules = Optional.ofNullable(parameter.getFunctionModules()).orElse(new HashSet<>());
+            // 根据模版类型初始化部分项目开关
+            Set<String> noOpenFunction = StreamEx.of(functions)
+                    .map(ProjectSettingDefault::getCode)
+                    .filter(code -> !ownFunctions.contains(code))
+                    .filter(code -> !functionModules.contains(code))
+                    .collect(Collectors.toSet());
+            noOpenFunction
+                    .forEach(code -> update(projectId, code, String.valueOf(org.apache.commons.lang.BooleanUtils.toInteger(FALSE))));
+            //发送事件开启的功能开关
+            StreamEx.of(functions)
+                    .filter(e -> !noOpenFunction.contains(e.getCode()))
+                    .forEach(e -> {
+                        if (!e.getDefaultValue().equals(String.valueOf(org.apache.commons.lang.BooleanUtils.toInteger(TRUE)))) {
+                            update(projectId, e.getCode(), String.valueOf(org.apache.commons.lang.BooleanUtils.toInteger(TRUE)));
+                        }
+                        sendChangeEvent(
+                                parameter.getTeamId(),
+                                projectId,
+                                parameter.getUserId(),
+                                e.getCode(),
+                                String.valueOf(org.apache.commons.lang.BooleanUtils.toInteger(TRUE)),
+                                EMPTY);
+                    });
+        }
+    }
+
 
     public void sendChangeEvent(
             Integer teamId,

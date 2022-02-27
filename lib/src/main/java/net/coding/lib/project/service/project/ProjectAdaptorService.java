@@ -12,6 +12,8 @@ import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.enums.PmTypeEnums;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
 import net.coding.lib.project.service.ProgramMemberService;
+import net.coding.lib.project.service.RamTransformTeamService;
+import net.coding.lib.project.service.member.ProgramMemberPrincipalService;
 
 import org.springframework.stereotype.Service;
 
@@ -20,11 +22,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class ProjectAdaptorService extends AbstractProjectAdaptorService {
+    private final RamTransformTeamService ramTransformTeamService;
     private final ProgramMemberService programMemberService;
+    private final ProgramMemberPrincipalService programMemberPrincipalService;
 
-    public ProjectAdaptorService(AsyncEventBus asyncEventBus, LoggingGrpcClient loggingGrpcClient, TeamGrpcClient teamGrpcClient, AclServiceGrpcClient aclServiceGrpcClient, LocaleMessageSource localeMessageSource, ProgramMemberService programMemberService) {
+    public ProjectAdaptorService(AsyncEventBus asyncEventBus, LoggingGrpcClient loggingGrpcClient, TeamGrpcClient teamGrpcClient, AclServiceGrpcClient aclServiceGrpcClient, LocaleMessageSource localeMessageSource, ProgramMemberService programMemberService, RamTransformTeamService ramTransformTeamService, ProgramMemberPrincipalService programMemberPrincipalService) {
         super(asyncEventBus, loggingGrpcClient, teamGrpcClient, aclServiceGrpcClient, localeMessageSource);
         this.programMemberService = programMemberService;
+        this.ramTransformTeamService = ramTransformTeamService;
+        this.programMemberPrincipalService = programMemberPrincipalService;
     }
 
     @Override
@@ -88,8 +94,12 @@ public class ProjectAdaptorService extends AbstractProjectAdaptorService {
     }
 
     @Override
-    public void deleteProgramMember(Integer teamId, Project project) {
-        programMemberService.removeProgramProjects(teamId, project);
+    public void deleteProgramMember(Integer teamId, Integer userId, Project project) {
+        if (ramTransformTeamService.ramOnline(teamId)) {
+            programMemberPrincipalService.removeProgramProjects(teamId, userId, project);
+        } else {
+            programMemberService.removeProgramProjects(teamId, userId, project);
+        }
         //删除事项
         programMemberService.removeProgramIssueRelation(0, project.getId());
     }

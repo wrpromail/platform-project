@@ -24,6 +24,20 @@ message Project {
   string label = 9;
   bool invisible = 10;
   bool isArchived = 11;
+  int32 pmType = 12;
+  string pmTypeName = 13;
+}
+
+message GetProjectResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  Project data = 3;
+}
+
+message GetProjectsResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated Project data = 3;
 }
 
 message ContainArchivedProjectsGetResponse {
@@ -87,12 +101,49 @@ message GetWithArchivedProjectResponse {
 message GetJoinedProjectsRequest {
   uint32 teamId = 1;
   uint32 userId = 2;
+  string keyword = 3;
 }
 
 message GetJoinedProjectsResponse {
   proto.common.Code code = 1;
   string message = 2;
   repeated Project projects = 3;
+}
+
+message IsProjectRobotUserRequest {
+  string userGK = 1;
+}
+
+message IsProjectRobotUserResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  bool result = 3;
+}
+
+message GetProjectByIdRequest {
+  uint32 projectId = 1;
+  bool withDeleted = 2;
+}
+
+message GetProjectByTeamIdAndNameRequest {
+  uint32 teamId = 1;
+  string projectName = 2;
+}
+
+message GetProjectByTeamIdAndDisplayNameRequest {
+  uint32 teamId = 1;
+  string displayName = 2;
+}
+
+message GetProjectByIdsRequest {
+  repeated int32 projectIds = 1;
+  bool withDeleted = 2;
+}
+
+message GetProjectsByTeamIdRequest {
+  uint32 teamId = 1;
+  bool withDeleted = 2;
+  string keyword = 3;
 }
 
 service ProjectService {
@@ -105,6 +156,20 @@ service ProjectService {
   rpc ExistProjectByName(ExistProjectByNameRequest) returns (ExistProjectByNameResponse);
   //  查询包含归档项目
   rpc GetWithArchivedProject(GetWithArchivedProjectRequest) returns (GetWithArchivedProjectResponse);
-  //  查询我参与项目列表
+  //  查询我参与项目列表(包含如有全部项目权限,则全部，否则项目内)
   rpc GetJoinedProjects(GetJoinedProjectsRequest) returns (GetJoinedProjectsResponse);
+  //  查询我参与项目列表(在项目内)
+  rpc GetUserProjects(GetJoinedProjectsRequest) returns (GetProjectsResponse);
+  //  查询用户GK是否是项目令牌机器人
+  rpc isProjectRobotUser (IsProjectRobotUserRequest) returns (IsProjectRobotUserResponse);
+  //  查询项目根据项目Id
+  rpc GetProjectById (GetProjectByIdRequest) returns (GetProjectResponse);
+  //  查询项目根据团队Id/项目名称
+  rpc GetProjectByTeamIdAndName (GetProjectByTeamIdAndNameRequest) returns (GetProjectResponse);
+  //  查询项目根据团队Id/项目名称
+  rpc GetProjectByTeamIdAndDisplayName (GetProjectByTeamIdAndDisplayNameRequest) returns (GetProjectResponse);
+  //  查询项目根据多个项目Id
+  rpc GetProjectsByIds (GetProjectByIdsRequest) returns (GetProjectsResponse);
+  //  查询项目根据团队Id
+  rpc GetProjectsByTeamId (GetProjectsByTeamIdRequest) returns (GetProjectsResponse);
 }

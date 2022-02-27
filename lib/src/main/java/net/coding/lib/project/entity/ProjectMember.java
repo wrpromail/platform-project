@@ -1,7 +1,14 @@
 package net.coding.lib.project.entity;
 
+import net.coding.lib.project.enums.ProjectMemberPrincipalTypeEnum;
+
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.Objects;
+
+import javax.persistence.Table;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,6 +24,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "project_members")
 public class ProjectMember implements Serializable {
     public static final Short ACTION_ADD_MEMBER = 1;
     public static final Short ACTION_REMOVE_MEMBER = 2;
@@ -42,6 +50,21 @@ public class ProjectMember implements Serializable {
     private Short type;
 
     /**
+     * 主体类型 （user,user_group,department
+     */
+    private String principalType;
+
+    /**
+     * 主体ID
+     */
+    private String principalId;
+
+    /**
+     * 主体排序
+     */
+    private Integer principalSort;
+
+    /**
      * 创建时间
      */
     private Timestamp createdAt;
@@ -62,4 +85,28 @@ public class ProjectMember implements Serializable {
     private String alias;
 
     private static final long serialVersionUID = 1L;
+
+    /**
+     * 兼容逻辑 防止未迁移前 principalType , principalId 为空
+     */
+    public String getPrincipalType() {
+        if (StringUtils.isBlank(principalType)) {
+            principalType = ProjectMemberPrincipalTypeEnum.USER.name();
+        }
+        return principalType;
+    }
+
+    public String getPrincipalId() {
+        if (StringUtils.isBlank(principalId)) {
+            principalId = String.valueOf(userId);
+        }
+        return principalId;
+    }
+
+    public Integer getPrincipalSort() {
+        if (Objects.isNull(principalSort)) {
+            principalSort = ProjectMemberPrincipalTypeEnum.USER.getSort();
+        }
+        return principalSort;
+    }
 }

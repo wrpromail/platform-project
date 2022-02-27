@@ -53,6 +53,7 @@ public class ProjectDTOService {
                 .pmType(project.getPmType())
                 .project_path("/p/" + project.getName())
                 .created_at(Timestamp.from(project.getCreatedAt().toInstant()))
+                .updated_at(Timestamp.from(project.getUpdatedAt().toInstant()))
                 .deleted_at(Timestamp.from(project.getDeletedAt().toInstant()))
                 .is_member(true)
                 .isDemo(false)

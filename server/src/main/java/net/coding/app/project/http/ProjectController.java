@@ -17,6 +17,7 @@ import net.coding.lib.project.form.CreateProjectForm;
 import net.coding.lib.project.form.UpdateProjectForm;
 import net.coding.lib.project.parameter.ProjectCreateParameter;
 import net.coding.lib.project.service.ProjectService;
+import net.coding.lib.project.service.project.ProjectsService;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,15 +30,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 import javax.validation.Valid;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import one.util.streamex.StreamEx;
 import proto.platform.user.UserProto;
 
 @Slf4j
@@ -47,6 +47,7 @@ import proto.platform.user.UserProto;
 @RequestMapping("/api/platform/project")
 public class ProjectController {
     private final ProjectService projectService;
+    private final ProjectsService projectsService;
 
     @ApiOperation(value = "create_project", notes = "创建项目")
     @ProtectedAPI(oauthScope = OAuthConstants.Scope.PROJECT)
@@ -154,13 +155,23 @@ public class ProjectController {
         return Result.success();
     }
 
-    @ApiOperation(value = "query_joined_projects", notes = "我参与的项目列表")
-    @ProtectedAPI
+    @ApiOperation("查询我参与项目列表(包含如有全部项目权限,则全部，否则项目内)")
     @GetMapping("/joined/projects")
     public List<ProjectDTO> queryJoinedProjects(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
-            @RequestHeader(GatewayHeader.USER_ID) Integer userId) throws CoreException {
-        return projectService.getJoinedProjectDTOs(teamId, userId);
+            @RequestHeader(GatewayHeader.USER_ID) Integer userId,
+            @ApiParam("关键词") @RequestParam(required = false) String keyword)
+            throws CoreException {
+        return projectsService.getJoinedProjectDTOs(teamId, userId, keyword);
+    }
+
+    @ApiOperation("查询我参与的项目列表")
+    @GetMapping("/user/projects")
+    public List<ProjectDTO> queryUserProjects(
+            @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
+            @RequestHeader(GatewayHeader.USER_ID) Integer userId,
+            @ApiParam("关键词") @RequestParam(required = false) String keyword) {
+        return projectsService.getUserProjectDTOs(teamId, userId, keyword);
     }
 
     private String getProjectPath(Project project) {

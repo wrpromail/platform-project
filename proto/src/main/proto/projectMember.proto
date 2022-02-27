@@ -33,8 +33,78 @@ message DelProjectMemberResponse {
   string message = 2;
 }
 
+message FindProjectMembersResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated ProjectMember data = 3;
+}
+
+message GetProjectMemberResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  ProjectMember data = 3;
+}
+
+message ProjectMember {
+  uint32 projectId = 1;
+  uint32 userId = 2;
+  string name = 3;
+  string namePinyin = 4;
+  string globalKey = 5;
+  string email = 6;
+  string phone = 7;
+  string avatar = 8;
+}
+
+message FindProjectMembersByProjectIdRequest {
+  uint32 projectId = 1;
+}
+
+message GetProjectMemberByProjectIdAndUserIdRequest {
+  int32 projectId = 1;
+  int32 userId = 2;
+}
+
+message FindProjectMemberByProjectIdAndUserIdsRequest {
+  int32 projectId = 1;
+  repeated int32 userIds = 2;
+}
+
+message FindProjectMemberByProjectIdAndRoleIdRequest {
+  int32 projectId = 1;
+  int32 roleId = 2;
+}
+
+message FindProjectMemberByProjectIdsAndUserIdRequest {
+  repeated int32 projectIds = 1;
+  int32 userId = 2;
+}
+
+message IsProjectMemberRequest {
+  uint32 projectId = 1;
+  int32 userId = 2;
+}
+
+message IsProjectMemberResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  bool result = 3;
+}
+
 service ProjectMemberService {
   rpc AddProjectMember (AddProjectMemberRequest) returns (AddProjectMemberResponse);
   //删除项目成员
   rpc DelProjectMember (DelProjectMemberRequest) returns (DelProjectMemberResponse);
+  //根据 projectId 查询项目成员
+  rpc FindProjectMembersByProjectId (FindProjectMembersByProjectIdRequest) returns (FindProjectMembersResponse);
+  //根据 projectId and userId 查询项目成员
+  rpc GetProjectMemberByProjectIdAndUserId (GetProjectMemberByProjectIdAndUserIdRequest) returns (GetProjectMemberResponse);
+  //根据 projectId and userIds 查询项目成员
+  rpc FindProjectMembersByProjectIdAndUserIds (FindProjectMemberByProjectIdAndUserIdsRequest) returns (FindProjectMembersResponse);
+  //根据 projectId and roleId 查询项目成员
+  rpc FindProjectMembersByProjectIdAndRoleId (FindProjectMemberByProjectIdAndRoleIdRequest) returns (FindProjectMembersResponse);
+  //根据 projectIds and userId 查询项目成员
+  rpc FindProjectMembersByProjectIdsAndUserId (FindProjectMemberByProjectIdsAndUserIdRequest) returns (FindProjectMembersResponse);
+  //是不是项目成员
+  rpc isProjectMember (IsProjectMemberRequest) returns (IsProjectMemberResponse);
 }

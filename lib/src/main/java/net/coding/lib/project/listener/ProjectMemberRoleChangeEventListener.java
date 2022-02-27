@@ -5,11 +5,8 @@ import com.google.common.eventbus.Subscribe;
 import net.coding.common.base.gson.JSON;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
-import net.coding.lib.project.enums.CacheTypeEnum;
-import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.listener.event.ProjectMemberRoleChangeEvent;
-import net.coding.lib.project.service.ProjectHandCacheService;
 import net.coding.lib.project.service.ProjectMemberService;
 import net.coding.lib.project.service.ProjectService;
 
@@ -30,14 +27,13 @@ import proto.platform.user.UserProto;
 @Component
 @RequiredArgsConstructor
 public class ProjectMemberRoleChangeEventListener {
+    private static Integer DELETE_TOLE = -1;
 
     private final ProjectService projectService;
 
     private final ProjectMemberService projectMemberService;
 
     private final UserGrpcClient userGrpcClient;
-
-    private final ProjectHandCacheService projectHandCacheService;
 
     @Subscribe
     @Transactional
@@ -63,19 +59,20 @@ public class ProjectMemberRoleChangeEventListener {
                 log.info("ProjectMemberRoleChangeEventListener RoleValue is null");
                 return;
             }
-
-            ProjectMember projectMember = projectMemberService.getByProjectIdAndUserId(event.getProjectId(), event.getTargetUserId());
-            if (Objects.nonNull(projectMember)) {
-                projectHandCacheService.handleProjectMemberCache(projectMember, CacheTypeEnum.UPDATE);
+            ProjectMember member = projectMemberService.getByProjectIdAndUserId(event.getProjectId(), event.getTargetUserId());
+            if (Objects.nonNull(member)) {
                 projectMemberService.updateProjectMemberType
                         (
                                 event.getCurrentUserId(),
-                                projectMember.getUserId(),
+                                member,
                                 project,
                                 (short) event.getRoleValue(),
                                 event.getRoleId()
                         );
             } else {
+                if (event.getOperate() == DELETE_TOLE) {
+                    return;
+                }
                 projectMemberService.doAddMember
                         (
                                 event.getCurrentUserId(),
@@ -84,7 +81,7 @@ public class ProjectMemberRoleChangeEventListener {
                                 project, false
                         );
             }
-        } catch (CoreException ex) {
+        } catch (Exception ex) {
             log.error("ProjectMemberRoleChangeEventListener Error, projectId = {}, targetUserId = {}, currentUserId = {}",
                     event.getProjectId(),
                     event.getTargetUserId(),

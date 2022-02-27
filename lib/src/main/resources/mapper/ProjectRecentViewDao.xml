@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.coding.lib.project.dao.ProjectRecentViewDao">
+    <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ProjectRecentView">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="project_id" jdbcType="INTEGER" property="projectId"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="team_id" jdbcType="INTEGER" property="teamId"/>
+        <result column="created_at" jdbcType="TIMESTAMP" property="createdAt"/>
+        <result column="updated_at" jdbcType="INTEGER" property="updatedAt"/>
+        <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt"/>
+    </resultMap>
+
+    <select id="getProjectRecentViews" resultType="net.coding.lib.project.entity.Project">
+        SELECT p.*
+        FROM project_recent_views prv
+        inner join projects p on p.team_owner_id = prv.team_id
+        and p.id = prv.project_id
+        and p.deleted_at = '1970-01-01 00:00:00'
+        <where>
+            prv.deleted_at ='1970-01-01 00:00:00'
+            AND prv.user_id = #{userId}
+            AND p.invisible = 0
+            <if test="joinedProjectIds != null and joinedProjectIds.size() &gt; 0">
+                AND p.id in
+                <foreach item="projectId" index="index" collection="joinedProjectIds" open="("
+                         close=")"
+                         separator=",">
+                    #{projectId}
+                </foreach>
+            </if>
+        </where>
+        order by prv.updated_at desc,p.id desc
+    </select>
+
+</mapper>

@@ -1,5 +1,7 @@
 package net.coding.lib.project.enums;
 
+import java.util.Arrays;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,4 +13,10 @@ public enum PmTypeEnums {
 
     private int type;
 
+    public static PmTypeEnums of(int type) {
+        return Arrays.stream(values())
+                .filter(value -> value.type == type)
+                .findFirst()
+                .orElse(null);
+    }
 }
