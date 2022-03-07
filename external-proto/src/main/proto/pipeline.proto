@@ -1,0 +1,38 @@
+syntax = "proto3";
+package qci.grpc.server;
+
+option go_package = "e.coding.net/codingcorp/coding-ci/qci-go/common/pb/qci-grpc-server";
+
+import "CiCommon.proto";
+
+message Pipeline{
+  uint32 id = 1;
+  uint32 team_id = 2;
+  uint32 project_id = 3;
+  string engine = 4;
+  string name = 5;
+  string desc = 6;
+}
+
+message ListByProjectIdRequest{
+  uint32 project_id = 1;
+}
+
+message PipelinesResponse{
+  proto.Result result = 1;
+  repeated Pipeline pipelines = 2;
+}
+
+message GetByIdRequest{
+  uint32 id = 1;
+}
+
+message PipelineResponse{
+  proto.Result result = 1;
+  Pipeline pipeline = 2;
+}
+
+service PipelineService {
+  rpc getById(GetByIdRequest) returns (PipelineResponse);
+  rpc listByProjectId(ListByProjectIdRequest) returns (PipelinesResponse);
+}

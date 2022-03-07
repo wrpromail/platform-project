@@ -1,12 +1,12 @@
-package net.coding.lib.project.converter;
+package net.coding.lib.project.credential.converter;
 
 import com.google.common.collect.ImmutableMap;
 
 import net.coding.lib.project.entity.AndroidCredential;
-import net.coding.lib.project.entity.Credential;
-import net.coding.lib.project.enums.ConnGenerateByEnums;
-import net.coding.lib.project.enums.CredentialScopeEnums;
-import net.coding.lib.project.enums.CredentialTypeEnums;
+import net.coding.lib.project.credential.entity.Credential;
+import net.coding.lib.project.credential.enums.CredentialGenerated;
+import net.coding.lib.project.credential.enums.CredentialScope;
+import net.coding.lib.project.credential.enums.CredentialType;
 import net.coding.lib.project.enums.VerificationMethodEnums;
 import net.coding.lib.project.form.credential.CredentialForm;
 import net.coding.proto.platform.project.ProjectCredentialProto;
@@ -18,52 +18,52 @@ import java.util.Optional;
 
 public class CredentialConverter {
 
-    private static final Map<ProjectCredentialProto.CredentialType, CredentialTypeEnums> TYPE_MAP =
-            new ImmutableMap.Builder<ProjectCredentialProto.CredentialType, CredentialTypeEnums>()
-                    .put(ProjectCredentialProto.CredentialType.PASSWORD, CredentialTypeEnums.PASSWORD)
-                    .put(ProjectCredentialProto.CredentialType.USERNAME_PASSWORD_TYPE, CredentialTypeEnums.USERNAME_PASSWORD)
-                    .put(ProjectCredentialProto.CredentialType.TOKEN, CredentialTypeEnums.TOKEN)
-                    .put(ProjectCredentialProto.CredentialType.SECRET_KEY, CredentialTypeEnums.SECRET_KEY)
-                    .put(ProjectCredentialProto.CredentialType.APP_ID_SECRET_KEY, CredentialTypeEnums.APP_ID_SECRET_KEY)
-                    .put(ProjectCredentialProto.CredentialType.SSH, CredentialTypeEnums.SSH)
-                    .put(ProjectCredentialProto.CredentialType.SSH_TOKEN, CredentialTypeEnums.SSH_TOKEN)
-                    .put(ProjectCredentialProto.CredentialType.USERNAME_PASSWORD_TOKEN, CredentialTypeEnums.USERNAME_PASSWORD_TOKEN)
-                    .put(ProjectCredentialProto.CredentialType.OAUTH, CredentialTypeEnums.OAUTH)
-                    .put(ProjectCredentialProto.CredentialType.KUBERNETES, CredentialTypeEnums.KUBERNETES)
-                    .put(ProjectCredentialProto.CredentialType.ANDROID_CERTIFICATE, CredentialTypeEnums.ANDROID_CERTIFICATE)
-                    .put(ProjectCredentialProto.CredentialType.IOS_CERTIFICATE, CredentialTypeEnums.IOS_CERTIFICATE)
-                    .put(ProjectCredentialProto.CredentialType.TLS_CERTIFICATE, CredentialTypeEnums.TLS_CERTIFICATE)
+    private static final Map<ProjectCredentialProto.CredentialType, CredentialType> TYPE_MAP =
+            new ImmutableMap.Builder<ProjectCredentialProto.CredentialType, CredentialType>()
+                    .put(ProjectCredentialProto.CredentialType.PASSWORD, CredentialType.PASSWORD)
+                    .put(ProjectCredentialProto.CredentialType.USERNAME_PASSWORD_TYPE, CredentialType.USERNAME_PASSWORD)
+                    .put(ProjectCredentialProto.CredentialType.TOKEN, CredentialType.TOKEN)
+                    .put(ProjectCredentialProto.CredentialType.SECRET_KEY, CredentialType.SECRET_KEY)
+                    .put(ProjectCredentialProto.CredentialType.APP_ID_SECRET_KEY, CredentialType.APP_ID_SECRET_KEY)
+                    .put(ProjectCredentialProto.CredentialType.SSH, CredentialType.SSH)
+                    .put(ProjectCredentialProto.CredentialType.SSH_TOKEN, CredentialType.SSH_TOKEN)
+                    .put(ProjectCredentialProto.CredentialType.USERNAME_PASSWORD_TOKEN, CredentialType.USERNAME_PASSWORD_TOKEN)
+                    .put(ProjectCredentialProto.CredentialType.OAUTH, CredentialType.OAUTH)
+                    .put(ProjectCredentialProto.CredentialType.KUBERNETES, CredentialType.KUBERNETES)
+                    .put(ProjectCredentialProto.CredentialType.ANDROID_CERTIFICATE, CredentialType.ANDROID_CERTIFICATE)
+                    .put(ProjectCredentialProto.CredentialType.IOS_CERTIFICATE, CredentialType.IOS_CERTIFICATE)
+                    .put(ProjectCredentialProto.CredentialType.TLS_CERTIFICATE, CredentialType.TLS_CERTIFICATE)
                     .build();
 
-    private static final Map<CredentialTypeEnums, ProjectCredentialProto.CredentialType> MODEL_TO_PROTO_TYPE_MAP =
-            new ImmutableMap.Builder<CredentialTypeEnums, ProjectCredentialProto.CredentialType>()
-                    .put(CredentialTypeEnums.PASSWORD, ProjectCredentialProto.CredentialType.PASSWORD)
-                    .put(CredentialTypeEnums.USERNAME_PASSWORD, ProjectCredentialProto.CredentialType.USERNAME_PASSWORD_TYPE)
-                    .put(CredentialTypeEnums.TOKEN, ProjectCredentialProto.CredentialType.TOKEN)
-                    .put(CredentialTypeEnums.SECRET_KEY, ProjectCredentialProto.CredentialType.SECRET_KEY)
-                    .put(CredentialTypeEnums.APP_ID_SECRET_KEY, ProjectCredentialProto.CredentialType.APP_ID_SECRET_KEY)
-                    .put(CredentialTypeEnums.SSH, ProjectCredentialProto.CredentialType.SSH)
-                    .put(CredentialTypeEnums.SSH_TOKEN, ProjectCredentialProto.CredentialType.SSH_TOKEN)
-                    .put(CredentialTypeEnums.USERNAME_PASSWORD_TOKEN, ProjectCredentialProto.CredentialType.USERNAME_PASSWORD_TOKEN)
-                    .put(CredentialTypeEnums.OAUTH, ProjectCredentialProto.CredentialType.OAUTH)
-                    .put(CredentialTypeEnums.KUBERNETES, ProjectCredentialProto.CredentialType.KUBERNETES)
-                    .put(CredentialTypeEnums.ANDROID_CERTIFICATE, ProjectCredentialProto.CredentialType.ANDROID_CERTIFICATE)
-                    .put(CredentialTypeEnums.IOS_CERTIFICATE, ProjectCredentialProto.CredentialType.IOS_CERTIFICATE)
-                    .put(CredentialTypeEnums.TLS_CERTIFICATE, ProjectCredentialProto.CredentialType.TLS_CERTIFICATE)
-                    .put(CredentialTypeEnums.TENCENT_SERVERLESS, ProjectCredentialProto.CredentialType.TENCENT_SERVERLESS)
-                    .put(CredentialTypeEnums.CODING_PERSONAL_CREDENTIAL,ProjectCredentialProto.CredentialType.CODING_PERSONAL_CREDENTIAL)
+    private static final Map<CredentialType, ProjectCredentialProto.CredentialType> MODEL_TO_PROTO_TYPE_MAP =
+            new ImmutableMap.Builder<CredentialType, ProjectCredentialProto.CredentialType>()
+                    .put(CredentialType.PASSWORD, ProjectCredentialProto.CredentialType.PASSWORD)
+                    .put(CredentialType.USERNAME_PASSWORD, ProjectCredentialProto.CredentialType.USERNAME_PASSWORD_TYPE)
+                    .put(CredentialType.TOKEN, ProjectCredentialProto.CredentialType.TOKEN)
+                    .put(CredentialType.SECRET_KEY, ProjectCredentialProto.CredentialType.SECRET_KEY)
+                    .put(CredentialType.APP_ID_SECRET_KEY, ProjectCredentialProto.CredentialType.APP_ID_SECRET_KEY)
+                    .put(CredentialType.SSH, ProjectCredentialProto.CredentialType.SSH)
+                    .put(CredentialType.SSH_TOKEN, ProjectCredentialProto.CredentialType.SSH_TOKEN)
+                    .put(CredentialType.USERNAME_PASSWORD_TOKEN, ProjectCredentialProto.CredentialType.USERNAME_PASSWORD_TOKEN)
+                    .put(CredentialType.OAUTH, ProjectCredentialProto.CredentialType.OAUTH)
+                    .put(CredentialType.KUBERNETES, ProjectCredentialProto.CredentialType.KUBERNETES)
+                    .put(CredentialType.ANDROID_CERTIFICATE, ProjectCredentialProto.CredentialType.ANDROID_CERTIFICATE)
+                    .put(CredentialType.IOS_CERTIFICATE, ProjectCredentialProto.CredentialType.IOS_CERTIFICATE)
+                    .put(CredentialType.TLS_CERTIFICATE, ProjectCredentialProto.CredentialType.TLS_CERTIFICATE)
+                    .put(CredentialType.TENCENT_SERVERLESS, ProjectCredentialProto.CredentialType.TENCENT_SERVERLESS)
+                    .put(CredentialType.CODING_PERSONAL_CREDENTIAL,ProjectCredentialProto.CredentialType.CODING_PERSONAL_CREDENTIAL)
                     .build();
 
-    private static final Map<ProjectCredentialProto.CredentialScope, CredentialScopeEnums> SCOPE_MAP =
-            new ImmutableMap.Builder<ProjectCredentialProto.CredentialScope, CredentialScopeEnums>()
-                    .put(ProjectCredentialProto.CredentialScope.PROJECT, CredentialScopeEnums.PROJECT)
-                    .put(ProjectCredentialProto.CredentialScope.PRIVATE, CredentialScopeEnums.PRIVATE)
+    private static final Map<ProjectCredentialProto.CredentialScope, CredentialScope> SCOPE_MAP =
+            new ImmutableMap.Builder<ProjectCredentialProto.CredentialScope, CredentialScope>()
+                    .put(ProjectCredentialProto.CredentialScope.PROJECT, CredentialScope.PROJECT)
+                    .put(ProjectCredentialProto.CredentialScope.PRIVATE, CredentialScope.PRIVATE)
                     .build();
 
-    private static final Map<CredentialScopeEnums, ProjectCredentialProto.CredentialScope> MODEL_TO_PROTO_SCOPE_MAP =
-            new ImmutableMap.Builder<CredentialScopeEnums, ProjectCredentialProto.CredentialScope>()
-                    .put(CredentialScopeEnums.PROJECT, ProjectCredentialProto.CredentialScope.PROJECT)
-                    .put(CredentialScopeEnums.PRIVATE, ProjectCredentialProto.CredentialScope.PRIVATE)
+    private static final Map<CredentialScope, ProjectCredentialProto.CredentialScope> MODEL_TO_PROTO_SCOPE_MAP =
+            new ImmutableMap.Builder<CredentialScope, ProjectCredentialProto.CredentialScope>()
+                    .put(CredentialScope.PROJECT, ProjectCredentialProto.CredentialScope.PROJECT)
+                    .put(CredentialScope.PRIVATE, ProjectCredentialProto.CredentialScope.PRIVATE)
                     .build();
 
     private static final Map<ProjectCredentialProto.VerificationMethod, VerificationMethodEnums> VERIFICATION_METHOD_MAP =
@@ -90,7 +90,7 @@ public class CredentialConverter {
                 .name(form.getName())
                 .description(form.getDescription())
                 .allSelect(form.getAllSelect())
-                .connGenerateBy(ConnGenerateByEnums.valueOf(form.getGeneratedBy().name()))
+                .connGenerateBy(CredentialGenerated.valueOf(form.getGeneratedBy().name()))
                 .scope(SCOPE_MAP.get(form.getScope()).getCode())
                 .username(form.getUsername())
                 .password(form.getPassword())
@@ -118,10 +118,10 @@ public class CredentialConverter {
                 .setTeamId(Optional.of(credential.getTeamId()).orElse(0))
                 .setProjectId(Optional.of(credential.getProjectId()).orElse(0))
                 .setScope(MODEL_TO_PROTO_SCOPE_MAP.get(
-                        CredentialScopeEnums.of(credential.getScope()))
+                        CredentialScope.of(credential.getScope()))
                 )
                 .setType(MODEL_TO_PROTO_TYPE_MAP.get(
-                        CredentialTypeEnums.of(credential.getType()))
+                        CredentialType.of(credential.getType()))
                 )
                 .setCreatorId(credential.getCreatorId())
                 .setCredentialId(StringUtils.defaultString(credential.getCredentialId()))
@@ -145,7 +145,7 @@ public class CredentialConverter {
                 .setUpdatedAt(com.google.protobuf.util.Timestamps.fromMillis(credential.getUpdatedAt().getTime()))
                 .setDeletedAt(com.google.protobuf.util.Timestamps.fromMillis(credential.getDeletedAt().getTime()));
 
-        if (CredentialTypeEnums.ANDROID_CERTIFICATE.name().equals(credential.getType())) {
+        if (CredentialType.ANDROID_CERTIFICATE.name().equals(credential.getType())) {
             AndroidCredential androidCredential = credential.getAndroidCredential();
             ProjectCredentialProto.AndroidCredential.Builder androidCredentialBuilder
                     = ProjectCredentialProto.AndroidCredential.newBuilder();
@@ -168,7 +168,7 @@ public class CredentialConverter {
         if (StringUtils.isNotEmpty(credential.getGenerateBy())) {
             builder.setGeneratedBy(
                     ProjectCredentialProto.ConnGenerateBy.valueOf(
-                            ConnGenerateByEnums.valueOf(credential.getGenerateBy()).name()
+                            CredentialGenerated.valueOf(credential.getGenerateBy()).name()
                     )
             );
         }

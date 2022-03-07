@@ -5,9 +5,9 @@ import net.coding.common.annotation.ProjectApiProtector;
 import net.coding.common.annotation.enums.Action;
 import net.coding.common.annotation.enums.Function;
 import net.coding.common.util.Result;
-import net.coding.lib.project.entity.Credential;
-import net.coding.lib.project.service.credential.ProjectCredentialService;
-import net.coding.lib.project.service.credential.ProjectCredentialTaskService;
+import net.coding.lib.project.credential.entity.Credential;
+import net.coding.lib.project.credential.service.ProjectCredentialService;
+import net.coding.lib.project.credential.service.ProjectCredentialTaskService;
 
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;

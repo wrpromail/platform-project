@@ -2,7 +2,7 @@ package net.coding.lib.project.dao.credentail;
 
 import com.github.pagehelper.PageRowBounds;
 
-import net.coding.lib.project.entity.Credential;
+import net.coding.lib.project.credential.entity.Credential;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -82,6 +82,7 @@ public interface ProjectCredentialDao {
     List<Credential> getCredentialsByTaskIdAndGenerateBy(
             @Param("projectId") int projectId,
             @Param("taskId") int taskId,
+            @Param("taskType") int taskType,
             @Param("generateBy") String generateBy,
             @Param("deletedAt") Timestamp defaultDeletedAt
     );
@@ -89,6 +90,7 @@ public interface ProjectCredentialDao {
     List<Credential> getCredentialsByTaskIdAndType(
             @Param("projectId") int projectId,
             @Param("taskId") int taskId,
+            @Param("taskType") int taskType,
             @Param("type") String type,
             @Param("deletedAt") Timestamp defaultDeletedAt
     );
@@ -96,6 +98,7 @@ public interface ProjectCredentialDao {
     List<Credential> getCredentialsByTaskId(
             @Param("projectId") int projectId,
             @Param("taskId") int taskId,
+            @Param("taskType") int taskType,
             @Param("deletedAt") Timestamp defaultDeletedAt
     );
 }

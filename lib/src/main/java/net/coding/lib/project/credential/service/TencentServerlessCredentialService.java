@@ -1,4 +1,4 @@
-package net.coding.lib.project.service.credential;
+package net.coding.lib.project.credential.service;
 
 
 import com.google.gson.Gson;
@@ -6,10 +6,10 @@ import com.google.gson.Gson;
 import net.coding.common.base.gson.JSON;
 import net.coding.common.util.BeanUtils;
 import net.coding.common.util.StringUtils;
+import net.coding.lib.project.credential.entity.Credential;
 import net.coding.lib.project.dao.credentail.ProjectCredentialDao;
 import net.coding.lib.project.dao.credentail.TencentServerlessCredentialsDao;
 import net.coding.lib.project.dto.TencentServerlessCredentialRawDTO;
-import net.coding.lib.project.entity.Credential;
 import net.coding.lib.project.entity.TencentServerlessCredential;
 import net.coding.lib.project.form.credential.TencentServerlessCredentialForm;
 

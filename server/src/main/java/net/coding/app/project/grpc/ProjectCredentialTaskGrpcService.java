@@ -1,13 +1,13 @@
 package net.coding.app.project.grpc;
 
-import net.coding.lib.project.converter.CredentialConverter;
-import net.coding.lib.project.entity.Credential;
-import net.coding.lib.project.entity.CredentialTask;
+import net.coding.lib.project.credential.converter.CredentialConverter;
+import net.coding.lib.project.credential.entity.Credential;
+import net.coding.lib.project.credential.entity.CredentialTask;
+import net.coding.lib.project.credential.service.ProjectCredentialService;
+import net.coding.lib.project.credential.service.ProjectCredentialTaskService;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.service.ProjectService;
-import net.coding.lib.project.service.credential.ProjectCredentialService;
-import net.coding.lib.project.service.credential.ProjectCredentialTaskService;
 import net.coding.proto.platform.project.ProjectCredentialProto;
 import net.coding.proto.platform.project.ProjectCredentialTaskServiceGrpc;
 
@@ -34,7 +34,11 @@ public class ProjectCredentialTaskGrpcService extends ProjectCredentialTaskServi
     private final ProjectCredentialTaskService projectCredentialTaskService;
     private final ProjectCredentialService projectCredentialService;
 
+    /**
+     * Task 支持 cci 和 qci 类型后，此方法返回的 taskId 会包含 cci 和 qci ，所以，不建议再继续使用，会导致逻辑问题
+     */
     @Override
+    @Deprecated
     public void getTaskIdsByCredential(ProjectCredentialProto.GetTaskIdsByCredentialRequest request
             , StreamObserver<ProjectCredentialProto.GetTaskIdsByCredentialResponse> responseObserver) {
         ProjectCredentialProto.GetTaskIdsByCredentialResponse.Builder builder = ProjectCredentialProto.GetTaskIdsByCredentialResponse.newBuilder();
@@ -86,6 +90,7 @@ public class ProjectCredentialTaskGrpcService extends ProjectCredentialTaskServi
                     .getCredentialsByTaskIdAndGenerateBy(
                             projectId,
                             request.getTaskId(),
+                            request.getTaskType(),
                             request.getGenerateBy(),
                             request.getDecrypt()
                     );
@@ -125,6 +130,7 @@ public class ProjectCredentialTaskGrpcService extends ProjectCredentialTaskServi
                     .getCredentialsByTaskIdAndType(
                             projectId,
                             request.getTaskId(),
+                            request.getTaskType(),
                             request.getType().name(),
                             request.getDecrypt()
                     );
@@ -161,6 +167,7 @@ public class ProjectCredentialTaskGrpcService extends ProjectCredentialTaskServi
                     .getCredentialsByTaskId(
                             projectId,
                             request.getTaskId(),
+                            request.getTaskType(),
                             request.getDecrypt()
                     );
             builder.addAllCredential(toProtobufCredentialList(credentials))
@@ -184,7 +191,7 @@ public class ProjectCredentialTaskGrpcService extends ProjectCredentialTaskServi
             return new ArrayList<>();
         }
         return Optional.of(credentials.stream()
-                .map(CredentialConverter::toBuildCredential).collect(toList()))
+                        .map(CredentialConverter::toBuildCredential).collect(toList()))
                 .filter(CollectionUtils::isNotEmpty)
                 .orElse(new ArrayList<>());
     }

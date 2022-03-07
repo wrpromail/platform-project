@@ -1,4 +1,4 @@
-package net.coding.lib.project.entity;
+package net.coding.lib.project.credential.entity;
 
 import java.io.Serializable;
 import java.util.Date;
