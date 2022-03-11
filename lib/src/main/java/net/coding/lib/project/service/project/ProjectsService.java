@@ -7,9 +7,12 @@ import net.coding.common.util.BeanUtils;
 import net.coding.common.util.LimitedPager;
 import net.coding.common.util.ResultPage;
 import net.coding.lib.project.dao.ProjectDao;
+import net.coding.lib.project.dao.ProjectMemberDao;
 import net.coding.lib.project.dto.ProjectDTO;
 import net.coding.lib.project.entity.Project;
+import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.enums.PmTypeEnums;
+import net.coding.lib.project.enums.ProjectMemberPrincipalTypeEnum;
 import net.coding.lib.project.enums.QueryType;
 import net.coding.lib.project.enums.RoleType;
 import net.coding.lib.project.exception.CoreException;
@@ -27,6 +30,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -46,6 +50,8 @@ import static org.apache.logging.log4j.util.Strings.EMPTY;
 public class ProjectsService {
 
     private final ProjectDao projectDao;
+
+    private final ProjectMemberDao projectMemberDao;
 
     private final ProjectDTOService projectDTOService;
 
@@ -120,21 +126,37 @@ public class ProjectsService {
                                                            String keyword,
                                                            LimitedPager pager) {
 
-        Set<Integer> projectIds = Collections.emptySet();
+        Set<Integer> projectIds;
         if (Objects.nonNull(policyId) && policyId > 0) {
             projectIds = projectMemberInspectService.listResource(operatorId, principalType, principalId, policyId);
-            if (CollectionUtils.isEmpty(projectIds)) {
-                List<ProjectDTO> grantProjectDTOs = new ArrayList<>();
-                return new ResultPage<>(grantProjectDTOs, pager.getPage(), pager.getPageSize(), grantProjectDTOs.size());
+        } else {
+            List<ProjectMember> joinedUserMembers = new ArrayList<>();
+            ProjectMemberPrincipalQueryParameter parameter = ProjectMemberPrincipalQueryParameter.builder()
+                    .teamId(teamId)
+                    .principalType(principalType)
+                    .principalIds(StreamEx.of(principalId).toSet())
+                    .pmType(PmTypeEnums.PROJECT.getType())
+                    .deletedAt(BeanUtils.getDefaultDeletedAt())
+                    .build();
+            if (ProjectMemberPrincipalTypeEnum.USER.name().equals(principalType)) {
+                parameter.setUserId(Integer.valueOf(principalId));
+                joinedUserMembers = projectMemberDao.findJoinPrincipalMembers(parameter);
             }
+            projectIds = StreamEx.of(joinedUserMembers, projectMemberDao.findPrincipalMembers(parameter))
+                    .flatMap(Collection::stream)
+                    .nonNull()
+                    .map(ProjectMember::getProjectId)
+                    .toSet();
+        }
+        if (CollectionUtils.isEmpty(projectIds)) {
+            List<ProjectDTO> grantProjectDTOs = new ArrayList<>();
+            return new ResultPage<>(grantProjectDTOs, pager.getPage(), pager.getPageSize(), grantProjectDTOs.size());
         }
         Set<Integer> finalProjectIds = projectIds;
         PageInfo<Project> pageInfo = PageHelper.startPage(pager.getPage(), pager.getPageSize())
                 .doSelectPageInfo(() -> projectDao.getPrincipalProjects(
                         ProjectPrincipalQueryPageParameter.builder()
                                 .teamId(teamId)
-                                .principalType(principalType)
-                                .principalId(principalId)
                                 .projectIds(finalProjectIds)
                                 .keyword(keyword)
                                 .build()
