@@ -375,13 +375,13 @@ public class ProjectMemberService {
             log.error("User {} is not member of project {}", targetUserId, project.getId());
             throw CoreException.of(CoreException.ExceptionType.PROJECT_MEMBER_NOT_EXISTS);
         }
-        ProjectMember currentMember = getByProjectIdAndUserId(project.getId(), currentUserId);
+      /*  ProjectMember currentMember = getByProjectIdAndUserId(project.getId(), currentUserId);
         if (null == currentMember) {
             log.error("CurrentUser {} is not member of project {}", currentUserId, project.getId());
             throw CoreException.of(CoreException.ExceptionType.PROJECT_MEMBER_NOT_EXISTS);
         }
         projectMemberAdaptorFactory.create(project.getPmType())
-                .checkDelProjectMemberType(member, currentMember.getType());
+                .checkDelProjectMemberType(member, currentMember.getType());*/
 
         delMember(currentUserId, project, targetUserId, member);
 
