@@ -247,7 +247,7 @@ public class ProjectMemberGrpcService extends ProjectMemberServiceGrpc.ProjectMe
         try {
             List<ProjectMemberProto.ProjectMember> members = StreamEx.of(request.getProjectIdsList())
                     .map(projectId -> Optional.ofNullable(projectService.getById(projectId))
-                            .flatMap(project -> Optional.of(projectMemberService.getByProjectIdAndUserId(project.getId(), request.getUserId()))
+                            .flatMap(project -> Optional.ofNullable(projectMemberService.getByProjectIdAndUserId(project.getId(), request.getUserId()))
                                     .map(this::toProtoProjectMember))
                             .orElse(null))
                     .nonNull()
