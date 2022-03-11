@@ -11,8 +11,6 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class ProjectPrincipalQueryPageParameter {
     private Integer teamId;
-    private String principalType;
-    private String principalId;
     private Set<Integer> projectIds;
     private String keyword;
 }

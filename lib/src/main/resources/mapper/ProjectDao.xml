@@ -263,16 +263,12 @@
 
     <select id="getPrincipalProjects" resultMap="BaseResultMap">
         SELECT p.*
-        FROM projects p INNER JOIN project_members pm
-        ON pm.project_id = p.id
-        AND pm.deleted_at = '1970-01-01 00:00:00'
+        FROM projects p
         <where>
             p.deleted_at = '1970-01-01 00:00:00'
             AND p.team_owner_id = #{teamId}
             AND p.pm_type = 0
             AND p.invisible = 0
-            AND pm.principal_type = #{principalType}
-            AND pm.principal_id = #{principalId}
             <if test="projectIds != null and projectIds.size() &gt; 0">
                 AND p.id in
                 <foreach item="projectId" index="index" collection="projectIds" open="("
