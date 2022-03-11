@@ -1,11 +1,13 @@
 package net.coding.app.project.grpc;
 
 import net.coding.app.project.utils.GrpcUtil;
+import net.coding.lib.project.dao.ResourceReferenceDao;
 import net.coding.lib.project.entity.ProjectResource;
 import net.coding.lib.project.entity.ResourceReference;
 import net.coding.lib.project.service.ProjectResourceService;
 import net.coding.lib.project.service.ResourceReferenceService;
 import net.coding.lib.project.utils.DateUtil;
+import net.coding.proto.platform.project.NonResourceReferenceProto;
 import net.coding.proto.platform.project.ResourceReferenceProto;
 import net.coding.proto.platform.project.ResourceReferenceServiceGrpc;
 
@@ -17,6 +19,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +34,9 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
 
     @Autowired
     private ProjectResourceService projectResourceService;
+
+    @Autowired
+    ResourceReferenceDao resourceReferenceDao;
 
     @Override
     public void simpleAddResourceReference(ResourceReferenceProto.SimpleAddResourceReferenceRequest request,
@@ -677,6 +683,138 @@ public class ResourceReferenceGrpcService extends ResourceReferenceServiceGrpc.R
         } catch (Exception ex) {
             log.error("existsResourceReference fail, parameter is " + request.toString(), ex);
             GrpcUtil.existsResourceReferenceResponse(CodeProto.Code.INTERNAL_ERROR, "exists error", false, response);
+        }
+    }
+
+    @Override
+    public void updateSelfTypeBySelfIdAndType(ResourceReferenceProto.UpdateSelfTypeBySelfIdAndTypeRequest request,
+                                              StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
+        Integer selfId = request.getSelfId();
+        String selfType = request.getSelfType();
+        String newSelfType = request.getNewSelfType();
+
+        try {
+            if (StringUtils.isBlank(selfType) || StringUtils.isBlank(newSelfType) || selfId <= 0) {
+                ResourceReferenceProto.ResourceReferenceCommonResponse build = ResourceReferenceProto.ResourceReferenceCommonResponse.newBuilder()
+                        .setCode(CodeProto.Code.INVALID_PARAMETER)
+                        .setMessage("updateSelfTypeBySelfIdAndType param error")
+                        .build();
+                response.onNext(build);
+                response.onCompleted();
+                return;
+            }
+
+            resourceReferenceService.updateSelfTypeBySelfIdAndType(selfId, selfType, newSelfType);
+            ResourceReferenceProto.ResourceReferenceCommonResponse build = ResourceReferenceProto.ResourceReferenceCommonResponse.newBuilder()
+                    .setCode(CodeProto.Code.SUCCESS)
+                    .setMessage("")
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        } catch (Exception e) {
+            log.error(e.toString());
+            ResourceReferenceProto.ResourceReferenceCommonResponse build = ResourceReferenceProto.ResourceReferenceCommonResponse.newBuilder()
+                    .setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage("")
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        }
+    }
+
+    @Override
+    public void updateTargetTypeByTargetIdAndType(ResourceReferenceProto.UpdateTargetTypeByTargetIdAndTypeRequest request, StreamObserver<ResourceReferenceProto.ResourceReferenceCommonResponse> response) {
+        Integer targetId = request.getTargetId();
+        String targetType = request.getTargetType();
+        String newTargetType = request.getNewTargetType();
+
+        try {
+            if (StringUtils.isBlank(targetType) || StringUtils.isBlank(newTargetType) || targetId <= 0) {
+                ResourceReferenceProto.ResourceReferenceCommonResponse build = ResourceReferenceProto.ResourceReferenceCommonResponse.newBuilder()
+                        .setCode(CodeProto.Code.INVALID_PARAMETER)
+                        .setMessage("updateTargetTypeByTargetIdAndType param error")
+                        .build();
+                response.onNext(build);
+                response.onCompleted();
+                return;
+            }
+            resourceReferenceService.updateTargetTypeByTargetIdAndType(targetId, targetType, newTargetType);
+            ResourceReferenceProto.ResourceReferenceCommonResponse build = ResourceReferenceProto.ResourceReferenceCommonResponse.newBuilder()
+                    .setCode(CodeProto.Code.SUCCESS)
+                    .setMessage("")
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        } catch (Exception e) {
+            log.error(e.toString());
+            ResourceReferenceProto.ResourceReferenceCommonResponse build = ResourceReferenceProto.ResourceReferenceCommonResponse.newBuilder()
+                    .setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage("")
+                    .build();
+            response.onNext(build);
+            response.onCompleted();
+        }
+    }
+
+    @Override
+    public void listBySelfWithoutDescriptionCitedRelation(ResourceReferenceProto.FindListBySelfTypeRequest request, StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> responseObserver) {
+        if (request.getSelfId() == 0 || StringUtils.isBlank(request.getSelfType())) {
+            ResourceReferenceProto.FindResourceReferenceListResponse build = ResourceReferenceProto.FindResourceReferenceListResponse.newBuilder()
+                    .setCode(CodeProto.Code.INVALID_PARAMETER)
+                    .setMessage("param error")
+                    .build();
+            responseObserver.onNext(build);
+            responseObserver.onCompleted();
+            return;
+        }
+
+        try {
+            List<ResourceReference> resourceReferences = resourceReferenceDao.listBySelfWithoutDescriptionCitedRelation(request.getSelfType(), request.getSelfId());
+            ResourceReferenceProto.FindResourceReferenceListResponse build = ResourceReferenceProto.FindResourceReferenceListResponse.newBuilder()
+                    .setCode(CodeProto.Code.SUCCESS)
+                    .addAllResourceReference(resourceReferences.stream().map(GrpcUtil::resourceReferenceBean2Proto).collect(Collectors.toList()))
+                    .build();
+            responseObserver.onNext(build);
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            log.error(e.toString());
+            ResourceReferenceProto.FindResourceReferenceListResponse build = ResourceReferenceProto.FindResourceReferenceListResponse.newBuilder()
+                    .setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage("INTERNAL ERROR")
+                    .build();
+            responseObserver.onNext(build);
+            responseObserver.onCompleted();
+        }
+    }
+
+    @Override
+    public void listBySelfWithDescriptionCitedRelation(ResourceReferenceProto.FindListBySelfTypeRequest request, StreamObserver<ResourceReferenceProto.FindResourceReferenceListResponse> responseObserver) {
+        if (request.getSelfId() == 0 || StringUtils.isBlank(request.getSelfType())) {
+            ResourceReferenceProto.FindResourceReferenceListResponse build = ResourceReferenceProto.FindResourceReferenceListResponse.newBuilder()
+                    .setCode(CodeProto.Code.INVALID_PARAMETER)
+                    .setMessage("param error")
+                    .build();
+            responseObserver.onNext(build);
+            responseObserver.onCompleted();
+            return;
+        }
+
+        try {
+            List<ResourceReference> resourceReferences = resourceReferenceDao.listBySelfWithDescriptionCitedRelation(request.getSelfType(), request.getSelfId());
+            ResourceReferenceProto.FindResourceReferenceListResponse build = ResourceReferenceProto.FindResourceReferenceListResponse.newBuilder()
+                    .setCode(CodeProto.Code.SUCCESS)
+                    .addAllResourceReference(resourceReferences.stream().map(GrpcUtil::resourceReferenceBean2Proto).collect(Collectors.toList()))
+                    .build();
+            responseObserver.onNext(build);
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            log.error(e.toString());
+            ResourceReferenceProto.FindResourceReferenceListResponse build = ResourceReferenceProto.FindResourceReferenceListResponse.newBuilder()
+                    .setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage("INTERNAL ERROR")
+                    .build();
+            responseObserver.onNext(build);
+            responseObserver.onCompleted();
         }
     }
 }

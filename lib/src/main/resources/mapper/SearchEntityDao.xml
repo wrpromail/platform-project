@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.coding.lib.project.dao.SearchEntityDao">
+
+    <insert id="insertEntry" keyColumn="id" keyProperty="id" useGeneratedKeys="true"
+            parameterType="net.coding.lib.project.entity.SearchEntity">
+        INSERT INTO `search_entries` (`project_id`, `target_type`, `target_id`, `creator_id`,
+                                      `title_keywords`, `content_keywords`)
+        VALUES (#{projectId}, #{targetType}, #{targetId}, #{creatorId}, #{titleKeywords},
+                #{contentKeywords});
+
+    </insert>
+
+
+    <update id="updateEntry" parameterType="net.coding.lib.project.entity.SearchEntity">
+        update `search_entries`
+        set `title_keywords`   = #{titleKeywords},
+            `content_keywords` = #{contentKeywords}
+        where `id` = #{id}
+    </update>
+
+    <select id="getByTargetIdAndType" resultType="net.coding.lib.project.entity.SearchEntity">
+        SELECT *
+        FROM search_entries
+        WHERE target_type = #{targetType}
+          AND target_id = #{targetId}
+        limit 1;
+    </select>
+
+    <delete id="deleteById">
+        delete
+        FROM search_entries
+        WHERE id = #{id}
+    </delete>
+
+    <update id="batchUpdateTargetTypeByTargetIdAndType">
+        update search_entries
+        set target_type = #{newTargetType}
+        where project_id = #{projectId}
+        and target_type = #{targetType}
+        and target_id in
+        <foreach collection="targetIdList" item="item" index="index" open="(" close=")"
+                 separator=",">
+            #{item}
+        </foreach>
+    </update>
+</mapper>

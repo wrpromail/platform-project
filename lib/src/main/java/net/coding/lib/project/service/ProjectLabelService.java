@@ -13,12 +13,15 @@ import net.coding.lib.project.exception.CoreRuntimeException;
 import net.coding.lib.project.form.ProjectLabelForm;
 
 import org.apache.commons.lang.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +35,7 @@ public class ProjectLabelService {
     private final ActivityGrpcClient activityGrpcClient;
     private final IssueLabelGrpcClient issueLabelGrpcClient;
     private final AsyncEventBus asyncEventBus;
+    private final RedissonClient redissonClient;
 
     /**
      * 获取项目所有标签
@@ -42,6 +46,10 @@ public class ProjectLabelService {
 
     public ProjectLabel findById(Integer id) {
         return projectLabelDao.findById(id);
+    }
+
+    public ProjectLabel findByIdWithDeleted(Integer id) {
+        return projectLabelDao.findByIdWitDeleted(id);
     }
 
     /**
@@ -81,6 +89,60 @@ public class ProjectLabelService {
                         .build()
         );
         return newLabelId;
+    }
+
+    /**
+     * 原子性创建标签
+     *
+     * @param projectId
+     * @param userId
+     * @param name
+     * @param color
+     * @return
+     */
+    public ProjectLabel getOrCreateLabel(Integer projectId, Integer userId, String name, String color) {
+        RLock rLock = redissonClient.getLock(String.format("getOrCreateLabel:projectId:%d.lock", projectId));
+        try {
+            rLock.lock(30L, TimeUnit.SECONDS);
+            ProjectLabel projectLabel = getByNameAndProject(
+                    name,
+                    projectId
+            );
+            if (projectLabel != null) {
+                return projectLabel;
+            } else {
+                ProjectLabel newProjectLabel = new ProjectLabel();
+                newProjectLabel.setProjectId(projectId);
+                newProjectLabel.setOwnerId(userId);
+                newProjectLabel.setName(name);
+                newProjectLabel.setColor(color);
+                int newLabelId = projectLabelDao.insert(newProjectLabel);
+                newProjectLabel.setId(newLabelId);
+                activityGrpcClient.sendActivity(SendActivitiesRequest.newBuilder()
+                        .setOwnerId(userId)
+                        .setType(ProjectLabel.class.getSimpleName())
+                        .setTargetId(newLabelId)
+                        .setProjectId(projectId)
+                        .setAction(ProjectLabel.ACTION_CREATE_LABEL)
+                        .setContent(StringUtils.EMPTY)
+                        .build());
+                asyncEventBus.post(
+                        ActivityEvent.builder()
+                                .creatorId(userId)
+                                .type(net.coding.common.base.bean.ProjectLabel.class)
+                                .targetId(newLabelId)
+                                .projectId(projectId)
+                                .action(ProjectLabel.ACTION_CREATE_LABEL)
+                                .content(StringUtils.EMPTY)
+                                .build()
+                );
+                return newProjectLabel;
+            }
+        } finally {
+            if (rLock.isLocked() && rLock.isHeldByCurrentThread()) {
+                rLock.unlock();
+            }
+        }
     }
 
     /**
@@ -161,10 +223,31 @@ public class ProjectLabelService {
         return projectLabelDao.findByIds(ids);
     }
 
+    public List<ProjectLabel> getByIdsWithDeleted(List<Integer> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return Collections.emptyList();
+        }
+        return projectLabelDao.findByIdsWithDeleted(ids);
+    }
+
     public ProjectLabel getByNameAndProject(String name, Integer projectId) {
         if (StringUtils.isEmpty(name) || projectId == null) {
             return null;
         }
         return projectLabelDao.getByNameAndProject(name, projectId);
+    }
+
+    public List<ProjectLabel> getLabelsByProjectIdAndNames(List<String> names, List<Integer> projectIdList) {
+        if (names.isEmpty() || projectIdList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return projectLabelDao.getLabelsByProjectIdAndNames(names, projectIdList);
+    }
+
+    public List<ProjectLabel> getLabelsByProjectIds(List<Integer> projectIdList) {
+        if (projectIdList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return projectLabelDao.getLabelsByProjects( projectIdList);
     }
 }

@@ -354,4 +354,33 @@ public class ResourceReferenceService {
     public void delete(Map<String, Object> map) {
         resourceReferenceDao.delete(map);
     }
+
+    /**
+     * 更新 self_type (目前项目协同用到，项目协同切换协同模式（敏捷、经典）的时候会将部分事项的类型更改掉)
+     * @param selfId
+     * @param selfType
+     * @param newSelfType
+     */
+    public void updateSelfTypeBySelfIdAndType(Integer selfId, String selfType, String newSelfType) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("newSelfType", newSelfType);
+        parameters.put("selfType", selfType);
+        parameters.put("selfIid", selfId);
+        resourceReferenceDao.updateSelfTypeBySelfIdAndType(parameters);
+    }
+
+    /**
+     * 更新 target_type  (目前项目协同用到，项目协同切换协同模式（敏捷、经典）的时候会将部分事项的类型更改掉)
+     * @param targetId
+     * @param targetType
+     * @param newTargetType
+     */
+    public void updateTargetTypeByTargetIdAndType(Integer targetId, String targetType, String newTargetType) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("newTargetType", newTargetType);
+        parameters.put("targetType", targetType);
+        parameters.put("targetId", targetId);
+        resourceReferenceDao.updateTargetTypeByTargetIdAndType(parameters);
+    }
+
 }

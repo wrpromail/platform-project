@@ -30,6 +30,17 @@ message AddExternalLinkResponse {
   ExternalLink externalLink = 3;
 }
 
+message GetExternalLinkByIdRequest {
+  int32 id = 1;
+}
+
+message GetExternalLinkByIdResponse {
+  proto.common.Code code = 1;
+  string message = 2;
+  ExternalLink externalLink = 3;
+}
+
 service ExternalLinkService {
   rpc AddExternalLink(AddExternalLinkRequest) returns (AddExternalLinkResponse);
+  rpc GetExternalLinkById(GetExternalLinkByIdRequest) returns (GetExternalLinkByIdResponse);
 }

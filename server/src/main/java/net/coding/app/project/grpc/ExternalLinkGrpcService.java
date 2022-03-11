@@ -49,4 +49,47 @@ public class ExternalLinkGrpcService extends ExternalLinkServiceGrpc.ExternalLin
                     "addExternalLink service error", null, response);
         }
     }
+
+    @Override
+    public void getExternalLinkById(ExternalLinkProto.GetExternalLinkByIdRequest request, StreamObserver<ExternalLinkProto.GetExternalLinkByIdResponse> responseObserver) {
+        try {
+            ExternalLink externalLink = externalLinkService.getById(request.getId());
+            if (externalLink == null) {
+                ExternalLinkProto.GetExternalLinkByIdResponse response = ExternalLinkProto.GetExternalLinkByIdResponse
+                        .newBuilder()
+                        .setCode(CodeProto.Code.NOT_FOUND)
+                        .setMessage("NOT FOUND")
+                        .build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+                return;
+            }
+
+            ExternalLinkProto.GetExternalLinkByIdResponse response = ExternalLinkProto.GetExternalLinkByIdResponse
+                    .newBuilder()
+                    .setCode(CodeProto.Code.SUCCESS)
+                    .setExternalLink(
+                            ExternalLinkProto.ExternalLink.newBuilder()
+                                    .setId(externalLink.getId())
+                                    .setLink(externalLink.getLink())
+                                    .setTitle(externalLink.getTitle())
+                                    .setIid(externalLink.getIid() == null ? 0 : externalLink.getIid())
+                                    .setProjectId(externalLink.getProjectId())
+                                    .setUserId(externalLink.getCreatorId())
+                                    .build()
+                    )
+                    .build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            log.error("getExternalLinkById fail, parameter is " + request.toString(), e);
+            ExternalLinkProto.GetExternalLinkByIdResponse response = ExternalLinkProto.GetExternalLinkByIdResponse
+                    .newBuilder()
+                    .setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage("INTERNAL_ERROR")
+                    .build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        }
+    }
 }

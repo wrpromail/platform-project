@@ -2,11 +2,13 @@ package net.coding.app.project.utils;
 
 import net.coding.lib.project.dto.ProjectResourceDTO;
 import net.coding.lib.project.entity.ExternalLink;
+import net.coding.lib.project.entity.NonResourceReference;
 import net.coding.lib.project.entity.ProjectResource;
 import net.coding.lib.project.entity.ResourceReference;
 import net.coding.lib.project.entity.ResourceReferenceCommentRelation;
 import net.coding.lib.project.utils.DateUtil;
 import net.coding.proto.platform.project.ExternalLinkProto;
+import net.coding.proto.platform.project.NonResourceReferenceProto;
 import net.coding.proto.platform.project.ResourceReferenceCommentRelationProto;
 import net.coding.proto.platform.project.ResourceReferenceProto;
 
@@ -578,5 +580,35 @@ public class GrpcUtil {
             response.onNext(build);
             response.onCompleted();
         }
+    }
+
+    public static ResourceReferenceProto.ResourceReference resourceReferenceBean2Proto(ResourceReference bean) {
+        return ResourceReferenceProto.ResourceReference.newBuilder()
+                .setId(bean.getId())
+                .setSelfId(bean.getSelfId())
+                .setSelfProjectId(bean.getSelfProjectId())
+                .setSelfType(bean.getSelfType())
+                .setSelfIid(Integer.parseInt(bean.getSelfIid()))
+                .setTargetId(bean.getTargetId())
+                .setTargetProjectId(bean.getTargetProjectId())
+                .setTargetIid(Integer.parseInt(bean.getTargetIid()))
+                .setTargetType(bean.getTargetType())
+                .setCreatedAt(bean.getCreatedAt().getTime())
+                .setUpdatedAt(bean.getUpdatedAt().getTime())
+                .build();
+    }
+
+    public static NonResourceReferenceProto.NonResourceReference nonResourceReferenceBean2Proto(NonResourceReference bean) {
+        return NonResourceReferenceProto.NonResourceReference
+                .newBuilder()
+                .setId(bean.getId())
+                .setSelfId(bean.getSelfId())
+                .setSelfProjectId(bean.getSelfProjectId())
+                .setSelfType(bean.getSelfType())
+                .setSelfContent(bean.getSelfContent())
+                .setTargetId(bean.getTargetId())
+                .setTargetProjectId(bean.getTargetProjectId())
+                .setTargetType(bean.getTargetType())
+                .build();
     }
 }

@@ -67,6 +67,8 @@ public interface ProjectDao extends tk.mybatis.mapper.common.Mapper<Project>,
             @Param("deletedAt") Timestamp deletedAt
     );
 
+    List<Integer> getAllProjectIdByTeamId(@Param("teamId") Integer teamId);
+
     List<Project> findByUserProjects(
             @Param("teamId") Integer teamId,
             @Param("userId") Integer userId,

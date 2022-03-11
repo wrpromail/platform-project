@@ -668,4 +668,52 @@
             </if>
         </where>
     </update>
+
+    <update id="updateSelfTypeBySelfIdAndType" parameterType="map">
+        update resource_references
+        <set>
+            <if test="selfType != null">
+                self_type = #{newSelfType},
+            </if>
+        </set>
+        where self_type = #{selfType} AND self_id = #{selfIid} AND deleted_at = #{deletedAt}
+    </update>
+
+    <update id="updateTargetTypeByTargetIdAndType" parameterType="map">
+        update resource_references
+        <set>
+            <if test="targetType != null">
+                target_type = #{newTargetType},
+            </if>
+        </set>
+        where target_type = #{targetType} AND target_id = #{targetId} AND deleted_at = #{deletedAt}
+    </update>
+
+    <select id="listBySelfWithoutDescriptionCitedRelation" parameterType="map"
+            resultMap="BaseResultMap">
+        select rr.*
+        from resource_references as rr
+        where rr.self_type = #{selfType}
+          and rr.self_id = #{selfId}
+          and rr.deleted_at = '1970-01-01 00:00:00'
+          and not exists(select *
+                         from resource_reference_comment_relations as rrcr
+                         where rrcr.resource_reference_id = rr.id
+                           and rrcr.cited_source = 'DESCRIPTION'
+                           and rrcr.deleted_at = '1970-01-01 00:00:00')
+    </select>
+
+
+    <select id="listBySelfWithDescriptionCitedRelation" parameterType="map"
+            resultMap="BaseResultMap">
+        select rr.*
+        from resource_references as rr
+        where rr.self_type = #{selfType}
+          and rr.self_id = #{selfId}
+          and exists(select *
+                     from resource_reference_comment_relations as rrcr
+                     where rrcr.resource_reference_id = rr.id
+                       and rrcr.cited_source = 'DESCRIPTION'
+                       and rrcr.deleted_at = '1970-01-01 00:00:00')
+    </select>
 </mapper>

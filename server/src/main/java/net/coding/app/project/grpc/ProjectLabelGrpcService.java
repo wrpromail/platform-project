@@ -1,5 +1,7 @@
 package net.coding.app.project.grpc;
 
+import net.coding.lib.project.dao.ProjectDao;
+import net.coding.lib.project.dao.ProjectLabelDao;
 import net.coding.lib.project.entity.ProjectLabel;
 import net.coding.lib.project.form.ProjectLabelForm;
 import net.coding.lib.project.service.ProjectLabelService;
@@ -9,10 +11,13 @@ import net.coding.proto.platform.project.ProjectLabelServiceGrpc;
 
 import org.apache.commons.lang3.StringUtils;
 import org.lognet.springboot.grpc.GRpcService;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.validation.ConstraintViolation;
@@ -30,6 +35,7 @@ import proto.common.CodeProto;
 public class ProjectLabelGrpcService extends ProjectLabelServiceGrpc.ProjectLabelServiceImplBase {
 
     private final ProjectLabelService projectLabelService;
+    private final ProjectDao projectDao;
     private final Validator validator;
 
 
@@ -124,7 +130,13 @@ public class ProjectLabelGrpcService extends ProjectLabelServiceGrpc.ProjectLabe
                 ProjectLabelProto.GetLabelByIdResponse.newBuilder();
         try {
             Integer id = request.getId();
-            ProjectLabel projectLabel = projectLabelService.findById(id);
+            boolean withDeleted = request.getWithDeleted();
+            ProjectLabel projectLabel;
+            if (withDeleted) {
+                projectLabel = projectLabelService.findByIdWithDeleted(id);
+            } else {
+                projectLabel = projectLabelService.findById(id);
+            }
             if (projectLabel == null) {
                 builder.setCode(CodeProto.Code.NOT_FOUND);
             } else {
@@ -149,7 +161,13 @@ public class ProjectLabelGrpcService extends ProjectLabelServiceGrpc.ProjectLabe
                 ProjectLabelProto.GetLabelByIdListResponse.newBuilder();
         try {
             List<Integer> ids = request.getIdList();
-            List<ProjectLabel> projectLabels = projectLabelService.getByIds(ids);
+            boolean withDeleted = request.getWithDeleted();
+            List<ProjectLabel> projectLabels;
+            if (withDeleted) {
+                projectLabels = projectLabelService.getByIdsWithDeleted(ids);
+            } else {
+                projectLabels = projectLabelService.getByIds(ids);
+            }
             if (CollectionUtils.isEmpty(projectLabels)) {
                 builder.setCode(CodeProto.Code.NOT_FOUND);
             } else {
@@ -168,6 +186,40 @@ public class ProjectLabelGrpcService extends ProjectLabelServiceGrpc.ProjectLabe
         }
         responseObserver.onNext(builder.build());
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getLabelsByProjectIdListAndNames(ProjectLabelProto.GetLabelsByProjectIdListAndNamesRequest request, StreamObserver<ProjectLabelProto.GetLabelsByProjectIdListAndNamesResponse> responseObserver) {
+        List<String> names = request.getNameList();
+        List<Integer> projectIdList = request.getProjectIdList();
+        if (names.isEmpty() || projectIdList.isEmpty()) {
+            responseObserver.onNext(
+                    ProjectLabelProto.GetLabelsByProjectIdListAndNamesResponse.newBuilder()
+                            .setCode(CodeProto.Code.INVALID_PARAMETER)
+                            .build()
+            );
+            responseObserver.onCompleted();
+            return;
+        }
+
+        try {
+            List<ProjectLabel> projectLabels = projectLabelService.getLabelsByProjectIdAndNames(names, projectIdList);
+            responseObserver.onNext(
+                    ProjectLabelProto.GetLabelsByProjectIdListAndNamesResponse.newBuilder()
+                            .setCode(CodeProto.Code.SUCCESS)
+                            .addAllProjectLabel(projectLabels.stream().map(this::toBuilder).collect(Collectors.toList()))
+                            .build()
+            );
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            log.error(e.toString());
+            responseObserver.onNext(
+                    ProjectLabelProto.GetLabelsByProjectIdListAndNamesResponse.newBuilder()
+                            .setCode(CodeProto.Code.INTERNAL_ERROR)
+                            .build()
+            );
+            responseObserver.onCompleted();
+        }
     }
 
     @Override
@@ -195,6 +247,116 @@ public class ProjectLabelGrpcService extends ProjectLabelServiceGrpc.ProjectLabe
         }
         responseObserver.onNext(builder.build());
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getLabelsByTeamIdAndNames(ProjectLabelProto.GetLabelsByTeamIdAndNamesRequest request, StreamObserver<ProjectLabelProto.GetLabelsByTeamIdAndNamesResponse> responseObserver) {
+        Integer teamId = request.getTeamId();
+        List<String> names = request.getNameList();
+        if (teamId == 0 || names.isEmpty()) {
+            responseObserver.onNext(ProjectLabelProto.GetLabelsByTeamIdAndNamesResponse.newBuilder()
+                    .setCode(CodeProto.Code.INVALID_PARAMETER)
+                    .build()
+            );
+            responseObserver.onCompleted();
+            return;
+        }
+
+        try {
+            List<ProjectLabel> list = projectLabelService.getLabelsByProjectIdAndNames(names, projectDao.getAllProjectIdByTeamId(teamId));
+            responseObserver.onNext(
+                    ProjectLabelProto.GetLabelsByTeamIdAndNamesResponse
+                            .newBuilder()
+                            .setCode(CodeProto.Code.SUCCESS)
+                            .addAllProjectLabel(list.stream().map(this::toBuilder).collect(Collectors.toList()))
+                            .build());
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            log.error(e.toString());
+            responseObserver.onNext(ProjectLabelProto.GetLabelsByTeamIdAndNamesResponse.newBuilder()
+                    .setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage("INTERNAL ERROR")
+                    .build()
+            );
+            responseObserver.onCompleted();
+        }
+    }
+
+    @Override
+    public void getLabelsByTeamId(ProjectLabelProto.GetLabelsByTeamIdRequest request, StreamObserver<ProjectLabelProto.GetLabelsByTeamIdResponse> responseObserver) {
+        Integer teamId = request.getTeamId();
+        if (teamId == 0) {
+            responseObserver.onNext(ProjectLabelProto.GetLabelsByTeamIdResponse.newBuilder()
+                    .setCode(CodeProto.Code.INVALID_PARAMETER)
+                    .build()
+            );
+            responseObserver.onCompleted();
+            return;
+        }
+
+        try {
+            List<ProjectLabel> list = projectLabelService.getLabelsByProjectIds(projectDao.getAllProjectIdByTeamId(teamId));
+            responseObserver.onNext(
+                    ProjectLabelProto.GetLabelsByTeamIdResponse
+                            .newBuilder()
+                            .setCode(CodeProto.Code.SUCCESS)
+                            .addAllProjectLabel(list.stream().map(this::toBuilder).collect(Collectors.toList()))
+                            .build());
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            log.error(e.toString());
+            responseObserver.onNext(ProjectLabelProto.GetLabelsByTeamIdResponse.newBuilder()
+                    .setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage("INTERNAL ERROR")
+                    .build()
+            );
+            responseObserver.onCompleted();
+        }
+    }
+
+    @Override
+    public void getOrCreateLabel(ProjectLabelProto.GetOrCreateLabelRequest request, StreamObserver<ProjectLabelProto.GetOrCreateLabelResponse> responseObserver) {
+        Integer projectId = request.getProjectId();
+        Integer userId = request.getUserId();
+        String name = request.getName();
+        String color = request.getColor();
+        if (userId == 0) {
+            responseObserver.onNext(ProjectLabelProto.GetOrCreateLabelResponse.newBuilder()
+                    .setCode(CodeProto.Code.INVALID_PARAMETER)
+                    .build()
+            );
+            responseObserver.onCompleted();
+            return;
+        }
+
+        ProjectLabelForm form = ProjectLabelForm.builder()
+                .projectId(request.getProjectId())
+                .name(request.getName())
+                .color(request.getColor())
+                .build();
+        String exceptionKey = validateCreateParams(form);
+        if (StringUtils.isNoneEmpty(exceptionKey)) {
+            responseObserver.onError(Status.INVALID_ARGUMENT.withDescription(exceptionKey).asRuntimeException());
+            return;
+        }
+
+        try {
+            ProjectLabel projectLabel = projectLabelService.getOrCreateLabel(projectId, userId, name, color);
+            responseObserver.onNext(ProjectLabelProto.GetOrCreateLabelResponse.newBuilder()
+                    .setCode(CodeProto.Code.SUCCESS)
+                    .setProjectLabel(toBuilder(projectLabel))
+                    .build()
+            );
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            log.error(e.toString());
+            responseObserver.onNext(ProjectLabelProto.GetOrCreateLabelResponse.newBuilder()
+                    .setCode(CodeProto.Code.INTERNAL_ERROR)
+                    .setMessage("INTER ERROR")
+                    .build()
+            );
+            responseObserver.onCompleted();
+        }
     }
 
     private ProjectLabelProto.ProjectLabel toBuilder(ProjectLabel projectLabel) {

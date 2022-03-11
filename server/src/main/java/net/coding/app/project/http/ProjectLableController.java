@@ -34,11 +34,13 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import proto.git.GitDepotGrpcClient;
 import proto.git.GitDepotProto;
 
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NOT_EXIST;
 
+@Slf4j
 @RestController
 @Api(value = "项目标签", tags = "项目标签")
 @AllArgsConstructor
@@ -92,13 +94,22 @@ public class ProjectLableController {
                                 .name(TextUtils.htmlEscape(item.getName()))
                                 .color(item.getColor())
                                 .owner_id(item.getOwnerId())
-                                .merge_request_count(gitDepotGrpcClient.getMergeRequestCountByLabelId(
-                                        GitDepotProto.GetMergeRequestCountByLabelIdRequest.newBuilder()
-                                                .setLabelId(item.getId())
-                                                .build()).getCount())
+                                .merge_request_count(mrCount(item))
                                 .build()
                 )
                 .collect(Collectors.toList());
+    }
+
+    private Long mrCount(ProjectLabel projectLabel) {
+        try {
+            return gitDepotGrpcClient.getMergeRequestCountByLabelId(
+                    GitDepotProto.GetMergeRequestCountByLabelIdRequest.newBuilder()
+                            .setLabelId(projectLabel.getId())
+                            .build()).getCount();
+        } catch (Exception e) {
+            log.warn("getMergeRequestCountByLabelId error:{} ", e.getMessage());
+            return 0L;
+        }
     }
 
     @ApiOperation(value = "创建标签", notes = "创建标签")

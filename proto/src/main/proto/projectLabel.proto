@@ -32,10 +32,12 @@ message CreateLabelResponse {
 
 message GetLabelByIdRequest {
   int32 id = 1;
+  bool withDeleted = 2;//default false
 }
 
 message GetLabelByIdListRequest {
   repeated int32 id = 1;
+  bool withDeleted = 2;//default false
 }
 
 message GetLabelByProjectAndNameRequest {
@@ -61,6 +63,51 @@ message GetLabelByProjectAndNameResponse{
   ProjectLabel projectLabel = 3;
 }
 
+message GetLabelsByTeamIdAndNamesRequest {
+  int32 teamId = 1;
+  repeated string name = 2;
+}
+
+message GetLabelsByTeamIdAndNamesResponse{
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated ProjectLabel projectLabel = 3;
+}
+
+message GetLabelsByProjectIdListAndNamesRequest{
+  repeated int32 projectId = 1;
+  repeated string name = 2;
+}
+
+message GetLabelsByProjectIdListAndNamesResponse{
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated ProjectLabel projectLabel = 3;
+}
+
+message GetOrCreateLabelRequest{
+  int32 projectId = 1;
+  string name = 2;
+  int32 userId = 3;
+  string color = 4;
+}
+
+message GetOrCreateLabelResponse{
+  proto.common.Code code = 1;
+  string message = 2;
+  ProjectLabel projectLabel = 3;
+}
+
+message GetLabelsByTeamIdRequest{
+  int32 teamId = 1;
+}
+
+message GetLabelsByTeamIdResponse{
+  proto.common.Code code = 1;
+  string message = 2;
+  repeated ProjectLabel projectLabel = 3;
+}
+
 service ProjectLabelService {
   // 获取项目下的标签列表
   rpc getLabelsByProjectId (GetLabelsByProjectIdRequest) returns (GetLabelsByProjectIdResponse);
@@ -68,5 +115,8 @@ service ProjectLabelService {
   rpc getLabelByIdList (GetLabelByIdListRequest) returns (GetLabelByIdListResponse);
   rpc getLabelByProjectAndName (GetLabelByProjectAndNameRequest) returns (GetLabelByProjectAndNameResponse);
   rpc createLabel (CreateLabelRequest) returns (CreateLabelResponse);
-
+  rpc getLabelsByTeamIdAndNames(GetLabelsByTeamIdAndNamesRequest) returns (GetLabelsByTeamIdAndNamesResponse);
+  rpc getLabelsByTeamId(GetLabelsByTeamIdRequest) returns (GetLabelsByTeamIdResponse);
+  rpc getLabelsByProjectIdListAndNames(GetLabelsByProjectIdListAndNamesRequest) returns (GetLabelsByProjectIdListAndNamesResponse);
+  rpc getOrCreateLabel(GetOrCreateLabelRequest) returns (GetOrCreateLabelResponse);
 }

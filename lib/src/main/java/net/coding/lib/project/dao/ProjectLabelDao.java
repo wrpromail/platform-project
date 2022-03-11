@@ -31,8 +31,8 @@ public class ProjectLabelDao {
                         .andEqualTo(ProjectLabel::getProjectId, projectId)
                         .andEqualTo(ProjectLabel::getDeletedAt,
                                 Timestamp.valueOf(BaseDao.NOT_DELETED))
-        ).orderByAsc("name").build();
-        return mapper.selectOneByExample(example);
+        ).build();
+        return mapper.selectByExample(example).stream().findFirst().orElse(null);
     }
 
     public List<ProjectLabel> findByProjectId(int projectId) {
@@ -46,6 +46,16 @@ public class ProjectLabelDao {
     }
 
     public ProjectLabel findById(int id) {
+        Example example = Example.builder(entityClass).where(
+                WeekendSqls.<ProjectLabel>custom()
+                        .andEqualTo(ProjectLabel::getId, id)
+                        .andEqualTo(ProjectLabel::getDeletedAt,
+                                Timestamp.valueOf(BaseDao.NOT_DELETED))
+        ).build();
+        return mapper.selectOneByExample(example);
+    }
+
+    public ProjectLabel findByIdWitDeleted(int id) {
         ProjectLabel label = new ProjectLabel();
         label.setId(id);
         return mapper.selectByPrimaryKey(label);
@@ -82,4 +92,32 @@ public class ProjectLabelDao {
         return mapper.selectByExample(example);
     }
 
+    public List<ProjectLabel> findByIdsWithDeleted(List<Integer> ids) {
+        Example example = Example.builder(entityClass).where(
+                WeekendSqls.<ProjectLabel>custom()
+                        .andIn(ProjectLabel::getId, ids)
+        ).build();
+        return mapper.selectByExample(example);
+    }
+
+    public List<ProjectLabel> getLabelsByProjectIdAndNames(List<String> names, List<Integer> projectIdList) {
+        Example example = Example.builder(entityClass).where(
+                WeekendSqls.<ProjectLabel>custom()
+                        .andIn(ProjectLabel::getProjectId, projectIdList)
+                        .andIn(ProjectLabel::getName, names)
+                        .andEqualTo(ProjectLabel::getDeletedAt,
+                                Timestamp.valueOf(BaseDao.NOT_DELETED))
+        ).build();
+        return mapper.selectByExample(example);
+    }
+
+    public List<ProjectLabel> getLabelsByProjects(List<Integer> projectIdList){
+        Example example = Example.builder(entityClass).where(
+                WeekendSqls.<ProjectLabel>custom()
+                        .andIn(ProjectLabel::getProjectId, projectIdList)
+                        .andEqualTo(ProjectLabel::getDeletedAt,
+                                Timestamp.valueOf(BaseDao.NOT_DELETED))
+        ).build();
+        return mapper.selectByExample(example);
+    }
 }

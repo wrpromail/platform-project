@@ -379,4 +379,12 @@
         limit #{offset}, #{pageSize}
     </select>
 
+    <select id="getAllProjectIdByTeamId" resultType="java.lang.Integer">
+        SELECT p.id
+        FROM projects p
+        where p.deleted_at = '1970-01-01 00:00:00'
+          and p.invisible = 0
+          and p.team_owner_id = #{teamId}
+    </select>
+
 </mapper>

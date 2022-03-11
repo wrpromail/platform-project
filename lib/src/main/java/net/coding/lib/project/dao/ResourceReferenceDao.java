@@ -4,6 +4,7 @@ package net.coding.lib.project.dao;
 import net.coding.lib.project.entity.ResourceReference;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Map;
@@ -70,4 +71,12 @@ public interface ResourceReferenceDao {
     ResourceReference existsResourceReference(Map<String, Object> parameter);
 
     void delete(Map<String, Object> map);
+
+    void updateSelfTypeBySelfIdAndType(Map<String, Object> parameter);
+
+    void updateTargetTypeByTargetIdAndType(Map<String, Object> parameter);
+
+    List<ResourceReference> listBySelfWithoutDescriptionCitedRelation(@Param("selfType") String selfType, @Param("selfId") Integer selfId);
+
+    List<ResourceReference> listBySelfWithDescriptionCitedRelation(@Param("selfType") String selfType, @Param("selfId") Integer selfId);
 }

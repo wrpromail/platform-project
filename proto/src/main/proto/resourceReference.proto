@@ -253,6 +253,18 @@ message DeleteByProjectIdRequest {
   int32 projectId = 1;
 }
 
+message UpdateSelfTypeBySelfIdAndTypeRequest{
+  int32 selfId = 1;
+  string selfType = 2;
+  string newSelfType = 3;
+}
+
+message UpdateTargetTypeByTargetIdAndTypeRequest{
+  int32 targetId = 1;
+  string targetType = 2;
+  string newTargetType = 3;
+}
+
 service ResourceReferenceService {
   rpc SimpleAddResourceReference (SimpleAddResourceReferenceRequest) returns (ResourceReferenceResponse);
   rpc AddResourceReference (AddResourceReferenceRequest) returns (ResourceReferenceResponse);
@@ -284,4 +296,8 @@ service ResourceReferenceService {
   rpc GetById (GetByIdRequest) returns (ResourceReferenceResponse);
   rpc FindWithDeletedByIds (FindWithDeletedByIdsRequest) returns (FindResourceReferenceListResponse);
   rpc ExistsResourceReference (ExistsResourceReferenceRequest) returns (ExistsResourceReferenceResponse);
+  rpc UpdateSelfTypeBySelfIdAndType(UpdateSelfTypeBySelfIdAndTypeRequest) returns (ResourceReferenceCommonResponse);
+  rpc UpdateTargetTypeByTargetIdAndType(UpdateTargetTypeByTargetIdAndTypeRequest) returns (ResourceReferenceCommonResponse);
+  rpc ListBySelfWithoutDescriptionCitedRelation(FindListBySelfTypeRequest) returns (FindResourceReferenceListResponse);
+  rpc ListBySelfWithDescriptionCitedRelation(FindListBySelfTypeRequest) returns (FindResourceReferenceListResponse);
 }

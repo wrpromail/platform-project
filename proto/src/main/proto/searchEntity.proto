@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package proto;
+
+import "code.proto";
+
+option java_generic_services = true;
+option java_package = "net.coding.proto.platform.project";
+option java_outer_classname = "SearchEntityProto";
+
+
+message SearchEntity{
+  int32 id = 1;
+  int32 projectId = 2;
+  string targetType = 3;
+  int32 targetId = 4;
+  int32 creatorId = 5;
+  string titleKeywords = 6;
+  string contentKeywords = 7;
+}
+
+message SearchEntityRequest{
+  int32 projectId = 1;
+  string targetType = 2;
+  int32 targetId = 3;
+  int32 creatorId = 4;
+  string titleKeywords = 5;
+  string contentKeywords = 6;
+}
+
+message InsertOrUpdateSearchEntityResponse{
+  proto.common.Code code = 1;
+  string message = 2;
+  SearchEntity searchEntity = 3;
+}
+
+message DeleteSearchEntityResponse{
+  proto.common.Code code = 1;
+  string message = 2;
+}
+
+message UpdateSearchTargetTypeByTargetIdAndTypeRequest{
+  repeated int32 targetId = 1;
+  int32 projectId = 2;
+  string targetType = 3;
+  string newTargetType = 4;
+}
+
+message UpdateSearchTargetTypeByTargetIdAndTypeResponse{
+  proto.common.Code code = 1;
+  string message = 2;
+}
+
+
+service SearchEntityService {
+  rpc InsertOrUpdateSearchEntity(SearchEntityRequest)returns(InsertOrUpdateSearchEntityResponse);
+  rpc DeleteSearchEntity(SearchEntityRequest) returns(DeleteSearchEntityResponse);
+  rpc BatchUpdateTargetTypeByTargetIdAndType(UpdateSearchTargetTypeByTargetIdAndTypeRequest) returns (UpdateSearchTargetTypeByTargetIdAndTypeResponse);
+}

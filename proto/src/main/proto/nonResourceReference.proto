@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package proto;
+
+import "code.proto";
+
+option java_generic_services = true;
+option java_package = "net.coding.proto.platform.project";
+option java_outer_classname = "NonResourceReferenceProto";
+
+message CountNoneResourceByTargetRequest {
+  int32 targetProjectId = 1;
+  int32 targetIid = 2;
+}
+
+message CountNoneResourceByTargetResponse{
+  proto.common.Code code = 1;
+  string message = 2;
+  int32 count = 3;
+}
+
+message NonResourceReference{
+  int32 selfId = 1;
+  int32 selfProjectId = 2;
+  string selfType = 3;
+  string selfContent = 4;
+  int32 targetId = 5;
+  int32 targetCode = 6;
+  int32 targetProjectId = 7;
+  string targetType = 8;
+  int32 id = 9;
+}
+
+message AddNonResourceReferenceRequest{
+  int32 selfId = 1;
+  int32 selfProjectId = 2;
+  string selfType = 3;
+  string selfContent = 4;
+  int32 targetId = 5;
+  int32 targetCode = 6;
+  int32 targetProjectId = 7;
+  string targetType = 8;
+}
+
+message AddNonResourceReferenceResponse{
+  proto.common.Code code = 1;
+  string message = 2;
+  NonResourceReference nonResourceReference = 3;
+}
+
+
+service NonResourceReferenceService {
+  rpc CountByTarget(CountNoneResourceByTargetRequest) returns(CountNoneResourceByTargetResponse);
+  rpc AddNoneResourceReference(AddNonResourceReferenceRequest) returns(AddNonResourceReferenceResponse);
+
+}
