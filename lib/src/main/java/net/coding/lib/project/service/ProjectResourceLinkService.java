@@ -217,9 +217,9 @@ public class ProjectResourceLinkService {
         if (Objects.isNull(depot)) {
             return "#";
         }
-        String releaseTagName = release.getTagName();
+
         String depotName = depot.getName();
-        return projectPath + "/d/" + depotName + "/git/releases/" + releaseTagName;
+        return projectPath + "/d/" + depotName + "/git/releases/" + projectResource.getCode();
     }
 
     private String buildExternalLinkUrl(ProjectResource projectResource) {
