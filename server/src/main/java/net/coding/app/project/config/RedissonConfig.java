@@ -16,11 +16,19 @@ public class RedissonConfig {
     @Value("${spring.redis.port}")
     private String port;
 
+    @Value("${spring.redis.password}")
+    private String password;
+
     @Bean
     public RedissonClient redissonClient() {
         Config config = new Config();
         String redisUrl = String.format("redis://%s:%s", host + "", port + "");
-        config.useSingleServer().setAddress(redisUrl).setTimeout(3000).setConnectionMinimumIdleSize(2).setConnectionPoolSize(32);
+        config.useSingleServer()
+                .setAddress(redisUrl)
+                .setPassword(password)
+                .setTimeout(3000)
+                .setConnectionMinimumIdleSize(2)
+                .setConnectionPoolSize(32);
         return Redisson.create(config);
     }
 }
