@@ -12,7 +12,9 @@ import net.coding.grpc.client.platform.SystemSettingGrpcClient;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.enums.PmTypeEnums;
 import net.coding.lib.project.exception.CoreException;
+import net.coding.lib.project.grpc.client.NotificationGrpcClient;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
+import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.service.ProgramMemberService;
 import net.coding.platform.charge.api.pojo.EnterpriseInfoDTO;
 import net.coding.platform.charge.client.grpc.EnterpriseGrpcClient;
@@ -44,13 +46,14 @@ public class ProgramAdaptorService extends AbstractProjectAdaptorService {
 
     private final SystemSettingGrpcClient systemSettingGrpcClient;
 
-    public ProgramAdaptorService(AsyncEventBus asyncEventBus, LoggingGrpcClient loggingGrpcClient, TeamGrpcClient teamGrpcClient, AclServiceGrpcClient aclServiceGrpcClient, LocaleMessageSource localeMessageSource, MilestoneGrpcClient milestoneGrpcClient, EnterpriseGrpcClient enterpriseGrpcClient, ProgramMemberService programMemberService, SystemSettingGrpcClient systemSettingGrpcClient) {
-        super(asyncEventBus, loggingGrpcClient, teamGrpcClient, aclServiceGrpcClient, localeMessageSource);
+    public ProgramAdaptorService(AsyncEventBus asyncEventBus, LoggingGrpcClient loggingGrpcClient, TeamGrpcClient teamGrpcClient, UserGrpcClient userGrpcClient, AclServiceGrpcClient aclServiceGrpcClient, LocaleMessageSource localeMessageSource, NotificationGrpcClient notificationGrpcClient, MilestoneGrpcClient milestoneGrpcClient, EnterpriseGrpcClient enterpriseGrpcClient, ProgramMemberService programMemberService, SystemSettingGrpcClient systemSettingGrpcClient) {
+        super(asyncEventBus, loggingGrpcClient, teamGrpcClient, userGrpcClient, aclServiceGrpcClient, localeMessageSource, notificationGrpcClient);
         this.milestoneGrpcClient = milestoneGrpcClient;
         this.enterpriseGrpcClient = enterpriseGrpcClient;
         this.programMemberService = programMemberService;
         this.systemSettingGrpcClient = systemSettingGrpcClient;
     }
+
 
     @Override
     public Integer pmType() {

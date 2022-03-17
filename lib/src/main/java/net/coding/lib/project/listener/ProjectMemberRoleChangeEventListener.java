@@ -2,11 +2,11 @@ package net.coding.lib.project.listener;
 
 import com.google.common.eventbus.Subscribe;
 
+import net.coding.common.base.event.ProjectMemberRoleChangeEvent;
 import net.coding.common.base.gson.JSON;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
-import net.coding.lib.project.listener.event.ProjectMemberRoleChangeEvent;
 import net.coding.lib.project.service.ProjectMemberService;
 import net.coding.lib.project.service.ProjectService;
 

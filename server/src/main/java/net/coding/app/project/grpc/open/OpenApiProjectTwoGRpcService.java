@@ -8,6 +8,7 @@ import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.interceptor.GRpcHeaderServerInterceptor;
+import net.coding.lib.project.service.ProjectMemberService;
 import net.coding.lib.project.service.ProjectService;
 import net.coding.proto.open.api.project.ProjectProto;
 import net.coding.proto.open.api.project.ProjectServiceGrpc;
@@ -43,6 +44,8 @@ public class OpenApiProjectTwoGRpcService extends ProjectServiceGrpc.ProjectServ
 
     private final ProjectService projectService;
 
+    private final ProjectMemberService projectMemberService;
+
     private final ProtoConvertUtils protoConvertUtils;
 
     private final LocaleMessageSource localeMessageSource;
@@ -66,18 +69,21 @@ public class OpenApiProjectTwoGRpcService extends ProjectServiceGrpc.ProjectServ
                     && !projectId.equals(String.valueOf(project.getId()))) {
                 throw CoreException.of(PERMISSION_DENIED);
             } else {
-                //验证用户接口权限
-                boolean hasPermissionInProject = aclServiceGrpcClient.hasPermissionInProject(
-                        PermissionProto.Permission.newBuilder()
-                                .setFunction(PermissionProto.Function.EnterpriseProject)
-                                .setAction(PermissionProto.Action.View)
-                                .build(),
-                        project.getId(),
-                        currentUser.getGlobalKey(),
-                        currentUser.getId()
-                );
-                if (!hasPermissionInProject) {
-                    throw CoreException.of(PERMISSION_DENIED);
+                boolean isMember = projectMemberService.isMember(currentUser, project.getId());
+                if (!isMember) {
+                    //验证用户接口权限
+                    boolean hasPermissionInProject = aclServiceGrpcClient.hasPermissionInProject(
+                            PermissionProto.Permission.newBuilder()
+                                    .setFunction(PermissionProto.Function.EnterpriseProject)
+                                    .setAction(PermissionProto.Action.View)
+                                    .build(),
+                            project.getId(),
+                            currentUser.getGlobalKey(),
+                            currentUser.getId()
+                    );
+                    if (!hasPermissionInProject) {
+                        throw CoreException.of(PERMISSION_DENIED);
+                    }
                 }
             }
             DescribeProjectResponse(responseObserver, SUCCESS, SUCCESS.name().toLowerCase(), project);

@@ -10,7 +10,9 @@ import net.coding.grpc.client.permission.AclServiceGrpcClient;
 import net.coding.grpc.client.platform.LoggingGrpcClient;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.enums.PmTypeEnums;
+import net.coding.lib.project.grpc.client.NotificationGrpcClient;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
+import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.service.ProgramMemberService;
 import net.coding.lib.project.service.RamTransformTeamService;
 import net.coding.lib.project.service.member.ProgramMemberPrincipalService;
@@ -26,10 +28,10 @@ public class ProjectAdaptorService extends AbstractProjectAdaptorService {
     private final ProgramMemberService programMemberService;
     private final ProgramMemberPrincipalService programMemberPrincipalService;
 
-    public ProjectAdaptorService(AsyncEventBus asyncEventBus, LoggingGrpcClient loggingGrpcClient, TeamGrpcClient teamGrpcClient, AclServiceGrpcClient aclServiceGrpcClient, LocaleMessageSource localeMessageSource, ProgramMemberService programMemberService, RamTransformTeamService ramTransformTeamService, ProgramMemberPrincipalService programMemberPrincipalService) {
-        super(asyncEventBus, loggingGrpcClient, teamGrpcClient, aclServiceGrpcClient, localeMessageSource);
-        this.programMemberService = programMemberService;
+    public ProjectAdaptorService(AsyncEventBus asyncEventBus, LoggingGrpcClient loggingGrpcClient, TeamGrpcClient teamGrpcClient, UserGrpcClient userGrpcClient, AclServiceGrpcClient aclServiceGrpcClient, LocaleMessageSource localeMessageSource, NotificationGrpcClient notificationGrpcClient, RamTransformTeamService ramTransformTeamService, ProgramMemberService programMemberService, ProgramMemberPrincipalService programMemberPrincipalService) {
+        super(asyncEventBus, loggingGrpcClient, teamGrpcClient, userGrpcClient, aclServiceGrpcClient, localeMessageSource, notificationGrpcClient);
         this.ramTransformTeamService = ramTransformTeamService;
+        this.programMemberService = programMemberService;
         this.programMemberPrincipalService = programMemberPrincipalService;
     }
 
