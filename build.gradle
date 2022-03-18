@@ -41,6 +41,6 @@ subprojects {
     }
     // 请勿删除，否则后果自负，会导致 mariadb client 版本异常，数据时间写入会有异常
     ext['mariadb.version'] = '2.2.5'
-    ext['hikaricp.version'] = '2.4.5'
+    ext['hikaricp.version'] = '4.0.3'
 }
 

@@ -4,7 +4,6 @@ import net.coding.common.server.BaseConfig;
 import net.coding.common.server.BaseServer;
 import net.coding.common.verification.VerificationAutoConfiguration;
 import net.coding.platform.degradation.ServiceDegradationAutoConfiguration;
-import net.coding.platform.ram.action.discovery.EnableActionDiscovery;
 
 import org.lognet.springboot.grpc.autoconfigure.GRpcAutoConfiguration;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,7 +11,6 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -27,12 +25,6 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import static springfox.documentation.builders.PathSelectors.regex;
 
-/**
- * created by wang007 on 2020/7/26
- */
-@ComponentScan(basePackageClasses = {
-        Application.class,
-})
 @Import({
         BaseConfig.class,
         net.coding.common.rpc.server.Config.class,
