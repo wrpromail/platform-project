@@ -10,7 +10,6 @@ import net.coding.lib.project.enums.ProjectMemberPrincipalTypeEnum;
 import net.coding.lib.project.grpc.client.PlatformGrantObjectGRpcClient;
 import net.coding.platform.ram.pojo.dto.response.UserGroupResponseDTO;
 import net.coding.platform.ram.proto.grant.object.GrantObjectProto;
-import net.coding.platform.ram.service.UserGroupRemoteService;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -55,13 +54,13 @@ public class ProjectMemberFilterService {
     /**
      * 根据条件过滤
      */
-    public List<ProjectMember> filterQueryParameterGrantMembers(Integer operatorId, Project project, Integer policyId, String keyword) {
+    public List<ProjectMember> filterQueryParameterGrantMembers(Integer operatorId, Project project, Long policyId, String keyword) {
         List<ProjectMember> members = projectMemberInspectService.findListByProjectId(project.getId());
         if (CollectionUtils.isEmpty(members)) {
             return members;
         }
         if (Objects.nonNull(policyId) && policyId > 0) {
-            Set<String> grants = StreamEx.of(projectMemberInspectService.listGrantObjectIds(operatorId, project, policyId.longValue()))
+            Set<String> grants = StreamEx.of(projectMemberInspectService.listGrantObjectIds(operatorId, project, policyId))
                     .map(dto -> StringUtils.join(dto.getGrantScope(), dto.getGrantObjectId()))
                     .toSet();
             members = StreamEx.of(members)
