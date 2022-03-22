@@ -189,7 +189,7 @@
                 AND resource_type = #{resourceType}
             </if>
             <if test="citedSource != null">
-                AND cited_source = #{citedSources}
+                AND cited_source = #{citedSource}
             </if>
             <if test="deletedAt != null">
                 and deleted_at = #{deletedAt}
