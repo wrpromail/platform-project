@@ -13,6 +13,7 @@ import net.coding.lib.project.parameter.ProjectCreateParameter;
 import net.coding.lib.project.parameter.ProjectPageQueryParameter;
 import net.coding.lib.project.template.ProjectTemplateDemoType;
 import net.coding.lib.project.template.ProjectTemplateType;
+import net.coding.lib.project.utils.DateUtil;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
@@ -33,6 +34,7 @@ import static net.coding.common.base.validator.ValidationConstants.PROJECT_DISPL
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_NAME_CLOUD_MAX_LENGTH;
 import static net.coding.common.base.validator.ValidationConstants.PROJECT_NAME_MIN_LENGTH;
 import static net.coding.common.constants.CommonConstants.DATA_REGEX;
+import static net.coding.common.constants.ProjectConstants.ARCHIVE_PROJECT_DELETED_AT;
 import static net.coding.common.constants.ProjectConstants.PROJECT_NAME_CLOUD_REGEX;
 import static net.coding.common.constants.ProjectConstants.PROJECT_NAME_REGEX;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.CONTENT_INCLUDE_SENSITIVE_WORDS;
@@ -309,6 +311,16 @@ public class ProjectValidateService {
         }
         Project existProjectName = projectDao.getProjectByNameAndTeamId(parameter.getName(), parameter.getTeamId());
         if (Objects.nonNull(existProjectName)) {
+            throw CoreException.of(PROJECT_NAME_EXISTS);
+        }
+        // 创建项目使得名字不能与归档之后的项目名相同
+        Project existArchiveProjectName = projectDao.getProjectArchiveByNameAndTeamId(
+                parameter.getDisplayName(),
+                parameter.getName(),
+                parameter.getTeamId(),
+                ARCHIVE_PROJECT_DELETED_AT
+        );
+        if (Objects.nonNull(existArchiveProjectName)) {
             throw CoreException.of(PROJECT_NAME_EXISTS);
         }
         String nameProfanityWord = textModerationService.checkContent(parameter.getName());

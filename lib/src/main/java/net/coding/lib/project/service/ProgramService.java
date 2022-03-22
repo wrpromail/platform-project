@@ -79,6 +79,7 @@ import proto.platform.user.UserProto;
 
 import static java.util.stream.Collectors.toList;
 import static net.coding.common.base.bean.ProjectTweet.ACTION_CREATE;
+import static net.coding.common.constants.ProjectConstants.ARCHIVE_PROJECT_DELETED_AT;
 import static net.coding.lib.project.enums.ProgramProjectEventEnums.ACTION.ACTION_VIEW;
 import static net.coding.lib.project.enums.ProgramProjectRoleTypeEnum.ProgramRoleTypeEnum;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PERMISSION_DENIED;
@@ -162,6 +163,19 @@ public class ProgramService {
         if (Objects.nonNull(projectService.getByDisplayNameAndTeamId(form.getDisplayName(), team.getId()))) {
             throw CoreException.of(PROJECT_DISPLAY_NAME_EXISTS);
         }
+
+        // 创建项目使得名字不能与归档之后的项目名相同
+        Project existArchiveProjectName = projectDao.getProjectArchiveByNameAndTeamId(
+                form.getDisplayName(),
+                form.getName(),
+                currentTeamId,
+                ARCHIVE_PROJECT_DELETED_AT
+        );
+
+        if (Objects.nonNull(existArchiveProjectName)) {
+            throw CoreException.of(PROJECT_NAME_EXISTS);
+        }
+
         if (form.getProgramWorkflow() == ProgramWorkflowEnums.PROGRAM) {
             Project program = programDao.selectByIdAndTeamId(form.getWorkflowProgramId(), currentTeamId);
             if (Objects.isNull(program)) {
