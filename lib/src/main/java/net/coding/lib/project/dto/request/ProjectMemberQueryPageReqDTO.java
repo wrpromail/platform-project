@@ -20,7 +20,7 @@ public class ProjectMemberQueryPageReqDTO {
     @ApiModelProperty(value = "项目Id")
     private Integer projectId;
     @ApiModelProperty(value = "权限组Id")
-    private Integer policyId;
+    private Long policyId;
     @ApiModelProperty(value = "关键字搜索")
     private String keyword;
 }

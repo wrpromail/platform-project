@@ -50,7 +50,7 @@ public class ProjectMemberPrincipalController {
             @RequestHeader(GatewayHeader.USER_ID) Integer userId,
             @PathVariable(value = "project") String resourceType,
             @PathVariable(value = "projectId") Integer projectId,
-            @ApiParam("权限组Id") @RequestParam(required = false) Integer policyId,
+            @ApiParam("权限组Id") @RequestParam(required = false) Long policyId,
             @ApiParam("关键字搜索") @RequestParam(required = false) String keyword,
             @ApiParam("分页") LimitedPager pager
     ) throws CoreException {
