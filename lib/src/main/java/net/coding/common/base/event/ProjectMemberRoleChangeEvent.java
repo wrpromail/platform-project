@@ -16,6 +16,8 @@ public class ProjectMemberRoleChangeEvent {
     private int projectId;
     private int targetUserId;
     private int roleId;
+    private int roleValue;
+    private int currentUserId;
 
     /**
      * 操作类型 1：添加用户组 -1：删除用户组

@@ -11,16 +11,21 @@ import net.coding.grpc.client.platform.LoggingGrpcClient;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.enums.ProgramProjectEventEnums;
 import net.coding.lib.project.exception.CoreException;
+import net.coding.lib.project.grpc.client.NotificationGrpcClient;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
+import net.coding.lib.project.grpc.client.UserGrpcClient;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import proto.notification.NotificationProto;
 import proto.platform.logging.loggingProto;
 import proto.platform.permission.PermissionProto;
 
@@ -38,9 +43,13 @@ public abstract class AbstractProjectAdaptorService {
 
     protected final TeamGrpcClient teamGrpcClient;
 
+    protected final UserGrpcClient userGrpcClient;
+
     protected final AclServiceGrpcClient aclServiceGrpcClient;
 
     protected final LocaleMessageSource localeMessageSource;
+
+    protected final NotificationGrpcClient notificationGrpcClient;
 
     public abstract Integer pmType();
 
@@ -60,13 +69,13 @@ public abstract class AbstractProjectAdaptorService {
 
     public abstract void projectUnArchiveEvent(Integer userId, Project project);
 
-    public abstract void deleteProgramMember(Integer teamId,Integer userId, Project project);
+    public abstract void deleteProgramMember(Integer teamId, Integer userId, Project project);
 
     public abstract void checkProgramTime(Project program) throws MilestoneException, CoreException;
 
     public abstract void checkProgramPay(Integer teamId) throws CoreException;
 
-
+    @Async
     public void postProjectCreateEvent(Integer userId, Project project, Short action) {
         projectCreateEvent(userId, project);
 
@@ -75,14 +84,17 @@ public abstract class AbstractProjectAdaptorService {
         insertOperationLog(userId, project, action);
     }
 
+    @Async
     public void postProjectDeleteEvent(Integer userId, Project project, Short action) {
         projectDeleteEvent(userId, project);
 
         postActivityEvent(userId, project, action);
 
         insertOperationLog(userId, project, action);
+
     }
 
+    @Async
     public void postProjectUpdateEvent(Integer userId, Project project, Short action,
                                        Boolean postProjectNameFlag, Boolean postDisplayNameFlag,
                                        String oldDisplayName) {
@@ -100,6 +112,7 @@ public abstract class AbstractProjectAdaptorService {
         }
     }
 
+    @Async
     public void postProjectArchiveEvent(Integer userId, Project project, Short action) {
         projectArchiveEvent(userId, project);
 
@@ -108,6 +121,7 @@ public abstract class AbstractProjectAdaptorService {
         insertOperationLog(userId, project, action);
     }
 
+    @Async
     public void postProjectUnArchiveEvent(Integer userId, Project project, Short action) {
         projectUnArchiveEvent(userId, project);
 
@@ -145,7 +159,7 @@ public abstract class AbstractProjectAdaptorService {
         Optional.ofNullable(ProgramProjectEventEnums.of(action, project.getPmType()))
                 .ifPresent(eventEnums -> {
                     String message = localeMessageSource.getMessage(eventEnums.getMessage(),
-                            new Object[]{EMPTY
+                            new Object[]{userGrpcClient.getUserHtmlLinkById(userId)
                                     , htmlLink(project)}).trim();
                     insertOperationLog(userId, project, eventEnums.name(), message);
                 });
@@ -224,5 +238,26 @@ public abstract class AbstractProjectAdaptorService {
                         htmlLink(project),
                         project.getName()
                 }).trim();
+    }
+
+    @Async
+    public void sendProjectNotification(Integer operatorId, Set<Integer> userIds, Project project, Short action) {
+        Optional.ofNullable(ProgramProjectEventEnums.of(action, project.getPmType()))
+                .ifPresent(eventEnums -> {
+                    String message = localeMessageSource.getMessage(eventEnums.getMessage(),
+                            new Object[]{userGrpcClient.getUserHtmlLinkById(operatorId)
+                                    , htmlLink(project)}).trim();
+                    notificationGrpcClient.send(
+                            NotificationProto
+                                    .NotificationSendRequest
+                                    .newBuilder()
+                                    .addAllUserId(userIds)
+                                    .setContent(message)
+                                    .setTargetType(NotificationProto.TargetType.Project)
+                                    .setTargetId(String.valueOf(project.getId()))
+                                    .setSetting(NotificationProto.Setting.ProjectMemberSetting)
+                                    .build()
+                    );
+                });
     }
 }
