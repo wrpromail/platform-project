@@ -166,7 +166,7 @@
         group by pm.id
     </select>
 
-    <select id="findPrincipalMember" parameterType="map" resultMap="BaseResultMap">
+    <select id="getPrincipalMember" parameterType="map" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>
         FROM project_members
