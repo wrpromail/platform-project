@@ -128,15 +128,18 @@ public class ProjectMemberPrincipalWriteService {
                     if (existMember) {
                         return null;
                     }
-                    StreamEx.of(reqDTO.getPolicyIds())
-                            .forEach(policyId ->
-                                    grantInfoDTOS.add(new GrantDTO()
-                                            .setGrantScope(reqDTO.getPrincipalType().name().toLowerCase())
-                                            .setGrantObjectId(reqDTO.getPrincipalId())
-                                            .setPolicyId(policyId)
-                                            .setResourceType(PmTypeEnums.of(project.getPmType()).name().toLowerCase())
-                                            .setResourceId(String.valueOf(project.getId())))
-                            );
+                    if (!CollectionUtils.isEmpty(reqDTO.getPolicyIds())) {
+                        StreamEx.of(reqDTO.getPolicyIds())
+                                .forEach(policyId ->
+                                        grantInfoDTOS.add(new GrantDTO()
+                                                .setGrantScope(reqDTO.getPrincipalType().name().toLowerCase())
+                                                .setGrantObjectId(reqDTO.getPrincipalId())
+                                                .setPolicyId(policyId)
+                                                .setResourceType(PmTypeEnums.of(project.getPmType()).name().toLowerCase())
+                                                .setResourceId(String.valueOf(project.getId())))
+                                );
+                    }
+
                     return ProjectMember.builder()
                             .projectId(project.getId())
                             .userId(reqDTO.getPrincipalType().equals(ProjectMemberPrincipalTypeEnum.USER)
@@ -154,8 +157,7 @@ public class ProjectMemberPrincipalWriteService {
                 })
                 .filter(Objects::nonNull)
                 .collect(toList());
-        if (!CollectionUtils.isEmpty(addMembers)
-                && !CollectionUtils.isEmpty(grantInfoDTOS)) {
+        if (!CollectionUtils.isEmpty(addMembers)) {
             projectMemberDao.batchInsert(addMembers);
             projectMemberInspectService.attachGrant(currentUserId, grantInfoDTOS);
             projectMemberAdaptorFactory.create(project.getPmType())

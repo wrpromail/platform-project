@@ -36,7 +36,7 @@ public interface ProjectMemberDao extends tk.mybatis.mapper.common.Mapper<Projec
 
     List<ProjectMember> findJoinPrincipalMembers(ProjectMemberPrincipalQueryParameter parameter);
 
-    ProjectMember findPrincipalMember(
+    ProjectMember getPrincipalMember(
             @Param("projectId") Integer projectId,
             @Param("principalType") String principalType,
             @Param("principalId") String principalId,
