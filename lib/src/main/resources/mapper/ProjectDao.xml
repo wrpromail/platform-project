@@ -382,5 +382,18 @@
           and p.invisible = 0
           and p.team_owner_id = #{teamId}
     </select>
+    <select id="getProjectArchiveByNameAndTeamId"
+            resultType="net.coding.lib.project.entity.Project">
+        SELECT id
+        FROM
+            projects
+        WHERE
+            deleted_at = #{archivedTime}
+          AND team_owner_id = #{teamId}
+          AND (
+                display_name = #{displayName}
+                OR `name` = #{name}
+              )
+    </select>
 
 </mapper>

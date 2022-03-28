@@ -79,4 +79,11 @@ public interface ProjectDao extends tk.mybatis.mapper.common.Mapper<Project>,
             @Param("pageSize") int pageSize,
             @Param("deletedAt") Timestamp defaultDeletedAt
     );
+
+    Project getProjectArchiveByNameAndTeamId(
+            @Param("displayName") String displayName,
+            @Param("name") String name,
+            @Param("teamId") Integer teamId,
+            @Param("archivedTime") String archiveProjectDeletedAt
+    );
 }
