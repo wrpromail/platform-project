@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
+import java.util.Collections;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
@@ -32,13 +33,17 @@ public class CiJobGrpcClient extends EndpointGrpcClient<CiJobServiceGrpc.CiJobSe
     }
 
     public List<CiJobProto.CiJob> listByProject(Integer projectId) {
-        CiJobProto.ListByProjectRequest request = CiJobProto.ListByProjectRequest.newBuilder()
-                .setProjectId(projectId)
-                .build();
-        CiJobProto.ListByProjectResponse response = newStub().listByProject(request);
-        if (!ObjectUtils.isEmpty(response)) {
-            return response.getCiJobsList();
+        try {
+            CiJobProto.ListByProjectRequest request = CiJobProto.ListByProjectRequest.newBuilder()
+                    .setProjectId(projectId)
+                    .build();
+            CiJobProto.ListByProjectResponse response = newStub().listByProject(request);
+            if (!ObjectUtils.isEmpty(response)) {
+                return response.getCiJobsList();
+            }
+        } catch (Exception e) {
+            log.warn("Load cci job by project id {} failure, cause of {}", projectId, e.getMessage());
         }
-        return null;
+        return Collections.emptyList();
     }
 }

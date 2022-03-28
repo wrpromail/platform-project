@@ -1,11 +1,11 @@
-package net.coding.lib.project.enums;
+package net.coding.lib.project.credential.enums;
 
 import java.util.Arrays;
 
 /**
  * jenkins credential type
  */
-public enum JenkinsCredentialSchemeEnums {
+public enum CredentialJenkinsScheme {
 
     None(-1),
     UsernamePassword(0),
@@ -16,18 +16,18 @@ public enum JenkinsCredentialSchemeEnums {
     Certificate(5),
     CloudApi(6);
 
-    private int value;
+    private final int value;
 
     public int value() {
         return this.value;
     }
 
-    JenkinsCredentialSchemeEnums(int value) {
+    CredentialJenkinsScheme(int value) {
         this.value = value;
     }
 
-    public static JenkinsCredentialSchemeEnums nameOf(String name) {
-        return Arrays.stream(JenkinsCredentialSchemeEnums.values())
+    public static CredentialJenkinsScheme nameOf(String name) {
+        return Arrays.stream(CredentialJenkinsScheme.values())
                 .filter(s -> s.name().equals(name))
                 .findFirst()
                 .orElse(None);

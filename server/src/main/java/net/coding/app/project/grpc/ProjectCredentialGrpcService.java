@@ -1,16 +1,16 @@
 package net.coding.app.project.grpc;
 
 
-import net.coding.lib.project.converter.CredentialConverter;
-import net.coding.lib.project.entity.Credential;
+import net.coding.lib.project.credential.converter.CredentialConverter;
+import net.coding.lib.project.credential.entity.Credential;
 import net.coding.lib.project.entity.Project;
-import net.coding.lib.project.enums.ConnGenerateByEnums;
+import net.coding.lib.project.credential.enums.CredentialGenerated;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.credential.BaseCredentialForm;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.service.ProjectMemberService;
 import net.coding.lib.project.service.ProjectService;
-import net.coding.lib.project.service.credential.ProjectCredentialService;
+import net.coding.lib.project.credential.service.ProjectCredentialService;
 import net.coding.proto.platform.project.ProjectCredentialProto;
 import net.coding.proto.platform.project.ProjectCredentialServiceGrpc;
 
@@ -307,7 +307,7 @@ public class ProjectCredentialGrpcService extends ProjectCredentialServiceGrpc.P
         ProjectCredentialProto.ListByProjectAndGenerateByResponse.Builder builder = ProjectCredentialProto.ListByProjectAndGenerateByResponse.newBuilder();
         try {
             if (request == null || request.getProjectId() <= 0
-                    || ConnGenerateByEnums.valueOf(request.getGeneratedBy().name()) == null) {
+                    || CredentialGenerated.valueOf(request.getGeneratedBy().name()) == null) {
                 log.error("Parameter is error {}", request);
                 throw CoreException.of(CoreException.ExceptionType.PARAMETER_INVALID);
             }

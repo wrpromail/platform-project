@@ -1,7 +1,8 @@
-package net.coding.lib.project.entity;
+package net.coding.lib.project.credential.entity;
 
-import net.coding.lib.project.enums.ConnStateEnums;
-import net.coding.lib.project.enums.CredentialScopeEnums;
+import net.coding.lib.project.credential.enums.CredentialState;
+import net.coding.lib.project.credential.enums.CredentialScope;
+import net.coding.lib.project.entity.AndroidCredential;
 
 import java.sql.Timestamp;
 
@@ -19,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 public class Credential {
     private Integer id;
     @Builder.Default
-    private int scope = CredentialScopeEnums.PROJECT.getCode();
+    private int scope = CredentialScope.PROJECT.getCode();
     private String generateBy;
     private int teamId;
     private int projectId;
@@ -73,7 +74,7 @@ public class Credential {
 
     private String description;
     @Builder.Default
-    private int state = ConnStateEnums.Default.value();
+    private int state = CredentialState.Default.value();
     @Builder.Default
     private boolean allSelect = false;
     private Timestamp createdAt;

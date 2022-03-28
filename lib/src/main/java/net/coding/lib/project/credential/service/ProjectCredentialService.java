@@ -1,4 +1,4 @@
-package net.coding.lib.project.service.credential;
+package net.coding.lib.project.credential.service;
 
 import com.google.gson.Gson;
 
@@ -10,6 +10,10 @@ import net.coding.common.util.StringUtils;
 import net.coding.common.vendor.qcloud.utilities.Base64;
 import net.coding.common.vendor.qcloud.utilities.SHA1;
 import net.coding.lib.project.common.SystemContextHolder;
+import net.coding.lib.project.credential.entity.Credential;
+import net.coding.lib.project.credential.enums.CredentialGenerated;
+import net.coding.lib.project.credential.enums.CredentialJenkinsScheme;
+import net.coding.lib.project.credential.enums.CredentialType;
 import net.coding.lib.project.dao.ProjectDao;
 import net.coding.lib.project.dao.credentail.AndroidCredentialDao;
 import net.coding.lib.project.dao.credentail.ProjectCredentialDao;
@@ -18,12 +22,8 @@ import net.coding.lib.project.dao.credentail.TencentServerlessCredentialsDao;
 import net.coding.lib.project.dto.ConnectionTaskDTO;
 import net.coding.lib.project.dto.CredentialDTO;
 import net.coding.lib.project.entity.AndroidCredential;
-import net.coding.lib.project.entity.Credential;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.TencentServerlessCredential;
-import net.coding.lib.project.enums.ConnGenerateByEnums;
-import net.coding.lib.project.enums.CredentialTypeEnums;
-import net.coding.lib.project.enums.JenkinsCredentialSchemeEnums;
 import net.coding.lib.project.enums.VerificationMethodEnums;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.credential.AndroidCredentialForm;
@@ -75,7 +75,7 @@ public class ProjectCredentialService {
 
     public ResultPage<CredentialDTO> list(
             Integer projectId,
-            CredentialTypeEnums credentialType,
+            CredentialType credentialType,
             PageRowBounds pager
     ) throws CoreException {
         Project project = getProject(projectId);
@@ -96,10 +96,10 @@ public class ProjectCredentialService {
         List<CredentialDTO> list = credentials.stream().map(
                 credential -> {
                     CredentialDTO credentialDTO = toBuildCredentialDTO(credential);
-                    List<ConnectionTaskDTO> connectionTaskDTOs =
-                            projectCredentialTaskService.taskFilterSelected(projectId, credential);
-                    credentialDTO.setSelectedTasks(connectionTaskDTOs);
-                    credentialDTO.setTaskCount(connectionTaskDTOs.size());
+//                    List<ConnectionTaskDTO> connectionTaskDTOs =
+//                            projectCredentialTaskService.taskFilterSelected(projectId, credential);
+//                    credentialDTO.setSelectedTasks(connectionTaskDTOs);
+//                    credentialDTO.setTaskCount(connectionTaskDTOs.size());
                     return credentialDTO;
                 }
         ).collect(Collectors.toList());
@@ -148,13 +148,13 @@ public class ProjectCredentialService {
      * 给 DTO 补全属性
      */
     private void extendCredentialDTO(Credential credential, CredentialDTO credentialDTO) {
-        if (StringUtils.equals(CredentialTypeEnums.ANDROID_CERTIFICATE.toString(), credential.getType())) {
+        if (StringUtils.equals(CredentialType.ANDROID_CERTIFICATE.toString(), credential.getType())) {
             AndroidCredential androidCredential = androidCredentialDao.getByConnId(
                     credential.getId(), BeanUtils.getDefaultDeletedAt()
             );
             credentialDTO.setFileName(androidCredential.getFileName());
             credentialDTO.setAlias(androidCredential.getAlias());
-        } else if (StringUtils.equals(CredentialTypeEnums.TENCENT_SERVERLESS.toString(), credential.getType())) {
+        } else if (StringUtils.equals(CredentialType.TENCENT_SERVERLESS.toString(), credential.getType())) {
             TencentServerlessCredential tencentCredential = tencentServerlessCredentialsDao.getByConnId(
                     credential.getId(),
                     BeanUtils.getDefaultDeletedAt()
@@ -167,7 +167,7 @@ public class ProjectCredentialService {
     }
 
     private void deleteWithCertificate(Credential credential) {
-        CredentialTypeEnums credentialType = CredentialTypeEnums.valueOf(credential.getType());
+        CredentialType credentialType = CredentialType.valueOf(credential.getType());
         switch (credentialType) {
             case ANDROID_CERTIFICATE:
                 androidCredentialDao.deleteByCredId(credential.getId());
@@ -217,7 +217,7 @@ public class ProjectCredentialService {
         if (credential != null) {
             credential = this.extendCredential(credential);
             if (decrypt) {
-                if (CredentialTypeEnums.ANDROID_CERTIFICATE.name().equalsIgnoreCase(credential.getType())) {
+                if (CredentialType.ANDROID_CERTIFICATE.name().equalsIgnoreCase(credential.getType())) {
                     credentialRsaService.decrypt(credential.getAndroidCredential());
                 }
                 credentialRsaService.decrypt(credential);
@@ -234,15 +234,15 @@ public class ProjectCredentialService {
         if (credential == null) {
             return null;
         }
-        if (credential.getType().equalsIgnoreCase(CredentialTypeEnums.OAUTH.name())) {
+        if (credential.getType().equalsIgnoreCase(CredentialType.OAUTH.name())) {
             OauthProto.OauthAccessToken oauthAccessToken = oauthServiceGrpcClient
                     .getOauthAccessToken(Integer.parseInt(credential.getToken()));
             if (oauthAccessToken != null) {
                 credential.setPassword(oauthAccessToken.getAccessToken());
             }
-        } else if (credential.getType().equalsIgnoreCase(CredentialTypeEnums.TENCENT_SERVERLESS.name())) {
+        } else if (credential.getType().equalsIgnoreCase(CredentialType.TENCENT_SERVERLESS.name())) {
             credential = tencentServerlessCredentialService.flushIfNeed(credential);
-        } else if (credential.getType().equalsIgnoreCase(CredentialTypeEnums.ANDROID_CERTIFICATE.name())) {
+        } else if (credential.getType().equalsIgnoreCase(CredentialType.ANDROID_CERTIFICATE.name())) {
             AndroidCredential androidCredential =
                     androidCredentialDao.getByConnId(credential.getId(), BeanUtils.getDefaultDeletedAt());
             if (androidCredential != null) {
@@ -374,28 +374,28 @@ public class ProjectCredentialService {
 
     public String showHiddenInfo(int id, int projectId) throws CoreException {
         Credential credential = get(id, projectId);
-        CredentialTypeEnums credentialType = CredentialTypeEnums.valueOf(credential.getType());
+        CredentialType credentialType = CredentialType.valueOf(credential.getType());
         // ssh 的 private_key
-        if (credentialType == CredentialTypeEnums.SSH ||
-                credentialType == CredentialTypeEnums.SSH_TOKEN) {
+        if (credentialType == CredentialType.SSH ||
+                credentialType == CredentialType.SSH_TOKEN) {
             return credential.getPrivateKey();
         }
         // username 的 password
-        if (credentialType == CredentialTypeEnums.USERNAME_PASSWORD) {
+        if (credentialType == CredentialType.USERNAME_PASSWORD) {
             credentialRsaService.decrypt(credential);
             return credential.getPassword();
         }
-        if (credentialType == CredentialTypeEnums.APP_ID_SECRET_KEY) {
+        if (credentialType == CredentialType.APP_ID_SECRET_KEY) {
             return credential.getSecretKey();
         }
         // android 的证书密码
-        if (credentialType == CredentialTypeEnums.ANDROID_CERTIFICATE) {
+        if (credentialType == CredentialType.ANDROID_CERTIFICATE) {
             AndroidCredential androidCredential =
                     androidCredentialDao.getByConnId(id, BeanUtils.getDefaultDeletedAt());
             credentialRsaService.decrypt(androidCredential);
             return androidCredential.getFilePassword();
         }
-        if (credentialType == CredentialTypeEnums.TENCENT_SERVERLESS) {
+        if (credentialType == CredentialType.TENCENT_SERVERLESS) {
             TencentServerlessCredential tencentCredential =
                     tencentServerlessCredentialsDao.getByConnId(id, BeanUtils.getDefaultDeletedAt());
             TencentServerlessCredentialForm.TencentServerlessCredentialRaw raw =
@@ -490,7 +490,7 @@ public class ProjectCredentialService {
     }
 
     public Credential toBuildCredential(BaseCredentialForm baseCredentialForm) {
-        CredentialTypeEnums credentialType = CredentialTypeEnums.valueOf(baseCredentialForm.getType());
+        CredentialType credentialType = CredentialType.valueOf(baseCredentialForm.getType());
         Credential.CredentialBuilder builder = Credential.builder();
         builder.type(credentialType.name())
                 .id(baseCredentialForm.getId())
@@ -500,7 +500,7 @@ public class ProjectCredentialService {
                 .projectId(baseCredentialForm.getProjectId())
                 .creatorId(baseCredentialForm.getCreatorId())
                 .credentialId(baseCredentialForm.getCredentialId())
-                .scheme(JenkinsCredentialSchemeEnums.None.value())
+                .scheme(CredentialJenkinsScheme.None.value())
                 .description(baseCredentialForm.getDescription())
                 .allSelect(baseCredentialForm.isAllSelect())
                 .secretKey(StringUtils.EMPTY)
@@ -513,7 +513,7 @@ public class ProjectCredentialService {
                 .privateKey(StringUtils.EMPTY)
                 .generateBy(
                         Optional.ofNullable(baseCredentialForm.getConnGenerateBy())
-                                .map(Enum::name).orElse(ConnGenerateByEnums.MANUAL.name())
+                                .map(Enum::name).orElse(CredentialGenerated.MANUAL.name())
                 );
         if (baseCredentialForm instanceof CredentialForm) {
             CredentialForm credentialForm = (CredentialForm) baseCredentialForm;
@@ -526,11 +526,11 @@ public class ProjectCredentialService {
                 case USERNAME_PASSWORD:
                     builder.username(StringUtils.defaultString(credentialForm.getUsername()));
                     builder.password(StringUtils.defaultString(password));
-                    builder.scheme(JenkinsCredentialSchemeEnums.UsernamePassword.value());
+                    builder.scheme(CredentialJenkinsScheme.UsernamePassword.value());
                     break;
                 case OAUTH:
                     builder.username(StringUtils.defaultString(credentialForm.getUsername()));
-                    builder.scheme(JenkinsCredentialSchemeEnums.UsernamePassword.value());
+                    builder.scheme(CredentialJenkinsScheme.UsernamePassword.value());
                     builder.token(StringUtils.defaultString(credentialForm.getToken()));
                 case TOKEN:
                     builder.username(StringUtils.defaultString(credentialForm.getUsername()));
@@ -543,13 +543,13 @@ public class ProjectCredentialService {
                     builder.appId(credentialForm.getAppId());
                     builder.secretId(credentialForm.getSecretId());
                     builder.secretKey(StringUtils.defaultString(credentialForm.getSecretKey()));
-                    builder.scheme(JenkinsCredentialSchemeEnums.CloudApi.value());
+                    builder.scheme(CredentialJenkinsScheme.CloudApi.value());
                     break;
                 case SSH:
                     builder.username(StringUtils.defaultString(credentialForm.getUsername()));
                     builder.privateKey(StringUtils.defaultString(credentialForm.getPrivateKey()));
                     builder.password(StringUtils.defaultString(password));
-                    builder.scheme(JenkinsCredentialSchemeEnums.SSHUserNameWithPrivateKey.value());
+                    builder.scheme(CredentialJenkinsScheme.SSHUserNameWithPrivateKey.value());
                     break;
                 case SSH_TOKEN:
                     builder.username(StringUtils.defaultString(credentialForm.getUsername()));
@@ -571,9 +571,9 @@ public class ProjectCredentialService {
 
                     // schema
                     if (verificationMethod == VerificationMethodEnums.Kubeconfig) {
-                        builder.scheme(JenkinsCredentialSchemeEnums.SecretFile.value());
+                        builder.scheme(CredentialJenkinsScheme.SecretFile.value());
                     } else if (verificationMethod == VerificationMethodEnums.ServiceAccount) {
-                        builder.scheme(JenkinsCredentialSchemeEnums.SecretText.value());
+                        builder.scheme(CredentialJenkinsScheme.SecretText.value());
                     }
 
                     builder.kubConfig(StringUtils.defaultString(credentialForm.getKubConfig()));
@@ -587,10 +587,10 @@ public class ProjectCredentialService {
             }
         }
         if (baseCredentialForm instanceof AndroidCredentialForm) {
-            builder.scheme(JenkinsCredentialSchemeEnums.Certificate.value());
+            builder.scheme(CredentialJenkinsScheme.Certificate.value());
         }
         if (baseCredentialForm instanceof TencentServerlessCredentialForm) {
-            builder.scheme(JenkinsCredentialSchemeEnums.SecretText.value());
+            builder.scheme(CredentialJenkinsScheme.SecretText.value());
         }
         return builder.build();
     }
@@ -669,7 +669,7 @@ public class ProjectCredentialService {
                 .appId(credential.getAppId())
                 .secretId(credential.getSecretId())
                 .secretKey(!StringUtils.equals(
-                                CredentialTypeEnums.APP_ID_SECRET_KEY.toString(),
+                                CredentialType.APP_ID_SECRET_KEY.toString(),
                                 credential.getType()
                         ) ? credential.getSecretKey() : StringUtils.EMPTY
                 )
@@ -701,28 +701,54 @@ public class ProjectCredentialService {
         }
     }
 
-    public List<Credential> getCredentialsByTaskIdAndGenerateBy(int projectId, int taskId, String generateBy, boolean decrypt) {
+    public List<Credential> getCredentialsByTaskIdAndGenerateBy(
+            int projectId,
+            int taskId,
+            int taskType,
+            String generateBy,
+            boolean decrypt
+    ) {
         return getCredentials(decrypt, projectCredentialDao.getCredentialsByTaskIdAndGenerateBy(
-                projectId, taskId, generateBy, BeanUtils.getDefaultDeletedAt()
+                projectId, taskId, taskType, generateBy, BeanUtils.getDefaultDeletedAt()
         ));
     }
 
-    public List<Credential> getCredentialsByTaskIdAndType(int projectId, int taskId, String type, boolean decrypt) {
+    public List<Credential> getCredentialsByTaskIdAndType(
+            int projectId,
+            int taskId,
+            int taskType,
+            String type,
+            boolean decrypt
+    ) {
         return getCredentials(decrypt, projectCredentialDao.getCredentialsByTaskIdAndType(
-                projectId, taskId, type, BeanUtils.getDefaultDeletedAt()));
+                projectId,
+                taskId,
+                taskType,
+                type,
+                BeanUtils.getDefaultDeletedAt()
+        ));
     }
 
-    public List<Credential> getCredentialsByTaskId(int projectId, int taskId, boolean decrypt) {
+    public List<Credential> getCredentialsByTaskId(
+            int projectId,
+            int taskId,
+            int taskType,
+            boolean decrypt
+    ) {
         return getCredentials(decrypt, projectCredentialDao.getCredentialsByTaskId(
-                projectId, taskId, BeanUtils.getDefaultDeletedAt()));
+                projectId,
+                taskId,
+                taskType,
+                BeanUtils.getDefaultDeletedAt()
+        ));
     }
 
     @NotNull
     private List<Credential> getCredentials(boolean decrypt, List<Credential> credentials) {
         return credentials.stream().map(
                 credential -> {
-                    CredentialTypeEnums credentialType = CredentialTypeEnums.valueOf(credential.getType());
-                    if (credentialType.equals(CredentialTypeEnums.ANDROID_CERTIFICATE)) {
+                    CredentialType credentialType = CredentialType.valueOf(credential.getType());
+                    if (credentialType.equals(CredentialType.ANDROID_CERTIFICATE)) {
                         AndroidCredential androidCredential =
                                 androidCredentialDao.getByConnId(credential.getId(), BeanUtils.getDefaultDeletedAt());
                         if (decrypt) {

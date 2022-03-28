@@ -19,13 +19,13 @@ import net.coding.lib.project.dao.ProjectRecentViewDao;
 import net.coding.lib.project.dao.TeamProjectDao;
 import net.coding.lib.project.dao.pojo.ProjectSearchFilter;
 import net.coding.lib.project.dto.ProjectDTO;
-import net.coding.lib.project.entity.Credential;
+import net.coding.lib.project.credential.entity.Credential;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.entity.ProjectRecentView;
 import net.coding.lib.project.entity.TeamProject;
 import net.coding.lib.project.enums.CacheTypeEnum;
-import net.coding.lib.project.enums.ConnGenerateByEnums;
+import net.coding.lib.project.credential.enums.CredentialGenerated;
 import net.coding.lib.project.enums.PmTypeEnums;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.QueryProgramForm;
@@ -43,7 +43,7 @@ import net.coding.lib.project.parameter.ProjectMemberPrincipalQueryParameter;
 import net.coding.lib.project.parameter.ProjectPageQueryParameter;
 import net.coding.lib.project.parameter.ProjectQueryParameter;
 import net.coding.lib.project.parameter.ProjectUpdateParameter;
-import net.coding.lib.project.service.credential.ProjectCredentialService;
+import net.coding.lib.project.credential.service.ProjectCredentialService;
 import net.coding.lib.project.service.member.ProjectMemberInspectService;
 import net.coding.lib.project.service.project.ProjectAdaptorFactory;
 import net.coding.lib.project.setting.ProjectSettingDefault;
@@ -593,7 +593,7 @@ public class ProjectService {
         return CredentialForm.builder()
                 .type(parameter.getType())
                 .scope(credentialParameter.getScope())
-                .connGenerateBy(ConnGenerateByEnums.valueOf(credentialParameter.getConnGenerateBy().name()))
+                .connGenerateBy(CredentialGenerated.valueOf(credentialParameter.getConnGenerateBy().name()))
                 .id(credentialParameter.getId())
                 .teamId(parameter.getTeamId())
                 .projectId(projectId)

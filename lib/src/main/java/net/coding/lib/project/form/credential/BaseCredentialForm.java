@@ -3,9 +3,9 @@ package net.coding.lib.project.form.credential;
 import net.coding.common.base.validator.EnumValid;
 import net.coding.common.base.validator.StringEnumeration;
 import net.coding.lib.project.dto.ConnectionTaskDTO;
-import net.coding.lib.project.enums.ConnGenerateByEnums;
-import net.coding.lib.project.enums.CredentialScopeEnums;
-import net.coding.lib.project.enums.CredentialTypeEnums;
+import net.coding.lib.project.credential.enums.CredentialGenerated;
+import net.coding.lib.project.credential.enums.CredentialScope;
+import net.coding.lib.project.credential.enums.CredentialType;
 
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotBlank;
@@ -32,14 +32,14 @@ public abstract class BaseCredentialForm {
 
     private String credentialId;
 
-    private ConnGenerateByEnums connGenerateBy;
+    private CredentialGenerated connGenerateBy;
 
     /**
      * PROJECT(1),PRIVATE(2)
      */
     @Valid
-    @EnumValid(enumClasses = CredentialScopeEnums.class, message = "credential_scope_invalid")
-    private int scope = CredentialScopeEnums.PROJECT.getCode();
+    @EnumValid(enumClasses = CredentialScope.class, message = "credential_scope_invalid")
+    private int scope = CredentialScope.PROJECT.getCode();
 
     @Valid
     @NotBlank
@@ -52,7 +52,7 @@ public abstract class BaseCredentialForm {
 
     @Valid
     @NotBlank
-    @StringEnumeration(enumClass = CredentialTypeEnums.class, message = "credential_type_invalid")
+    @StringEnumeration(enumClass = CredentialType.class, message = "credential_type_invalid")
     private String type;
 
     private List<ConnectionTaskDTO> taskDTOS;

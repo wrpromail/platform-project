@@ -1,6 +1,6 @@
 package net.coding.lib.project.dao.credentail;
 
-import net.coding.lib.project.entity.CredentialTask;
+import net.coding.lib.project.credential.entity.CredentialTask;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

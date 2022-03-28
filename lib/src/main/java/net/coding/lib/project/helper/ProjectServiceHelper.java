@@ -14,7 +14,7 @@ import net.coding.exchange.dto.user.User;
 import net.coding.grpc.client.activity.ActivityGrpcClient;
 import net.coding.grpc.client.platform.LoggingGrpcClient;
 import net.coding.grpc.client.platform.UserServiceGrpcClient;
-import net.coding.lib.project.entity.Credential;
+import net.coding.lib.project.credential.entity.Credential;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectPreference;
 import net.coding.lib.project.setting.ProjectSetting;

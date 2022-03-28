@@ -8,13 +8,13 @@ import net.coding.common.annotation.enums.Action;
 import net.coding.common.annotation.enums.Function;
 import net.coding.common.util.Result;
 import net.coding.lib.project.common.SystemContextHolder;
-import net.coding.lib.project.enums.CredentialTypeEnums;
+import net.coding.lib.project.credential.enums.CredentialType;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.credential.AndroidCredentialForm;
 import net.coding.lib.project.form.credential.CredentialForm;
 import net.coding.lib.project.form.credential.TencentServerlessCredentialForm;
 import net.coding.lib.project.pager.PagerResolve;
-import net.coding.lib.project.service.credential.ProjectCredentialService;
+import net.coding.lib.project.credential.service.ProjectCredentialService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -55,9 +55,9 @@ public class CredentialController {
             @RequestParam(required = false) String type,
             @PagerResolve PageRowBounds pager
     ) throws CoreException {
-        CredentialTypeEnums credentialType = null;
+        CredentialType credentialType = null;
         if (StringUtils.isNotBlank(type)) {
-            credentialType = CredentialTypeEnums.valueOf(type);
+            credentialType = CredentialType.valueOf(type);
         }
         return Result.success(projectCredentialService.list(projectId, credentialType, pager));
     }

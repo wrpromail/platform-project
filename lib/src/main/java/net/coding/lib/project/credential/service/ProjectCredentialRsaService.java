@@ -1,9 +1,9 @@
-package net.coding.lib.project.service.credential;
+package net.coding.lib.project.credential.service;
 
 import net.coding.lib.project.AppProperties;
+import net.coding.lib.project.credential.entity.Credential;
+import net.coding.lib.project.credential.enums.CredentialType;
 import net.coding.lib.project.entity.AndroidCredential;
-import net.coding.lib.project.entity.Credential;
-import net.coding.lib.project.enums.CredentialTypeEnums;
 import net.coding.lib.project.utils.XRsaUtil;
 
 import org.apache.commons.lang3.StringUtils;
@@ -21,10 +21,10 @@ public class ProjectCredentialRsaService {
     private final AppProperties appProperties;
 
     public void encrypt(Credential credential) {
-        CredentialTypeEnums credentialType = CredentialTypeEnums.valueOf(credential.getType());
-        if (credentialType == CredentialTypeEnums.PASSWORD ||
-                credentialType == CredentialTypeEnums.USERNAME_PASSWORD ||
-                credentialType == CredentialTypeEnums.USERNAME_PASSWORD_TOKEN) {
+        CredentialType credentialType = CredentialType.valueOf(credential.getType());
+        if (credentialType == CredentialType.PASSWORD ||
+                credentialType == CredentialType.USERNAME_PASSWORD ||
+                credentialType == CredentialType.USERNAME_PASSWORD_TOKEN) {
             String password = credential.getPassword();
             if (StringUtils.isBlank(password)) {
                 return;
@@ -73,10 +73,10 @@ public class ProjectCredentialRsaService {
     }
 
     private void decrypt(Credential credential, Consumer<Credential> failHandler) {
-        CredentialTypeEnums credentialType = CredentialTypeEnums.valueOf(credential.getType());
-        if (credentialType == CredentialTypeEnums.PASSWORD ||
-                credentialType == CredentialTypeEnums.USERNAME_PASSWORD ||
-                credentialType == CredentialTypeEnums.USERNAME_PASSWORD_TOKEN) {
+        CredentialType credentialType = CredentialType.valueOf(credential.getType());
+        if (credentialType == CredentialType.PASSWORD ||
+                credentialType == CredentialType.USERNAME_PASSWORD ||
+                credentialType == CredentialType.USERNAME_PASSWORD_TOKEN) {
             String originPwd = credential.getPassword();
             if (StringUtils.isBlank(originPwd)) {
                 return;

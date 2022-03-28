@@ -2,17 +2,17 @@ package net.coding.app.project.grpc.openapi;
 
 import net.coding.grpc.client.permission.AclServiceGrpcClient;
 import net.coding.lib.project.dto.ConnectionTaskDTO;
-import net.coding.lib.project.entity.Credential;
+import net.coding.lib.project.credential.entity.Credential;
 import net.coding.lib.project.entity.Project;
-import net.coding.lib.project.enums.ConnGenerateByEnums;
-import net.coding.lib.project.enums.CredentialScopeEnums;
-import net.coding.lib.project.enums.CredentialTypeEnums;
+import net.coding.lib.project.credential.enums.CredentialGenerated;
+import net.coding.lib.project.credential.enums.CredentialScope;
+import net.coding.lib.project.credential.enums.CredentialType;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.credential.CredentialForm;
 import net.coding.lib.project.grpc.client.CiJobGrpcClient;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.service.ProjectService;
-import net.coding.lib.project.service.credential.ProjectCredentialService;
+import net.coding.lib.project.credential.service.ProjectCredentialService;
 import net.coding.proto.open.api.project.credential.ProjectCredentialProto;
 import net.coding.proto.open.api.project.credential.ProjectCredentialServiceGrpc;
 import net.coding.proto.open.api.result.CommonProto;
@@ -60,7 +60,7 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
             valid(request.getUser().getId(), request.getProjectId());
             List<Credential> credentials = credentialService.getByProjectIdAndGenerateBy(
                     request.getProjectId(),
-                    ConnGenerateByEnums.MANUAL.name()
+                    CredentialGenerated.MANUAL.name()
             );
             describeProjectCredentialsResponse(
                     responseObserver,
@@ -97,13 +97,13 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
     ) {
         try {
             valid(request.getUser().getId(), request.getProjectId());
-            CredentialTypeEnums credentialType = Optional.ofNullable(CredentialTypeEnums
+            CredentialType credentialType = Optional.ofNullable(CredentialType
                     .of(request.getCredentialType().name()))
-                    .orElse(CredentialTypeEnums.USERNAME_PASSWORD);
+                    .orElse(CredentialType.USERNAME_PASSWORD);
 
             // 支持的类型判断
-            if (credentialType != CredentialTypeEnums.USERNAME_PASSWORD
-                    && credentialType != CredentialTypeEnums.SSH) {
+            if (credentialType != CredentialType.USERNAME_PASSWORD
+                    && credentialType != CredentialType.SSH) {
                 createCredentialsResponse(responseObserver,
                         INVALID_PARAMETER,
                         CREDENTIAL_TYPE_NOT_SUPPORT,
@@ -112,7 +112,7 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
                 return;
             }
             // ssh 类型时，private_key 不能为空
-            if (credentialType == CredentialTypeEnums.SSH
+            if (credentialType == CredentialType.SSH
                     && StringUtils.isBlank(request.getPrivateKey())) {
                 createCredentialsResponse(responseObserver,
                         INVALID_PARAMETER,
@@ -130,7 +130,7 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
                     .password(request.getPassword())
                     .type(credentialType.name())
                     .privateKey(request.getPrivateKey())
-                    .scope(CredentialScopeEnums.PROJECT.getCode())
+                    .scope(CredentialScope.PROJECT.getCode())
                     .allSelect(true)
                     .build();
 
