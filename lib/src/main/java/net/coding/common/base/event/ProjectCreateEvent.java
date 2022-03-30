@@ -1,7 +1,5 @@
 package net.coding.common.base.event;
 
-import net.coding.exchange.dto.user.User;
-
 import java.util.Map;
 
 import lombok.AllArgsConstructor;
@@ -29,8 +27,7 @@ public class ProjectCreateEvent {
     //
     // 所以当创建团队项目的时候，需要主动传这个 creator，当 depot 判断到这个 creator 不为 null 的时候，
     // 用这个用户来进行初始化
-    @Builder.Default
-    private User creator = null;
+    private Integer userId;
 
     private String vcsType;
     private boolean shared;

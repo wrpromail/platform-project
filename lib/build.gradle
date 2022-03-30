@@ -1,5 +1,5 @@
 ext {
-    commonVersion = '20211209.2'
+    commonVersion = '20220402.1'
     ramVersion = '20220227.1'
 }
 dependencies {

@@ -15,6 +15,5 @@ import lombok.NoArgsConstructor;
 public class ProjectDeleteEvent {
     private int teamId;
     private int projectId;
-    private String vcsType;
     private int userId;
 }

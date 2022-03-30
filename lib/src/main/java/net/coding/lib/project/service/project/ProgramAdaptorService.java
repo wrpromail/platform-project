@@ -3,6 +3,7 @@ package net.coding.lib.project.service.project;
 import com.google.common.eventbus.AsyncEventBus;
 
 import net.coding.common.base.event.ProgramEvent;
+import net.coding.common.eventbus.AsyncExternalEventBus;
 import net.coding.common.i18n.utils.LocaleMessageSource;
 import net.coding.e.grpcClient.collaboration.MilestoneGrpcClient;
 import net.coding.e.grpcClient.collaboration.exception.MilestoneException;
@@ -38,6 +39,8 @@ import static net.coding.lib.project.service.ProgramService.TYPE_ADVANCED_PAY;
 @Slf4j
 @Service
 public class ProgramAdaptorService extends AbstractProjectAdaptorService {
+    protected final AsyncExternalEventBus asyncExternalEventBus;
+
     private final MilestoneGrpcClient milestoneGrpcClient;
 
     private final EnterpriseGrpcClient enterpriseGrpcClient;
@@ -46,8 +49,9 @@ public class ProgramAdaptorService extends AbstractProjectAdaptorService {
 
     private final SystemSettingGrpcClient systemSettingGrpcClient;
 
-    public ProgramAdaptorService(AsyncEventBus asyncEventBus, LoggingGrpcClient loggingGrpcClient, TeamGrpcClient teamGrpcClient, UserGrpcClient userGrpcClient, AclServiceGrpcClient aclServiceGrpcClient, LocaleMessageSource localeMessageSource, NotificationGrpcClient notificationGrpcClient, MilestoneGrpcClient milestoneGrpcClient, EnterpriseGrpcClient enterpriseGrpcClient, ProgramMemberService programMemberService, SystemSettingGrpcClient systemSettingGrpcClient) {
+    public ProgramAdaptorService(AsyncEventBus asyncEventBus, LoggingGrpcClient loggingGrpcClient, TeamGrpcClient teamGrpcClient, UserGrpcClient userGrpcClient, AclServiceGrpcClient aclServiceGrpcClient, LocaleMessageSource localeMessageSource, NotificationGrpcClient notificationGrpcClient, AsyncExternalEventBus asyncExternalEventBus, MilestoneGrpcClient milestoneGrpcClient, EnterpriseGrpcClient enterpriseGrpcClient, ProgramMemberService programMemberService, SystemSettingGrpcClient systemSettingGrpcClient) {
         super(asyncEventBus, loggingGrpcClient, teamGrpcClient, userGrpcClient, aclServiceGrpcClient, localeMessageSource, notificationGrpcClient);
+        this.asyncExternalEventBus = asyncExternalEventBus;
         this.milestoneGrpcClient = milestoneGrpcClient;
         this.enterpriseGrpcClient = enterpriseGrpcClient;
         this.programMemberService = programMemberService;
@@ -168,7 +172,7 @@ public class ProgramAdaptorService extends AbstractProjectAdaptorService {
     }
 
     public void postProgramEvent(Integer userId, Project project, ProgramEvent.Function function) {
-        asyncEventBus.post(ProgramEvent.builder()
+        asyncExternalEventBus.postLocal(ProgramEvent.builder()
                 .teamId(project.getTeamOwnerId())
                 .userId(userId)
                 .projectId(project.getId())
