@@ -33,6 +33,7 @@ import net.coding.lib.project.utils.UserUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
@@ -375,14 +376,6 @@ public class ProjectMemberService {
             log.error("User {} is not member of project {}", targetUserId, project.getId());
             throw CoreException.of(CoreException.ExceptionType.PROJECT_MEMBER_NOT_EXISTS);
         }
-      /*  ProjectMember currentMember = getByProjectIdAndUserId(project.getId(), currentUserId);
-        if (null == currentMember) {
-            log.error("CurrentUser {} is not member of project {}", currentUserId, project.getId());
-            throw CoreException.of(CoreException.ExceptionType.PROJECT_MEMBER_NOT_EXISTS);
-        }
-        projectMemberAdaptorFactory.create(project.getPmType())
-                .checkDelProjectMemberType(member, currentMember.getType());*/
-
         delMember(currentUserId, project, targetUserId, member);
 
     }
@@ -400,6 +393,7 @@ public class ProjectMemberService {
         projectHandCacheService.handleProjectMemberCache(member, CacheTypeEnum.DELETE);
     }
 
+    @Transactional
     public int quit(Integer projectId) throws CoreException {
         Project project = projectDao.getProjectById(projectId);
         if (null == project) {
