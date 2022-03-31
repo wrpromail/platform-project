@@ -161,6 +161,11 @@ public class ProjectSettingService {
                 .map(Project::getId)
                 .collect(Collectors.toList());
 
+        // 项目列表为空，直接返回空
+        if (CollectionUtils.isEmpty(visibleProject)) {
+            return Collections.emptyList();
+        }
+
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
 
         Map<Integer, ProjectSetting> mapping = StreamEx.of(
