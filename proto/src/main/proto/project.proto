@@ -3,6 +3,7 @@ syntax = "proto3";
 package proto;
 
 import "code.proto";
+import "google/protobuf/timestamp.proto";
 
 option java_generic_services = true;
 option java_package = "net.coding.proto.platform.project";
@@ -26,6 +27,7 @@ message Project {
   bool isArchived = 11;
   int32 pmType = 12;
   string pmTypeName = 13;
+  google.protobuf.Timestamp created_at = 14;
 }
 
 message GetProjectResponse {

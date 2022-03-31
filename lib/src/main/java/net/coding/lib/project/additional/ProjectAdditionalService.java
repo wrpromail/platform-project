@@ -18,8 +18,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -117,5 +119,34 @@ public class ProjectAdditionalService {
             log.error("Find project {} admin failure, cause of {}", project, e.getMessage());
         }
         return Collections.emptyList();
+    }
+
+
+    /**
+     * 查询项目管理员
+     *
+     * @param project 项目id
+     * @return Map<Integer: 项目id, List < Integer> : 管理员userId>
+     */
+    public Map<Integer, List<Integer>> findProjectAdmin(List<Integer> project) {
+        Map<Integer, List<Integer>> map = new HashMap<>();
+        project.stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .forEach(p -> {
+                    AclProto.Role adminRole;
+                    try {
+                        adminRole = advancedRoleServiceGrpcClient.findProjectRoles(p)
+                                .stream()
+                                .filter(r -> StringUtils.equals(r.getType(), RoleType.ProjectAdmin.name()))
+                                .findFirst()
+                                .orElse(null);
+                        List<Integer> usersOfRole = advancedRoleServiceGrpcClient.findUsersOfRole(adminRole);
+                        map.put(p, usersOfRole);
+                    } catch (Exception e) {
+                        log.warn("Find project admin user error", e);
+                    }
+                });
+        return map;
     }
 }

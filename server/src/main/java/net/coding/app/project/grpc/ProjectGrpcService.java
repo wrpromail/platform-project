@@ -474,6 +474,7 @@ public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBas
                 .setIsArchived(project.getDeletedAt().equals(BeanUtils.getDefaultArchivedAt()))
                 .setPmType(project.getPmType())
                 .setPmTypeName(PmTypeEnums.of(project.getPmType()).name())
+                .setCreatedAt(com.google.protobuf.util.Timestamps.fromMillis(project.getCreatedAt().getTime()))
                 .build();
     }
 
