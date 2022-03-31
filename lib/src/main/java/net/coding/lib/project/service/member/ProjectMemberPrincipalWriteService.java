@@ -15,7 +15,8 @@ import net.coding.lib.project.exception.CoreException;
 import net.coding.platform.ram.pojo.dto.GrantDTO;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.CollectionUtils;
 
@@ -59,7 +60,6 @@ public class ProjectMemberPrincipalWriteService {
     /**
      * 项目内添加/校验成员数据
      */
-    @Transactional
     public void addMember(
             Integer teamId,
             Integer currentUserId,
@@ -92,14 +92,15 @@ public class ProjectMemberPrincipalWriteService {
                     List<ProjectMemberAddReqDTO> addReqDTOs = StreamEx.of(memberAddReqDTOS)
                             .peek(addReqDTO -> addReqDTO.setPolicyIds(dto.getPolicyIds()))
                             .toList();
-                    transactionTemplate.execute(status -> {
-                        try {
-                            doAddMember(teamId, currentUserId, dto.getProjectId(), addReqDTOs);
-                        } catch (CoreException e) {
-                            log.error("Project is null, projectId = {}", dto.getProjectId());
-                        }
-                        return TRUE;
-                    });
+                    try {
+                        doAddMember(teamId, currentUserId, dto.getProjectId(), addReqDTOs);
+                    } catch (CoreException e) {
+                        log.error(
+                                "Project {} add member failure, cause of {}",
+                                dto.getProjectId(),
+                                e.getMessage()
+                        );
+                    }
                 });
     }
 
@@ -158,14 +159,38 @@ public class ProjectMemberPrincipalWriteService {
                 .filter(Objects::nonNull)
                 .collect(toList());
         if (!CollectionUtils.isEmpty(addMembers)) {
-            projectMemberDao.batchInsert(addMembers);
-            projectMemberInspectService.attachGrant(currentUserId, grantInfoDTOS);
-            projectMemberAdaptorFactory.create(project.getPmType())
-                    .postAddMembersEvent(project, currentUserId, addMembers, members);
+            transactionTemplate.execute(status -> {
+                projectMemberDao.batchInsert(addMembers);
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+                    @Override
+                    public void afterCommit() {
+                        projectMemberAdaptorFactory
+                                .create(project.getPmType())
+                                .postAddMembersEvent(
+                                        project,
+                                        currentUserId,
+                                        addMembers,
+                                        members
+                                );
+                        log.debug(
+                                "Project batch add member send event, teamId = {}, projectId={}",
+                                teamId,
+                                project.getId()
+                        );
+                        projectMemberInspectService.attachGrant(currentUserId, grantInfoDTOS);
+                    }
+                });
+                log.debug(
+                        "Project batch add member, teamId = {}, projectId={}",
+                        teamId,
+                        project.getId()
+                );
+                return TRUE;
+            });
+
         }
     }
 
-    @Transactional
     public void delMember(Integer teamId,
                           Integer currentUserId,
                           Integer projectId,
@@ -176,7 +201,7 @@ public class ProjectMemberPrincipalWriteService {
             throw CoreException.of(RESOURCE_NO_FOUND);
         }
         List<ProjectMember> members = projectMemberInspectService.findListByProjectId(project.getId());
-        List<ProjectMember> delMembers = StreamEx.of(principals)
+        List<ProjectMember> checkMembers = StreamEx.of(principals)
                 .collect(Collectors.collectingAndThen(Collectors.toCollection(
                         () -> new TreeSet<>(Comparator.comparing(principal ->
                                 principal.getPrincipalType() + ":" + principal.getPrincipalId()))),
@@ -186,13 +211,31 @@ public class ProjectMemberPrincipalWriteService {
                         .filter(member -> member.getPrincipalType().equals(principal.getPrincipalType().name())
                                 && member.getPrincipalId().equals(principal.getPrincipalId())))
                 .collect(toList());
-        delMembers = projectMemberAdaptorFactory.create(project.getPmType())
-                .filterProjectMemberRoleType(currentUserId, project, delMembers);
+        List<ProjectMember> delMembers = projectMemberAdaptorFactory.create(project.getPmType())
+                .filterProjectMemberRoleType(currentUserId, project, checkMembers);
         if (!CollectionUtils.isEmpty(delMembers)) {
-            projectMemberDao.batchDelete(delMembers);
-            projectMemberInspectService.removeResourceGrant(currentUserId, project, delMembers);
-            projectMemberAdaptorFactory.create(project.getPmType())
-                    .postDeleteMemberEvent(project, currentUserId, delMembers);
+            transactionTemplate.execute(status -> {
+                projectMemberDao.batchDelete(delMembers);
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+                    @Override
+                    public void afterCommit() {
+                        projectMemberAdaptorFactory
+                                .create(project.getPmType())
+                                .postDeleteMemberEvent(project, currentUserId, delMembers);
+                        log.debug(
+                                "Project batch delete member send event, teamId = {}, projectId={}",
+                                teamId,
+                                project.getId()
+                        );
+                        projectMemberInspectService.removeResourceGrant(currentUserId, project, delMembers);
+                    }
+                });
+                log.debug("Project batch delete member, teamId = {}, projectId={}",
+                        teamId,
+                        project.getId()
+                );
+                return TRUE;
+            });
         }
     }
 
@@ -200,17 +243,19 @@ public class ProjectMemberPrincipalWriteService {
                                Integer currentUserId,
                                ProjectMemberBatchDelReqDTO reqDTO) {
         StreamEx.of(reqDTO.getProjectIds())
-                .forEach(projectId -> transactionTemplate.execute(status -> {
+                .forEach(projectId -> {
                     try {
                         delMember(teamId, currentUserId, projectId, reqDTO.getPrincipals());
                     } catch (CoreException e) {
-                        log.error("Project is null, projectId = {}", projectId);
+                        log.error(
+                                "Project {} add member failure, cause of {}",
+                                projectId,
+                                e.getMessage()
+                        );
                     }
-                    return TRUE;
-                }));
+                });
     }
 
-    @Transactional
     public void quit(Integer teamId, Integer currentUserId, Integer projectId) throws CoreException {
         Project project = projectDao.getProjectByIdAndTeamId(projectId, teamId);
         if (Objects.isNull(project)) {
@@ -228,9 +273,28 @@ public class ProjectMemberPrincipalWriteService {
         if (CollectionUtils.isEmpty(members)) {
             throw CoreException.of(PERMISSION_DENIED);
         }
-        projectMemberDao.batchDelete(members);
-        projectMemberInspectService.removeResourceGrant(currentUserId, project, members);
-        projectMemberAdaptorFactory.create(project.getPmType())
-                .postMemberQuitEvent(currentUserId, project, members);
+        transactionTemplate.execute(status -> {
+            projectMemberDao.batchDelete(members);
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+                @Override
+                public void afterCommit() {
+                    projectMemberAdaptorFactory
+                            .create(project.getPmType())
+                            .postMemberQuitEvent(currentUserId, project, members);
+                    log.debug(
+                            "Project quit member send Event, teamId = {}, projectId = {}",
+                            teamId,
+                            project.getId()
+                    );
+                    projectMemberInspectService.removeResourceGrant(currentUserId, project, members);
+                }
+            });
+            log.debug(
+                    "Project quit member, teamId = {}, projectId={}",
+                    teamId,
+                    project.getId()
+            );
+            return TRUE;
+        });
     }
 }

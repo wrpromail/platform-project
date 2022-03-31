@@ -57,7 +57,6 @@ import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.Timestamp;
@@ -77,6 +76,7 @@ import lombok.extern.slf4j.Slf4j;
 import one.util.streamex.StreamEx;
 import proto.platform.user.UserProto;
 
+import static java.lang.Boolean.TRUE;
 import static java.util.stream.Collectors.toList;
 import static net.coding.common.base.bean.ProjectTweet.ACTION_CREATE;
 import static net.coding.common.constants.ProjectConstants.ARCHIVE_PROJECT_DELETED_AT;
@@ -237,7 +237,6 @@ public class ProgramService {
                 .build();
     }
 
-    @Transactional
     public ProgramPathDTO addProgramProject(Integer currentTeamId, Integer currentUserId,
                                             Integer programId, Set<Integer> projectIds,
                                             Set<Integer> adminIds) throws Exception {
@@ -272,24 +271,34 @@ public class ProgramService {
                     )
                             .map(ProgramProject::getProjectId)
                             .collect(Collectors.toList());
-            StreamEx.of(projectIds)
-                    .filter(joinedProjectIds::contains)
-                    .filter(projectId -> !programProjectIds.contains(projectId))
-                    .forEach(projectId -> {
-                        projectMemberService.findListByProjectId(projectId)
-                                .forEach(pm -> targetUserIds.add(pm.getUserId()));
-                        programProjectDao.insertSelective(ProgramProject.builder()
-                                .programId(program.getId())
-                                .projectId(projectId)
-                                .createdAt(new Timestamp(System.currentTimeMillis()))
-                                .updatedAt(new Timestamp(System.currentTimeMillis()))
-                                .deletedAt(BeanUtils.getDefaultDeletedAt())
-                                .build());
-                    });
-            if (CollectionUtils.isNotEmpty(targetUserIds)) {
-                projectMemberService.doAddMember(currentUserId, new ArrayList<>(targetUserIds),
-                        ProgramRoleTypeEnum.ProgramProjectMember.getCode(), program, false);
-            }
+
+            transactionTemplate.execute(status -> {
+                try {
+                    StreamEx.of(projectIds)
+                            .filter(joinedProjectIds::contains)
+                            .filter(projectId -> !programProjectIds.contains(projectId))
+                            .forEach(projectId -> {
+                                projectMemberService.findListByProjectId(projectId)
+                                        .forEach(pm -> targetUserIds.add(pm.getUserId()));
+                                programProjectDao.insertSelective(ProgramProject.builder()
+                                        .programId(program.getId())
+                                        .projectId(projectId)
+                                        .createdAt(new Timestamp(System.currentTimeMillis()))
+                                        .updatedAt(new Timestamp(System.currentTimeMillis()))
+                                        .deletedAt(BeanUtils.getDefaultDeletedAt())
+                                        .build());
+                            });
+                    if (CollectionUtils.isNotEmpty(targetUserIds)) {
+                        projectMemberService.doAddMember(currentUserId, new ArrayList<>(targetUserIds),
+                                ProgramRoleTypeEnum.ProgramProjectMember.getCode(), program, false);
+                    }
+                } catch (CoreException e) {
+                    log.error("Program add project member Error, programId = {}, operatorId = {}",
+                            program.getId(),
+                            currentUserId);
+                }
+                return TRUE;
+            });
         }
         return ProgramPathDTO.builder()
                 .id(program.getId())
@@ -297,8 +306,6 @@ public class ProgramService {
                 .build();
     }
 
-
-    @Transactional
     public ProgramPathDTO addProgramProjectPrincipal(Integer currentTeamId, Integer currentUserId,
                                                      Integer programId, Set<Integer> projectIds,
                                                      Set<Integer> adminIds) throws Exception {
@@ -358,25 +365,28 @@ public class ProgramService {
 
                                         })
                                         .collect(toList());
-                        try {
-                            //项目集关联项目
-                            programProjectDao.insertSelective(ProgramProject.builder()
-                                    .programId(program.getId())
-                                    .projectId(projectId)
-                                    .createdAt(new Timestamp(System.currentTimeMillis()))
-                                    .updatedAt(new Timestamp(System.currentTimeMillis()))
-                                    .deletedAt(BeanUtils.getDefaultDeletedAt())
-                                    .build());
-                            projectMemberPrincipalWriteService.addMember(
-                                    currentTeamId,
-                                    currentUserId,
-                                    program.getId(),
-                                    principals);
-                        } catch (CoreException e) {
-                            log.error("addProgramProject addManyMemberToProject Error, programId = {}, operatorId = {}",
-                                    program.getId(),
-                                    currentUserId);
-                        }
+                        transactionTemplate.execute(status -> {
+                            try {
+                                //项目集关联项目
+                                programProjectDao.insertSelective(ProgramProject.builder()
+                                        .programId(program.getId())
+                                        .projectId(projectId)
+                                        .createdAt(new Timestamp(System.currentTimeMillis()))
+                                        .updatedAt(new Timestamp(System.currentTimeMillis()))
+                                        .deletedAt(BeanUtils.getDefaultDeletedAt())
+                                        .build());
+                                projectMemberPrincipalWriteService.addMember(
+                                        currentTeamId,
+                                        currentUserId,
+                                        program.getId(),
+                                        principals);
+                            } catch (CoreException e) {
+                                log.error("Program add project Member Error, programId = {}, operatorId = {}",
+                                        program.getId(),
+                                        currentUserId);
+                            }
+                            return TRUE;
+                        });
                     });
             projectMemberInspectService.attachGrant(currentUserId, grantDTOS);
         }
