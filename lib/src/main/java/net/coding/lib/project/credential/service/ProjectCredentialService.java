@@ -634,7 +634,11 @@ public class ProjectCredentialService {
     }
 
     public List<Credential> getByProjectIdAndGenerateBy(Integer projectId, String generateBy) {
-        return projectCredentialDao.getByProjectIdAndGenerateBy(projectId, generateBy, BeanUtils.getDefaultDeletedAt());
+        return getCredentials(
+                false,
+                projectCredentialDao.getByProjectIdAndGenerateBy(projectId, generateBy,
+                        BeanUtils.getDefaultDeletedAt())
+        );
     }
 
     private UserProto.User getUser() throws CoreException {
