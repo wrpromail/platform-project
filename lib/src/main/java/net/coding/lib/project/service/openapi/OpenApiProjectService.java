@@ -1,12 +1,12 @@
 package net.coding.lib.project.service.openapi;
 
+import net.coding.exchange.dto.user.User;
+import net.coding.grpc.client.platform.UnsafeUserServiceGrpcClient;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.enums.ProjectLabelEnums;
 import net.coding.lib.project.enums.RegisterSourceEnum;
 import net.coding.lib.project.exception.CoreException;
-import net.coding.lib.project.grpc.client.AgileTemplateGRpcClient;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
-import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.parameter.ProjectCreateParameter;
 import net.coding.lib.project.service.ProjectMemberService;
 import net.coding.lib.project.service.ProjectService;
@@ -22,7 +22,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import proto.open.api.project.ProjectProto;
 import proto.platform.team.TeamProto;
-import proto.platform.user.UserProto;
 
 import static net.coding.common.constants.RoleConstants.ADMIN;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PARAMETER_INVALID;
@@ -37,16 +36,15 @@ import static net.coding.lib.project.exception.CoreException.ExceptionType.USER_
 @Slf4j
 @AllArgsConstructor
 public class OpenApiProjectService {
-    private final UserGrpcClient userGrpcClient;
+    private final UnsafeUserServiceGrpcClient unsafeUserServiceGrpcClient;
     private final TeamGrpcClient teamGrpcClient;
-    private final AgileTemplateGRpcClient agileTemplateGRpcClient;
     private final ProjectValidateService projectValidateService;
     private final ProjectService projectService;
     private final ProjectMemberService projectMemberService;
 
     public int createProject(ProjectProto.CreateProjectWithTemplateRequest request,
                              String registerSource) throws Exception {
-        UserProto.User currentUser = userGrpcClient.getUserById(request.getUser().getId());
+        User currentUser = unsafeUserServiceGrpcClient.getUser(request.getUser().getId());
         if (Objects.isNull(currentUser)) {
             throw CoreException.of(USER_NOT_EXISTS);
         }
@@ -69,13 +67,13 @@ public class OpenApiProjectService {
         }
         Project existProjectDisplayName = projectService.getByDisplayNameAndTeamId(
                 request.getDisplayName(),
-                currentUser.getTeamId());
+                currentUser.getTeam_id());
         if (existProjectDisplayName != null) {
             return existProjectDisplayName.getId();
         }
         Project existProjectName = projectService.getByNameAndTeamId(
                 request.getName(),
-                currentUser.getTeamId());
+                currentUser.getTeam_id());
         if (existProjectName != null) {
             return existProjectName.getId();
         }
@@ -95,8 +93,8 @@ public class OpenApiProjectService {
                 .vcsType(request.getVcsType())
                 .shared(request.getShared())
                 .userId(currentUser.getId())
-                .userGk(currentUser.getGlobalKey())
-                .teamId(currentUser.getTeamId())
+                .userGk(currentUser.getGlobal_key())
+                .teamId(currentUser.getTeam_id())
                 .projectTemplate(request.getProjectTemplate())
                 .build();
         projectValidateService.validateCreateProject(parameter, currentUser.getEmail());
