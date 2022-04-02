@@ -35,10 +35,10 @@ dependencies {
     compile "net.coding.common:dto:${commonVersion}"
     compile "net.coding.common:verification:${commonVersion}"
     compile 'net.coding.service.hook:definition:20210331.1'
-    compile("net.coding.proto:platform:a86040cec708861eee94883daeedeb89078d6ff0") {
+    compile("net.coding.proto:platform:20220402.1") {
         exclude(group: "net.coding.common")
     }
-    compile("net.coding.grpc.client:platform:a86040cec708861eee94883daeedeb89078d6ff0") {
+    compile("net.coding.grpc.client:platform:20220402.1") {
         exclude(group: "net.coding.common")
     }
 
