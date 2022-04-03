@@ -1,18 +1,21 @@
 package net.coding.app.project.grpc.openapi;
 
+import net.coding.common.i18n.utils.LocaleMessageSource;
+import net.coding.e.proto.ApiCodeProto;
 import net.coding.grpc.client.permission.AclServiceGrpcClient;
-import net.coding.lib.project.dto.ConnectionTaskDTO;
 import net.coding.lib.project.credential.entity.Credential;
-import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.credential.enums.CredentialGenerated;
 import net.coding.lib.project.credential.enums.CredentialScope;
 import net.coding.lib.project.credential.enums.CredentialType;
+import net.coding.lib.project.credential.service.ProjectCredentialService;
+import net.coding.lib.project.dto.ConnectionTaskDTO;
+import net.coding.lib.project.entity.Project;
+import net.coding.lib.project.enums.VerificationMethodEnums;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.credential.CredentialForm;
 import net.coding.lib.project.grpc.client.CiJobGrpcClient;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.service.ProjectService;
-import net.coding.lib.project.credential.service.ProjectCredentialService;
 import net.coding.proto.open.api.project.credential.ProjectCredentialProto;
 import net.coding.proto.open.api.project.credential.ProjectCredentialServiceGrpc;
 import net.coding.proto.open.api.result.CommonProto;
@@ -35,6 +38,7 @@ import proto.open.api.CodeProto;
 import proto.platform.permission.PermissionProto;
 import proto.platform.user.UserProto;
 
+import static net.coding.e.proto.ApiCodeProto.Code.NOT_FOUND;
 import static proto.open.api.CodeProto.Code.INTERNAL_ERROR;
 import static proto.open.api.CodeProto.Code.INVALID_PARAMETER;
 import static proto.open.api.CodeProto.Code.SUCCESS;
@@ -50,6 +54,7 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
     private final AclServiceGrpcClient aclServiceGrpcClient;
     private final ProjectCredentialService credentialService;
     private final CiJobGrpcClient ciJobGrpcClient;
+    private final LocaleMessageSource localeMessageSource;
 
     @Override
     public void describeProjectCredentials(
@@ -103,7 +108,8 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
 
             // 支持的类型判断
             if (credentialType != CredentialType.USERNAME_PASSWORD
-                    && credentialType != CredentialType.SSH) {
+                    && credentialType != CredentialType.SSH
+                    && credentialType != CredentialType.KUBERNETES) {
                 createCredentialsResponse(responseObserver,
                         INVALID_PARAMETER,
                         CREDENTIAL_TYPE_NOT_SUPPORT,
@@ -121,6 +127,9 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
                 );
                 return;
             }
+
+            validateParameter(request, credentialType);
+
             CredentialForm form = CredentialForm.builder()
                     .teamId(request.getUser().getTeamId())
                     .projectId(request.getProjectId())
@@ -132,6 +141,12 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
                     .privateKey(request.getPrivateKey())
                     .scope(CredentialScope.PROJECT.getCode())
                     .allSelect(true)
+                    .acceptUntrustedCertificates(request.getAcceptUntrustedCertificates())
+                    .verificationMethod(request.getVerificationMethod())
+                    .kubConfig(request.getKubConfig())
+                    .clusterName(request.getClusterName())
+                    .url(request.getUrl())
+                    .secretKey(request.getSecretKey())
                     .build();
 
             List<CiJobProto.CiJob> ciJobs = ciJobGrpcClient.listByProject(request.getProjectId());
@@ -166,6 +181,34 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
                     INTERNAL_ERROR.name().toLowerCase(),
                     null
             );
+        }
+    }
+
+    @Override
+    public void deleteProjectCredential(
+            ProjectCredentialProto.DeleteProjectCredentialRequest request,
+            StreamObserver<ProjectCredentialProto.DeleteProjectCredentialResponse> responseObserver) {
+        ProjectCredentialProto.DeleteProjectCredentialResponse.Builder builder =
+                ProjectCredentialProto.DeleteProjectCredentialResponse.newBuilder();
+        CommonProto.Result.Builder resultBuilder = CommonProto.Result.newBuilder();
+        try {
+            valid(request.getUser().getId(), request.getProjectId());
+            credentialService.delete(request.getCredentialId(), request.getProjectId());
+            builder.setResult(resultBuilder.setCode(ApiCodeProto.Code.SUCCESS.getNumber()).build());
+        } catch (CoreException e) {
+            builder.setResult(
+                    resultBuilder.setCode(NOT_FOUND.getNumber())
+                            .setMessage(localeMessageSource.getMessage(e.getKey()))
+                            .build());
+        } catch (Exception e) {
+            log.error("RpcService deleteProjectCredential error Exception ", e);
+            builder.setResult(
+                    resultBuilder.setCode(ApiCodeProto.Code.INVALID_PARAMETER.getNumber())
+                            .setMessage(ApiCodeProto.Code.INVALID_PARAMETER.name().toLowerCase())
+                            .build());
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
         }
     }
 
@@ -248,7 +291,7 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
         if (currentUser == null) {
             throw CoreException.of(CoreException.ExceptionType.USER_NOT_EXISTS);
         }
-        Project project = projectService.getById(projectId);
+        Project project = projectService.getByIdAndTeamId(projectId, currentUser.getTeamId());
         if (project == null) {
             throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
         }
@@ -268,6 +311,35 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
         }
         if (!hasPermissionInProject) {
             throw CoreException.of(CoreException.ExceptionType.PERMISSION_DENIED);
+        }
+    }
+
+    private void validateParameter(ProjectCredentialProto.CreateProjectCredentialRequest request,
+                                   CredentialType credentialType
+    ) throws CoreException {
+        if (StringUtils.isBlank(request.getName())) {
+            throw CoreException.of(CoreException.ExceptionType.CREDENTIAL_NAME_NOT_EMPTY);
+        }
+        if (request.getName().length() > 30) {
+            throw CoreException.of(CoreException.ExceptionType.CREDENTIAL_NAME_TOO_LONG);
+        }
+        if (credentialType == CredentialType.KUBERNETES) {
+            if (StringUtils.isBlank(request.getVerificationMethod())) {
+                throw CoreException.of(CoreException.ExceptionType.CREDENTIAL_VERIFICATION_METHOD_NOT_EMPTY);
+            }
+            if (request.getVerificationMethod().equals(VerificationMethodEnums.Kubeconfig.name())) {
+                if (StringUtils.isBlank(request.getKubConfig())) {
+                    throw CoreException.of(CoreException.ExceptionType.CREDENTIAL_KUB_CONFIG_NOT_EMPTY);
+                }
+            }
+            if (request.getVerificationMethod().equals(VerificationMethodEnums.ServiceAccount.name())) {
+                if (StringUtils.isBlank(request.getUrl())) {
+                    throw CoreException.of(CoreException.ExceptionType.CREDENTIAL_URL_NOT_EMPTY);
+                }
+                if (StringUtils.isBlank(request.getSecretKey())) {
+                    throw CoreException.of(CoreException.ExceptionType.CREDENTIAL_SECRET_KEY_NOT_EMPTY);
+                }
+            }
         }
     }
 }
