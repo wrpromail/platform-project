@@ -10,14 +10,12 @@ import net.coding.common.base.gson.JSON;
 import net.coding.common.i18n.utils.LocaleMessageSource;
 import net.coding.common.util.TextUtils;
 import net.coding.e.proto.ActivitiesProto;
-import net.coding.exchange.dto.user.User;
 import net.coding.grpc.client.activity.ActivityGrpcClient;
 import net.coding.grpc.client.platform.LoggingGrpcClient;
 import net.coding.grpc.client.platform.UserServiceGrpcClient;
 import net.coding.lib.project.credential.entity.Credential;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectPreference;
-import net.coding.lib.project.setting.ProjectSetting;
 import net.coding.lib.project.entity.ProjectTweet;
 import net.coding.lib.project.enums.ActivityEnums;
 import net.coding.lib.project.enums.ProgramProjectEventEnums;
@@ -28,6 +26,7 @@ import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.metrics.ProjectCreateMetrics;
 import net.coding.lib.project.parameter.ProjectCreateParameter;
 import net.coding.lib.project.service.ProjectPreferenceService;
+import net.coding.lib.project.setting.ProjectSetting;
 import net.coding.lib.project.utils.DateUtil;
 import net.coding.lib.project.utils.ResourceUtil;
 import net.coding.lib.project.utils.TextUtil;
@@ -291,7 +290,7 @@ public class ProjectServiceHelper {
             initMap.put("readme", parameter.getGitReadmeEnabled());
             initMap.put("gitignore", parameter.getGitIgnore());
             initMap.put("license", parameter.getGitLicense());
-            initMap.put("template", parameter.getTemplate());
+            initMap.put("template", Optional.ofNullable(parameter.getTemplate()).orElse(EMPTY));
         } else {
             initMap.put("readme", "no");
             initMap.put("gitignore", "no");
@@ -300,7 +299,6 @@ public class ProjectServiceHelper {
 
         // ProjectCreateEvent 的触发要放到添加完成员后，否则创建团队项目时用户会无权限添加 README
         long prevTime = System.currentTimeMillis();
-        User user = userServiceGrpcClient.getUser(parameter.getUserId());
         asyncEventBus.post(
                 ProjectCreateEvent.builder()
                         .projectId(project.getId())
@@ -309,7 +307,7 @@ public class ProjectServiceHelper {
                         .rootId(0)
                         .initMap(initMap)
                         .quota(100 * 1024)
-                        .creator(user)
+                        .userId(parameter.getUserId())
                         .vcsType(parameter.getVcsType())
                         .shared(parameter.getShared() == 1)
                         .initDepot(parameter.getShouldInitDepot())

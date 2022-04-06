@@ -42,7 +42,6 @@ import proto.platform.user.UserProto;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PARAMETER_INVALID;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 @Service
 @Slf4j
@@ -93,17 +92,12 @@ public class ProjectSettingService {
         if (StringUtils.equals(projectSetting.getValue(), value)) {
             return projectSetting;
         }
-        String beforeValue = projectSetting.getValue();
-        boolean saved;
         projectSetting.setValue(value);
         projectSetting.setUpdatedAt(now);
         if (Objects.nonNull(projectSetting.getId()) && projectSetting.getId() > 0) {
-            saved = projectSettingsDao.update(projectSetting) > 0;
+            projectSettingsDao.update(projectSetting);
         } else {
-            saved = projectSettingsDao.insert(projectSetting) > 0;
-        }
-        if (saved) {
-            sendChangeEvent(project.getTeamOwnerId(), project.getId(), operatorId, code, value, beforeValue);
+            projectSettingsDao.insert(projectSetting);
         }
         return projectSetting;
     }
@@ -284,36 +278,8 @@ public class ProjectSettingService {
                         if (!e.getDefaultValue().equals(String.valueOf(org.apache.commons.lang.BooleanUtils.toInteger(TRUE)))) {
                             update(projectId, e.getCode(), String.valueOf(org.apache.commons.lang.BooleanUtils.toInteger(TRUE)));
                         }
-                        sendChangeEvent(
-                                parameter.getTeamId(),
-                                projectId,
-                                parameter.getUserId(),
-                                e.getCode(),
-                                String.valueOf(org.apache.commons.lang.BooleanUtils.toInteger(TRUE)),
-                                EMPTY);
                     });
         }
     }
 
-
-    public void sendChangeEvent(
-            Integer teamId,
-            Integer projectId,
-            Integer operatorId,
-            String code,
-            String value,
-            String beforeValue
-    ) {
-        asyncEventBus.post(
-                ProjectSettingChangeEvent
-                        .builder()
-                        .teamId(teamId)
-                        .projectId(projectId)
-                        .operatorId(operatorId)
-                        .code(code)
-                        .afterValue(value)
-                        .beforeValue(beforeValue)
-                        .build()
-        );
-    }
 }
