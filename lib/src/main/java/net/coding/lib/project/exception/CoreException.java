@@ -226,6 +226,14 @@ public class CoreException extends Exception {
         CREDENTIAL_TYPE_INVALID(6605, "credential_type_invalid"),
         CREDENTIAL_TASK_TYPE_INVALID(6606, "credential_task_type_invalid"),
         CREDENTIAL_PASSWORD_BYTES_TOO_LONG(6607, "credential_password_bytes_too_long"),
+        CREDENTIAL_NAME_NOT_EMPTY(6608, "credential_name_not_empty"),
+        CREDENTIAL_NAME_TOO_LONG(6609, "certificate_name_too_long"),
+        CREDENTIAL_VERIFICATION_METHOD_NOT_EMPTY(6610, "credential_verification_method_not_empty"),
+        CREDENTIAL_KUB_CONFIG_NOT_EMPTY(6611, "credential_kub_config_not_empty"),
+        CREDENTIAL_URL_NOT_EMPTY(6612, "credential_kub_url_not_empty"),
+        CREDENTIAL_SECRET_KEY_NOT_EMPTY(6613, "credential_secret_key_not_empty"),
+
+
         CI_JOB_NOT_FOUND(6301, "ci_job_not_found"),
         //全局资源
         GLOBAL_RESOURCE_SCOPE_TYPE_NOT_EXIST(8001, "global_resource_scope_type_not_exist"),
