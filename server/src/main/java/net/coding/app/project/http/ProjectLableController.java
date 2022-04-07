@@ -117,6 +117,7 @@ public class ProjectLableController {
             @ApiImplicitParam(name = "projectId", value = "项目 ID（必填）", paramType = "integer", required = true),
             @ApiImplicitParam(name = "form", value = "项目表单（必填）", paramType = "form", required = true)
     })
+    @ProjectApiProtector(function = Function.ProjectLabel, action = Action.Create)
     @ProtectedAPI
     @RequestMapping(value = "", method = RequestMethod.POST)
     public int createLabel(
