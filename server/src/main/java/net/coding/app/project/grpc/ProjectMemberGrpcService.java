@@ -4,6 +4,7 @@ package net.coding.app.project.grpc;
 import net.coding.grpc.client.permission.AclServiceGrpcClient;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.grpc.client.platform.UserServiceGrpcClient;
+import net.coding.lib.project.additional.ProjectAdditionalService;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.enums.RoleTypeEnum;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -55,6 +57,8 @@ public class ProjectMemberGrpcService extends ProjectMemberServiceGrpc.ProjectMe
     private final AclServiceGrpcClient aclServiceGrpcClient;
 
     private final AdvancedRoleServiceGrpcClient advancedRoleServiceGrpcClient;
+
+    private final ProjectAdditionalService projectAdditionalService;
 
     @Override
     public void addProjectMember(
@@ -281,6 +285,29 @@ public class ProjectMemberGrpcService extends ProjectMemberServiceGrpc.ProjectMe
             responseObserver.onCompleted();
         }
     }
+
+    @Override
+    public void getProjectManager(ProjectMemberProto.GetProjectManagerRequest request, StreamObserver<ProjectMemberProto.GetProjectManagerResponse> responseObserver) {
+        ProjectMemberProto.GetProjectManagerResponse.Builder builder = ProjectMemberProto.GetProjectManagerResponse.newBuilder();
+        try {
+            Map<Integer, List<Integer>> projectAdmin = projectAdditionalService.findProjectAdmin(request.getProjectIdList());
+            Map<Integer, ProjectMemberProto.ProjectUser> result = StreamEx.of(projectAdmin.entrySet())
+                    .toMap(Map.Entry::getKey,
+                            d -> ProjectMemberProto.ProjectUser.newBuilder()
+                                    .addAllUserId(d.getValue())
+                                    .build(),
+                            (l, r) -> r
+                    );
+            builder.setCode(SUCCESS).putAllData(result);
+        } catch (Exception e) {
+            log.error("rpcService isProjectMember error Exception ", e);
+            builder.setCode(INTERNAL_ERROR).setMessage(e.getMessage());
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        }
+    }
+
 
     private ProjectMemberProto.ProjectMember toProtoProjectMember(ProjectMember member) {
         return memberToProto(member.getProjectId(), userGrpcClient.getUserById(member.getUserId()));

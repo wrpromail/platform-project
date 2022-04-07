@@ -91,6 +91,21 @@ message IsProjectMemberResponse {
   bool result = 3;
 }
 
+message ProjectUser{
+  repeated uint32 userId = 3;
+}
+
+message GetProjectManagerRequest{
+  repeated uint32 projectId = 1;
+}
+
+message GetProjectManagerResponse{
+  proto.common.Code code = 1;
+  string message = 2;
+  map<uint32, ProjectUser> data = 3;
+}
+
+
 service ProjectMemberService {
   rpc AddProjectMember (AddProjectMemberRequest) returns (AddProjectMemberResponse);
   //删除项目成员
@@ -107,4 +122,6 @@ service ProjectMemberService {
   rpc FindProjectMembersByProjectIdsAndUserId (FindProjectMemberByProjectIdsAndUserIdRequest) returns (FindProjectMembersResponse);
   //是不是项目成员
   rpc isProjectMember (IsProjectMemberRequest) returns (IsProjectMemberResponse);
+  //获取 projectIds 的管理员列表
+  rpc GetProjectManager(GetProjectManagerRequest) returns(GetProjectManagerResponse);
 }
