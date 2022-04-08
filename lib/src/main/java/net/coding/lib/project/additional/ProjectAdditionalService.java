@@ -1,18 +1,29 @@
 package net.coding.lib.project.additional;
 
+import com.google.common.collect.Lists;
+
 import net.coding.common.util.BeanUtils;
+import net.coding.exchange.exception.TeamNotExistException;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.lib.project.additional.dto.ProjectAdditionalDTO;
 import net.coding.lib.project.additional.dto.ProjectMemberDTO;
+import net.coding.lib.project.dao.ProjectDao;
 import net.coding.lib.project.dao.ProjectMemberDao;
 import net.coding.lib.project.dao.TeamProjectDao;
+import net.coding.lib.project.entity.Project;
+import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.group.ProjectGroupDTO;
 import net.coding.lib.project.group.ProjectGroupDTOService;
 import net.coding.lib.project.group.ProjectGroupService;
+import net.coding.lib.project.grpc.client.TeamGrpcClient;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
+import net.coding.lib.project.service.member.ProjectMemberInspectService;
 import net.coding.lib.project.setting.ProjectSettingFunctionService;
 import net.coding.platform.permission.api.RoleType;
+import net.coding.platform.ram.pojo.dto.response.GrantObjectIdResponseDTO;
+import net.coding.platform.ram.pojo.dto.response.PolicyResponseDTO;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +41,10 @@ import java.util.stream.Stream;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import one.util.streamex.StreamEx;
 import proto.acl.AclProto;
+import proto.platform.team.TeamProto;
+import proto.platform.user.UserProto;
 
 @Slf4j
 @Service
@@ -43,6 +57,9 @@ public class ProjectAdditionalService {
     private final ProjectMemberDao projectMemberDao;
     private final ProjectGroupService projectGroupService;
     private final ProjectGroupDTOService projectGroupDTOService;
+    private final ProjectMemberInspectService projectMemberInspectService;
+    private final TeamGrpcClient teamGrpcClient;
+    private final ProjectDao projectDao;
 
     public Map<Integer, ProjectAdditionalDTO> getWithFunctionAndAdmin(
             Integer teamId,
@@ -143,6 +160,65 @@ public class ProjectAdditionalService {
                                 .orElse(null);
                         List<Integer> usersOfRole = advancedRoleServiceGrpcClient.findUsersOfRole(adminRole);
                         map.put(p, usersOfRole);
+                    } catch (Exception e) {
+                        log.warn("Find project admin user error", e);
+                    }
+                });
+        return map;
+    }
+
+
+    /**
+     * 查询项目管理员
+     *
+     * @param project 项目id
+     * @return Map<Integer: 项目id, List < Integer> : 管理员userId>
+     */
+    public Map<Integer, List<Integer>> findProjectAdminWithRam(List<Integer> project) throws TeamNotExistException {
+        if (CollectionUtils.isEmpty(project)) {
+            return new HashMap<>();
+        }
+        List<Project> projects = projectDao.getByIds(project, BeanUtils.getDefaultDeletedAt());
+        Integer teamId = StreamEx.of(projects)
+                .findFirst()
+                .map(Project::getTeamOwnerId)
+                .orElse(null);
+        if (teamId == null) {
+            throw new TeamNotExistException();
+        }
+        if (StreamEx.of(projects).anyMatch(d -> !d.getTeamOwnerId().equals(teamId))) {
+            throw new RuntimeException("Parameter project not in a team");
+        }
+        TeamProto.GetTeamResponse team = teamGrpcClient.getTeam(teamId);
+        Integer owner = Optional.ofNullable(team)
+                .map(TeamProto.GetTeamResponse::getData)
+                .map(TeamProto.Team::getOwner)
+                .map(UserProto.User::getId)
+                .orElse(null);
+        if (owner == null) {
+            throw new RuntimeException("Team owner not found");
+        }
+        PolicyResponseDTO policyByName =
+                projectMemberInspectService.getPolicyByName(owner, RoleType.ProjectAdmin.name());
+        if (policyByName == null || policyByName.getPolicyId() == null) {
+            throw new RuntimeException("Get policy by name error");
+        }
+        Map<Integer, List<Integer>> map = new HashMap<>();
+        projects.stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .forEach(p -> {
+                    try {
+                        List<GrantObjectIdResponseDTO> projectManagerGrant =
+                                projectMemberInspectService.listGrantObjectIds(owner, p, policyByName.getPolicyId());
+                        List<ProjectMember> projectMembers = StreamEx.of(projectManagerGrant)
+                                .map(g -> ProjectMember.builder()
+                                        .principalId(g.getGrantObjectId())
+                                        .principalType(g.getGrantScope())
+                                        .build())
+                                .toList();
+                        Set<Integer> principalMemberUserIds = projectMemberInspectService.getPrincipalMemberUserIds(projectMembers);
+                        map.put(p.getId(), Lists.newArrayList(principalMemberUserIds));
                     } catch (Exception e) {
                         log.warn("Find project admin user error", e);
                     }

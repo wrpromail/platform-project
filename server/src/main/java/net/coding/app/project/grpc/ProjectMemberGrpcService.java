@@ -300,7 +300,7 @@ public class ProjectMemberGrpcService extends ProjectMemberServiceGrpc.ProjectMe
                     );
             builder.setCode(SUCCESS).putAllData(result);
         } catch (Exception e) {
-            log.error("rpcService isProjectMember error Exception ", e);
+            log.error("rpcService getProjectManager error Exception ", e);
             builder.setCode(INTERNAL_ERROR).setMessage(e.getMessage());
         } finally {
             responseObserver.onNext(builder.build());
@@ -308,6 +308,27 @@ public class ProjectMemberGrpcService extends ProjectMemberServiceGrpc.ProjectMe
         }
     }
 
+    @Override
+    public void getProjectManagerWithRam(ProjectMemberProto.GetProjectManagerRequest request, StreamObserver<ProjectMemberProto.GetProjectManagerResponse> responseObserver) {
+        ProjectMemberProto.GetProjectManagerResponse.Builder builder = ProjectMemberProto.GetProjectManagerResponse.newBuilder();
+        try {
+            Map<Integer, List<Integer>> projectAdmin = projectAdditionalService.findProjectAdminWithRam(request.getProjectIdList());
+            Map<Integer, ProjectMemberProto.ProjectUser> result = StreamEx.of(projectAdmin.entrySet())
+                    .toMap(Map.Entry::getKey,
+                            d -> ProjectMemberProto.ProjectUser.newBuilder()
+                                    .addAllUserId(d.getValue())
+                                    .build(),
+                            (l, r) -> r
+                    );
+            builder.setCode(SUCCESS).putAllData(result);
+        } catch (Exception e) {
+            log.error("rpcService getProjectManagerWithRam error Exception ", e);
+            builder.setCode(INTERNAL_ERROR).setMessage(e.getMessage());
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        }
+    }
 
     private ProjectMemberProto.ProjectMember toProtoProjectMember(ProjectMember member) {
         return memberToProto(member.getProjectId(), userGrpcClient.getUserById(member.getUserId()));
