@@ -4,8 +4,10 @@ import com.google.common.eventbus.AsyncEventBus;
 
 import net.coding.common.base.event.ActivityEvent;
 import net.coding.common.base.event.ProjectNameChangeEvent;
+import net.coding.common.eventbus.Pubsub;
 import net.coding.common.i18n.utils.LocaleMessageSource;
 import net.coding.e.grpcClient.collaboration.exception.MilestoneException;
+import net.coding.events.all.platform.ProjectEventProto;
 import net.coding.grpc.client.permission.AclServiceGrpcClient;
 import net.coding.grpc.client.platform.LoggingGrpcClient;
 import net.coding.lib.project.entity.Project;
@@ -50,6 +52,8 @@ public abstract class AbstractProjectAdaptorService {
     protected final LocaleMessageSource localeMessageSource;
 
     protected final NotificationGrpcClient notificationGrpcClient;
+
+    protected final Pubsub pubsub;
 
     public abstract Integer pmType();
 
@@ -148,6 +152,16 @@ public abstract class AbstractProjectAdaptorService {
                         .newName(project.getName())
                         .build();
         asyncEventBus.post(projectNameChangeEvent);
+    }
+
+    public void postProjectDisplayNameChangeEvent(Project project) {
+        ProjectEventProto.ProjectDisplayNameChangeEvent build =
+                ProjectEventProto.ProjectDisplayNameChangeEvent.newBuilder()
+                        .setTeamId(project.getTeamOwnerId())
+                        .setProjectId(project.getId())
+                        .setNewDisplayName(project.getDisplayName())
+                        .build();
+        pubsub.publish(build);
     }
 
     public void insertOperationLog(Integer userId, Project project, Short action, String message) {

@@ -555,6 +555,8 @@ public class ProjectService {
 
         if (postDisplayNameFlag) {
             projectAdaptorFactory.create(project.getPmType())
+                    .postProjectDisplayNameChangeEvent(project);
+            projectAdaptorFactory.create(project.getPmType())
                     .postActivityEvent(userId, project, ACTION_UPDATE_DISPLAY_NAME);
         }
         if (postDescriptionFlag) {

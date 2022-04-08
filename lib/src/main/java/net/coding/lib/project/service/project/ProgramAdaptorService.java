@@ -4,6 +4,7 @@ import com.google.common.eventbus.AsyncEventBus;
 
 import net.coding.common.base.event.ProgramEvent;
 import net.coding.common.eventbus.AsyncExternalEventBus;
+import net.coding.common.eventbus.Pubsub;
 import net.coding.common.i18n.utils.LocaleMessageSource;
 import net.coding.e.grpcClient.collaboration.MilestoneGrpcClient;
 import net.coding.e.grpcClient.collaboration.exception.MilestoneException;
@@ -49,8 +50,8 @@ public class ProgramAdaptorService extends AbstractProjectAdaptorService {
 
     private final SystemSettingGrpcClient systemSettingGrpcClient;
 
-    public ProgramAdaptorService(AsyncEventBus asyncEventBus, LoggingGrpcClient loggingGrpcClient, TeamGrpcClient teamGrpcClient, UserGrpcClient userGrpcClient, AclServiceGrpcClient aclServiceGrpcClient, LocaleMessageSource localeMessageSource, NotificationGrpcClient notificationGrpcClient, AsyncExternalEventBus asyncExternalEventBus, MilestoneGrpcClient milestoneGrpcClient, EnterpriseGrpcClient enterpriseGrpcClient, ProgramMemberService programMemberService, SystemSettingGrpcClient systemSettingGrpcClient) {
-        super(asyncEventBus, loggingGrpcClient, teamGrpcClient, userGrpcClient, aclServiceGrpcClient, localeMessageSource, notificationGrpcClient);
+    public ProgramAdaptorService(AsyncEventBus asyncEventBus, LoggingGrpcClient loggingGrpcClient, TeamGrpcClient teamGrpcClient, UserGrpcClient userGrpcClient, AclServiceGrpcClient aclServiceGrpcClient, LocaleMessageSource localeMessageSource, NotificationGrpcClient notificationGrpcClient, Pubsub pubsub, AsyncExternalEventBus asyncExternalEventBus, MilestoneGrpcClient milestoneGrpcClient, EnterpriseGrpcClient enterpriseGrpcClient, ProgramMemberService programMemberService, SystemSettingGrpcClient systemSettingGrpcClient) {
+        super(asyncEventBus, loggingGrpcClient, teamGrpcClient, userGrpcClient, aclServiceGrpcClient, localeMessageSource, notificationGrpcClient, pubsub);
         this.asyncExternalEventBus = asyncExternalEventBus;
         this.milestoneGrpcClient = milestoneGrpcClient;
         this.enterpriseGrpcClient = enterpriseGrpcClient;

@@ -5,6 +5,7 @@ import com.google.common.eventbus.AsyncEventBus;
 import net.coding.common.base.event.ProjectArchiveEvent;
 import net.coding.common.base.event.ProjectDeleteEvent;
 import net.coding.common.base.event.ProjectUnarchiveEvent;
+import net.coding.common.eventbus.Pubsub;
 import net.coding.common.i18n.utils.LocaleMessageSource;
 import net.coding.grpc.client.permission.AclServiceGrpcClient;
 import net.coding.grpc.client.platform.LoggingGrpcClient;
@@ -28,8 +29,8 @@ public class ProjectAdaptorService extends AbstractProjectAdaptorService {
     private final ProgramMemberService programMemberService;
     private final ProgramMemberPrincipalService programMemberPrincipalService;
 
-    public ProjectAdaptorService(AsyncEventBus asyncEventBus, LoggingGrpcClient loggingGrpcClient, TeamGrpcClient teamGrpcClient, UserGrpcClient userGrpcClient, AclServiceGrpcClient aclServiceGrpcClient, LocaleMessageSource localeMessageSource, NotificationGrpcClient notificationGrpcClient, RamTransformTeamService ramTransformTeamService, ProgramMemberService programMemberService, ProgramMemberPrincipalService programMemberPrincipalService) {
-        super(asyncEventBus, loggingGrpcClient, teamGrpcClient, userGrpcClient, aclServiceGrpcClient, localeMessageSource, notificationGrpcClient);
+    public ProjectAdaptorService(AsyncEventBus asyncEventBus, LoggingGrpcClient loggingGrpcClient, TeamGrpcClient teamGrpcClient, UserGrpcClient userGrpcClient, AclServiceGrpcClient aclServiceGrpcClient, LocaleMessageSource localeMessageSource, NotificationGrpcClient notificationGrpcClient, Pubsub pubsub, RamTransformTeamService ramTransformTeamService, ProgramMemberService programMemberService, ProgramMemberPrincipalService programMemberPrincipalService) {
+        super(asyncEventBus, loggingGrpcClient, teamGrpcClient, userGrpcClient, aclServiceGrpcClient, localeMessageSource, notificationGrpcClient, pubsub);
         this.ramTransformTeamService = ramTransformTeamService;
         this.programMemberService = programMemberService;
         this.programMemberPrincipalService = programMemberPrincipalService;
