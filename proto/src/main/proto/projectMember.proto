@@ -124,4 +124,6 @@ service ProjectMemberService {
   rpc isProjectMember (IsProjectMemberRequest) returns (IsProjectMemberResponse);
   //获取 projectIds 的管理员列表
   rpc GetProjectManager(GetProjectManagerRequest) returns(GetProjectManagerResponse);
+  //通过新权限获取 projectIds 的管理员列表
+  rpc GetProjectManagerWithRam(GetProjectManagerRequest) returns(GetProjectManagerResponse);
 }

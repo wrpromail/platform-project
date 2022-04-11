@@ -275,6 +275,7 @@ public class ProjectMemberPrincipalWriteService {
         }
         transactionTemplate.execute(status -> {
             projectMemberDao.batchDelete(members);
+            projectMemberInspectService.removeResourceGrant(currentUserId, project, members);
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
                 @Override
                 public void afterCommit() {
@@ -286,7 +287,6 @@ public class ProjectMemberPrincipalWriteService {
                             teamId,
                             project.getId()
                     );
-                    projectMemberInspectService.removeResourceGrant(currentUserId, project, members);
                 }
             });
             log.debug(
