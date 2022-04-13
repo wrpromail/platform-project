@@ -113,8 +113,12 @@ public abstract class AbstractProjectMemberAdaptorService {
 
         postProjectMemberCreateEvent(project.getId(), projectMember.getUserId());
 
-        postActivityEvent(operationUserId, project.getId(),
-                projectMember, ProjectMember.ACTION_ADD_MEMBER);
+        postActivityEvent(
+                operationUserId,
+                project.getId(),
+                projectMember.getUserId(),
+                ProjectMember.ACTION_ADD_MEMBER
+        );
 
         if (insertRole.intValue() > 0) {
             postProjectMemberRoleChangeEvent(project.getId(), insertRole.intValue(), projectMember.getUserId());
@@ -178,6 +182,12 @@ public abstract class AbstractProjectMemberAdaptorService {
                     if (CollectionUtils.isEmpty(roleIds)) {
                         roleIds = new HashSet<>(0);
                     }
+                    postActivityEvent(
+                            operationUserId,
+                            project.getId(),
+                            userId,
+                            ProjectMember.ACTION_ADD_MEMBER
+                    );
                     postProjectMemberCreateEvent(project.getId(), userId);
                     StreamEx.of(roleIds)
                             .forEach(roleId -> postProjectMemberRoleChangeEvent(project.getId(), roleId, userId));
@@ -203,8 +213,12 @@ public abstract class AbstractProjectMemberAdaptorService {
                         }).toList()
         );
         postProjectMemberDeleteEvent(project.getId(), projectMember.getUserId());
-        postActivityEvent(currentUserId, project.getId(),
-                projectMember, ProjectMember.ACTION_REMOVE_MEMBER);
+        postActivityEvent(
+                currentUserId,
+                project.getId(),
+                projectMember.getUserId(),
+                ProjectMember.ACTION_REMOVE_MEMBER
+        );
 
         List<Integer> userIds = new ArrayList<>();
         userIds.add(projectMember.getUserId());
@@ -249,6 +263,12 @@ public abstract class AbstractProjectMemberAdaptorService {
         StreamEx.of(userIds)
                 .forEach(userId -> {
                     postProjectMemberDeleteEvent(project.getId(), userId);
+                    postActivityEvent(
+                            operationUserId,
+                            project.getId(),
+                            userId,
+                            ProjectMember.ACTION_REMOVE_MEMBER
+                    );
                     deleteMemberEventTrigger.trigger(
                             ImmutableList.of(String.valueOf(0)),
                             ProjectMember.builder().userId(userId).build(),
@@ -270,8 +290,12 @@ public abstract class AbstractProjectMemberAdaptorService {
         );
         postProjectMemberDeleteEvent(project.getId(), projectMember.getUserId());
 
-        postActivityEvent(projectMember.getUserId(), project.getId(),
-                projectMember, ProjectMember.ACTION_QUIT);
+        postActivityEvent(
+                projectMember.getUserId(),
+                project.getId(),
+                projectMember.getUserId(),
+                ProjectMember.ACTION_QUIT
+        );
 
         TeamProto.Team team = teamGrpcClient.getTeam(project.getId()).getData();
         List<Integer> userIds = new ArrayList<>();
@@ -333,12 +357,12 @@ public abstract class AbstractProjectMemberAdaptorService {
     }
 
     private void postActivityEvent(Integer userId, Integer projectId,
-                                   ProjectMember projectMember, Short action) {
+                                   Integer targetUserId, Short action) {
         asyncEventBus.post(
                 ActivityEvent.builder()
                         .creatorId(userId)
                         .type(net.coding.e.lib.core.bean.ProjectMember.class)
-                        .targetId(projectMember.getId())
+                        .targetId(targetUserId)
                         .projectId(projectId)
                         .action(action)
                         .content(EMPTY)
