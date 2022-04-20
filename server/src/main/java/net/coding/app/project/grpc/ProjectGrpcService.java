@@ -450,16 +450,42 @@ public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBas
     }
 
     private List<ProjectProto.Project> toProtoProjects(List<Project> projects) {
+        Integer teamId = StreamEx.of(projects)
+                .findFirst()
+                .map(Project::getTeamOwnerId)
+                .orElse(null);
+        TeamProto.Team team = Optional.ofNullable(teamId)
+                .map(teamGrpcClient::getTeam)
+                .map(TeamProto.GetTeamResponse::getData)
+                .orElse(null);
+        String hostWithProtocol = Optional.ofNullable(teamId)
+                .map(teamGrpcClient::getTeamHostWithProtocolByTeamId)
+                .orElse(EMPTY);
         return StreamEx.of(projects)
                 .nonNull()
-                .map(this::toProtoProject)
+                .map(project -> toProtoProject(team, project, hostWithProtocol))
                 .nonNull()
                 .collect(Collectors.toList());
     }
 
     private ProjectProto.Project toProtoProject(Project project) {
-        String htmlUrl = getHtmlUrl(project);
+        TeamProto.Team team = Optional.ofNullable(project.getTeamOwnerId())
+                .map(teamGrpcClient::getTeam)
+                .map(TeamProto.GetTeamResponse::getData)
+                .orElse(null);
+        String hostWithProtocol = Optional.ofNullable(project.getTeamOwnerId())
+                .map(teamGrpcClient::getTeamHostWithProtocolByTeamId)
+                .orElse(EMPTY);
+        return toProtoProject(team, project, hostWithProtocol);
+    }
+
+    private ProjectProto.Project toProtoProject(
+            TeamProto.Team team,
+            Project project,
+            String hostWithProtocol) {
+        String htmlUrl = getHtmlUrl(project, hostWithProtocol);
         String projectPath = getProjectPath(project);
+        String apiUrl = getApiUrl(team, project, hostWithProtocol);
         return ProjectProto.Project.newBuilder()
                 .setId(project.getId())
                 .setName(StringUtils.defaultString(project.getName()))
@@ -474,16 +500,28 @@ public class ProjectGrpcService extends ProjectServiceGrpc.ProjectServiceImplBas
                 .setIsArchived(project.getDeletedAt().equals(BeanUtils.getDefaultArchivedAt()))
                 .setPmType(project.getPmType())
                 .setPmTypeName(PmTypeEnums.of(project.getPmType()).name())
-                .setCreatedAt(com.google.protobuf.util.Timestamps.fromMillis(project.getCreatedAt().getTime()))
+                .setApiUrl(StringUtils.defaultString(apiUrl))
+                .setCreatedAt(project.getCreatedAt().getTime())
+                .setUpdatedAt(project.getUpdatedAt().getTime())
                 .build();
     }
 
-    private String getHtmlUrl(Project project) {
-        String hostWithProtocol = teamGrpcClient.getTeamHostWithProtocolByTeamId(project.getTeamOwnerId());
+    private String getHtmlUrl(Project project, String hostWithProtocol) {
         return hostWithProtocol + getProjectPath(project);
     }
 
     private String getProjectPath(Project project) {
         return "/p/" + project.getName();
+    }
+
+    private String getApiUrl(TeamProto.Team team, Project project, String hostWithProtocol) {
+        return hostWithProtocol + "/api" + getBackendPath(team, project);
+    }
+
+    public String getBackendPath(TeamProto.Team team, Project project) {
+        if (Objects.nonNull(team)) {
+            return "/team/" + team.getGlobalKey() + "/project/" + project.getName();
+        }
+        return StringUtils.EMPTY;
     }
 }
