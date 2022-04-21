@@ -27,7 +27,9 @@ message Project {
   bool isArchived = 11;
   int32 pmType = 12;
   string pmTypeName = 13;
-  google.protobuf.Timestamp created_at = 14;
+  string apiUrl = 14;
+  int64 createdAt = 15;
+  int64 updatedAt = 16;
 }
 
 message GetProjectResponse {
