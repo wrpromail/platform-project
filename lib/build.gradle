@@ -22,9 +22,13 @@ dependencies {
     compile 'com.squareup.okhttp3:logging-interceptor:4.6.0'
     compile "net.coding.common:rpc-client:${commonVersion}"
     compile "net.coding.common:util:${commonVersion}"
-    compile "net.coding.common:base:${commonVersion}"
+    compile("net.coding.common:base:${commonVersion}"){
+        exclude(group:"org.apache.struts")
+    }
     compile "net.coding.common:i18n:${commonVersion}"
-    compile "net.coding.common:vendor:${commonVersion}"
+    compile ("net.coding.common:vendor:${commonVersion}"){
+        exclude(group:"com.thoughtworks.xstream")
+    }
     compile "net.coding.common:rpc-server:${commonVersion}"
     compile "net.coding.common:eventbus:${commonVersion}"
     compile "net.coding.common:server:${commonVersion}"
