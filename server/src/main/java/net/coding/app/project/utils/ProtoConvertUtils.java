@@ -2,8 +2,11 @@ package net.coding.app.project.utils;
 
 import net.coding.common.base.util.QiniuCDNReplaceUtil;
 import net.coding.common.constants.ProjectConstants;
+import net.coding.common.util.BeanUtils;
 import net.coding.common.util.TextUtils;
 import net.coding.lib.project.AppProperties;
+import net.coding.lib.project.dao.ProgramProjectDao;
+import net.coding.lib.project.entity.ProgramProject;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.utils.DateUtil;
 
@@ -16,12 +19,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import proto.open.api.project.ProjectProto;
 
 @Component
 public class ProtoConvertUtils {
+
+    @Autowired
+    private ProgramProjectDao programProjectDao;
 
     @Autowired
     private AppProperties appProperties;
@@ -78,6 +85,16 @@ public class ProtoConvertUtils {
             icon = appProperties.getDomain().getSchemaHome() + icon;
         }
         icon = QiniuCDNReplaceUtil.replace(icon);
+        Set<Integer> programIds = programProjectDao.select(ProgramProject.builder()
+                .projectId(project.getId())
+                .deletedAt(BeanUtils.getDefaultDeletedAt())
+                .build()
+        )
+                .stream()
+                .map(ProgramProject::getProgramId)
+                .collect(Collectors.toSet());
+
+
         return net.coding.proto.open.api.project.ProjectProto.Project.newBuilder()
                 .setId(project.getId())
                 .setCreatedAt(project.getCreatedAt().getTime())
@@ -96,6 +113,7 @@ public class ProtoConvertUtils {
                 .setTeamId(ObjectUtils.defaultIfNull(project.getTeamOwnerId(), -1))
                 .setIsDemo(false)
                 .setArchived(ProjectConstants.isArchived(DateUtil.dateToStr(project.getDeletedAt())))
+                .addAllProgramIds(programIds)
                 .build();
     }
 

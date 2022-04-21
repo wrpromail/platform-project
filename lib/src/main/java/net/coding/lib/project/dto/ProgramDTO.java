@@ -47,6 +47,9 @@ public class ProgramDTO implements Serializable {
     @ApiModelProperty(value = "归档时间")
     public Timestamp updatedAt;
 
+    @ApiModelProperty(value = "创建时间")
+    public Timestamp createdAt;
+
     @ApiModelProperty(value = "参与的项目")
     private List<ProjectDTO> projects;
 

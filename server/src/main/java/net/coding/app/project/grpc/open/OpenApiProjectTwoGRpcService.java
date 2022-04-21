@@ -2,9 +2,11 @@ package net.coding.app.project.grpc.open;
 
 import net.coding.app.project.utils.ProtoConvertUtils;
 import net.coding.common.i18n.utils.LocaleMessageSource;
+import net.coding.e.proto.ApiCodeProto;
 import net.coding.grpc.client.permission.AclServiceGrpcClient;
 import net.coding.lib.project.common.GRpcMetadataContextHolder;
 import net.coding.lib.project.entity.Project;
+import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.interceptor.GRpcHeaderServerInterceptor;
@@ -22,15 +24,11 @@ import java.util.Objects;
 import io.grpc.stub.StreamObserver;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import proto.open.api.CodeProto;
 import proto.platform.permission.PermissionProto;
 import proto.platform.user.UserProto;
 
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PERMISSION_DENIED;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NOT_EXIST;
-import static proto.open.api.CodeProto.Code.INVALID_PARAMETER;
-import static proto.open.api.CodeProto.Code.NOT_FOUND;
-import static proto.open.api.CodeProto.Code.SUCCESS;
 
 /**
  * @Description: OPEN API 项目相关接口，非 OPEN API 业务 勿修改
@@ -58,10 +56,13 @@ public class OpenApiProjectTwoGRpcService extends ProjectServiceGrpc.ProjectServ
     public void describeProjectByName(
             ProjectProto.DescribeProjectByNameRequest request,
             StreamObserver<ProjectProto.DescribeProjectByNameResponse> responseObserver) {
+        ProjectProto.DescribeProjectByNameResponse.Builder builder =
+                ProjectProto.DescribeProjectByNameResponse.newBuilder();
+        CommonProto.Result.Builder resultBuilder = CommonProto.Result.newBuilder();
         try {
             UserProto.User currentUser = userGrpcClient.getUserById(request.getUser().getId());
             Project project = projectService.getByNameAndTeamId(request.getProjectName(), request.getUser().getTeamId());
-            if (project == null) {
+            if (Objects.isNull(project)) {
                 throw CoreException.of(PROJECT_NOT_EXIST);
             }
             String projectId = GRpcMetadataContextHolder.get().getDeployTokenProjectId();
@@ -86,35 +87,78 @@ public class OpenApiProjectTwoGRpcService extends ProjectServiceGrpc.ProjectServ
                     }
                 }
             }
-            DescribeProjectResponse(responseObserver, SUCCESS, SUCCESS.name().toLowerCase(), project);
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.SUCCESS.getNumber())
+                            .build()
+            )
+                    .setProject(protoConvertUtils.describeProjectToProjectProto(project));
         } catch (CoreException e) {
-            DescribeProjectResponse(responseObserver, NOT_FOUND,
-                    localeMessageSource.getMessage(e.getKey()), null);
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.NOT_FOUND.getNumber())
+                            .setMessage(localeMessageSource.getMessage(e.getKey()))
+                            .build()
+            );
         } catch (Exception e) {
-            log.error("rpcService describeProjectByName error Exception ", e);
-            DescribeProjectResponse(responseObserver, INVALID_PARAMETER,
-                    INVALID_PARAMETER.name().toLowerCase(), null);
+            log.error("RpcService describeProjectByName error Exception ", e);
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.INVALID_PARAMETER.getNumber())
+                            .setMessage(ApiCodeProto.Code.INVALID_PARAMETER.name().toLowerCase())
+                            .build()
+            );
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
         }
     }
 
-    private void DescribeProjectResponse(
-            StreamObserver<ProjectProto.DescribeProjectByNameResponse> responseObserver,
-            CodeProto.Code code,
-            String message,
-            Project project) {
-        CommonProto.Result result = CommonProto.Result.newBuilder()
-                .setCode(code.getNumber())
-                .setId(0)
-                .setMessage(message)
-                .build();
-        ProjectProto.DescribeProjectByNameResponse.Builder builder = ProjectProto
-                .DescribeProjectByNameResponse.newBuilder()
-                .setResult(result);
-
-        if (Objects.nonNull(project)) {
-            builder.setProject(protoConvertUtils.describeProjectToProjectProto(project));
+    public void describeOneProject(
+            ProjectProto.DescribeOneProjectRequest request,
+            StreamObserver<ProjectProto.DescribeOneProjectResponse> responseObserver) {
+        ProjectProto.DescribeOneProjectResponse.Builder builder =
+                ProjectProto.DescribeOneProjectResponse.newBuilder();
+        CommonProto.Result.Builder resultBuilder = CommonProto.Result.newBuilder();
+        try {
+            Project project = projectService.getByIdAndTeamId(
+                    request.getProjectId(),
+                    request.getUser().getTeamId()
+            );
+            if (Objects.isNull(project)) {
+                throw CoreException.of(PROJECT_NOT_EXIST);
+            }
+            ProjectMember projectMember = projectMemberService.getByProjectIdAndUserId(
+                    request.getProjectId(),
+                    request.getUser().getId()
+            );
+            if (Objects.isNull(projectMember)) {
+                throw CoreException.of(PROJECT_NOT_EXIST);
+            }
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.SUCCESS.getNumber())
+                            .build()
+            )
+                    .setProject(protoConvertUtils.describeProjectToProjectProto(project));
+        } catch (CoreException e) {
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.NOT_FOUND.getNumber())
+                            .setMessage(localeMessageSource.getMessage(e.getKey()))
+                            .build()
+            );
+        } catch (Exception e) {
+            log.error("RpcService describeOneProject error Exception ", e);
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.INVALID_PARAMETER.getNumber())
+                            .setMessage(ApiCodeProto.Code.INVALID_PARAMETER.name().toLowerCase())
+                            .build()
+            );
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
         }
-        responseObserver.onNext(builder.build());
-        responseObserver.onCompleted();
     }
 }
