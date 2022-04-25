@@ -36,19 +36,20 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+
 import io.grpc.stub.StreamObserver;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import proto.open.api.CodeProto;
 import proto.platform.globalKey.GlobalKeyProto;
 import proto.platform.permission.PermissionProto;
 import proto.platform.qCloudUser.QCloudUserProto;
 import proto.platform.user.UserProto;
 
+import static net.coding.e.proto.ApiCodeProto.Code.INVALID_PARAMETER;
+import static net.coding.e.proto.ApiCodeProto.Code.NOT_FOUND;
+import static net.coding.e.proto.ApiCodeProto.Code.SUCCESS;
+
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PERMISSION_DENIED;
-import static proto.open.api.CodeProto.Code.INVALID_PARAMETER;
-import static proto.open.api.CodeProto.Code.NOT_FOUND;
-import static proto.open.api.CodeProto.Code.SUCCESS;
 
 @Slf4j
 @AllArgsConstructor
@@ -279,7 +280,7 @@ public class OpenApiProjectTokenGRpcService extends ProjectTokenServiceGrpc.Proj
                             .addAllScopes(request.getScopesList())
                             .build()
             ).setResult(CommonProto.Result.newBuilder()
-                    .setCode(CodeProto.Code.SUCCESS.getNumber())
+                    .setCode(SUCCESS.getNumber())
                     .setMessage(SUCCESS.name().toLowerCase())
                     .build());
         } catch (CoreException e) {

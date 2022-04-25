@@ -4,8 +4,10 @@ import net.coding.app.project.utils.ProtoConvertUtils;
 import net.coding.common.i18n.utils.LocaleMessageSource;
 import net.coding.common.util.LimitedPager;
 import net.coding.common.util.ResultPage;
+import net.coding.e.proto.ApiCodeProto;
 import net.coding.grpc.client.permission.AclServiceGrpcClient;
 import net.coding.grpc.client.platform.TeamServiceGrpcClient;
+import net.coding.lib.project.common.GRpcMetadataContextHolder;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.enums.ProjectLabelEnums;
@@ -14,42 +16,37 @@ import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.UpdateProjectForm;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
+import net.coding.lib.project.interceptor.GRpcHeaderServerInterceptor;
 import net.coding.lib.project.parameter.ProjectQueryParameter;
 import net.coding.lib.project.service.ProjectMemberService;
 import net.coding.lib.project.service.ProjectService;
 import net.coding.lib.project.service.openapi.OpenApiProjectInvisibleService;
 import net.coding.lib.project.service.openapi.OpenApiProjectService;
+import net.coding.proto.open.api.project.ProjectProto;
+import net.coding.proto.open.api.project.ProjectServiceGrpc;
+import net.coding.proto.open.api.result.CommonProto;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.lognet.springboot.grpc.GRpcService;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 import io.grpc.stub.StreamObserver;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import proto.open.api.CodeProto;
-import proto.open.api.ResultProto;
-import proto.open.api.project.ProjectProto;
-import proto.open.api.project.ProjectServiceGrpc;
 import proto.platform.permission.PermissionProto;
 import proto.platform.team.TeamProto;
 import proto.platform.user.UserProto;
 
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PERMISSION_DENIED;
-import static proto.open.api.CodeProto.Code.INVALID_PARAMETER;
-import static proto.open.api.CodeProto.Code.NOT_FOUND;
-import static proto.open.api.CodeProto.Code.SUCCESS;
+import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NOT_EXIST;
 
 /**
- * @Description: OPEN API 项目相关接口，非 OPEN API 业务 勿修改
- * @Author liheng
- * @Date 2021/1/4 4:16 下午
+ * OPEN API 项目相关接口，非 OPEN API 业务 勿修改
  */
 @Slf4j
-@GRpcService
+@GRpcService(interceptors = GRpcHeaderServerInterceptor.class)
 @AllArgsConstructor
 public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectServiceImplBase {
 
@@ -73,11 +70,13 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
 
     private final LocaleMessageSource localeMessageSource;
 
-
     @Override
     public void describeCodingProjects(
             ProjectProto.DescribeCodingProjectsRequest request,
             StreamObserver<ProjectProto.DescribeCodingProjectsResponse> responseObserver) {
+        ProjectProto.DescribeCodingProjectsResponse.Builder builder =
+                ProjectProto.DescribeCodingProjectsResponse.newBuilder();
+        CommonProto.Result.Builder resultBuilder = CommonProto.Result.newBuilder();
         try {
             Integer currentUserId = request.getUser().getId();
             Integer currentTeamId = request.getUser().getTeamId();
@@ -101,15 +100,30 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
                             .keyword(request.getProjectName())
                             .build(),
                     pager);
-            describeCodingProjectsResponse(responseObserver, SUCCESS,
-                    SUCCESS.name().toLowerCase(), resultPage);
+            builder.setResult(
+                            resultBuilder
+                                    .setCode(ApiCodeProto.Code.SUCCESS.getNumber())
+                                    .build()
+                    )
+                    .setData(protoConvertUtils.describeProjectPagesToProto(resultPage));
         } catch (CoreException e) {
-            describeCodingProjectsResponse(responseObserver, NOT_FOUND,
-                    localeMessageSource.getMessage(e.getKey()), null);
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.NOT_FOUND.getNumber())
+                            .setMessage(localeMessageSource.getMessage(e.getKey()))
+                            .build()
+            );
         } catch (Exception e) {
-            log.error("rpcService describeCodingProjects error Exception ", e);
-            describeCodingProjectsResponse(responseObserver, INVALID_PARAMETER,
-                    INVALID_PARAMETER.name().toLowerCase(), null);
+            log.error("RpcService describeCodingProjects error Exception ", e);
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.INVALID_PARAMETER.getNumber())
+                            .setMessage(ApiCodeProto.Code.INVALID_PARAMETER.name().toLowerCase())
+                            .build()
+            );
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
         }
     }
 
@@ -121,8 +135,11 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
      */
     @Override
     public void describeProjectLabels(
-            ProjectProto.DescribeProjectsRequest request,
+            ProjectProto.DescribeProjectLabelsRequest request,
             StreamObserver<ProjectProto.DescribeProjectsResponse> responseObserver) {
+        ProjectProto.DescribeProjectsResponse.Builder builder =
+                ProjectProto.DescribeProjectsResponse.newBuilder();
+        CommonProto.Result.Builder resultBuilder = CommonProto.Result.newBuilder();
         try {
             // SLS 查询出主账号所有项目
             Integer userId = request.getUser().getId();
@@ -139,15 +156,30 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
                     userId,
                     request.getLabel()
             );
-            DescribeProjectsResponse(responseObserver, SUCCESS,
-                    SUCCESS.name().toLowerCase(), projects);
+            builder.setResult(
+                            resultBuilder
+                                    .setCode(ApiCodeProto.Code.SUCCESS.getNumber())
+                                    .build()
+                    )
+                    .addAllProjectList(protoConvertUtils.describeProjectsToProtoList(projects));
         } catch (CoreException e) {
-            DescribeProjectsResponse(responseObserver, NOT_FOUND,
-                    localeMessageSource.getMessage(e.getKey()), null);
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.NOT_FOUND.getNumber())
+                            .setMessage(localeMessageSource.getMessage(e.getKey()))
+                            .build()
+            );
         } catch (Exception e) {
-            log.error("rpcService describeProjectLabels error Exception ", e);
-            DescribeProjectsResponse(responseObserver, INVALID_PARAMETER,
-                    INVALID_PARAMETER.name().toLowerCase(), null);
+            log.error("RpcService describeProjectLabels error Exception ", e);
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.INVALID_PARAMETER.getNumber())
+                            .setMessage(ApiCodeProto.Code.INVALID_PARAMETER.name().toLowerCase())
+                            .build()
+            );
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
         }
     }
 
@@ -155,6 +187,9 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
     public void describeUserProjects(
             ProjectProto.DescribeUserProjectsRequest request,
             StreamObserver<ProjectProto.DescribeProjectsResponse> responseObserver) {
+        ProjectProto.DescribeProjectsResponse.Builder builder =
+                ProjectProto.DescribeProjectsResponse.newBuilder();
+        CommonProto.Result.Builder resultBuilder = CommonProto.Result.newBuilder();
         try {
             Integer currentUserId = request.getUser().getId();
             Integer currentTeamId = request.getUser().getTeamId();
@@ -185,15 +220,93 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
                             .invisible(0)
                             .build()
             );
-            DescribeProjectsResponse(responseObserver, SUCCESS,
-                    SUCCESS.name().toLowerCase(), projects);
+            builder.setResult(
+                            resultBuilder
+                                    .setCode(ApiCodeProto.Code.SUCCESS.getNumber())
+                                    .build()
+                    )
+                    .addAllProjectList(protoConvertUtils.describeProjectsToProtoList(projects));
         } catch (CoreException e) {
-            DescribeProjectsResponse(responseObserver, NOT_FOUND,
-                    localeMessageSource.getMessage(e.getKey()), null);
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.NOT_FOUND.getNumber())
+                            .setMessage(localeMessageSource.getMessage(e.getKey()))
+                            .build()
+            );
         } catch (Exception e) {
-            log.error("rpcService describeUserProjects error Exception ", e);
-            DescribeProjectsResponse(responseObserver, INVALID_PARAMETER,
-                    INVALID_PARAMETER.name().toLowerCase(), null);
+            log.error("RpcService describeUserProjects error Exception ", e);
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.INVALID_PARAMETER.getNumber())
+                            .setMessage(ApiCodeProto.Code.INVALID_PARAMETER.name().toLowerCase())
+                            .build()
+            );
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        }
+    }
+
+
+    @Override
+    public void describeProjectByName(
+            ProjectProto.DescribeProjectByNameRequest request,
+            StreamObserver<ProjectProto.DescribeProjectByNameResponse> responseObserver) {
+        ProjectProto.DescribeProjectByNameResponse.Builder builder =
+                ProjectProto.DescribeProjectByNameResponse.newBuilder();
+        CommonProto.Result.Builder resultBuilder = CommonProto.Result.newBuilder();
+        try {
+            UserProto.User currentUser = userGrpcClient.getUserById(request.getUser().getId());
+            Project project = projectService.getByNameAndTeamId(request.getProjectName(), request.getUser().getTeamId());
+            if (Objects.isNull(project)) {
+                throw CoreException.of(PROJECT_NOT_EXIST);
+            }
+            String projectId = GRpcMetadataContextHolder.get().getDeployTokenProjectId();
+            if (StringUtils.isNotBlank(projectId)
+                    && !projectId.equals(String.valueOf(project.getId()))) {
+                throw CoreException.of(PERMISSION_DENIED);
+            } else {
+                boolean isMember = projectMemberService.isMember(currentUser, project.getId());
+                if (!isMember) {
+                    //验证用户接口权限
+                    boolean hasPermissionInProject = aclServiceGrpcClient.hasPermissionInProject(
+                            PermissionProto.Permission.newBuilder()
+                                    .setFunction(PermissionProto.Function.EnterpriseProject)
+                                    .setAction(PermissionProto.Action.View)
+                                    .build(),
+                            project.getId(),
+                            currentUser.getGlobalKey(),
+                            currentUser.getId()
+                    );
+                    if (!hasPermissionInProject) {
+                        throw CoreException.of(PERMISSION_DENIED);
+                    }
+                }
+            }
+            builder.setResult(
+                            resultBuilder
+                                    .setCode(ApiCodeProto.Code.SUCCESS.getNumber())
+                                    .build()
+                    )
+                    .setProject(protoConvertUtils.describeProjectToProto(project));
+        } catch (CoreException e) {
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.NOT_FOUND.getNumber())
+                            .setMessage(localeMessageSource.getMessage(e.getKey()))
+                            .build()
+            );
+        } catch (Exception e) {
+            log.error("RpcService describeProjectByName error Exception ", e);
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.INVALID_PARAMETER.getNumber())
+                            .setMessage(ApiCodeProto.Code.INVALID_PARAMETER.name().toLowerCase())
+                            .build()
+            );
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
         }
     }
 
@@ -201,69 +314,131 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
     public void describeOneProject(
             ProjectProto.DescribeOneProjectRequest request,
             StreamObserver<ProjectProto.DescribeOneProjectResponse> responseObserver) {
+        ProjectProto.DescribeOneProjectResponse.Builder builder =
+                ProjectProto.DescribeOneProjectResponse.newBuilder();
+        CommonProto.Result.Builder resultBuilder = CommonProto.Result.newBuilder();
         try {
-            Project project = projectService.getById(request.getProjectId());
-            if (project == null) {
-                throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
+            Project project = projectService.getByIdAndTeamId(
+                    request.getProjectId(),
+                    request.getUser().getTeamId()
+            );
+            if (Objects.isNull(project)) {
+                throw CoreException.of(PROJECT_NOT_EXIST);
             }
             ProjectMember projectMember = projectMemberService.getByProjectIdAndUserId(
                     request.getProjectId(),
-                    request.getUser().getId());
-            if (projectMember == null) {
-                throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
+                    request.getUser().getId()
+            );
+            if (Objects.isNull(projectMember)) {
+                throw CoreException.of(PROJECT_NOT_EXIST);
             }
-            DescribeProjectResponse(responseObserver, SUCCESS, SUCCESS.name().toLowerCase(), project);
+            builder.setResult(
+                            resultBuilder
+                                    .setCode(ApiCodeProto.Code.SUCCESS.getNumber())
+                                    .build()
+                    )
+                    .setProject(protoConvertUtils.describeProjectToProto(project));
         } catch (CoreException e) {
-            DescribeProjectResponse(responseObserver, NOT_FOUND,
-                    localeMessageSource.getMessage(e.getKey()), null);
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.NOT_FOUND.getNumber())
+                            .setMessage(localeMessageSource.getMessage(e.getKey()))
+                            .build()
+            );
         } catch (Exception e) {
-            log.error("rpcService describeOneProject error Exception ", e);
-            DescribeProjectResponse(responseObserver, INVALID_PARAMETER,
-                    INVALID_PARAMETER.name().toLowerCase(), null);
+            log.error("RpcService describeOneProject error Exception ", e);
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.INVALID_PARAMETER.getNumber())
+                            .setMessage(ApiCodeProto.Code.INVALID_PARAMETER.name().toLowerCase())
+                            .build()
+            );
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
         }
     }
 
     @Override
     public void createProjectWithTemplate(
-            ProjectProto.CreateProjectWithTemplateRequest request,
-            StreamObserver<ProjectProto.CreateProjectWithTemplateResponse> responseObserver) {
+            ProjectProto.CreateProjectRequest request,
+            StreamObserver<ProjectProto.CreateProjectResponse> responseObserver) {
+        ProjectProto.CreateProjectResponse.Builder builder =
+                ProjectProto.CreateProjectResponse.newBuilder();
+        CommonProto.Result.Builder resultBuilder = CommonProto.Result.newBuilder();
         try {
             Integer projectId = openApiProjectInvisibleService.createProject(request);
-            createProjectWithTemplateResponse(responseObserver, SUCCESS,
-                    SUCCESS.name().toLowerCase(), projectId);
+            builder.setResult(
+                            resultBuilder
+                                    .setCode(ApiCodeProto.Code.SUCCESS.getNumber())
+                                    .build()
+                    )
+                    .setProjectId(projectId);
         } catch (CoreException e) {
-            createProjectWithTemplateResponse(responseObserver, NOT_FOUND,
-                    e.getMsg(), 0);
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.NOT_FOUND.getNumber())
+                            .setMessage(e.getMsg())
+                            .build()
+            );
         } catch (Exception e) {
-            log.error("rpcService createProjectWithTemplate error Exception ", e);
-            createProjectWithTemplateResponse(responseObserver, INVALID_PARAMETER,
-                    INVALID_PARAMETER.name().toLowerCase(), 0);
+            log.error("RpcService createProjectWithTemplate error Exception ", e);
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.INVALID_PARAMETER.getNumber())
+                            .setMessage(ApiCodeProto.Code.INVALID_PARAMETER.name().toLowerCase())
+                            .build()
+            );
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
         }
     }
 
     @Override
     public void createCodingProject(
-            ProjectProto.CreateProjectWithTemplateRequest request,
-            StreamObserver<ProjectProto.CreateProjectWithTemplateResponse> responseObserver) {
+            ProjectProto.CreateProjectRequest request,
+            StreamObserver<ProjectProto.CreateProjectResponse> responseObserver) {
+        ProjectProto.CreateProjectResponse.Builder builder =
+                ProjectProto.CreateProjectResponse.newBuilder();
+        CommonProto.Result.Builder resultBuilder = CommonProto.Result.newBuilder();
         try {
             Integer projectId = openApiProjectService.createProject(request,
                     RegisterSourceEnum.OPEN_API.name());
-            createProjectWithTemplateResponse(responseObserver, SUCCESS,
-                    SUCCESS.name().toLowerCase(), projectId);
+            builder.setResult(
+                            resultBuilder
+                                    .setCode(ApiCodeProto.Code.SUCCESS.getNumber())
+                                    .build()
+                    )
+                    .setProjectId(projectId);
         } catch (CoreException e) {
-            createProjectWithTemplateResponse(responseObserver, NOT_FOUND,
-                    e.getMsg(), 0);
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.NOT_FOUND.getNumber())
+                            .setMessage(e.getMsg())
+                            .build()
+            );
         } catch (Exception e) {
-            log.error("rpcService createCodingProject error Exception ", e);
-            createProjectWithTemplateResponse(responseObserver, INVALID_PARAMETER,
-                    INVALID_PARAMETER.name().toLowerCase(), 0);
+            log.error("RpcService createCodingProject error Exception ", e);
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.INVALID_PARAMETER.getNumber())
+                            .setMessage(ApiCodeProto.Code.INVALID_PARAMETER.name().toLowerCase())
+                            .build()
+            );
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
         }
     }
 
     @Override
     public void deleteOneProject(
             ProjectProto.DescribeOneProjectRequest request,
-            StreamObserver<ResultProto.CommonResult> responseObserver) {
+            StreamObserver<CommonProto.CommonResult> responseObserver) {
+        CommonProto.CommonResult.Builder builder =
+                CommonProto.CommonResult.newBuilder();
+        CommonProto.Result.Builder resultBuilder = CommonProto.Result.newBuilder();
         try {
             UserProto.User currentUser = userGrpcClient.getUserById(request.getUser().getId());
             //验证用户接口权限
@@ -280,20 +455,38 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
                 throw CoreException.of(PERMISSION_DENIED);
             }
             projectService.delete(currentUser.getId(), currentUser.getTeamId(), request.getProjectId());
-            CommonResponse(responseObserver, SUCCESS, SUCCESS.name().toLowerCase());
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.SUCCESS.getNumber())
+                            .build()
+            );
         } catch (CoreException e) {
-            CommonResponse(responseObserver, NOT_FOUND,
-                    localeMessageSource.getMessage(e.getKey()));
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.NOT_FOUND.getNumber())
+                            .setMessage(localeMessageSource.getMessage(e.getKey()))
+                            .build()
+            );
         } catch (Exception e) {
-            log.error("rpcService deleteOneProject error Exception ", e);
-            CommonResponse(responseObserver, INVALID_PARAMETER,
-                    INVALID_PARAMETER.name().toLowerCase());
+            log.error("RpcService deleteOneProject error Exception ", e);
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.INVALID_PARAMETER.getNumber())
+                            .setMessage(ApiCodeProto.Code.INVALID_PARAMETER.name().toLowerCase())
+                            .build()
+            );
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
         }
     }
 
     @Override
     public void modifyProject(ProjectProto.ModifyProjectRequest request,
-                              StreamObserver<ResultProto.CommonResult> responseObserver) {
+                              StreamObserver<CommonProto.CommonResult> responseObserver) {
+        CommonProto.CommonResult.Builder builder =
+                CommonProto.CommonResult.newBuilder();
+        CommonProto.Result.Builder resultBuilder = CommonProto.Result.newBuilder();
         try {
             UserProto.User currentUser = userGrpcClient.getUserById(request.getUser().getId());
             Project project = projectService.getByIdAndTeamId(
@@ -328,114 +521,29 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
                             .endDate(request.getEndDate())
                             .build()
             );
-            CommonResponse(responseObserver, SUCCESS, SUCCESS.name().toLowerCase());
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.SUCCESS.getNumber())
+                            .build()
+            );
         } catch (CoreException e) {
-            CommonResponse(responseObserver, NOT_FOUND,
-                    localeMessageSource.getMessage(e.getKey()));
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.NOT_FOUND.getNumber())
+                            .setMessage(localeMessageSource.getMessage(e.getKey()))
+                            .build()
+            );
         } catch (Exception e) {
-            log.error("RpcService modifyProject error Exception, {}", e.getMessage());
-            CommonResponse(responseObserver, INVALID_PARAMETER,
-                    INVALID_PARAMETER.name().toLowerCase());
+            log.error("RpcService modifyProject error Exception ", e);
+            builder.setResult(
+                    resultBuilder
+                            .setCode(ApiCodeProto.Code.INVALID_PARAMETER.getNumber())
+                            .setMessage(ApiCodeProto.Code.INVALID_PARAMETER.name().toLowerCase())
+                            .build()
+            );
+        } finally {
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
         }
-    }
-
-    private void describeCodingProjectsResponse(
-            StreamObserver<ProjectProto.DescribeCodingProjectsResponse> responseObserver,
-            CodeProto.Code code,
-            String message,
-            ResultPage<Project> resultPage) {
-        ResultProto.Result result = ResultProto.Result.newBuilder()
-                .setCode(code.getNumber())
-                .setId(0)
-                .setMessage(message)
-                .build();
-        ProjectProto.DescribeCodingProjectsResponse.Builder builder = ProjectProto
-                .DescribeCodingProjectsResponse.newBuilder()
-                .setResult(result);
-
-        if (Objects.nonNull(resultPage)) {
-            ProjectProto.ProjectsData data = ProjectProto.ProjectsData.newBuilder()
-                    .setPageNumber(resultPage.getPage())
-                    .setPageSize(resultPage.getPageSize())
-                    .setTotalCount((int) resultPage.getTotalRow())
-                    .addAllProjectList(protoConvertUtils.describeProjectsToProtoList(resultPage.getList()))
-                    .build();
-            builder.setData(data);
-        }
-        responseObserver.onNext(builder.build());
-        responseObserver.onCompleted();
-    }
-
-    private void DescribeProjectsResponse(
-            StreamObserver<ProjectProto.DescribeProjectsResponse> responseObserver,
-            CodeProto.Code code,
-            String message,
-            List<Project> projects) {
-        ResultProto.Result result = ResultProto.Result.newBuilder()
-                .setCode(code.getNumber())
-                .setId(0)
-                .setMessage(message)
-                .build();
-        ProjectProto.DescribeProjectsResponse.Builder builder = ProjectProto
-                .DescribeProjectsResponse.newBuilder()
-                .setResult(result);
-
-        if (CollectionUtils.isNotEmpty(projects)) {
-            builder.addAllProjectList(protoConvertUtils.describeProjectsToProtoList(projects));
-        }
-        responseObserver.onNext(builder.build());
-        responseObserver.onCompleted();
-    }
-
-    private void DescribeProjectResponse(
-            StreamObserver<ProjectProto.DescribeOneProjectResponse> responseObserver,
-            CodeProto.Code code,
-            String message,
-            Project project) {
-        ResultProto.Result result = ResultProto.Result.newBuilder()
-                .setCode(code.getNumber())
-                .setId(0)
-                .setMessage(message)
-                .build();
-        ProjectProto.DescribeOneProjectResponse.Builder builder = ProjectProto
-                .DescribeOneProjectResponse.newBuilder()
-                .setResult(result);
-
-        if (Optional.ofNullable(project).isPresent()) {
-            builder.setProject(protoConvertUtils.describeProjectToProto(project));
-        }
-        responseObserver.onNext(builder.build());
-        responseObserver.onCompleted();
-    }
-
-    public void createProjectWithTemplateResponse(
-            StreamObserver<ProjectProto.CreateProjectWithTemplateResponse> responseObserver,
-            CodeProto.Code code,
-            String message,
-            Integer projectId) {
-        ResultProto.Result result = ResultProto.Result.newBuilder()
-                .setCode(code.getNumber())
-                .setId(projectId)
-                .setMessage(message)
-                .build();
-        responseObserver.onNext(ProjectProto.CreateProjectWithTemplateResponse.newBuilder()
-                .setResult(result)
-                .setProjectId(projectId)
-                .build());
-        responseObserver.onCompleted();
-    }
-
-    private void CommonResponse(
-            StreamObserver<ResultProto.CommonResult> responseObserver,
-            CodeProto.Code code,
-            String message) {
-        ResultProto.Result result = ResultProto.Result.newBuilder()
-                .setCode(code.getNumber())
-                .setId(0)
-                .setMessage(message)
-                .build();
-        responseObserver.onNext(ResultProto.CommonResult.newBuilder()
-                .setResult(result).build());
-        responseObserver.onCompleted();
     }
 }
