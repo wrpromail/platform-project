@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.coding.lib.project.dao.ProjectMemberInvisibleDao">
+    <resultMap id="BaseResultMap" type="net.coding.lib.project.entity.ProjectMember">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="project_id" jdbcType="INTEGER" property="projectId"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="type" jdbcType="TINYINT" property="type"/>
+        <result column="created_at" jdbcType="TIMESTAMP" property="createdAt"/>
+        <result column="deleted_at" jdbcType="TIMESTAMP" property="deletedAt"/>
+        <result column="last_visit_at" jdbcType="TIMESTAMP" property="lastVisitAt"/>
+        <result column="alias" jdbcType="VARCHAR" property="alias"/>
+        <result column="principal_type" jdbcType="VARCHAR" property="principalType"/>
+        <result column="principal_id" jdbcType="VARCHAR" property="principalId"/>
+        <result column="principal_sort" jdbcType="VARCHAR" property="principalSort"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, project_id, user_id, `type`, created_at, deleted_at, last_visit_at, `alias`, principal_type, principal_id, principal_sort
+    </sql>
+
+    <select id="findPrincipalMembers" resultMap="BaseResultMap">
+        select pm.* from projects p
+        inner join project_members pm on p.id = pm.project_id
+        and pm.deleted_at = '1970-01-01 00:00:00'
+        <where>
+            p.deleted_at = '1970-01-01 00:00:00'
+            and p.team_owner_id = #{teamId}
+            and p.pm_type = 0
+            and p.invisible = 1
+            and pm.principal_type = #{principalType}
+            <if test="principalIds != null and principalIds.size() &gt; 0">
+                AND pm.principal_id in
+                <foreach item="principalId" index="index" collection="principalIds" open="("
+                         close=")"
+                         separator=",">
+                    #{principalId}
+                </foreach>
+            </if>
+        </where>
+        group by pm.id
+    </select>
+
+    <select id="findJoinPrincipalMembers" resultMap="BaseResultMap">
+        select pm.* from projects p
+        inner join project_members pm on p.id = pm.project_id
+        and pm.deleted_at = '1970-01-01 00:00:00'
+        <where>
+            p.deleted_at = '1970-01-01 00:00:00'
+            and p.team_owner_id = #{teamId}
+            and p.invisible = 1
+            and p.pm_type = 0
+            and pm.principal_type is null
+            and pm.principal_id is null
+            and pm.user_id =#{userId}
+        </where>
+        group by pm.id
+    </select>
+</mapper>

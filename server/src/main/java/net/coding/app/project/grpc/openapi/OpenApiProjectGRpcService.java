@@ -17,6 +17,7 @@ import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.parameter.ProjectQueryParameter;
 import net.coding.lib.project.service.ProjectMemberService;
 import net.coding.lib.project.service.ProjectService;
+import net.coding.lib.project.service.openapi.OpenApiProjectInvisibleService;
 import net.coding.lib.project.service.openapi.OpenApiProjectService;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -53,6 +54,8 @@ import static proto.open.api.CodeProto.Code.SUCCESS;
 public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectServiceImplBase {
 
     private final ProjectService projectService;
+
+    private final OpenApiProjectInvisibleService openApiProjectInvisibleService;
 
     private final ProjectMemberService projectMemberService;
 
@@ -131,12 +134,10 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
                 }
                 userId = response.getData().getOwner().getId();
             }
-            List<Project> projects = projectService.getUserProjects(
-                    ProjectQueryParameter.builder()
-                            .userId(userId)
-                            .teamId(request.getUser().getTeamId())
-                            .label(request.getLabel())
-                            .build()
+            List<Project> projects = openApiProjectInvisibleService.getJoinedProjectsByLabel(
+                    request.getUser().getTeamId(),
+                    userId,
+                    request.getLabel()
             );
             DescribeProjectsResponse(responseObserver, SUCCESS,
                     SUCCESS.name().toLowerCase(), projects);
@@ -227,8 +228,7 @@ public class OpenApiProjectGRpcService extends ProjectServiceGrpc.ProjectService
             ProjectProto.CreateProjectWithTemplateRequest request,
             StreamObserver<ProjectProto.CreateProjectWithTemplateResponse> responseObserver) {
         try {
-            Integer projectId = openApiProjectService.createProject(request,
-                    RegisterSourceEnum.QCLOUD_API.name());
+            Integer projectId = openApiProjectInvisibleService.createProject(request);
             createProjectWithTemplateResponse(responseObserver, SUCCESS,
                     SUCCESS.name().toLowerCase(), projectId);
         } catch (CoreException e) {

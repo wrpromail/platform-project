@@ -117,7 +117,7 @@ public class ProjectValidateService {
 
     }
 
-    public void validateCreateProject(ProjectCreateParameter parameter, String email) throws CoreException {
+    public void validateCreateProject(ProjectCreateParameter parameter) throws CoreException {
         if (StringUtils.isBlank(parameter.getName())) {
             throw CoreException.of(PROJECT_NAME_IS_EMPTY);
         }
@@ -151,10 +151,6 @@ public class ProjectValidateService {
                 && !"hg".equalsIgnoreCase(parameter.getVcsType())) {
             throw CoreException.of(PROJECT_VCS_TYPE_INVALID);
         }
-        if ("svn".equalsIgnoreCase(parameter.getVcsType()) && StringUtils.isBlank(email)) {
-            throw CoreException.of(CoreException.ExceptionType.USER_EMAIL_NOT_BIND);
-        }
-
         validateTemplate(parameter.getTemplate());
     }
 

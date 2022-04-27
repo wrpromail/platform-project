@@ -97,7 +97,7 @@ public class OpenApiProjectService {
                 .teamId(currentUser.getTeam_id())
                 .projectTemplate(request.getProjectTemplate())
                 .build();
-        projectValidateService.validateCreateProject(parameter, currentUser.getEmail());
+        projectValidateService.validateCreateProject(parameter);
         Project project = projectService.createProject(parameter);
         //Serverless 项目 创建项目后自动把主账号拉到项目中
         if (ProjectLabelEnums.SLS.name().equals(request.getLabel())
