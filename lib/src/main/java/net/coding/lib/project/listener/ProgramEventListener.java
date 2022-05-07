@@ -1,5 +1,7 @@
 package net.coding.lib.project.listener;
 
+import com.google.common.eventbus.Subscribe;
+
 import net.coding.common.base.event.ProgramEvent;
 import net.coding.common.eventbus.api.SubscribeFrom;
 import net.coding.common.util.BeanUtils;
@@ -23,6 +25,7 @@ public class ProgramEventListener {
 
     private final ProjectMemberDao projectMemberDao;
 
+    @Subscribe
     @SubscribeFrom(Local)
     public void handle(ProgramEvent event) {
         if (!(ProgramEvent.Function.ARCHIVE.equals(event.getFunction()) ||
