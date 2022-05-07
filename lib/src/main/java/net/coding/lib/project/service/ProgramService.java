@@ -417,10 +417,10 @@ public class ProgramService {
             if (parameter.getQueryType().equals(QueryProgramForm.QueryType.MANAGED.name())) {
                 Set<Integer> manageProgramIds = projectMemberInspectService.listResourcesOnUser(
                         parameter.getUserId(),
-                        PmTypeEnums.PROJECT.name(),
+                        PmTypeEnums.PROGRAM.name(),
                         joinedProgramIds,
                         parameter.getUserId().longValue(),
-                        RoleType.ProjectAdmin.name()
+                        RoleType.ProgramAdmin.name()
                 );
                 parameter.setJoinedProjectIds(manageProgramIds);
             }
