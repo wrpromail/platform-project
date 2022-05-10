@@ -3,14 +3,14 @@ package net.coding.app.project.grpc;
 
 import net.coding.lib.project.credential.converter.CredentialConverter;
 import net.coding.lib.project.credential.entity.Credential;
-import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.credential.enums.CredentialGenerated;
+import net.coding.lib.project.credential.service.ProjectCredentialService;
+import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.credential.BaseCredentialForm;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.service.ProjectMemberService;
 import net.coding.lib.project.service.ProjectService;
-import net.coding.lib.project.credential.service.ProjectCredentialService;
 import net.coding.proto.platform.project.ProjectCredentialProto;
 import net.coding.proto.platform.project.ProjectCredentialServiceGrpc;
 
@@ -215,7 +215,8 @@ public class ProjectCredentialGrpcService extends ProjectCredentialServiceGrpc.P
             BaseCredentialForm form = CredentialConverter.builderCredentialForm(request.getForm());
             int result = credentialService.createCredential(form, request.getEncrypt());
             if (result > 0) {
-                builder.setCode(CodeProto.Code.SUCCESS);
+                builder.setCode(CodeProto.Code.SUCCESS)
+                        .setId(result);
             }
         } catch (CoreException e) {
             builder.setCode(CodeProto.Code.INTERNAL_ERROR)
@@ -357,7 +358,7 @@ public class ProjectCredentialGrpcService extends ProjectCredentialServiceGrpc.P
                 .map(Credential::getCreatorId)
                 .collect(Collectors.toSet());
         Map<Integer, String> userMap = Optional.ofNullable(
-                userGrpcClient.findUserByIds(new ArrayList<>(creatorIds)))
+                        userGrpcClient.findUserByIds(new ArrayList<>(creatorIds)))
                 .filter(CollectionUtils::isNotEmpty)
                 .map(users -> users.stream()
                         .filter(Objects::nonNull)
@@ -365,7 +366,7 @@ public class ProjectCredentialGrpcService extends ProjectCredentialServiceGrpc.P
                 )
                 .orElse(new HashMap<>());
         return Optional.of(credentials.stream()
-                .map(this::toBuildCredential).collect(toList()))
+                        .map(this::toBuildCredential).collect(toList()))
                 .filter(CollectionUtils::isNotEmpty)
                 .map(vs -> vs.stream()
                         .filter(Objects::nonNull)
