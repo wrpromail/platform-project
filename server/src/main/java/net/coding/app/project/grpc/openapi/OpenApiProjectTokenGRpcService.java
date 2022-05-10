@@ -27,7 +27,6 @@ import net.coding.proto.open.api.project.token.ProjectTokenProto;
 import net.coding.proto.open.api.project.token.ProjectTokenServiceGrpc;
 import net.coding.proto.open.api.result.CommonProto;
 
-import org.apache.commons.collections4.IterableUtils;
 import org.lognet.springboot.grpc.GRpcService;
 import org.springframework.util.StringUtils;
 
@@ -36,8 +35,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import javax.naming.NoPermissionException;
 
 import io.grpc.stub.StreamObserver;
 import lombok.AllArgsConstructor;
@@ -326,8 +323,8 @@ public class OpenApiProjectTokenGRpcService extends ProjectTokenServiceGrpc.Proj
                             dto.getDepotScopes()
                                     .forEach(depotScopeDTO -> depotScopeDTO.getScopes()
                                             .forEach(d -> projectTokenBuilder.addScopes(ProjectTokenProto.Scope.newBuilder().
-                                                    setValue(d.getDepotId()).
-                                                    setText(d.getScope()).
+                                                    setValue(d.getValue()).
+                                                    setText(d.getText()).
                                                     setTarget(depotScopeDTO.getId())
                                                     .build()))
                                     );

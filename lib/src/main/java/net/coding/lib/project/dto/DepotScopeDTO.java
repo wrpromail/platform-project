@@ -16,5 +16,5 @@ import lombok.Data;
 public class DepotScopeDTO {
     private Integer id;
     private String depotName;
-    private List<ProjectTokenDepotDTO> scopes;
+    private List<ProjectTokenScopeDTO> scopes;
 }
