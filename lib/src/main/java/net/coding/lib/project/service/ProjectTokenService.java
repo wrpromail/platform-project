@@ -37,7 +37,6 @@ import net.coding.lib.project.grpc.client.ArtifactRepositoryGrpcClient;
 import net.coding.lib.project.grpc.client.TeamGrpcClient;
 import net.coding.lib.project.parameter.DeployTokenUpdateParameter;
 import net.coding.lib.project.utils.DateUtil;
-import net.coding.proto.open.api.project.token.ProjectTokenProto;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -198,15 +197,20 @@ public class ProjectTokenService {
                 deployTokenDepots.stream().filter(e -> depotMap.get(e.getDepotId()) != null).forEach(it -> {
 
                     GitDepotProto.GitDepot depot = depotMap.get(it.getDepotId());
-                    DepotScopeDTO depotScopeDTO = DepotScopeDTO.builder().depotName(depot.getName())
-                            .id(depot.getDepotId()).build();
-                    List<ProjectTokenDepotDTO> scopeDTOs = Arrays.stream(it.getDepotScope().split(DEPLOY_TOKEN_SCOPE_DELIMITER))
+                    DepotScopeDTO depotScopeDTO = DepotScopeDTO.builder()
+                            .depotName(depot.getName())
+                            .id(depot.getDepotId())
+                            .build();
+                    List<ProjectTokenScopeDTO> scopeDTOs = Arrays.stream(it.getDepotScope().split(DEPLOY_TOKEN_SCOPE_DELIMITER))
                             .map(str -> getWithValue(StringUtils.trim(str)))
                             .filter(Objects::nonNull)
-                            .map(e -> ProjectTokenDepotDTO.builder().depotId(e.getValue()).scope(e.getText()).build())
+                            .map(e -> ProjectTokenScopeDTO.builder()
+                                    .value(e.getValue())
+                                    .text(e.getText())
+                                    .build()
+                            )
                             .collect(Collectors.toList());
                     depotScopeDTO.setScopes(scopeDTOs);
-                    depotScopeDTO.setId(it.getId());
                     depotScopes.add(depotScopeDTO);
                 });
             }
