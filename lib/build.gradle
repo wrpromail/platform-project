@@ -1,5 +1,5 @@
 ext {
-    commonVersion = '20220402.1'
+    commonVersion = 'v2.20220402.1'
     ramVersion = '20220227.1'
 }
 dependencies {
@@ -39,6 +39,7 @@ dependencies {
     compile "net.coding.common:dto:${commonVersion}"
     compile "net.coding.common:verification:${commonVersion}"
     compile 'net.coding.service.hook:definition:20210331.1'
+    compile("net.coding.proto:common:20210615.2");
     compile("net.coding.proto:platform:20220402.1") {
         exclude(group: "net.coding.common")
     }
@@ -48,9 +49,11 @@ dependencies {
 
     compile "net.coding.grpc.client:platform-infra:20210727.1"
 
+    compile"net.coding.proto:activity:20201102.2"
     compile("net.coding.grpc.client:activity:20201102.2") {
         exclude(group: "net.coding.common")
     }
+
     compile('net.coding.client:platform-template:20210820.1') {
         exclude(group: "net.coding.common")
     }
@@ -67,6 +70,7 @@ dependencies {
     compile "net.coding.proto:platform-ram-principal:${ramVersion}"
     compile "net.coding.proto:vcs-client:20211123.2"
     compile "net.coding.platform.charge:grpc-client:20210512.2"
+    compile "net.coding.platform.charge:api:20210512.2"
     compile "net.coding.platform.framework:degradation:202109027.1"
     compile 'net.coding.proto:storage:20201027.1'
     compile "net.coding.proto:notification:20201030.2"

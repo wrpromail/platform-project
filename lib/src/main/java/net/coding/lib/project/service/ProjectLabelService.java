@@ -12,7 +12,7 @@ import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.exception.CoreRuntimeException;
 import net.coding.lib.project.form.ProjectLabelForm;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;

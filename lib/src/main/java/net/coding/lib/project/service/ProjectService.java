@@ -14,18 +14,19 @@ import net.coding.exchange.dto.team.Team;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.grpc.client.platform.TeamServiceGrpcClient;
 import net.coding.lib.project.common.SystemContextHolder;
+import net.coding.lib.project.credential.entity.Credential;
+import net.coding.lib.project.credential.enums.CredentialGenerated;
+import net.coding.lib.project.credential.service.ProjectCredentialService;
 import net.coding.lib.project.dao.ProjectDao;
 import net.coding.lib.project.dao.ProjectRecentViewDao;
 import net.coding.lib.project.dao.TeamProjectDao;
 import net.coding.lib.project.dao.pojo.ProjectSearchFilter;
 import net.coding.lib.project.dto.ProjectDTO;
-import net.coding.lib.project.credential.entity.Credential;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.entity.ProjectRecentView;
 import net.coding.lib.project.entity.TeamProject;
 import net.coding.lib.project.enums.CacheTypeEnum;
-import net.coding.lib.project.credential.enums.CredentialGenerated;
 import net.coding.lib.project.enums.PmTypeEnums;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.QueryProgramForm;
@@ -43,7 +44,6 @@ import net.coding.lib.project.parameter.ProjectMemberPrincipalQueryParameter;
 import net.coding.lib.project.parameter.ProjectPageQueryParameter;
 import net.coding.lib.project.parameter.ProjectQueryParameter;
 import net.coding.lib.project.parameter.ProjectUpdateParameter;
-import net.coding.lib.project.credential.service.ProjectCredentialService;
 import net.coding.lib.project.service.member.ProjectMemberInspectService;
 import net.coding.lib.project.service.project.ProjectAdaptorFactory;
 import net.coding.lib.project.setting.ProjectSettingDefault;
@@ -55,7 +55,7 @@ import net.coding.lib.project.template.ProjectTemplateType;
 import net.coding.lib.project.utils.DateUtil;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.math.RandomUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.stereotype.Service;
@@ -235,7 +235,7 @@ public class ProjectService {
     @Transactional(rollbackFor = Exception.class)
     public Project initializeProject(ProjectCreateParameter parameter) throws Exception {
         Project project = transactionTemplate.execute(status -> {
-            int r = RandomUtils.nextInt(14) + 1;
+            int r = RandomUtils.nextInt(0, 15);
             String icon = StringUtils.defaultIfBlank(parameter.getIcon(),
                     "/static/project_icon/scenery-version-2-" + r + ".svg");
             Project insertProject = Project.builder()

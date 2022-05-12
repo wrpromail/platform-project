@@ -12,6 +12,7 @@ import net.coding.lib.project.dao.ProjectMemberDao;
 import net.coding.lib.project.dao.TeamProjectDao;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
+import net.coding.lib.project.enums.RoleType;
 import net.coding.lib.project.group.ProjectGroupDTO;
 import net.coding.lib.project.group.ProjectGroupDTOService;
 import net.coding.lib.project.group.ProjectGroupService;
@@ -19,7 +20,6 @@ import net.coding.lib.project.grpc.client.TeamGrpcClient;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.service.member.ProjectMemberInspectService;
 import net.coding.lib.project.setting.ProjectSettingFunctionService;
-import net.coding.platform.permission.api.RoleType;
 import net.coding.platform.ram.pojo.dto.response.GrantObjectIdResponseDTO;
 import net.coding.platform.ram.pojo.dto.response.PolicyResponseDTO;
 

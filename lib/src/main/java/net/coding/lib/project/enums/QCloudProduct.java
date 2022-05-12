@@ -1,6 +1,6 @@
 package net.coding.lib.project.enums;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 

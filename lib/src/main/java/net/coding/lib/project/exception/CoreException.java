@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
-import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
 import java.text.MessageFormat;
 import java.util.HashMap;
@@ -376,7 +375,7 @@ public class CoreException extends Exception {
             return failed(CoreException.of(coreRuntimeException.getExceptionType()));
         } else if (ex instanceof CoreException) {
             return failed((CoreException) ex);
-        } else if (ex instanceof NoSuchRequestHandlingMethodException || ex instanceof NoHandlerFoundException) {
+        } else if (ex instanceof NoHandlerFoundException) {
             return buildResult(HttpServletResponse.SC_NOT_FOUND, "Not Found");
         } else if (ex instanceof HttpRequestMethodNotSupportedException) {
             return buildResult(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Method Not Allowed");

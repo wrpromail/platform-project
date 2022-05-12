@@ -1,7 +1,3 @@
-task wrapper(type: Wrapper) {
-    gradleVersion = "3.2"
-}
-
 buildscript {
     repositories {
         mavenLocal()
@@ -19,12 +15,15 @@ buildscript {
 
     dependencies {
         classpath "net.coding.common:gradle-youdao-translator:1.0.3"
-        classpath "net.coding.common:coding-plugin-collection:1.2.12"
+        classpath "net.coding.common:coding-plugin-collection:2.2.9"
     }
 }
 
 System.setProperty("REGISTRY_USER", System.getenv('REGISTRY_USER') ?: 'ptvyg13pcd54')
 System.setProperty("REGISTRY_PASSWORD", System.getenv('REGISTRY_PASSWORD') ?: 'ecd298c776e9ff972abaecb0247c700499d9c6c0')
+
+// 请勿删除，否则后果自负，会导致 common 包 jedis runTimeException
+ext['jedis.version'] = '2.8.0'
 
 subprojects {
     ext {

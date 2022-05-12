@@ -13,12 +13,10 @@ import net.coding.lib.project.parameter.ProjectCreateParameter;
 import net.coding.lib.project.parameter.ProjectPageQueryParameter;
 import net.coding.lib.project.template.ProjectTemplateDemoType;
 import net.coding.lib.project.template.ProjectTemplateType;
-import net.coding.lib.project.utils.DateUtil;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.EnumUtils;
-import org.apache.commons.validator.UrlValidator;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.Errors;
 
@@ -423,8 +421,8 @@ public class ProjectValidateService {
      * @throws CoreException
      */
     public String validateIcon(String icon) throws CoreException {
-        if (org.apache.commons.lang3.StringUtils.isNoneBlank(icon)) {
-            if (!validateImageURL(icon) || !new UrlValidator().isValid(icon)) {
+        if (StringUtils.isNoneBlank(icon)) {
+            if (!validateImageURL(icon)) {
                 throw CoreException.of(CoreException.ExceptionType.UPDATE_PROJECT_ICON_ERROR);
             }
             return icon;
@@ -433,7 +431,7 @@ public class ProjectValidateService {
     }
 
     public boolean validateImageURL(String url) {
-        if (org.apache.commons.lang3.StringUtils.isBlank(appProperties.getIcon().getDomain())) {
+        if (StringUtils.isBlank(appProperties.getIcon().getDomain())) {
             return true;
         }
         return Pattern.compile("^(?:https?|ftp)://[^.]+.(" + appProperties.getIcon().getDomain() + ")/.*$").matcher(url).find();

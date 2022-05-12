@@ -4,7 +4,7 @@ import net.coding.common.util.BeanUtils;
 import net.coding.lib.project.dao.ProjectPersonalPreferenceDao;
 import net.coding.lib.project.entity.ProjectPersonalPreference;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;

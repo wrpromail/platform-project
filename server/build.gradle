@@ -2,9 +2,4 @@ dependencies {
     compile project(':lib')
     compile project(":proto")
 }
-task createYamlTask(group: 'kubernetes', type: Exec) {
-    dependsOn bootRepackage
-    File file = getTemporaryDir();
-    commandLine "java", "-jar", jar.getArchivePath(), project.getName(), file.parentFile.parentFile.path + "/kubernetes"
-}
 

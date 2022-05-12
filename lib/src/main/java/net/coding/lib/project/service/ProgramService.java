@@ -53,8 +53,8 @@ import net.coding.platform.ram.pojo.dto.response.GrantObjectIdResponseDTO;
 import net.coding.platform.ram.pojo.dto.response.PolicyResponseDTO;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -184,7 +184,7 @@ public class ProgramService {
         }
 
         Project program = transactionTemplate.execute(status -> {
-            int r = RandomUtils.nextInt(14) + 1;
+            int r = RandomUtils.nextInt(0, 15);
             String icon = StringUtils.defaultIfBlank(form.getIcon(),
                     "/static/project_icon/scenery-version-2-" + r + ".svg");
             Project insertProgram = Project.builder()
@@ -265,10 +265,10 @@ public class ProgramService {
             //项目集中已存在项目
             List<Integer> programProjectIds =
                     StreamEx.of(programProjectDao.select(ProgramProject.builder()
-                            .programId(program.getId())
-                            .deletedAt(BeanUtils.getDefaultDeletedAt())
-                            .build())
-                    )
+                                    .programId(program.getId())
+                                    .deletedAt(BeanUtils.getDefaultDeletedAt())
+                                    .build())
+                            )
                             .map(ProgramProject::getProjectId)
                             .collect(Collectors.toList());
 
@@ -333,10 +333,10 @@ public class ProgramService {
             //项目集中已存在项目
             List<Integer> programProjectIds =
                     StreamEx.of(programProjectDao.select(ProgramProject.builder()
-                            .programId(program.getId())
-                            .deletedAt(BeanUtils.getDefaultDeletedAt())
-                            .build())
-                    )
+                                    .programId(program.getId())
+                                    .deletedAt(BeanUtils.getDefaultDeletedAt())
+                                    .build())
+                            )
                             .map(ProgramProject::getProjectId)
                             .toList();
             PolicyResponseDTO policyDTO = projectMemberInspectService.getPolicyByName(currentUserId, RoleType.ProgramProjectMember.name());
@@ -435,11 +435,11 @@ public class ProgramService {
         if (CollectionUtils.isNotEmpty(parameter.getUserIds())) {
             Set<Integer> adminProgramIds = StreamEx.of(parameter.getUserIds())
                     .flatMap(userId -> projectMemberInspectService.listResourcesOnUser(
-                            parameter.getUserId(),
-                            PmTypeEnums.PROGRAM.name(),
-                            parameter.getJoinedProjectIds(),
-                            userId.longValue(),
-                            RoleType.ProgramAdmin.name()
+                                    parameter.getUserId(),
+                                    PmTypeEnums.PROGRAM.name(),
+                                    parameter.getJoinedProjectIds(),
+                                    userId.longValue(),
+                                    RoleType.ProgramAdmin.name()
                             ).stream()
                     )
                     .toSet();
@@ -550,12 +550,12 @@ public class ProgramService {
                                                   Integer programId, Boolean queryJoined) throws CoreException {
         getProgram(currentTeamId, currentUserId, programId);
         return StreamEx.of(
-                getProgramProjects(ProgramProjectQueryParameter.builder()
-                        .teamId(currentTeamId)
-                        .programId(programId)
-                        .userId(queryJoined ? currentUserId : 0)
-                        .build())
-        )
+                        getProgramProjects(ProgramProjectQueryParameter.builder()
+                                .teamId(currentTeamId)
+                                .programId(programId)
+                                .userId(queryJoined ? currentUserId : 0)
+                                .build())
+                )
                 .map(projectDTOService::toDetailDTO)
                 .nonNull()
                 .peek(p -> p.setMemberCount(projectMemberDao.findListByProjectId(p.getId(), p.getDeleted_at()).size()))
@@ -589,11 +589,11 @@ public class ProgramService {
         return StreamEx.of(userIds)
                 .map(userId -> {
                     List<ProjectDTO> projects = StreamEx.of(
-                            getProgramProjects(ProgramProjectQueryParameter.builder()
-                                    .teamId(currentTeamId)
-                                    .userId(userId)
-                                    .programId(programId).build())
-                    )
+                                    getProgramProjects(ProgramProjectQueryParameter.builder()
+                                            .teamId(currentTeamId)
+                                            .userId(userId)
+                                            .programId(programId).build())
+                            )
                             .map(projectDTOService::toDetailDTO)
                             .nonNull()
                             .collect(toList());
@@ -644,12 +644,12 @@ public class ProgramService {
                                 .build();
                     }
                     List<ProjectDTO> projects = StreamEx.of(
-                            getProgramProjects(ProgramProjectQueryParameter.builder()
-                                    .teamId(currentTeamId)
-                                    .programId(program.getId())
-                                    .joinedProjectIds(joinedProjectIds)
-                                    .build()
-                            ))
+                                    getProgramProjects(ProgramProjectQueryParameter.builder()
+                                            .teamId(currentTeamId)
+                                            .programId(program.getId())
+                                            .joinedProjectIds(joinedProjectIds)
+                                            .build()
+                                    ))
                             .map(projectDTOService::toDetailDTO)
                             .nonNull()
                             .collect(toList());
@@ -706,11 +706,11 @@ public class ProgramService {
 
     private List<ProjectDTO> toProjectDTO(Integer teamId, Integer programId) {
         return StreamEx.of(
-                getProgramProjects(ProgramProjectQueryParameter.builder()
-                        .teamId(teamId)
-                        .programId(programId)
-                        .build())
-        )
+                        getProgramProjects(ProgramProjectQueryParameter.builder()
+                                .teamId(teamId)
+                                .programId(programId)
+                                .build())
+                )
                 .map(projectDTOService::toDetailDTO)
                 .nonNull()
                 .collect(toList());

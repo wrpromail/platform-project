@@ -270,13 +270,13 @@ public class ProjectSettingService {
                     .filter(code -> !functionModules.contains(code))
                     .collect(Collectors.toSet());
             noOpenFunction
-                    .forEach(code -> update(projectId, code, String.valueOf(org.apache.commons.lang.BooleanUtils.toInteger(FALSE))));
+                    .forEach(code -> update(projectId, code, String.valueOf(BooleanUtils.toInteger(FALSE))));
             //发送事件开启的功能开关
             StreamEx.of(functions)
                     .filter(e -> !noOpenFunction.contains(e.getCode()))
                     .forEach(e -> {
-                        if (!e.getDefaultValue().equals(String.valueOf(org.apache.commons.lang.BooleanUtils.toInteger(TRUE)))) {
-                            update(projectId, e.getCode(), String.valueOf(org.apache.commons.lang.BooleanUtils.toInteger(TRUE)));
+                        if (!e.getDefaultValue().equals(String.valueOf(BooleanUtils.toInteger(TRUE)))) {
+                            update(projectId, e.getCode(), String.valueOf(BooleanUtils.toInteger(TRUE)));
                         }
                     });
         }

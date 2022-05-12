@@ -7,7 +7,6 @@ import net.coding.lib.project.entity.ProjectPersonalPreference;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.service.ProjectPersonalPreferenceService;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -23,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.NotNull;
 
 import io.swagger.annotations.Api;
 import lombok.AllArgsConstructor;
