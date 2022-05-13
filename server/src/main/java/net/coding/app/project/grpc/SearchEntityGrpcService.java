@@ -7,12 +7,14 @@ import net.coding.proto.platform.project.SearchEntityServiceGrpc;
 
 import org.apache.commons.lang3.StringUtils;
 import org.lognet.springboot.grpc.GRpcService;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import io.grpc.stub.StreamObserver;
-import io.swagger.models.auth.In;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import proto.common.CodeProto;
@@ -21,6 +23,9 @@ import proto.common.CodeProto;
 @GRpcService
 @AllArgsConstructor
 public class SearchEntityGrpcService extends SearchEntityServiceGrpc.SearchEntityServiceImplBase {
+
+    @Autowired
+    RedissonClient redisson;
 
     @Autowired
     SearchEntityDao searchEntityDao;
@@ -43,7 +48,11 @@ public class SearchEntityGrpcService extends SearchEntityServiceGrpc.SearchEntit
             return;
         }
 
+        final String lockName = "searchEntity:lock:targetId:%d:targetType:%s";
+
+        RLock lock = redisson.getLock(String.format(lockName, request.getTargetId(), request.getTargetType()));
         try {
+            lock.lock(10, TimeUnit.SECONDS);
             SearchEntity searchEntity = searchEntityDao.getByTargetIdAndType(request.getTargetId(), request.getTargetType());
             if (searchEntity == null) {
                 searchEntity = new SearchEntity();
@@ -76,6 +85,10 @@ public class SearchEntityGrpcService extends SearchEntityServiceGrpc.SearchEntit
                     .build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
+        } finally {
+            if (lock != null && lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
         }
     }
 
