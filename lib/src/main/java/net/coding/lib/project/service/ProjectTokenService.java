@@ -62,9 +62,9 @@ import io.grpc.StatusRuntimeException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import proto.artifact.ArtifactRepositoryProto;
+import proto.common.CodeProto;
 import proto.git.GitDepotGrpcClient;
 import proto.git.GitDepotProto;
-import proto.open.api.CodeProto;
 import proto.platform.globalKey.GlobalKeyProto;
 import proto.platform.user.UserProto;
 

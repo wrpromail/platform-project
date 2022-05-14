@@ -13,6 +13,7 @@ import net.coding.lib.project.service.ProjectMemberService;
 import net.coding.lib.project.service.ProjectService;
 import net.coding.lib.project.service.ProjectValidateService;
 import net.coding.lib.project.service.member.ProjectMemberInspectService;
+import net.coding.proto.open.api.project.ProjectProto;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,7 +30,6 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import one.util.streamex.StreamEx;
-import proto.open.api.project.ProjectProto;
 import proto.platform.team.TeamProto;
 import proto.platform.user.UserProto;
 
@@ -71,7 +71,7 @@ public class OpenApiProjectInvisibleService {
         return projectInvisibleDao.findJoinedProjectsByLabel(teamId, joinedProjectIds, label);
     }
 
-    public int createProject(ProjectProto.CreateProjectWithTemplateRequest request) throws Exception {
+    public int createProject(ProjectProto.CreateProjectRequest request) throws Exception {
         UserProto.User currentUser = userGrpcClient.getUserById(request.getUser().getId());
         if (Objects.isNull(currentUser)) {
             throw CoreException.of(USER_NOT_EXISTS);

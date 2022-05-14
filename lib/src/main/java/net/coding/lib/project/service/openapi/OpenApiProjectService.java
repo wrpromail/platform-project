@@ -11,6 +11,7 @@ import net.coding.lib.project.parameter.ProjectCreateParameter;
 import net.coding.lib.project.service.ProjectMemberService;
 import net.coding.lib.project.service.ProjectService;
 import net.coding.lib.project.service.ProjectValidateService;
+import net.coding.proto.open.api.project.ProjectProto;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,6 @@ import java.util.Objects;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import proto.open.api.project.ProjectProto;
 import proto.platform.team.TeamProto;
 
 import static net.coding.common.constants.RoleConstants.ADMIN;
@@ -42,7 +42,7 @@ public class OpenApiProjectService {
     private final ProjectService projectService;
     private final ProjectMemberService projectMemberService;
 
-    public int createProject(ProjectProto.CreateProjectWithTemplateRequest request,
+    public int createProject(ProjectProto.CreateProjectRequest request,
                              String registerSource) throws Exception {
         User currentUser = unsafeUserServiceGrpcClient.getUser(request.getUser().getId());
         if (Objects.isNull(currentUser)) {

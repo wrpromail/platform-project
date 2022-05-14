@@ -34,14 +34,12 @@ import io.grpc.stub.StreamObserver;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import proto.ci.CiJobProto;
-import proto.open.api.CodeProto;
 import proto.platform.permission.PermissionProto;
 import proto.platform.user.UserProto;
 
+import static net.coding.e.proto.ApiCodeProto.Code.INVALID_PARAMETER;
 import static net.coding.e.proto.ApiCodeProto.Code.NOT_FOUND;
-import static proto.open.api.CodeProto.Code.INTERNAL_ERROR;
-import static proto.open.api.CodeProto.Code.INVALID_PARAMETER;
-import static proto.open.api.CodeProto.Code.SUCCESS;
+import static net.coding.e.proto.ApiCodeProto.Code.SUCCESS;
 
 @Slf4j
 @GRpcService
@@ -78,7 +76,7 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
             if (e instanceof CoreException) {
                 describeProjectCredentialsResponse(
                         responseObserver,
-                        INTERNAL_ERROR,
+                        NOT_FOUND,
                         e.getMessage(),
                         null
                 );
@@ -86,8 +84,8 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
             }
             describeProjectCredentialsResponse(
                     responseObserver,
-                    INTERNAL_ERROR,
-                    INTERNAL_ERROR.name().toLowerCase(),
+                    INVALID_PARAMETER,
+                    INVALID_PARAMETER.name().toLowerCase(),
                     null
             );
         }
@@ -169,7 +167,7 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
         } catch (CoreException e) {
             createCredentialsResponse(
                     responseObserver,
-                    INTERNAL_ERROR,
+                    NOT_FOUND,
                     e.getMessage(),
                     null
             );
@@ -177,8 +175,8 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
             log.error("RpcService createProjectCredential error {}", e.getMessage());
             createCredentialsResponse(
                     responseObserver,
-                    INTERNAL_ERROR,
-                    INTERNAL_ERROR.name().toLowerCase(),
+                    INVALID_PARAMETER,
+                    INVALID_PARAMETER.name().toLowerCase(),
                     null
             );
         }
@@ -214,7 +212,7 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
 
     private void describeProjectCredentialsResponse(
             StreamObserver<ProjectCredentialProto.DescribeProjectCredentialsResponse> responseObserver,
-            CodeProto.Code code,
+            ApiCodeProto.Code code,
             String message,
             List<Credential> credentials) {
         CommonProto.Result result = CommonProto.Result.newBuilder()
@@ -236,7 +234,7 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
 
     private void createCredentialsResponse(
             StreamObserver<ProjectCredentialProto.CreateProjectCredentialResponse> responseObserver,
-            CodeProto.Code code,
+            ApiCodeProto.Code code,
             String message,
             Credential credential) {
         CommonProto.Result result = CommonProto.Result.newBuilder()

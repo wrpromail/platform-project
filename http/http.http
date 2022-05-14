@@ -1,0 +1,15 @@
+POST http://codingcorp.nh53bevn.dev.coding.io/open-api
+Accept: application/json
+Authorization: token a60829f93005aaae1c5d9a45f194c818fe85122a
+
+{
+"Action":"CreateCodingProject",
+"Name":"openapiprojectautotest7mtbmaxoyglxdvbdhsfsdfsdfsfdfsdfsdfsfsdfsdfsdfsdsfsdfsdfsdfsdfsdffsdf",
+"DisplayName":"openapiprojectautotestv824rlfvfp6k4d2sfsdfsdfsdfsdsdfsdfsdfsdfsdfsdfsdfsdfsdfsdf",
+"Description":"open api create project test",
+"GitReadmeEnabled":true,
+"VcsType":"git",
+"CreateSvnLayout":false,
+"Shared":0,
+"ProjectTemplate":"CODE_HOST"
+}

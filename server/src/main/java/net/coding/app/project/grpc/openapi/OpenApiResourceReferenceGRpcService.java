@@ -1,6 +1,7 @@
 package net.coding.app.project.grpc.openapi;
 
 import net.coding.common.i18n.utils.LocaleMessageSource;
+import net.coding.e.proto.ApiCodeProto.Code;
 import net.coding.exchange.exception.ProjectNotExistsException;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
@@ -23,9 +24,8 @@ import java.util.stream.Collectors;
 import io.grpc.stub.StreamObserver;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import proto.open.api.CodeProto.Code;
 
-import static proto.open.api.CodeProto.Code.SUCCESS;
+import static net.coding.e.proto.ApiCodeProto.Code.SUCCESS;
 
 /**
  * @Description: OPEN API 项目协同资源引用列表 接口，非 OPEN API 业务 勿修改
