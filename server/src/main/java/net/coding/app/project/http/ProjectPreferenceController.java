@@ -7,7 +7,9 @@ import net.coding.lib.project.dto.ProjectPreferenceDTO;
 import net.coding.lib.project.entity.ProjectPreference;
 import net.coding.lib.project.service.ProjectPreferenceService;
 
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,13 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.AllArgsConstructor;
-
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
  * 项目偏好设置 Controller.
@@ -44,12 +42,10 @@ public class ProjectPreferenceController {
      * @return 项目偏好设置的列表
      */
     @ApiOperation(value = "项目偏好设置的列表", notes = "项目偏好设置的列表")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "projectId", value = "项目 ID（必填）", paramType = "integer", required = true)
-    })
     @ProtectedAPI
-    @RequestMapping(value = "/{projectId}/preference/get", method = GET)
+    @GetMapping("/{projectId}/preference/get")
     public List<ProjectPreferenceDTO> getProjectPreferences(
+            @ApiParam(value = "项目 ID（必填）", required = true)
             @PathVariable(value = "projectId") Integer projectId) {
         List<ProjectPreference> projectPreferences =
                 projectPreferenceService.getProjectPreferences(projectId);
@@ -65,16 +61,14 @@ public class ProjectPreferenceController {
      * @param status    偏好设置状态
      */
     @ApiOperation(value = "项目偏好设置", notes = "项目偏好设置")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "projectId", value = "项目 ID（必填）", paramType = "integer", required = true),
-            @ApiImplicitParam(name = "type", value = "类型", paramType = "integer", required = true),
-            @ApiImplicitParam(name = "status", value = "开关状态 0 ：关；1 ：开", paramType = "integer", required = true)
-    })
     @ProtectedAPI
-    @RequestMapping(value = "/{projectId}/preference/toggle", method = POST)
+    @PostMapping("/{projectId}/preference/toggle")
     public Result toggleProjectPreference(
+            @ApiParam(value = "项目 ID（必填）", required = true)
             @PathVariable(value = "projectId") Integer projectId,
+            @ApiParam(value = "类型", required = true)
             @RequestParam Short type,
+            @ApiParam(value = "开关状态 0 ：关；1 ：开", required = true)
             @RequestParam Short status) {
         return Result.of(projectPreferenceService.toggleProjectPreference(projectId, type, status));
     }

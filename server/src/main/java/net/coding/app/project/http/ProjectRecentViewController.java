@@ -42,7 +42,7 @@ public class ProjectRecentViewController {
 
     private final UserServiceGrpcClient userServiceGrpcClient;
 
-    private ProjectRecentViewService projectRecentViewService;
+    private final ProjectRecentViewService projectRecentViewService;
 
     @ApiOperation("项目-最近访问项目查询")
     @GetMapping("/search")

@@ -1,12 +1,11 @@
 package net.coding.app.project;
 
-import net.coding.common.server.BaseConfig;
-import net.coding.common.server.BaseServer;
 import net.coding.common.verification.VerificationAutoConfiguration;
 import net.coding.platform.degradation.ServiceDegradationAutoConfiguration;
 
 import org.lognet.springboot.grpc.autoconfigure.GRpcAutoConfiguration;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration;
@@ -18,15 +17,14 @@ import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RestController;
 
 import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.oas.annotations.EnableOpenApi;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.ApiSelectorBuilder;
 import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import static springfox.documentation.builders.PathSelectors.regex;
 
 @Import({
-        BaseConfig.class,
         net.coding.common.rpc.server.Config.class,
         net.coding.lib.project.Config.class,
         net.coding.common.eventbus.Config.class,
@@ -40,7 +38,6 @@ import static springfox.documentation.builders.PathSelectors.regex;
         net.coding.common.cache.evict.Config.class,
         net.coding.grpc.client.platform.Config.class,
         net.coding.grpc.client.permission.Config.class,
-        net.coding.service.hook.definition.ServiceHookConfigurer.class,
         net.coding.e.grpcClient.collaboration.Config.class,
         net.coding.service.hook.definition.ServiceHookConfigurer.class,
         net.coding.grpc.client.platform.infra.text.pinyin.Config.class,
@@ -60,19 +57,19 @@ import static springfox.documentation.builders.PathSelectors.regex;
 )
 @EnableAsync
 @EnableScheduling
-@EnableSwagger2
+@EnableOpenApi
 @SpringBootApplication
 public class Application {
     @Value("${production:false}")
     private boolean production;
 
     public static void main(String[] args) {
-        BaseServer.run(Application.class, args);
+        SpringApplication.run(Application.class, args);
     }
 
     @Bean
     public Docket docket() {
-        ApiSelectorBuilder builder = new Docket(DocumentationType.SWAGGER_2)
+        ApiSelectorBuilder builder = new Docket(DocumentationType.OAS_30)
                 .forCodeGeneration(true)
                 .pathMapping("/")
                 .select();
