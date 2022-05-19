@@ -15,15 +15,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Objects;
 
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NOT_EXIST;
@@ -45,13 +45,15 @@ public class ProjectResourcesController {
     private ProjectGrpcClient projectGrpcClient;
 
     @ApiOperation(value = "查询项目资源列表", notes = "查询项目资源列表")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "projectId", value = "项目 ID（必填）", paramType = "integer", required = true),
-            @ApiImplicitParam(name = "page", value = "页码", paramType = "integer", required = true),
-            @ApiImplicitParam(name = "pageSize", value = "每页条数", paramType = "integer", required = true)
-    })
     @GetMapping("/findProjectResourceList")
-    public ResultPage<ProjectResource> findProjectResourceList(Integer projectId, Integer page, Integer pageSize) throws CoreException {
+    public ResultPage<ProjectResource> findProjectResourceList(
+            @ApiParam(value = "项目 ID（必填）", required = true)
+            @RequestParam Integer projectId,
+            @ApiParam(value = "页码", required = true)
+            @RequestParam Integer page,
+            @ApiParam(value = "每页条数", required = true)
+            @RequestParam Integer pageSize
+    ) throws CoreException {
         if (projectId <= 0) {
             throw CoreException.of(PROJECT_NOT_EXIST);
         }
@@ -71,11 +73,11 @@ public class ProjectResourcesController {
     }
 
     @ApiOperation(value = "查询项目资源信息", notes = "查询项目资源信息")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "projectResourceId", value = "项目资源 ID（必填）", paramType = "integer", required = true)
-    })
     @GetMapping("/findProjectResourceInfo")
-    public Result findProjectResourceInfo(Integer projectResourceId) {
+    public Result findProjectResourceInfo(
+            @ApiParam(value = "项目资源 ID（必填）", required = true)
+            @RequestParam Integer projectResourceId
+    ) {
         if (projectResourceId == null || projectResourceId <= 0) {
             return Result.failed();
         }
@@ -89,12 +91,13 @@ public class ProjectResourcesController {
     }
 
     @ApiOperation(value = "批量查询项目资源列表", notes = "批量查询项目资源列表")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "projectId", value = "项目 ID（必填）", paramType = "integer", required = true),
-            @ApiImplicitParam(name = "codes", value = "资源序号（必填）", paramType = "list<integer>", required = true)
-    })
     @GetMapping("/batchProjectResourceList")
-    public Result batchProjectResourceList(Integer projectId, List<Integer> codes) {
+    public Result batchProjectResourceList(
+            @ApiParam(value = "项目 ID（必填）", required = true)
+            @RequestParam Integer projectId,
+            @ApiParam(value = "资源序号（必填）", required = true)
+            @RequestParam List<Integer> codes
+    ) {
         if (projectId == null || projectId <= 0) {
             return Result.failed();
         }

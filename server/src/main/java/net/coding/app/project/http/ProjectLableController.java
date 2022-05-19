@@ -16,11 +16,14 @@ import net.coding.lib.project.service.ProjectLabelService;
 import net.coding.lib.project.service.ProjectService;
 
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -30,9 +33,8 @@ import java.util.stream.Collectors;
 import javax.validation.Valid;
 
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import proto.git.GitDepotGrpcClient;
@@ -77,12 +79,10 @@ public class ProjectLableController {
     }
 
     @ApiOperation(value = "项目标签列表", notes = "项目标签列表")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "projectId", value = "项目 ID（必填）", paramType = "integer", required = true)
-    })
     @ProtectedAPI
-    @RequestMapping(value = "", method = RequestMethod.GET)
+    @GetMapping
     public List<ProjectLabelDTO> getAllLabelByProject(
+            @ApiParam(value = "项目 ID（必填）", required = true)
             @ModelAttribute("project") Project project
     ) throws CoreException {
         return projectLabelService.getAllLabelByProject(project.getId())
@@ -113,16 +113,13 @@ public class ProjectLableController {
     }
 
     @ApiOperation(value = "创建标签", notes = "创建标签")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "projectId", value = "项目 ID（必填）", paramType = "integer", required = true),
-            @ApiImplicitParam(name = "form", value = "项目表单（必填）", paramType = "form", required = true)
-    })
     @ProjectApiProtector(function = Function.ProjectLabel, action = Action.Create)
     @ProtectedAPI
-    @RequestMapping(value = "", method = RequestMethod.POST)
+    @PostMapping
     public int createLabel(
-            @ModelAttribute("project") Project project,
             @RequestHeader(name = GatewayHeader.USER_ID) Integer userId,
+            @ApiParam(value = "项目 ID（必填）", required = true)
+            @ModelAttribute("project") Project project,
             @Valid ProjectLabelForm form
     ) {
         form.setProjectId(project.getId());
@@ -130,17 +127,14 @@ public class ProjectLableController {
     }
 
     @ApiOperation(value = "编辑标签", notes = "编辑标签")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "projectId", value = "项目 ID（必填）", paramType = "integer", required = true),
-            @ApiImplicitParam(name = "labelId", value = "项目标签 ID（必填）", paramType = "integer", required = true),
-            @ApiImplicitParam(name = "form", value = "项目表单（必填）", paramType = "form", required = true)
-    })
     @ProjectApiProtector(function = Function.ProjectLabel, action = Action.Update)
     @ProtectedAPI
-    @RequestMapping(value = "{labelId}", method = RequestMethod.PUT)
+    @PutMapping("{labelId}")
     public Boolean updateLabel(
-            @ModelAttribute("project") Project project,
             @RequestHeader(name = GatewayHeader.USER_ID) Integer userId,
+            @ApiParam(value = "项目 ID（必填）", required = true)
+            @ModelAttribute("project") Project project,
+            @ApiParam(value = "项目标签 ID（必填）", required = true)
             @PathVariable("labelId") Integer labelId,
             @Valid ProjectLabelForm form
     ) {
@@ -149,16 +143,14 @@ public class ProjectLableController {
     }
 
     @ApiOperation(value = "删除标签", notes = "删除标签")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "projectId", value = "项目 ID（必填）", paramType = "integer", required = true),
-            @ApiImplicitParam(name = "labelId", value = "项目标签 ID（必填）", paramType = "integer", required = true)
-    })
     @ProjectApiProtector(function = Function.ProjectLabel, action = Action.Delete)
     @ProtectedAPI
-    @RequestMapping(value = "{labelId}", method = RequestMethod.DELETE)
+    @DeleteMapping("{labelId}")
     public Boolean deleteLabel(
-            @ModelAttribute("project") Project project,
             @RequestHeader(name = GatewayHeader.USER_ID) Integer userId,
+            @ApiParam(value = "项目 ID（必填）", required = true)
+            @ModelAttribute("project") Project project,
+            @ApiParam(value = "项目标签 ID（必填）", required = true)
             @PathVariable("labelId") Integer labelId
     ) {
         return projectLabelService.deleteLabel(userId, labelId, project.getId());
