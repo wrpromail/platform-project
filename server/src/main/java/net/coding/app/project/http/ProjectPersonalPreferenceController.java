@@ -1,8 +1,8 @@
 package net.coding.app.project.http;
 
 import net.coding.app.project.constant.GatewayHeader;
-import net.coding.common.util.Result;
 import net.coding.common.util.StringUtils;
+import net.coding.framework.webapp.response.annotation.RestfulApi;
 import net.coding.lib.project.entity.ProjectPersonalPreference;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.service.ProjectPersonalPreferenceService;
@@ -31,12 +31,13 @@ import lombok.AllArgsConstructor;
 @RequestMapping(value = "/api/platform/project/{projectId}/personal-preference")
 @AllArgsConstructor
 @Api(value = "项目个人偏好", tags = "项目个人偏好")
+@RestfulApi
 public class ProjectPersonalPreferenceController {
     private final String NAME = "stickMenu";
     private final ProjectPersonalPreferenceService projectPersonalPreferenceService;
 
     @GetMapping(value = "")
-    public Result getByKey(
+    public Map<String, String> getByKey(
             @PathVariable("projectId") Integer projectId,
             @RequestHeader(name = GatewayHeader.USER_ID) Integer userId,
             @RequestParam String key // 目前仅支持单个 key=xxxx 的请求方式
@@ -46,7 +47,7 @@ public class ProjectPersonalPreferenceController {
         }
         ProjectPersonalPreference preference = projectPersonalPreferenceService
                 .findBy(projectId, userId, key);
-        return Result.success(toMap(preference));
+        return toMap(preference);
     }
 
     private Map<String, String> toMap(ProjectPersonalPreference preference) {
@@ -57,7 +58,7 @@ public class ProjectPersonalPreferenceController {
     }
 
     @PutMapping(value = "")
-    public Result setByMap(
+    public Map<String, String> setByMap(
             @PathVariable("projectId") Integer projectId,
             @RequestHeader(name = GatewayHeader.USER_ID) Integer userId,
             HttpServletRequest request
@@ -68,7 +69,7 @@ public class ProjectPersonalPreferenceController {
         }
         List<ProjectPersonalPreference> preferences = projectPersonalPreferenceService
                 .put(projectId, userId, puttingPreferences);
-        return Result.success(toMap(preferences));
+        return toMap(preferences);
     }
 
     @NotNull

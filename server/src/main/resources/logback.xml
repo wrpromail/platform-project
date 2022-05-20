@@ -1,16 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-
-    <contextName>logback</contextName>
-
-    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <withJansi>true</withJansi>
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %contextName [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{x-request-id}] %highlight(%-5level) %magenta(${PID:-}) --- %green([%15.15thread]) %cyan(%40.40logger): %(%msg%n)
+            </pattern>
         </encoder>
     </appender>
 
-    <root level="info">
-        <appender-ref ref="console"/>
-    </root>
+    <appender name="SECRET_FILE" class="ch.qos.logback.core.FileAppender">
+        <file>secret.log</file>
+        <append>true</append>
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{x-request-id}] %highlight(%-5level) %magenta(${PID:-}) --- %green([%15.15thread]) %cyan(%40.40logger): %(%msg%n)
+            </pattern>
+        </encoder>
+    </appender>
 
+    <root level="${APP_LOG_LEVEL:-INFO}">
+        <appender-ref ref="STDOUT"/>
+    </root>
 </configuration>

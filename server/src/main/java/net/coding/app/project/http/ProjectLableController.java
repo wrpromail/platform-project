@@ -6,6 +6,7 @@ import net.coding.common.annotation.ProtectedAPI;
 import net.coding.common.annotation.enums.Action;
 import net.coding.common.annotation.enums.Function;
 import net.coding.common.util.TextUtils;
+import net.coding.framework.webapp.response.annotation.RestfulApi;
 import net.coding.lib.project.dto.ProjectLabelDTO;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectLabel;
@@ -47,6 +48,7 @@ import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJE
 @Api(value = "项目标签", tags = "项目标签")
 @AllArgsConstructor
 @RequestMapping("/api/platform/project/{projectId}/label")
+@RestfulApi
 public class ProjectLableController {
 
     private final ProjectLabelService projectLabelService;

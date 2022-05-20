@@ -1,0 +1,81 @@
+# This is the runtime configuration which stored in K8s cluster. Modifications
+# to the development configuration will take effect the next time you enter
+# the DevMode, and modification will share with all those who use this cluster.
+#
+# If you want to customized personal configuration, you can create a configuration
+# file named config.yaml in the root directory of your project under the
+# folder .nocalhost (/.nocalhost/config.yaml). It will become part of your
+# project, you can easily share configuration with other developers, or
+# develop on any other devices using this personal configuration.
+#
+# Tips: You can paste the configuration follow into
+# /.nocalhost/config.yaml
+#
+# In addition, if you want to config multi service in same config.yaml, or use
+# the Server-version of Nocalhost, you can also configure under the definition
+# of the application, such as:
+# https://nocalhost.dev/docs/config/config-deployment-quickstart
+#
+name: platform-project
+serviceType: deployment
+dependLabelSelector:
+  pods: [ ]
+  jobs:
+    - job-name=init-data-job
+  tcp: [ ]
+  http: [ ]
+containers:
+  - name: ""
+    dev:
+      gitUrl: git@e.codingcorp.net:devops/platform/platform-project.git
+      image: devops-docker.pkg.codingcorp.net/registry/public/java:latest
+      shell: zsh
+      workDir: /root/nocalhost-dev
+      storageClass: ""
+      resources:
+        limits:
+          memory: 8Gi
+          cpu: "4"
+        requests:
+          memory: 2Gi
+          cpu: "0.5"
+      persistentVolumeDirs:
+        - path: /root
+          capacity: 10Gi
+      command:
+        build:
+          - ./gradlew
+          - build
+        run:
+          - ./gradlew
+          - bootRun
+          - --no-daemon
+        debug:
+          - ./gradlew
+          - bootRun
+          - --debug-jvm
+          - --no-daemon
+        hotReloadRun:
+          - bash
+          - -c
+          - kill `ps -ef|grep -i gradlew| grep -v grep| awk '{print }'`; gradlew bootRun
+        hotReloadDebug:
+          - bash
+          - -c
+          - kill `ps -ef|grep -i gradlew| grep -v grep| awk '{print }'`; gradlew bootRun --debug-jvm
+      debug:
+        remoteDebugPort: 5005
+      hotReload: false
+      sync:
+        type: send
+        filePattern:
+          - .
+        ignoreFilePattern:
+          - .git
+          - ./build
+      env:
+        - name: NOCALHOST_DEBUG
+          value: "true"
+        - name: NOCALHOST_DOMAIN
+          value: nocalhost.dev
+      portForward: [ ]

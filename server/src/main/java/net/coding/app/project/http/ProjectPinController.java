@@ -3,8 +3,8 @@ package net.coding.app.project.http;
 import net.coding.app.project.constant.GatewayHeader;
 import net.coding.common.annotation.ProtectedAPI;
 import net.coding.common.util.LimitedPager;
-import net.coding.common.util.Result;
 import net.coding.common.util.ResultPage;
+import net.coding.framework.webapp.response.annotation.RestfulApi;
 import net.coding.lib.project.dto.ProjectDTO;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.service.ProjectPinService;
@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 @Api(value = "星标项目查询", tags = "星标项目查询")
 @AllArgsConstructor
 @RequestMapping("/api/platform/project")
+@RestfulApi
 public class ProjectPinController {
 
     private final ProjectPinService projectPinService;
@@ -95,13 +96,12 @@ public class ProjectPinController {
     @ProtectedAPI
     @ApiOperation("星标项目-移动排序")
     @PatchMapping("/{projectId}/pin/sort")
-    public Result sortPinProjects(
+    public void sortPinProjects(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
             @RequestHeader(GatewayHeader.USER_ID) Integer userId,
             @PathVariable Integer projectId,
             @RequestParam(required = false, defaultValue = "0") Integer targetId
     ) throws CoreException {
         projectPinService.sortPinProject(teamId, userId, projectId, targetId);
-        return Result.success();
     }
 }

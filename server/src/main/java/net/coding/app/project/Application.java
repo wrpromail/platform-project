@@ -1,28 +1,20 @@
 package net.coding.app.project;
 
 import net.coding.common.verification.VerificationAutoConfiguration;
+import net.coding.framework.autoconfigure.webapp.RestfulApiResponseSupportConfig;
 import net.coding.platform.degradation.ServiceDegradationAutoConfiguration;
 
 import org.lognet.springboot.grpc.autoconfigure.GRpcAutoConfiguration;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration;
-import org.springframework.context.annotation.Bean;
+import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
 import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.web.bind.annotation.RequestAttribute;
-import org.springframework.web.bind.annotation.RestController;
 
-import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.oas.annotations.EnableOpenApi;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.ApiSelectorBuilder;
-import springfox.documentation.spring.web.plugins.Docket;
-
-import static springfox.documentation.builders.PathSelectors.regex;
 
 @Import({
         net.coding.common.rpc.server.Config.class,
@@ -48,11 +40,15 @@ import static springfox.documentation.builders.PathSelectors.regex;
 
 })
 @ImportAutoConfiguration(
-        {
+        value = {
                 GRpcAutoConfiguration.class,
                 VerificationAutoConfiguration.class,
                 GsonAutoConfiguration.class,
                 ServiceDegradationAutoConfiguration.class,
+                RestfulApiResponseSupportConfig.class
+        },
+        exclude = {
+                HttpMessageConvertersAutoConfiguration.class
         }
 )
 @EnableAsync
@@ -60,30 +56,9 @@ import static springfox.documentation.builders.PathSelectors.regex;
 @EnableOpenApi
 @SpringBootApplication
 public class Application {
-    @Value("${production:false}")
-    private boolean production;
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
-
-    @Bean
-    public Docket docket() {
-        ApiSelectorBuilder builder = new Docket(DocumentationType.OAS_30)
-                .forCodeGeneration(true)
-                .pathMapping("/")
-                .select();
-
-        if (!production) {
-            builder.apis(RequestHandlerSelectors.withClassAnnotation(RestController.class));
-        } else {
-            builder.apis(RequestHandlerSelectors.none());
-        }
-
-        builder.paths(regex("/api.*"));
-
-        return builder.build().ignoredParameterTypes(RequestAttribute.class);
-    }
-
 
 }

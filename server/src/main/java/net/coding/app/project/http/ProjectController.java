@@ -7,8 +7,8 @@ import net.coding.common.annotation.enums.Action;
 import net.coding.common.annotation.enums.Function;
 import net.coding.common.constants.OAuthConstants;
 import net.coding.common.constants.TwoFactorAuthConstants;
-import net.coding.common.util.Result;
 import net.coding.e.grpcClient.collaboration.exception.MilestoneException;
+import net.coding.framework.webapp.response.annotation.RestfulApi;
 import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dto.ProjectDTO;
 import net.coding.lib.project.entity.Project;
@@ -45,6 +45,7 @@ import proto.platform.user.UserProto;
 @Api(value = "项目", tags = "项目")
 @AllArgsConstructor
 @RequestMapping("/api/platform/project")
+@RestfulApi
 public class ProjectController {
     private final ProjectService projectService;
     private final ProjectsService projectsService;
@@ -77,11 +78,10 @@ public class ProjectController {
     @ApiOperation(value = "delete_project", notes = "删除项目")
     @ProtectedAPI(authMethod = TwoFactorAuthConstants.AUTH_TYPE_DEFAULT)
     @DeleteMapping("{projectId}")
-    public Result deleteProject(@RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
+    public void deleteProject(@RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
                                 @RequestHeader(GatewayHeader.USER_ID) Integer userId,
                                 @PathVariable Integer projectId) throws CoreException {
         projectService.delete(userId, teamId, projectId);
-        return Result.success();
     }
 
     @ApiOperation(value = "update_project_icon", notes = "更新项目图标")
@@ -138,21 +138,19 @@ public class ProjectController {
     @ApiOperation(value = "archive_project", notes = "归档项目")
     @ProtectedAPI(authMethod = TwoFactorAuthConstants.AUTH_TYPE_DEFAULT)
     @PostMapping("/{projectId}/archive")
-    public Result archiveProject(@RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
-                                 @RequestHeader(GatewayHeader.USER_ID) Integer userId,
-                                 @PathVariable Integer projectId) throws CoreException {
+    public void archiveProject(@RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
+                               @RequestHeader(GatewayHeader.USER_ID) Integer userId,
+                               @PathVariable Integer projectId) throws CoreException {
         projectService.archive(teamId, userId, projectId);
-        return Result.success();
     }
 
     @ApiOperation(value = "unarchive_project", notes = "取消归档项目")
     @ProtectedAPI
     @PostMapping("/{projectId}/unarchive")
-    public Result unarchiveProject(@RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
-                                   @RequestHeader(GatewayHeader.USER_ID) Integer userId,
-                                   @PathVariable Integer projectId) throws CoreException {
+    public void unarchiveProject(@RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
+                                 @RequestHeader(GatewayHeader.USER_ID) Integer userId,
+                                 @PathVariable Integer projectId) throws CoreException {
         projectService.unarchive(teamId, userId, projectId);
-        return Result.success();
     }
 
     @ApiOperation("查询我参与项目列表(包含如有全部项目权限,则全部，否则项目内)")

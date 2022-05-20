@@ -2,11 +2,11 @@ package net.coding.app.project.http;
 
 import net.coding.app.project.constant.GatewayHeader;
 import net.coding.common.annotation.ProtectedAPI;
-import net.coding.common.util.Result;
 import net.coding.e.grpcClient.collaboration.IssueGrpcClient;
 import net.coding.e.grpcClient.collaboration.dto.Issue;
 import net.coding.e.grpcClient.collaboration.exception.IssueNotException;
 import net.coding.exchange.dto.team.Team;
+import net.coding.framework.webapp.response.annotation.RestfulApi;
 import net.coding.grpc.client.platform.TeamServiceGrpcClient;
 import net.coding.lib.project.dto.ResourceDTO;
 import net.coding.lib.project.dto.ResourceDetailDTO;
@@ -39,6 +39,7 @@ import static net.coding.lib.project.exception.CoreException.ExceptionType.TEAM_
 @Slf4j
 @ProtectedAPI
 @RequestMapping("/api/platform")
+@RestfulApi
 public class GlobalResourcesController {
 
     @Autowired
@@ -64,7 +65,7 @@ public class GlobalResourcesController {
      * @Date: 2021/8/21
      */
     @GetMapping("/search/all-resource")
-    public Result findResourceList(
+    public List<ResourceDTO> findResourceList(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) List<String> targetTypes,
@@ -90,8 +91,7 @@ public class GlobalResourcesController {
                     projectResourceList.addAll(infoWithResourceId.stream().distinct().map(item -> new ResourceDTO(item, enterProjectGK)).collect(Collectors.toList()));
                 }
                 if (projectResourceList.size() == 8) {
-                    projectResourceList = dealAgileResource(projectResourceList);
-                    return Result.success(projectResourceList);
+                    return dealAgileResource(projectResourceList);
 
                 }
                 //2.根据title 匹配项目资源
@@ -101,8 +101,7 @@ public class GlobalResourcesController {
                     projectResourceList = projectResourceList.stream().distinct().collect(Collectors.toList());
                 }
                 if (projectResourceList.size() == 8) {
-                    projectResourceList = dealAgileResource(projectResourceList);
-                    return Result.success(projectResourceList);
+                    return dealAgileResource(projectResourceList);
                 }
             }
         }
@@ -118,8 +117,7 @@ public class GlobalResourcesController {
                     projectResourceList = projectResourceList.stream().distinct().collect(Collectors.toList());
                 }
                 if (projectResourceList.size() == 8) {
-                    projectResourceList = dealAgileResource(projectResourceList);
-                    return Result.success(projectResourceList);
+                    return dealAgileResource(projectResourceList);
                 }
                 //4.根据title 匹配项目资源
                 List<ProjectResource> infoWithTitle = projectResourceService.findResourceList(project.getId(), null, keyword, targetTypes, pageSize - projectResourceList.size(), ScopeTypeEnum.PROJECT.value());
@@ -128,8 +126,7 @@ public class GlobalResourcesController {
                     projectResourceList = projectResourceList.stream().distinct().collect(Collectors.toList());
                 }
                 if (projectResourceList.size() == 8) {
-                    projectResourceList = dealAgileResource(projectResourceList);
-                    return Result.success(projectResourceList);
+                    return dealAgileResource(projectResourceList);
                 }
             }
         }
@@ -141,8 +138,7 @@ public class GlobalResourcesController {
             projectResourceList = projectResourceList.stream().distinct().collect(Collectors.toList());
         }
         if (projectResourceList.size() == 8) {
-            projectResourceList = dealAgileResource(projectResourceList);
-            return Result.success(projectResourceList);
+            return dealAgileResource(projectResourceList);
         }
         //6.根据title 匹配全局资源
         List<ProjectResource> globalInfoWithTitle = projectResourceService.findResourceList(teamId, null, keyword, targetTypes, pageSize - projectResourceList.size(), ScopeTypeEnum.TEAM.value());
@@ -150,8 +146,7 @@ public class GlobalResourcesController {
             projectResourceList.addAll(globalInfoWithTitle.stream().distinct().map(item -> new ResourceDTO(item, null)).collect(Collectors.toList()));
             projectResourceList = projectResourceList.stream().distinct().collect(Collectors.toList());
         }
-        projectResourceList = dealAgileResource(projectResourceList);
-        return Result.success(projectResourceList);
+        return dealAgileResource(projectResourceList);
     }
 
     private List<ResourceDTO> dealAgileResource(List<ResourceDTO> projectResourceList) {
@@ -177,7 +172,7 @@ public class GlobalResourcesController {
     }
 
     @GetMapping("/search/resource/detail")
-    public Result findResourceDetail(
+    public ResourceDetailDTO findResourceDetail(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
             @RequestParam(required = true) String code,
             @RequestParam(required = false) String projectGK
@@ -190,28 +185,26 @@ public class GlobalResourcesController {
             //项目资源
             Project project = projectService.getByNameAndTeamId(projectGK, teamId);
             if (project == null) {
-                return Result.success(null);
+                return null;
             }
             ProjectResource projectResource = projectResourceService.findProjectResourceDetail(project.getId(), code, ScopeTypeEnum.PROJECT.value());
             if (projectResource == null) {
-                return Result.success(null);
+                return null;
             }
             ResourceDetailDTO resourceDetailDTO = new ResourceDetailDTO(projectResource, projectGK);
             resourceDetailDTO.setScopeName(project.getDisplayName());
             resourceDetailDTO.setScopeAvatar(project.getIcon());
-            resourceDetailDTO = dealAgileResourceDetail(resourceDetailDTO);
-            return Result.success(resourceDetailDTO);
+            return dealAgileResourceDetail(resourceDetailDTO);
         }
         // 全局资源
         ProjectResource projectResource = projectResourceService.findProjectResourceDetail(team.getId(), code, ScopeTypeEnum.TEAM.value());
         if (projectResource == null) {
-            return Result.success(null);
+            return null;
         }
         ResourceDetailDTO resourceDetailDTO = new ResourceDetailDTO(projectResource, null);
         resourceDetailDTO.setScopeName(team.getName());
         resourceDetailDTO.setScopeAvatar(team.getAvatar());
-        resourceDetailDTO = dealAgileResourceDetail(resourceDetailDTO);
-        return Result.success(resourceDetailDTO);
+        return dealAgileResourceDetail(resourceDetailDTO);
     }
 
     private ResourceDetailDTO dealAgileResourceDetail(ResourceDetailDTO projectResource) {

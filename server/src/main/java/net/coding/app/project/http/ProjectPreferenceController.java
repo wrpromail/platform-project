@@ -2,7 +2,7 @@ package net.coding.app.project.http;
 
 import net.coding.common.annotation.ProtectedAPI;
 import net.coding.common.base.util.BeanUtil;
-import net.coding.common.util.Result;
+import net.coding.framework.webapp.response.annotation.RestfulApi;
 import net.coding.lib.project.dto.ProjectPreferenceDTO;
 import net.coding.lib.project.entity.ProjectPreference;
 import net.coding.lib.project.service.ProjectPreferenceService;
@@ -30,6 +30,7 @@ import lombok.AllArgsConstructor;
 @RequestMapping("/api/platform/project")
 @AllArgsConstructor
 @Api(value = "项目偏好", tags = "项目偏好")
+@RestfulApi
 public class ProjectPreferenceController {
 
     private final ProjectPreferenceService projectPreferenceService;
@@ -63,14 +64,14 @@ public class ProjectPreferenceController {
     @ApiOperation(value = "项目偏好设置", notes = "项目偏好设置")
     @ProtectedAPI
     @PostMapping("/{projectId}/preference/toggle")
-    public Result toggleProjectPreference(
+    public void toggleProjectPreference(
             @ApiParam(value = "项目 ID（必填）", required = true)
             @PathVariable(value = "projectId") Integer projectId,
             @ApiParam(value = "类型", required = true)
             @RequestParam Short type,
             @ApiParam(value = "开关状态 0 ：关；1 ：开", required = true)
             @RequestParam Short status) {
-        return Result.of(projectPreferenceService.toggleProjectPreference(projectId, type, status));
+        projectPreferenceService.toggleProjectPreference(projectId, type, status);
     }
 
 }

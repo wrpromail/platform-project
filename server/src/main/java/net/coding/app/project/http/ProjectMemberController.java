@@ -8,7 +8,8 @@ import net.coding.common.annotation.ProtectedAPI;
 import net.coding.common.annotation.enums.Action;
 import net.coding.common.annotation.enums.Function;
 import net.coding.common.constants.OAuthConstants;
-import net.coding.common.util.Result;
+import net.coding.common.util.ResultPage;
+import net.coding.framework.webapp.response.annotation.RestfulApi;
 import net.coding.lib.project.dto.ProjectMemberDTO;
 import net.coding.lib.project.dto.ProjectTeamMemberDTO;
 import net.coding.lib.project.dto.RoleDTO;
@@ -27,6 +28,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 import javax.validation.Valid;
 
 import io.swagger.annotations.Api;
@@ -40,6 +43,7 @@ import lombok.AllArgsConstructor;
 @RequestMapping("/api/platform/project/{projectId}/members")
 @AllArgsConstructor
 @Api(value = "项目成员", tags = "项目成员")
+@RestfulApi
 public class ProjectMemberController {
 
     private final ProjectMemberService projectMemberService;
@@ -49,7 +53,7 @@ public class ProjectMemberController {
     @ApiOperation(value = "项目成员列表", notes = "项目成员列表")
     @ApiResponses(value = {@ApiResponse(code = 200, message = "Success", response = ProjectMemberDTO.class)})
     @GetMapping
-    public Result members(
+    public ResultPage<ProjectMemberDTO> members(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
             @ApiParam(value = "项目 ID（必填）", required = true)
             @PathVariable(value = "projectId") Integer projectId,
@@ -57,17 +61,17 @@ public class ProjectMemberController {
             @RequestParam(required = false) String keyWord,
             @PagerResolve PageRowBounds pager
     ) throws CoreException {
-        return Result.success(projectMemberPrincipalService.getProjectMembers(teamId, projectId, keyWord, null, pager));
+        return projectMemberPrincipalService.getProjectMembers(teamId, projectId, keyWord, null, pager);
     }
 
     @ApiOperation(value = "项目角色列表", notes = "项目角色列表")
     @ApiResponses(value = {@ApiResponse(code = 200, message = "Success", response = RoleDTO.class)})
     @GetMapping("/roles")
-    public Result listRoles(
+    public List<RoleDTO> listRoles(
             @ApiParam(value = "项目 ID（必填）", required = true)
             @PathVariable(value = "projectId") Integer projectId
     ) throws CoreException {
-        return Result.success(projectMemberService.findMemberCountByProjectId(projectId));
+        return projectMemberService.findMemberCountByProjectId(projectId);
     }
 
     /**
@@ -76,33 +80,30 @@ public class ProjectMemberController {
     @ProtectedAPI(oauthScope = OAuthConstants.Scope.PROJECT_MEMBERS)
     @ProjectApiProtector(function = Function.ProjectMember, action = Action.Create)
     @PostMapping
-    public Result addMemberForGK(
+    public void addMemberForGK(
             @PathVariable(value = "projectId") Integer projectId,
             @Valid AddMemberForm form
     ) throws CoreException {
         projectMemberService.doAddMember(form, projectId);
-        return Result.success();
     }
 
     @ApiOperation(value = "删除某个项目成员", notes = "删除某个项目成员")
     @ProtectedAPI(oauthScope = OAuthConstants.Scope.PROJECT_MEMBERS)
     @ProjectApiProtector(function = Function.ProjectMember, action = Action.Delete)
     @DeleteMapping("/{targetUserId}")
-    public Result delMember(
+    public void delMember(
             @RequestHeader(GatewayHeader.USER_ID) Integer userId,
             @PathVariable("targetUserId") int targetUserId,
             @PathVariable("projectId") int projectId
     ) throws CoreException {
         projectMemberService.delMember(userId, projectId, targetUserId);
-        return Result.success();
-
     }
 
     @ApiOperation(value = "包含团队成员的项目成员列表", notes = "包含团队成员的项目成员列表")
     @ApiResponses(value = {@ApiResponse(code = 200, message = "Success", response = ProjectTeamMemberDTO.class)})
     @ProtectedAPI
     @GetMapping("/with/team-member")
-    public Result memberList(
+    public ResultPage<ProjectTeamMemberDTO> memberList(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
             @ApiParam(value = "项目 ID（必填）", required = true)
             @PathVariable(value = "projectId") Integer projectId,
@@ -110,16 +111,16 @@ public class ProjectMemberController {
             @RequestParam(required = false) String keyWord,
             @PagerResolve PageRowBounds pager
     ) throws CoreException {
-        return Result.success(projectMemberPrincipalService.getMemberWithProjectAndTeam(teamId, projectId, keyWord, pager));
+        return projectMemberPrincipalService.getMemberWithProjectAndTeam(teamId, projectId, keyWord, pager);
     }
 
     @ApiOperation(value = "quit", notes = "退出当前项目")
     @ApiResponses(value = {@ApiResponse(code = 200, message = "Success", response = boolean.class)})
     @PostMapping("/quit")
-    public Result quit(
+    public void quit(
             @ApiParam(value = "项目 ID（必填）", required = true)
             @PathVariable("projectId") int projectId
     ) throws CoreException {
-        return Result.of(projectMemberService.quit(projectId) == 1);
+        projectMemberService.quit(projectId);
     }
 }

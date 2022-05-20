@@ -7,6 +7,7 @@ import net.coding.common.annotation.enums.Action;
 import net.coding.common.annotation.enums.Function;
 import net.coding.common.constants.OAuthConstants;
 import net.coding.exchange.dto.user.User;
+import net.coding.framework.webapp.response.annotation.RestfulApi;
 import net.coding.grpc.client.platform.UserServiceGrpcClient;
 import net.coding.lib.project.dto.ProjectDTO;
 import net.coding.lib.project.enums.PmTypeEnums;
@@ -38,6 +39,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 @Api(value = "最近访问项目查询", tags = "最近访问项目查询")
 @AllArgsConstructor
 @RequestMapping("/api/platform/project/recent/views")
+@RestfulApi
 public class ProjectRecentViewController {
 
     private final UserServiceGrpcClient userServiceGrpcClient;

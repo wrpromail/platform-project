@@ -64,7 +64,7 @@ dependencies {
     compile "net.coding.proto:vcs-client:20211123.2"
     compile "net.coding.platform.charge:grpc-client:20210512.2"
     compile "net.coding.platform.charge:api:20210512.2"
-    compile "net.coding.platform.framework:degradation:202109027.1"
+    compile "net.coding.platform.framework:degradation:${platformFrameworkVersion}"
     compile 'net.coding.proto:storage:20201027.1'
     compile "net.coding.proto:notification:20201030.2"
     compile 'net.coding.proto:file:20201109.2'
@@ -74,7 +74,6 @@ dependencies {
     compile "net.coding.proto:platform-open-api:678c2398766d09e914e3269530f3a75f03fcb0f0"
     compile "net.coding.grpc.client:collaboration:20211123.1"
     compile 'net.coding.event:all:2022.04.07-deab87fff4066f306137dd9c593ffc3547b6fe60'
-    compile "net.coding.platform.framework:degradation:20210906.1"
     compile("tk.mybatis:mapper-spring-boot-starter:2.1.5")
     compile "io.github.lognet:grpc-spring-boot-starter:3.5.7"
     implementation "io.micrometer:micrometer-registry-prometheus:1.5.9"
