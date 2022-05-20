@@ -6,10 +6,12 @@ import net.coding.common.annotation.ProjectApiProtector;
 import net.coding.common.annotation.ProtectedAPI;
 import net.coding.common.annotation.enums.Action;
 import net.coding.common.annotation.enums.Function;
-import net.coding.common.util.Result;
+import net.coding.common.util.ResultPage;
+import net.coding.framework.webapp.response.annotation.RestfulApi;
 import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.credential.enums.CredentialType;
 import net.coding.lib.project.credential.service.ProjectCredentialService;
+import net.coding.lib.project.dto.CredentialDTO;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.credential.AndroidCredentialForm;
 import net.coding.lib.project.form.credential.CredentialForm;
@@ -42,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 @Slf4j
 @RequestMapping(value = "/api/platform/project/{projectId}/credentials")
+@RestfulApi
 public class CredentialController {
     public static final String AUTH_TYPE_DEFAULT = "default";
     private final ProjectCredentialService projectCredentialService;
@@ -49,7 +52,7 @@ public class CredentialController {
     @ApiOperation(value = "queryList", notes = "项目凭据列表")
     @ProjectApiProtector(function = Function.ProjectServiceConn, action = Action.View)
     @GetMapping
-    public Result queryList(
+    public ResultPage<CredentialDTO> queryList(
             @ApiParam(value = "项目 ID（必填）", required = true)
             @PathVariable(value = "projectId") Integer projectId,
             @RequestParam(required = false) String type,
@@ -59,14 +62,14 @@ public class CredentialController {
         if (StringUtils.isNotBlank(type)) {
             credentialType = CredentialType.valueOf(type);
         }
-        return Result.success(projectCredentialService.list(projectId, credentialType, pager));
+        return projectCredentialService.list(projectId, credentialType, pager);
     }
 
     @ApiOperation(value = "delete", notes = "删除项目凭据")
     @ProtectedAPI(authMethod = AUTH_TYPE_DEFAULT)
     @ProjectApiProtector(function = Function.ProjectServiceConn, action = Action.View)
     @DeleteMapping("/{id}")
-    public Result delete(
+    public void delete(
             @ApiParam(value = "项目 ID（必填）", required = true)
             @PathVariable(value = "projectId") Integer projectId,
             @ApiParam(value = "凭据 ID（必填）", required = true)
@@ -76,36 +79,35 @@ public class CredentialController {
             throw CoreException.of(CoreException.ExceptionType.USER_NOT_LOGIN);
         }
         projectCredentialService.delete(id, projectId);
-        return Result.success();
     }
 
     @ApiOperation(value = "get", notes = "查询项目凭据详情")
     @ProjectApiProtector(function = Function.ProjectServiceConn, action = Action.View)
     @GetMapping("/{id}")
-    public Result get(
+    public CredentialDTO get(
             @ApiParam(value = "项目 ID（必填）", required = true)
             @PathVariable(value = "projectId") Integer projectId,
             @ApiParam(value = "凭据 ID（必填）", required = true)
             @PathVariable("id") int id
     ) throws CoreException {
-        return Result.success(projectCredentialService.getCredential(projectId, id));
+        return projectCredentialService.getCredential(projectId, id);
     }
 
     @ApiOperation(value = "createCredential", notes = "创建项目凭据")
     @ProjectApiProtector(function = Function.ProjectServiceConn, action = Action.View)
     @PostMapping
-    public Result createCredential(
+    public Integer createCredential(
             @ApiParam(value = "项目 ID（必填）", required = true)
             @PathVariable(value = "projectId") Integer projectId,
             @Valid @RequestBody CredentialForm form
     ) throws CoreException {
-        return Result.success(projectCredentialService.addCredential(projectId, form));
+       return projectCredentialService.addCredential(projectId, form);
     }
 
     @ApiOperation(value = "createAndroidCert", notes = "创建项目 android 凭据")
     @ProjectApiProtector(function = Function.ProjectServiceConn, action = Action.View)
     @PostMapping("/androidCredential")
-    public Result createAndroidCert(
+    public Integer createAndroidCert(
             @ApiParam(value = "项目 ID（必填）", required = true)
             @PathVariable(value = "projectId") Integer projectId,
             @Valid @RequestBody AndroidCredentialForm form
@@ -113,72 +115,72 @@ public class CredentialController {
         if (form.getFilePassword().getBytes().length > 80) {
             throw CoreException.of(CoreException.ExceptionType.CREDENTIAL_PASSWORD_BYTES_TOO_LONG);
         }
-        return Result.success(projectCredentialService.addCredential(projectId, form));
+        return projectCredentialService.addCredential(projectId, form);
     }
 
     @ApiOperation(value = "createServerlessCert", notes = "创建项目腾讯云凭据")
     @ProjectApiProtector(function = Function.ProjectServiceConn, action = Action.View)
     @PostMapping("/tencentServerlessCredential")
-    public Result createServerlessCert(
+    public Integer createServerlessCert(
             @ApiParam(value = "项目 ID（必填）", required = true)
             @PathVariable(value = "projectId") Integer projectId,
             @Valid @RequestBody TencentServerlessCredentialForm form
     ) throws Exception {
-        return Result.success(projectCredentialService.addCredential(projectId, form));
+        return projectCredentialService.addCredential(projectId, form);
     }
 
     @ApiOperation(value = "updateCredential", notes = "更新项目凭据")
     @ProtectedAPI(authMethod = AUTH_TYPE_DEFAULT)
     @ProjectApiProtector(function = Function.ProjectServiceConn, action = Action.View)
     @PutMapping("/{id}")
-    public Result updateWithTasks(
+    public Integer updateWithTasks(
             @ApiParam(value = "项目 ID（必填）", required = true)
             @PathVariable(value = "projectId") Integer projectId,
             @ApiParam(value = "凭据 ID（必填）", required = true)
             @PathVariable("id") int id,
             @Valid @RequestBody CredentialForm form
     ) throws CoreException {
-        return Result.success(projectCredentialService.updateCredential(projectId, id, form));
+        return projectCredentialService.updateCredential(projectId, id, form);
     }
 
     @ApiOperation(value = "updateAndroidCert", notes = "更新项目 android 凭据")
     @ProtectedAPI(authMethod = AUTH_TYPE_DEFAULT)
     @ProjectApiProtector(function = Function.ProjectServiceConn, action = Action.View)
     @PutMapping("/{id}/androidCredential")
-    public Result updateAndroidCert(
+    public Integer updateAndroidCert(
             @ApiParam(value = "项目 ID（必填）", required = true)
             @PathVariable(value = "projectId") Integer projectId,
             @ApiParam(value = "凭据 ID（必填）", required = true)
             @PathVariable("id") int id,
             @Valid @RequestBody AndroidCredentialForm form
     ) throws Exception {
-        return Result.success(projectCredentialService.updateCredential(projectId, id, form));
+        return projectCredentialService.updateCredential(projectId, id, form);
     }
 
     @ApiOperation(value = "updateTencentServerlessCredential", notes = "更新项目 android 凭据")
     @ProtectedAPI(authMethod = AUTH_TYPE_DEFAULT)
     @ProjectApiProtector(function = Function.ProjectServiceConn, action = Action.View)
     @PutMapping("/{id}/serverlessCredential")
-    public Result updateTencentServerlessCredential(
+    public Integer updateTencentServerlessCredential(
             @ApiParam(value = "项目 ID（必填）", required = true)
             @PathVariable(value = "projectId") Integer projectId,
             @ApiParam(value = "凭据 ID（必填）", required = true)
             @PathVariable("id") int id,
             @Valid @RequestBody TencentServerlessCredentialForm form
     ) throws Exception {
-        return Result.success(projectCredentialService.updateCredential(projectId, id, form));
+        return projectCredentialService.updateCredential(projectId, id, form);
     }
 
     @ApiOperation(value = "showHiddenInfo", notes = "查看隐藏的密码/密钥信息")
     @ProtectedAPI(authMethod = AUTH_TYPE_DEFAULT)
     @ProjectApiProtector(function = Function.ProjectServiceConn, action = Action.View)
     @GetMapping("/{id}/showHiddenInfo")
-    public Result showHiddenInfo(
+    public String showHiddenInfo(
             @ApiParam(value = "项目 ID（必填）", required = true)
             @PathVariable(value = "projectId") Integer projectId,
             @ApiParam(value = "凭据 ID（必填）", required = true)
             @PathVariable("id") int id
     ) throws CoreException {
-        return Result.success(projectCredentialService.showHiddenInfo(id, projectId));
+        return projectCredentialService.showHiddenInfo(id, projectId);
     }
 }

@@ -9,8 +9,8 @@ import net.coding.common.annotation.enums.Action;
 import net.coding.common.annotation.enums.Function;
 import net.coding.common.constants.OAuthConstants;
 import net.coding.common.util.LimitedPager;
-import net.coding.common.util.Result;
 import net.coding.common.util.ResultPage;
+import net.coding.framework.webapp.response.annotation.RestfulApi;
 import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dto.ProjectTweetDTO;
 import net.coding.lib.project.entity.Project;
@@ -44,6 +44,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import proto.platform.user.UserProto;
 
+import static net.coding.lib.project.exception.CoreException.ExceptionType.DEFAULT_FAIL_EXCEPTION;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PROJECT_NOT_EXIST;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.TWEET_NOT_EXISTS;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
@@ -55,6 +56,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 @RestController
 @RequestMapping("/api/platform/project/{projectId}/notice")
 @ProtectedAPI(privateTokenAccess = true, oauthScope = {OAuthConstants.Scope.PROJECT_NOTICE})
+@RestfulApi
 public class ProjectTweetController {
 
     @Autowired
@@ -97,7 +99,7 @@ public class ProjectTweetController {
     @ProtectedAPI
     @ProjectApiProtector(function = Function.ProjectNotice, action = Action.Create)
     @RequestMapping(value = "", method = POST)
-    public Result createProjectTweet(
+    public ProjectTweetDTO createProjectTweet(
             @ModelAttribute("project") Project project,
             @Valid CreateTweetForm form,
             Errors errors) throws CoreException {
@@ -107,18 +109,17 @@ public class ProjectTweetController {
         String projectPath = projectGrpcClient.getProjectPath(project.getId());
         ProjectTweet projectTweet = projectTweetService.insert(form.getContent(), form.getSlateRaw(), true, project);
         if (projectTweet == null) {
-            return Result.failed();
-        } else {
-            UserProto.User user = userGrpcClient.getUserById(projectTweet.getOwnerId());
-            return Result.success(projectTweetService.toBuilderTweet(projectTweet, true, project, projectPath, user));
+            throw CoreException.of(DEFAULT_FAIL_EXCEPTION);
         }
+        UserProto.User user = userGrpcClient.getUserById(projectTweet.getOwnerId());
+        return projectTweetService.toBuilderTweet(projectTweet, true, project, projectPath, user);
     }
 
     @ApiOperation(value = "编辑公告", notes = "原api:/api/project/{project_id}/tweet/{tweet_id} put")
     @ProtectedAPI
     @ProjectApiProtector(function = Function.ProjectNotice, action = Action.Update)
     @RequestMapping(value = "{tweetId}", method = PUT)
-    public Result updateProjectTweet(
+    public ProjectTweetDTO updateProjectTweet(
             @ModelAttribute("project") Project project,
             @ModelAttribute("projectTweet") ProjectTweet projectTweet,
             @RequestParam("raw") String raw,
@@ -128,10 +129,10 @@ public class ProjectTweetController {
         String projectPath = projectGrpcClient.getProjectPath(project.getId());
         projectTweet = projectTweetService.update(projectTweet, raw, slateRaw, project);
         if (projectTweet == null) {
-            return Result.failed();
+            throw CoreException.of(DEFAULT_FAIL_EXCEPTION);
         } else {
             UserProto.User user = userGrpcClient.getUserById(projectTweet.getOwnerId());
-            return Result.success(projectTweetService.toBuilderTweet(projectTweet, true, project, projectPath, user));
+            return projectTweetService.toBuilderTweet(projectTweet, true, project, projectPath, user);
         }
     }
 
@@ -141,33 +142,32 @@ public class ProjectTweetController {
     @ApiOperation(value = "公告详情", notes = "原api:/api/project/{project_id}/tweet/{tweet_id} get")
     @ProtectedAPI
     @RequestMapping(value = "{tweetId}", method = GET)
-    public Result getById(
+    public ProjectTweetDTO getById(
             @ModelAttribute("project") Project project,
             @ModelAttribute("projectTweet") ProjectTweet projectTweet,
             @PathVariable("tweetId") Integer tweetId,
             @RequestParam(value = "withRaw", defaultValue = "false") boolean withRaw) throws CoreException {
         String projectPath = projectGrpcClient.getProjectPath(project.getId());
         UserProto.User user = userGrpcClient.getUserById(projectTweet.getOwnerId());
-        return Result.success(projectTweetService.toBuilderTweet(projectTweet, withRaw, project, projectPath, user));
+        return projectTweetService.toBuilderTweet(projectTweet, withRaw, project, projectPath, user);
     }
 
     @ApiOperation(value = "获取最近一条公告", notes = "项目概览中的公告，目前返回的是list,改成只包含最近公告的list,lastId参数不用了")
     @ProtectedAPI
     @RequestMapping(value = "last", method = GET)
-    public Result getLast(
+    public List<ProjectTweetDTO> getLast(
             @ModelAttribute("project") Project project,
             @RequestParam(value = "withRaw", defaultValue = "false") boolean withRaw) {
+        List<ProjectTweetDTO> dtos = new ArrayList<>();
         String projectPath = projectGrpcClient.getProjectPath(project.getId());
         ProjectTweet projectTweet = projectTweetService.getLast(project.getId());
         if (Objects.isNull(projectTweet)) {
             // 返回空列表而不是失败
-            return Result.success();
-        } else {
-            List<ProjectTweetDTO> dtos = new ArrayList<>();
-            UserProto.User user = userGrpcClient.getUserById(projectTweet.getOwnerId());
-            dtos.add(projectTweetService.toBuilderTweet(projectTweet, withRaw, project, projectPath, user));
-            return Result.success(dtos);
+            return dtos;
         }
+        UserProto.User user = userGrpcClient.getUserById(projectTweet.getOwnerId());
+        dtos.add(projectTweetService.toBuilderTweet(projectTweet, withRaw, project, projectPath, user));
+        return dtos;
     }
 
     @ApiOperation(value = "公告列表", notes = "原api:/api/project/{project_id}/notices get")
@@ -204,12 +204,12 @@ public class ProjectTweetController {
     @ProtectedAPI
     @ProjectApiProtector(function = Function.ProjectNotice, action = Action.Update)
     @RequestMapping(value = "{tweetId}", method = DELETE)
-    public Result deleteProjectTweet(
+    public void deleteProjectTweet(
             @ModelAttribute("project") Project project,
             @ModelAttribute("projectTweet") ProjectTweet projectTweet
     ) {
         Integer userId = SystemContextHolder.get() != null ? SystemContextHolder.get().getId() : 0;
-        return Result.of(projectTweetService.delete(projectTweet, userId, project) > 0);
+        projectTweetService.delete(projectTweet, userId, project);
     }
 
 

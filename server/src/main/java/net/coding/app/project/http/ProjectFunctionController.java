@@ -1,5 +1,6 @@
 package net.coding.app.project.http;
 
+import net.coding.framework.webapp.response.annotation.RestfulApi;
 import net.coding.lib.project.dto.ProjectFunctionModuleDTO;
 import net.coding.lib.project.setting.ProjectFunctionModuleService;
 
@@ -19,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 @Api(value = "项目功能开关查询", tags = "项目功能开关")
 @AllArgsConstructor
 @RequestMapping("/api/platform/project")
+@RestfulApi
 public class ProjectFunctionController {
     private final ProjectFunctionModuleService projectFunctionModuleService;
 

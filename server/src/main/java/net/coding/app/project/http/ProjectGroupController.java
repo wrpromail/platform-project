@@ -1,8 +1,7 @@
 package net.coding.app.project.http;
 
 import net.coding.app.project.constant.GatewayHeader;
-import net.coding.common.util.Result;
-import net.coding.common.util.ResultSerializeNull;
+import net.coding.framework.webapp.response.annotation.RestfulApi;
 import net.coding.lib.project.dao.pojo.ProjectSearchFilter;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.exception.CoreException;
@@ -10,10 +9,10 @@ import net.coding.lib.project.exception.ProjectGroupNameNullException;
 import net.coding.lib.project.exception.ProjectGroupNameTooLongException;
 import net.coding.lib.project.exception.ProjectGroupNotExistException;
 import net.coding.lib.project.exception.ProjectGroupSystemNotAllowOperateException;
-import net.coding.lib.project.group.ProjectGroupMoveForm;
 import net.coding.lib.project.group.ProjectGroup;
 import net.coding.lib.project.group.ProjectGroupDTO;
 import net.coding.lib.project.group.ProjectGroupDTOService;
+import net.coding.lib.project.group.ProjectGroupMoveForm;
 import net.coding.lib.project.group.ProjectGroupService;
 import net.coding.lib.project.service.ProjectService;
 
@@ -48,6 +47,7 @@ import static net.coding.lib.project.exception.CoreException.ExceptionType.PARAM
 @Api(value = "项目分组", tags = "项目分组")
 @AllArgsConstructor
 @RequestMapping(value = "/api/platform/project/groups/group")
+@RestfulApi
 public class ProjectGroupController {
 
     private final ProjectService projectService;
@@ -91,7 +91,7 @@ public class ProjectGroupController {
 
     @ApiOperation(value = "update-project-group", notes = "更新项目分组信息")
     @PutMapping(value = "/{id}")
-    public Result update(
+    public void update(
             @RequestHeader(GatewayHeader.USER_ID) Integer userId,
             @ApiParam(name = "id", value = "项目分组标识", required = true)
             @PathVariable(value = "id") Integer id,
@@ -109,12 +109,11 @@ public class ProjectGroupController {
         if (!StringUtils.isEmpty(name)) {
             projectGroupService.updateGroup(projectGroup, name, userId);
         }
-        return ResultSerializeNull.success();
     }
 
     @ApiOperation(value = "delete-project-group", notes = "删除项目分组")
     @DeleteMapping(value = "/{id}")
-    public Result delete(
+    public void delete(
             @ApiParam(name = "id", value = "项目分组标识", required = true)
             @PathVariable(value = "id") Integer id,
             @RequestHeader(GatewayHeader.USER_ID) Integer userId
@@ -128,12 +127,11 @@ public class ProjectGroupController {
         }
         projectGroupService.deleteGroup(projectGroup, userId);
 
-        return ResultSerializeNull.success();
     }
 
     @ApiOperation(value = "sort-project-group", notes = "对项目分组进行排序")
     @PatchMapping(value = "/{id}/sort")
-    public Result sort(
+    public void sort(
             @ApiParam(name = "id", value = "移动分组标识", required = true)
             @PathVariable(value = "id") Integer id,
             @ApiParam(name = "afterId", value = "参照分组标识", required = true)
@@ -158,12 +156,11 @@ public class ProjectGroupController {
 
         projectGroupService.groupSort(projectGroup, afterId);
 
-        return ResultSerializeNull.success();
     }
 
     @ApiOperation(value = "move-project to group", notes = "移动项目到分组")
     @PutMapping(value = "/{groupId}/project")
-    public Result moveProject2Group(
+    public void moveProject2Group(
             @ApiParam(name = "projectGroupMoveForm", value = "移动项目表单信息", required = true)
                     ProjectGroupMoveForm projectGroupMoveForm,
             @ApiParam(name = "groupId", value = "分组标识", required = true)
@@ -173,7 +170,7 @@ public class ProjectGroupController {
     ) throws CoreException {
         List<Integer> projectIdList = solveIdsToProjectIds(projectGroupMoveForm, teamId, userId);
         if (CollectionUtils.isEmpty(projectIdList)) {
-            return Result.success();
+            return;
         }
 
         ProjectGroup projectGroup = projectGroupService.getGroupById(groupId);
@@ -187,7 +184,6 @@ public class ProjectGroupController {
         } else {
             projectGroupService.addProjectToGroup(projectGroup, projectIdList, userId);
         }
-        return Result.success();
     }
 
     private List<Integer> solveIdsToProjectIds(

@@ -8,8 +8,8 @@ import net.coding.common.annotation.enums.Action;
 import net.coding.common.annotation.enums.Function;
 import net.coding.common.util.BeanUtils;
 import net.coding.common.util.LimitedPager;
-import net.coding.common.util.Result;
 import net.coding.common.util.ResultPage;
+import net.coding.framework.webapp.response.annotation.RestfulApi;
 import net.coding.lib.project.dto.ProgramDTO;
 import net.coding.lib.project.dto.ProgramPathDTO;
 import net.coding.lib.project.dto.ProjectDTO;
@@ -48,6 +48,7 @@ import lombok.AllArgsConstructor;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api/platform/program")
+@RestfulApi
 public class ProgramController {
 
     private final RamTransformTeamService ramTransformTeamService;
@@ -197,7 +198,7 @@ public class ProgramController {
             @RequestHeader(GatewayHeader.USER_ID) Integer userId,
             @RequestParam(name = "programId", required = false) Integer programId,
             @RequestParam(name = "userIds", required = false)
-                    Set<Integer> userIds) throws CoreException {
+            Set<Integer> userIds) throws CoreException {
         return programService.getBatchUserProgramProjects(teamId, userId, programId, userIds);
     }
 
@@ -233,7 +234,7 @@ public class ProgramController {
     @ApiOperation("项目集-移除项目")
     @ProjectApiProtector(function = Function.ProgramProject, action = Action.Delete)
     @PostMapping("/{projectId}/remove/project")
-    public Result deleteProgramProject(
+    public void deleteProgramProject(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
             @RequestHeader(GatewayHeader.USER_ID) Integer userId,
             @PathVariable Integer projectId,//项目集Id
@@ -243,6 +244,5 @@ public class ProgramController {
         } else {
             programMemberService.removeProgramProject(teamId, userId, projectId, removeProjectId);
         }
-        return Result.success();
     }
 }

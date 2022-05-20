@@ -1,6 +1,7 @@
 package net.coding.app.project.http;
 
 import net.coding.app.project.constant.GatewayHeader;
+import net.coding.framework.webapp.response.annotation.RestfulApi;
 import net.coding.lib.project.additional.ProjectAdditionalPredicate;
 import net.coding.lib.project.additional.ProjectAdditionalService;
 import net.coding.lib.project.additional.dto.ProjectAdditionalDTO;
@@ -22,6 +23,7 @@ import lombok.AllArgsConstructor;
 @RestController
 @RequestMapping("/api/platform/project/additional")
 @AllArgsConstructor
+@RestfulApi
 public class ProjectAdditionalController {
     private final ProjectAdditionalService projectAdditionalService;
 

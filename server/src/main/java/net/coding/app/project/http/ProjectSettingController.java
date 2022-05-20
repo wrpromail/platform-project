@@ -5,6 +5,7 @@ import net.coding.common.annotation.ProjectApiProtector;
 import net.coding.common.annotation.ProtectedAPI;
 import net.coding.common.annotation.enums.Action;
 import net.coding.common.annotation.enums.Function;
+import net.coding.framework.webapp.response.annotation.RestfulApi;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.setting.ProjectSettingDTO;
 import net.coding.lib.project.setting.ProjectSettingFunctionService;
@@ -27,6 +28,7 @@ import lombok.AllArgsConstructor;
 @RequestMapping(value = "/api/platform/project/{projectId}/settings")
 @RestController
 @AllArgsConstructor
+@RestfulApi
 public class ProjectSettingController {
 
     private final ProjectSettingFunctionService projectSettingFunctionService;

@@ -2,6 +2,7 @@ package net.coding.app.project.http;
 
 import net.coding.app.project.constant.GatewayHeader;
 import net.coding.common.util.Result;
+import net.coding.framework.webapp.response.annotation.RestfulApi;
 import net.coding.lib.project.dto.ProjectJoinProjectMemberDTO;
 import net.coding.lib.project.dto.request.ProjectMemberBatchAddReqDTO;
 import net.coding.lib.project.dto.request.ProjectMemberBatchDelReqDTO;
@@ -32,6 +33,7 @@ import lombok.AllArgsConstructor;
 @RequestMapping("/api/platform/project/members/principal")
 @AllArgsConstructor
 @Api(value = "项目成员主体", tags = "项目成员主体")
+@RestfulApi
 public class ProjectMemberPrincipalBatchController {
 
     private final ProjectMemberPrincipalService projectMemberPrincipalService;
@@ -50,24 +52,22 @@ public class ProjectMemberPrincipalBatchController {
     @Action(name = "addProjectOnMember", description = "批量添加-项目成员添加至多个项目", actionType = Action.ActionType.Write)
     @ApiOperation("批量添加-项目成员添加至多个项目")
     @PostMapping("/batch/add")
-    public Result batchAddMember(
+    public void batchAddMember(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
             @RequestHeader(GatewayHeader.USER_ID) Integer userId,
             @RequestBody @Valid ProjectMemberBatchAddReqDTO reqDTO
     ) throws CoreException {
         projectMemberPrincipalWriteService.batchAddMember(teamId, userId, reqDTO);
-        return Result.success();
     }
 
     @Action(name = "deleteProjectOnMember", description = "批量移出-项目成员至多个项目移出", actionType = Action.ActionType.Write)
     @ApiOperation("批量移出-项目成员至多个项目移出")
     @DeleteMapping("/batch/del")
-    public Result batchDelMember(
+    public void batchDelMember(
             @RequestHeader(GatewayHeader.TEAM_ID) Integer teamId,
             @RequestHeader(GatewayHeader.USER_ID) Integer userId,
             @RequestBody @Valid ProjectMemberBatchDelReqDTO reqDTO
     ) throws CoreException {
         projectMemberPrincipalWriteService.batchDelMember(teamId, userId, reqDTO);
-        return Result.success();
     }
 }

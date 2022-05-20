@@ -3,6 +3,7 @@ package net.coding.app.project.http;
 import net.coding.app.project.constant.GatewayHeader;
 import net.coding.common.util.BeanUtils;
 import net.coding.common.util.ResultPage;
+import net.coding.framework.webapp.response.annotation.RestfulApi;
 import net.coding.grpc.client.platform.TeamServiceGrpcClient;
 import net.coding.lib.project.dto.ProjectDTO;
 import net.coding.lib.project.exception.CoreException;
@@ -28,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 @Api(value = "项目查询", tags = "项目查询")
 @AllArgsConstructor
 @RequestMapping("/api/platform/project")
+@RestfulApi
 public class LegacyProjectsController {
     private final ProjectService projectService;
     private final TeamServiceGrpcClient teamServiceGrpcClient;

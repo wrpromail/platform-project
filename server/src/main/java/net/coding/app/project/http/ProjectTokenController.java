@@ -6,8 +6,9 @@ import net.coding.common.annotation.enums.Action;
 import net.coding.common.annotation.enums.Function;
 import net.coding.common.constants.DeployTokenScopeEnum;
 import net.coding.common.constants.TwoFactorAuthConstants;
-import net.coding.common.util.Result;
+import net.coding.framework.webapp.response.annotation.RestfulApi;
 import net.coding.lib.project.common.SystemContextHolder;
+import net.coding.lib.project.dto.ProjectTokenDTO;
 import net.coding.lib.project.dto.ProjectTokenScopeDTO;
 import net.coding.lib.project.entity.ProjectToken;
 import net.coding.lib.project.exception.CoreException;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,6 +45,7 @@ import proto.platform.user.UserProto;
 @Api(value = "项目令牌", tags = "项目令牌")
 @AllArgsConstructor
 @RequestMapping(value = "/api/platform/project/{projectId}/deploy-tokens")
+@RestfulApi
 public class ProjectTokenController {
 
     private final ProjectTokenService projectTokenService;
@@ -50,7 +53,7 @@ public class ProjectTokenController {
     @ProtectedAPI
     @RequestMapping(value = "", method = RequestMethod.POST)
     @ProjectApiProtector(function = Function.ProjectDeployToken, action = Action.Create)
-    public Result addProjectToken(
+    public ProjectTokenDTO addProjectToken(
             @PathVariable Integer projectId,
             @Valid AddProjectTokenForm form
     ) throws CoreException {
@@ -60,7 +63,7 @@ public class ProjectTokenController {
         if (!Objects.nonNull(user)) {
             throw CoreException.of(CoreException.ExceptionType.USER_NOT_LOGIN);
         }
-        return Result.success(projectTokenService.addDeployToken(projectId, user, form, (short) 0));
+        return projectTokenService.addDeployToken(projectId, user, form, (short) 0);
     }
 
     @ProtectedAPI
@@ -87,8 +90,8 @@ public class ProjectTokenController {
     @ProtectedAPI
     @RequestMapping(value = "", method = RequestMethod.GET)
     @ProjectApiProtector(function = Function.ProjectDeployToken, action = Action.View)
-    public Result getProjectTokens(@PathVariable Integer projectId) {
-        return Result.success(projectTokenService.getUserProjectToken(projectId));
+    public List<ProjectTokenDTO> getProjectTokens(@PathVariable Integer projectId) {
+        return projectTokenService.getUserProjectToken(projectId);
     }
 
     /**
@@ -125,10 +128,10 @@ public class ProjectTokenController {
     @ProtectedAPI(authMethod = TwoFactorAuthConstants.AUTH_TYPE_DEFAULT)
     @RequestMapping(value = "/{id}/token", method = RequestMethod.GET)
     @ProjectApiProtector(function = Function.ProjectDeployToken, action = Action.View)
-    public Result getToken(@PathVariable Integer projectId, @PathVariable Integer id
+    public String getToken(@PathVariable Integer projectId, @PathVariable Integer id
     ) throws CoreException {
         ProjectToken projectToken = projectTokenService.getProjectToken(projectId, id);
-        return Result.success(projectToken.getToken());
+        return projectToken.getToken();
     }
 
     /**
@@ -137,10 +140,10 @@ public class ProjectTokenController {
     @ApiOperation(value = "getScopes", notes = "获取权限列表")
     @RequestMapping(value = "/scopes", method = RequestMethod.GET)
     @ProjectApiProtector(function = Function.ProjectDeployToken, action = Action.View)
-    public Result getScopes() {
-        return Result.success(Stream.of(DeployTokenScopeEnum.values())
+    public List<ProjectTokenScopeDTO> getScopes() {
+        return Stream.of(DeployTokenScopeEnum.values())
                 .map(e -> ProjectTokenScopeDTO.builder().value(e.getValue()).text(e.getText()).build())
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList());
     }
 
 }

@@ -1,5 +1,8 @@
 dependencies {
     compile project(':lib')
     compile project(":proto")
+    api "net.coding.platform.framework:boot-starter:${platformFrameworkVersion}"
+    api "net.coding.platform.framework:boot:${platformFrameworkVersion}"
+    api "net.coding.platform.framework:autoconfigure:${platformFrameworkVersion}"
 }
 
