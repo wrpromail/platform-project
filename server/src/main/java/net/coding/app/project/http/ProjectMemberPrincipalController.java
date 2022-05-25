@@ -39,6 +39,8 @@ import lombok.AllArgsConstructor;
 @RestfulApi
 public class ProjectMemberPrincipalController {
 
+    public static final int MAX_PAGE_SIZE = 1000;
+
     private final ProjectMemberPrincipalService projectMemberPrincipalService;
 
     private final ProjectMemberPrincipalWriteService projectMemberPrincipalWriteService;
@@ -55,6 +57,8 @@ public class ProjectMemberPrincipalController {
             @ApiParam("关键字搜索") @RequestParam(required = false) String keyword,
             @ApiParam("分页") LimitedPager pager
     ) throws CoreException {
+        //设置每页最大条数
+        pager.setMaxPageSize(MAX_PAGE_SIZE);
         return projectMemberPrincipalService.findProjectMemberPrincipalPages(
                 ProjectMemberQueryPageReqDTO.builder()
                         .teamId(teamId)
