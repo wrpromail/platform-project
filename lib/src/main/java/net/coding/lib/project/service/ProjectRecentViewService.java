@@ -94,7 +94,7 @@ public class ProjectRecentViewService {
         }
         //取最近查看的项目列表 id 和用户所有项目 id 合并，查询全部数据，最近访问访问顺序排前
         if (CollectionUtils.isNotEmpty(ids)) {
-            recentViewProjects.addAll(projectDao.selectByIdList(ids));
+            recentViewProjects.addAll(projectDao.getByIds(ids, BeanUtils.getDefaultDeletedAt()));
         }
         List<ProjectDTO> projectDTOS = StreamEx.of(recentViewProjects)
                 .map(projectDTOService::toDetailDTO)
