@@ -110,7 +110,7 @@ public class ProjectMemberGrpcService extends ProjectMemberServiceGrpc.ProjectMe
                     .setMessage(e.getMessage())
                     .build());
         } catch (Exception e) {
-            log.error("RpcService AddProjectMember error CoreException ", e);
+            log.error("RpcService AddProjectMember error Exception ", e);
             responseObserver.onNext(ProjectMemberProto.AddProjectMemberResponse.newBuilder()
                     .setCode(INTERNAL_ERROR)
                     .setMessage(e.getMessage())
@@ -160,7 +160,6 @@ public class ProjectMemberGrpcService extends ProjectMemberServiceGrpc.ProjectMe
             List<ProjectMember> members = projectMemberService.findListByProjectId(project.getId());
             builder.setCode(SUCCESS).addAllData(toProtoProjectMembers(project.getId(), members));
         } catch (CoreException e) {
-            log.error("rpcService findProjectMembersByProjectId error CoreException ", e);
             builder.setCode(NOT_FOUND).setMessage(e.getMessage());
         } catch (Exception e) {
             log.error("rpcService getProjectById error Exception ", e);
@@ -186,7 +185,6 @@ public class ProjectMemberGrpcService extends ProjectMemberServiceGrpc.ProjectMe
             }
             builder.setCode(SUCCESS).setData(toProtoProjectMember(member));
         } catch (CoreException e) {
-            log.error("rpcService getProjectMemberByProjectIdAndUserId error CoreException ", e);
             builder.setCode(NOT_FOUND).setMessage(e.getMessage());
         } catch (Exception e) {
             log.error("rpcService getProjectById error Exception ", e);
