@@ -96,10 +96,10 @@ public class ProjectCredentialService {
         List<CredentialDTO> list = credentials.stream().map(
                 credential -> {
                     CredentialDTO credentialDTO = toBuildCredentialDTO(credential);
-//                    List<ConnectionTaskDTO> connectionTaskDTOs =
-//                            projectCredentialTaskService.taskFilterSelected(projectId, credential);
-//                    credentialDTO.setSelectedTasks(connectionTaskDTOs);
-//                    credentialDTO.setTaskCount(connectionTaskDTOs.size());
+                    List<ConnectionTaskDTO> connectionTaskDTOs =
+                            projectCredentialTaskService.taskFilterSelected(projectId, credential);
+                    credentialDTO.setSelectedTasks(connectionTaskDTOs);
+                    credentialDTO.setTaskCount(connectionTaskDTOs.size());
                     return credentialDTO;
                 }
         ).collect(Collectors.toList());
