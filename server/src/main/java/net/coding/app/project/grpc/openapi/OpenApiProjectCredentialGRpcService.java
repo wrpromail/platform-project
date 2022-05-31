@@ -71,17 +71,15 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
                     SUCCESS.name().toLowerCase(),
                     credentials
             );
+        } catch (CoreException e) {
+            describeProjectCredentialsResponse(
+                    responseObserver,
+                    NOT_FOUND,
+                    e.getMsg(),
+                    null
+            );
         } catch (Exception e) {
             log.error("RpcService describeProjectCredentials error {}", e.getMessage());
-            if (e instanceof CoreException) {
-                describeProjectCredentialsResponse(
-                        responseObserver,
-                        NOT_FOUND,
-                        e.getMessage(),
-                        null
-                );
-                return;
-            }
             describeProjectCredentialsResponse(
                     responseObserver,
                     INVALID_PARAMETER,
@@ -101,7 +99,7 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
         try {
             valid(request.getUser().getId(), request.getProjectId());
             CredentialType credentialType = Optional.ofNullable(CredentialType
-                    .of(request.getCredentialType().name()))
+                            .of(request.getCredentialType().name()))
                     .orElse(CredentialType.USERNAME_PASSWORD);
 
             // 支持的类型判断
@@ -168,7 +166,7 @@ public class OpenApiProjectCredentialGRpcService extends ProjectCredentialServic
             createCredentialsResponse(
                     responseObserver,
                     NOT_FOUND,
-                    e.getMessage(),
+                    e.getMsg(),
                     null
             );
         } catch (Exception e) {
