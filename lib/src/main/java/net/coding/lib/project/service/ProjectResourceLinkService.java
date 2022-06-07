@@ -79,6 +79,7 @@ public class ProjectResourceLinkService {
         put("work-item", "plan/work-items");
         put("risk", "risks");
         put("knowledge", "knowledge");
+        put("GlobalRequirement", "GlobalRequirement");
     }};
 
     private static final Set<String> useCodeTypeSet = new HashSet<String>() {{
@@ -307,8 +308,12 @@ public class ProjectResourceLinkService {
         return "/api/km/v1/spaces/pages/" + projectResource.getTargetId();
     }
 
+    private String buildGlobalRequirement(ProjectResource projectResource) {
+        return "/requirements/issues/" + projectResource.getCode() + "/detail";
+    }
+
     public String getResourceLink(ProjectResource projectResource, String projectPath) {
-        try{
+        try {
             String type = Inflector.underscore(projectResource.getTargetType()).replace('_', '-');
             String urlType = typeToUrlMap.get(type);
             if (null != urlType) {
@@ -336,16 +341,18 @@ public class ProjectResourceLinkService {
                     return buildIterationLink(projectResource, projectPath);
                 } else if (programCodeTypeSet.contains(type)) {
                     return buildProgramLink(projectResource, projectPath, urlType);
-                } else if("knowledge".equals(urlType)) {
+                } else if ("knowledge".equals(urlType)) {
                     return buildKnowledgeLink(projectResource);
+                } else if ("GlobalRequirement".equals(urlType)) {
+                    return buildGlobalRequirement(projectResource);
                 } else {
                     return projectPath + "/" + urlType + "/" + projectResource.getTargetId();
                 }
             } else {
                 return projectPath + "/" + type + "/" + projectResource.getTargetId();
             }
-        } catch (Exception e){
-           return "#" ;
+        } catch (Exception e) {
+            return "#";
         }
 
     }

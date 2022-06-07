@@ -83,9 +83,11 @@ public class ProjectResourceServiceHelper {
         if (ScopeTypeEnum.PROJECT.value().equals(record.getScopeType())) {
             String projectPath = projectGrpcClient.getProjectPath(record.getProjectId());
             code = String.valueOf(projectResourceSequenceService.generateProjectResourceCode(record.getProjectId()));
+            record.setCode(code);
             resourceLink = projectResourceLinkService.getResourceLink(record, projectPath);
         } else if (ScopeTypeEnum.TEAM.value().equals(record.getScopeType())) {
             code = resourceSequenceService.generateResourceCode(record.getProjectId(), record.getScopeType(), record.getTargetType());
+            record.setCode(code);
             resourceLink = resourceLinkService.getResourceLink(record);
         } else {
             throw CoreException.of(CoreException.ExceptionType.GLOBAL_RESOURCE_SCOPE_TYPE_NOT_EXIST);

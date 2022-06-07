@@ -1,5 +1,7 @@
 package net.coding.lib.project.enums;
 
+import java.util.Arrays;
+
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 
 /**
@@ -7,7 +9,8 @@ import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
  */
 public enum GlobalResourceTypeEnum {
 
-    KNOWLEDGE_MANAGE("Knowledge");
+    KNOWLEDGE_MANAGE("Knowledge"),
+    GLOBAL_REQUIREMENT("GlobalRequirement");
 
     private final String value;
 
@@ -20,10 +23,9 @@ public enum GlobalResourceTypeEnum {
     }
 
     public static GlobalResourceTypeEnum valueFrom(String type) {
-
-        if (equalsIgnoreCase(KNOWLEDGE_MANAGE.value, type)) {
-            return KNOWLEDGE_MANAGE;
-        }
-        return null;
+        return Arrays.stream(values())
+                .filter(e -> equalsIgnoreCase(e.value, type))
+                .findFirst()
+                .orElse(null);
     }
 }

@@ -50,6 +50,9 @@ public class ResourceSequenceService {
                 case KNOWLEDGE_MANAGE:
                     formatCode = "K-" + code;
                     break;
+                case GLOBAL_REQUIREMENT:
+                    formatCode = "R-" + code;
+                    break;
                 default:
                     formatCode = String.valueOf(code);
             }
