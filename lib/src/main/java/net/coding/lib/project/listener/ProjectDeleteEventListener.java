@@ -48,7 +48,6 @@ public class ProjectDeleteEventListener {
     private final UserGrpcClient userGrpcClient;
     private final ProjectService projectService;
     private final ProjectMemberInspectService projectMemberInspectService;
-    private final ProjectAdaptorFactory projectAdaptorFactory;
     private final ProjectMemberAdaptorFactory projectMemberAdaptorFactory;
 
     @Transactional
@@ -67,12 +66,7 @@ public class ProjectDeleteEventListener {
         for (ProjectGroupProject projectGroupProject : projectGroupProjectList) {
             delRelationOfProAndGro(event.getProjectId(), projectGroupProject);
         }
-
         Set<Integer> userIds = projectMemberInspectService.getPrincipalMemberUserIds(members);
-        projectAdaptorFactory.create(project.getPmType())
-                .sendProjectNotification(event.getUserId(), userIds,
-                        project, ACTION_DELETE);
-
         projectMemberDao.batchDelete(members);
         projectMemberAdaptorFactory.create(project.getPmType())
                 .postDeleteMemberUserEvent(project, event.getUserId(), StreamEx.of(userIds).toList());

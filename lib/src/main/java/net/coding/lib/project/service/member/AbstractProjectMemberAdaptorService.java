@@ -7,9 +7,19 @@ import net.coding.common.base.event.ActivityEvent;
 import net.coding.common.base.event.ProjectMemberCreateEvent;
 import net.coding.common.base.event.ProjectMemberDeleteEvent;
 import net.coding.common.base.event.ProjectMemberRoleChangeEvent;
+import net.coding.common.eventbus.AsyncExternalEventBus;
+import net.coding.common.i18n.utils.LocaleMessageSource;
+import net.coding.events.all.platform.CommonProto.Operator;
+import net.coding.events.all.platform.CommonProto.Program;
+import net.coding.events.all.platform.CommonProto.ProgramMember;
+import net.coding.events.all.platform.CommonProto.Team;
+import net.coding.events.all.platform.ProgramMemberProto.ProgramMemberDeletedEvent;
+import net.coding.events.all.platform.ProjectMemberProto.ProjectMemberDeletedEvent;
+import net.coding.events.all.platform.ProjectMemberProto.ProjectMemberQuitEvent;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
+import net.coding.lib.project.enums.PmTypeEnums;
 import net.coding.lib.project.enums.ProjectMemberPrincipalTypeEnum;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.grpc.client.NotificationGrpcClient;
@@ -21,6 +31,7 @@ import net.coding.lib.project.utils.ResourceUtil;
 import net.coding.platform.permission.proto.CommonProto;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -64,15 +75,14 @@ public abstract class AbstractProjectMemberAdaptorService {
 
     protected final AsyncEventBus asyncEventBus;
 
+    protected AsyncExternalEventBus asyncExternalEventBus;
+    protected LocaleMessageSource localeMessageSource;
+
     public abstract Integer pmType();
 
-    protected abstract String notificationAddMember();
 
     protected abstract String notificationInviteMember();
 
-    protected abstract String notificationMemberQuit();
-
-    protected abstract String notificationDeleteMember();
 
     protected abstract void postProjectMemberPrincipalCreateEvent(Project project,
                                                                   Integer operationUserId,
@@ -97,6 +107,14 @@ public abstract class AbstractProjectMemberAdaptorService {
                                                               Set<Integer> targetUserIds,
                                                               short type) throws Exception;
 
+    @Autowired
+    public void setAsyncExternalEventBus(AsyncExternalEventBus asyncExternalEventBus) {
+        this.asyncExternalEventBus = asyncExternalEventBus;
+    }
+    @Autowired
+    public void setLocaleMessageSource(LocaleMessageSource localeMessageSource) {
+        this.localeMessageSource = localeMessageSource;
+    }
     @Async
     public void postAddMembersEvent(AtomicInteger insertRole, Integer operationUserId,
                                     Project project, ProjectMember projectMember,
@@ -125,13 +143,11 @@ public abstract class AbstractProjectMemberAdaptorService {
         }
         String userLink = userGrpcClient.getUserHtmlLinkById(operationUserId);
         String projectHtmlUrl = projectHtmlLink(project);
-        String message = ResourceUtil.ui(notificationAddMember(), userLink, projectHtmlUrl);
         String inviteMessage = ResourceUtil.ui(notificationInviteMember(), userLink, projectHtmlUrl);
         if (!userId.equals(operationUserId)) {
             // 站内通知
             List<Integer> userIds = new ArrayList<>();
             userIds.add(userId);
-            sentProjectMemberNotification(userIds, message, project.getId());
             if (isInvite) {
                 sentProjectMemberNotification(userIds, inviteMessage, project.getId());
             }
@@ -166,9 +182,6 @@ public abstract class AbstractProjectMemberAdaptorService {
                                         List<Integer> userIds) {
         String userLink = userGrpcClient.getUserHtmlLinkById(operationUserId);
         String projectHtmlUrl = projectHtmlLink(project);
-        String message = ResourceUtil.ui(notificationAddMember(), userLink, projectHtmlUrl);
-        // 站内通知
-        sentProjectMemberNotification(userIds, message, project.getId());
         StreamEx.of(userIds)
                 .forEach(userId -> {
                     Set<Integer> roleIds = advancedRoleServiceGrpcClient.findUserRolesInProject(
@@ -194,7 +207,7 @@ public abstract class AbstractProjectMemberAdaptorService {
                     createMemberEventTrigger.trigger(
                             StreamEx.of(roleIds).map(String::valueOf).toList(),
                             ProjectMember.builder().userId(userId).build(),
-                            project.getId(),
+                            project,
                             operationUserId
                     );
                 });
@@ -202,7 +215,6 @@ public abstract class AbstractProjectMemberAdaptorService {
 
     @Async
     public void postDeleteMemberEvent(Integer currentUserId, Project project, ProjectMember projectMember) {
-
         postProjectMemberPrincipalDeleteEvent(
                 project,
                 currentUserId,
@@ -219,14 +231,6 @@ public abstract class AbstractProjectMemberAdaptorService {
                 projectMember.getUserId(),
                 ProjectMember.ACTION_REMOVE_MEMBER
         );
-
-        List<Integer> userIds = new ArrayList<>();
-        userIds.add(projectMember.getUserId());
-        String userLink = userGrpcClient.getUserHtmlLinkById(currentUserId);
-        String projectHtmlUrl = projectHtmlLink(project);
-        String message = ResourceUtil.ui(notificationDeleteMember(),
-                userLink, projectHtmlUrl);
-        sentProjectMemberNotification(userIds, message, project.getId());
     }
 
     @Async
@@ -255,11 +259,6 @@ public abstract class AbstractProjectMemberAdaptorService {
     public void postDeleteMemberUserEvent(Project project,
                                           Integer operationUserId,
                                           List<Integer> userIds) {
-        String userLink = userGrpcClient.getUserHtmlLinkById(operationUserId);
-        String projectHtmlUrl = projectHtmlLink(project);
-        String message = ResourceUtil.ui(notificationDeleteMember(),
-                userLink, projectHtmlUrl);
-        sentProjectMemberNotification(userIds, message, project.getId());
         StreamEx.of(userIds)
                 .forEach(userId -> {
                     postProjectMemberDeleteEvent(project.getId(), userId);
@@ -272,7 +271,7 @@ public abstract class AbstractProjectMemberAdaptorService {
                     deleteMemberEventTrigger.trigger(
                             ImmutableList.of(String.valueOf(0)),
                             ProjectMember.builder().userId(userId).build(),
-                            project.getId(),
+                            project,
                             operationUserId);
                 });
     }
@@ -296,14 +295,6 @@ public abstract class AbstractProjectMemberAdaptorService {
                 projectMember.getUserId(),
                 ProjectMember.ACTION_QUIT
         );
-
-        TeamProto.Team team = teamGrpcClient.getTeam(project.getId()).getData();
-        List<Integer> userIds = new ArrayList<>();
-        userIds.add(team.getOwner().getId());
-        String userLink = userGrpcClient.getUserHtmlLinkById(projectMember.getUserId());
-        String projectHtmlUrl = projectHtmlLink(project);
-        String message = ResourceUtil.ui(notificationMemberQuit(), userLink, projectHtmlUrl);
-        sentProjectMemberNotification(userIds, message, project.getId());
     }
 
     @Async
@@ -326,17 +317,13 @@ public abstract class AbstractProjectMemberAdaptorService {
         TeamProto.Team team = teamGrpcClient.getTeam(project.getId()).getData();
         List<Integer> userIds = new ArrayList<>();
         userIds.add(team.getOwner().getId());
-        String userLink = userGrpcClient.getUserHtmlLinkById(member.getUserId());
-        String projectHtmlUrl = projectHtmlLink(project);
-        String message = ResourceUtil.ui(notificationMemberQuit(), userLink, projectHtmlUrl);
-        sentProjectMemberNotification(userIds, message, project.getId());
         StreamEx.of(userIds)
                 .forEach(userId -> {
                     postProjectMemberDeleteEvent(project.getId(), userId);
                     deleteMemberEventTrigger.trigger(
                             ImmutableList.of(String.valueOf(0)),
                             ProjectMember.builder().userId(userId).build(),
-                            project.getId(),
+                            project,
                             member.getUserId());
                 });
     }

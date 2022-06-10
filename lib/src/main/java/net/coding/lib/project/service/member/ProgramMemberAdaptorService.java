@@ -2,6 +2,15 @@ package net.coding.lib.project.service.member;
 
 import com.google.common.eventbus.AsyncEventBus;
 
+import net.coding.common.eventbus.AsyncExternalEventBus;
+import net.coding.common.i18n.utils.LocaleMessageSource;
+import net.coding.events.all.platform.CommonProto.Operator;
+import net.coding.events.all.platform.CommonProto.Program;
+import net.coding.events.all.platform.CommonProto.ProgramMember;
+import net.coding.events.all.platform.CommonProto.Team;
+import net.coding.events.all.platform.ProgramMemberProto.ProgramMemberCreatedEvent;
+import net.coding.events.all.platform.ProgramMemberProto.ProgramMemberDeletedEvent;
+import net.coding.events.all.platform.ProgramMemberProto.ProgramMemberQuitEvent;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
@@ -36,7 +45,6 @@ import static net.coding.lib.project.exception.CoreException.ExceptionType.PERMI
 public class ProgramMemberAdaptorService extends AbstractProjectMemberAdaptorService {
 
     private final ProjectMemberInspectService projectMemberInspectService;
-
     public ProgramMemberAdaptorService(AdvancedRoleServiceGrpcClient advancedRoleServiceGrpcClient, ProjectMemberInspectService projectMemberInspectService, UserGrpcClient userGrpcClient, TeamGrpcClient teamGrpcClient, NotificationGrpcClient notificationGrpcClient, CreateMemberEventTriggerTrigger createMemberEventTrigger, DeleteMemberEventTriggerTrigger deleteMemberEventTrigger, AsyncEventBus asyncEventBus, ProjectMemberInspectService projectMemberInspectService1) {
         super(advancedRoleServiceGrpcClient, projectMemberInspectService, userGrpcClient, teamGrpcClient, notificationGrpcClient, createMemberEventTrigger, deleteMemberEventTrigger, asyncEventBus);
         this.projectMemberInspectService = projectMemberInspectService1;
@@ -48,33 +56,72 @@ public class ProgramMemberAdaptorService extends AbstractProjectMemberAdaptorSer
         return PmTypeEnums.PROGRAM.getType();
     }
 
-    @Override
-    protected String notificationAddMember() {
-        return "program_notification_add_member";
-    }
 
     @Override
     protected String notificationInviteMember() {
         return "program_notification_invite_member";
     }
 
-    @Override
-    protected String notificationMemberQuit() {
-        return "program_notification_member_quit";
-    }
 
-    @Override
-    protected String notificationDeleteMember() {
-        return "program_notification_delete_member";
-    }
 
     @Override
     protected void postProjectMemberPrincipalCreateEvent(Project project, Integer operationUserId, List<ProjectMember> members) {
-
+        StreamEx.of(members)
+                .distinct(ProjectMember::getUserId)
+                .forEach(member->{
+                    asyncExternalEventBus.post(ProgramMemberCreatedEvent.newBuilder()
+                            .setOperator(Operator.newBuilder()
+                                    .setId(operationUserId)
+                                    .setLocale(localeMessageSource.getLocale().toString())
+                                    .build())
+                            .setTeam(Team.newBuilder()
+                                    .setId(project.getTeamOwnerId())
+                                    .build())
+                            .setProgram(Program.newBuilder()
+                                    .setId(project.getId())
+                                    .build())
+                            .setMember(ProgramMember.newBuilder()
+                                    .setId(member.getUserId())
+                                    .build())
+                            .build());
+                });
     }
 
     @Override
     protected void postProjectMemberPrincipalDeleteEvent(Project project, Integer operationUserId, List<ProjectMember> members) {
+        members.forEach(member->{
+                    if (member.getUserId().equals(operationUserId)) {
+                        asyncExternalEventBus.post(ProgramMemberQuitEvent.newBuilder()
+                                .setOperator(Operator.newBuilder()
+                                        .setId(operationUserId)
+                                        .setLocale(localeMessageSource.getLocale().toString())
+                                        .build())
+                                .setTeam(Team.newBuilder()
+                                        .setId(project.getTeamOwnerId())
+                                        .build())
+                                .setProgram(Program.newBuilder()
+                                        .setId(project.getId())
+                                        .build())
+                                .build());
+                    } else {
+                        asyncExternalEventBus.post(ProgramMemberDeletedEvent.newBuilder()
+                                .setOperator(Operator.newBuilder()
+                                        .setId(operationUserId)
+                                        .setLocale(localeMessageSource.getLocale().toString())
+                                        .build())
+                                .setTeam(Team.newBuilder()
+                                        .setId(project.getTeamOwnerId())
+                                        .build())
+                                .setProgram(Program.newBuilder()
+                                        .setId(project.getId())
+                                        .build())
+                                .setMember(ProgramMember.newBuilder()
+                                        .setId(member.getUserId())
+                                        .build())
+                                .build());
+                    }
+
+        });
 
     }
 

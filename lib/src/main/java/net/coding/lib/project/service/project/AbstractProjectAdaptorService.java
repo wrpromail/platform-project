@@ -7,7 +7,6 @@ import net.coding.common.base.event.ProjectNameChangeEvent;
 import net.coding.common.eventbus.Pubsub;
 import net.coding.common.i18n.utils.LocaleMessageSource;
 import net.coding.e.grpcClient.collaboration.exception.MilestoneException;
-import net.coding.events.all.platform.ProjectEventProto;
 import net.coding.grpc.client.permission.AclServiceGrpcClient;
 import net.coding.grpc.client.platform.LoggingGrpcClient;
 import net.coding.lib.project.entity.Project;
@@ -154,15 +153,7 @@ public abstract class AbstractProjectAdaptorService {
         asyncEventBus.post(projectNameChangeEvent);
     }
 
-    public void postProjectDisplayNameChangeEvent(Project project) {
-        ProjectEventProto.ProjectDisplayNameChangeEvent build =
-                ProjectEventProto.ProjectDisplayNameChangeEvent.newBuilder()
-                        .setTeamId(project.getTeamOwnerId())
-                        .setProjectId(project.getId())
-                        .setNewDisplayName(project.getDisplayName())
-                        .build();
-        pubsub.publish(build);
-    }
+    public abstract void postDisplayNameChangeEvent(int userId, Project oldProject, Project newProject);
 
     public void insertOperationLog(Integer userId, Project project, Short action, String message) {
         Optional.ofNullable(ProgramProjectEventEnums.of(action, project.getPmType()))
@@ -254,24 +245,4 @@ public abstract class AbstractProjectAdaptorService {
                 }).trim();
     }
 
-    @Async
-    public void sendProjectNotification(Integer operatorId, Set<Integer> userIds, Project project, Short action) {
-        Optional.ofNullable(ProgramProjectEventEnums.of(action, project.getPmType()))
-                .ifPresent(eventEnums -> {
-                    String message = localeMessageSource.getMessage(eventEnums.getMessage(),
-                            new Object[]{userGrpcClient.getUserHtmlLinkById(operatorId)
-                                    , htmlLink(project)}).trim();
-                    notificationGrpcClient.send(
-                            NotificationProto
-                                    .NotificationSendRequest
-                                    .newBuilder()
-                                    .addAllUserId(userIds)
-                                    .setContent(message)
-                                    .setTargetType(NotificationProto.TargetType.Project)
-                                    .setTargetId(String.valueOf(project.getId()))
-                                    .setSetting(NotificationProto.Setting.ProjectMemberSetting)
-                                    .build()
-                    );
-                });
-    }
 }

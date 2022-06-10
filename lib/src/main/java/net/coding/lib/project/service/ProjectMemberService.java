@@ -4,8 +4,17 @@ import com.google.common.collect.ImmutableList;
 
 import com.github.pagehelper.PageRowBounds;
 
+import net.coding.common.eventbus.AsyncExternalEventBus;
+import net.coding.common.i18n.utils.LocaleMessageSource;
 import net.coding.common.util.BeanUtils;
 import net.coding.common.util.ResultPage;
+import net.coding.events.all.platform.CommonProto.Operator;
+import net.coding.events.all.platform.CommonProto.Program;
+import net.coding.events.all.platform.CommonProto.ProgramAdminer;
+import net.coding.events.all.platform.CommonProto.ProgramOwner;
+import net.coding.events.all.platform.CommonProto.Team;
+import net.coding.events.all.platform.ProgramMemberProto.ProgramAdminUpdatedEvent;
+import net.coding.events.all.platform.ProgramMemberProto.ProgramOwnerUpdatedEvent;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.lib.project.AppProperties;
 import net.coding.lib.project.common.SystemContextHolder;
@@ -18,6 +27,8 @@ import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
 import net.coding.lib.project.entity.ProjectTweet;
 import net.coding.lib.project.enums.CacheTypeEnum;
+import net.coding.lib.project.enums.PmTypeEnums;
+import net.coding.lib.project.enums.ProgramProjectRoleTypeEnum.ProgramRoleTypeEnum;
 import net.coding.lib.project.enums.ProjectMemberPrincipalTypeEnum;
 import net.coding.lib.project.exception.CoreException;
 import net.coding.lib.project.form.AddMemberForm;
@@ -90,6 +101,8 @@ public class ProjectMemberService {
     private final DeleteMemberEventTriggerTrigger deleteMemberEventTrigger;
     private final UpdateMemberRoleEventTriggerTrigger updateMemberRoleEventTriggerTrigger;
     private final AppProperties appProperties;
+    private final LocaleMessageSource localeMessageSource;
+    private final AsyncExternalEventBus asyncExternalEventBus;
 
     public boolean updateProjectMemberType
             (
@@ -105,7 +118,7 @@ public class ProjectMemberService {
                     (
                             ImmutableList.of(String.valueOf(roleId)),
                             member,
-                            project.getId(),
+                            project,
                             currentUserId
                     );
             projectHandCacheService.handleProjectMemberCache(member, CacheTypeEnum.UPDATE);
@@ -243,9 +256,45 @@ public class ProjectMemberService {
                 createMemberEventTrigger.trigger(
                         ImmutableList.of(String.valueOf(role.getId())),
                         projectMember,
-                        project.getId(),
+                        project,
                         currentUserId
                 );
+                ProgramRoleTypeEnum roleType = ProgramRoleTypeEnum.of(type);
+                if (project.getPmType().equals(PmTypeEnums.PROGRAM.getType())) {
+                    if (ProgramRoleTypeEnum.ProgramOwner.equals(roleType)) {
+                        asyncExternalEventBus.post(ProgramOwnerUpdatedEvent.newBuilder()
+                                .setOperator(Operator.newBuilder()
+                                        .setId(currentUserId)
+                                        .setLocale(localeMessageSource.getLocale().toString())
+                                        .build())
+                                .setTeam(Team.newBuilder()
+                                        .setId(project.getTeamOwnerId())
+                                        .build())
+                                .setProgram(Program.newBuilder()
+                                        .setId(project.getId())
+                                        .build())
+                                .setOwner(ProgramOwner.newBuilder()
+                                        .setId(userId)
+                                        .build())
+                                .build());
+                    } else if (ProgramRoleTypeEnum.ProgramAdmin.equals(roleType)) {
+                        asyncExternalEventBus.post(ProgramAdminUpdatedEvent.newBuilder()
+                                .setOperator(Operator.newBuilder()
+                                        .setId(currentUserId)
+                                        .setLocale(localeMessageSource.getLocale().toString())
+                                        .build())
+                                .setTeam(Team.newBuilder()
+                                        .setId(project.getTeamOwnerId())
+                                        .build())
+                                .setProgram(Program.newBuilder()
+                                        .setId(project.getId())
+                                        .build())
+                                .setAdminer(ProgramAdminer.newBuilder()
+                                        .setId(userId)
+                                        .build())
+                                .build());
+                    }
+                }
                 projectHandCacheService.handleProjectMemberCache(projectMember, CacheTypeEnum.CREATE);
             });
 
@@ -389,7 +438,7 @@ public class ProjectMemberService {
         advancedRoleServiceGrpcClient.removeUserRoleRecordsInProject(project.getId(), targetUserId);
         projectMemberAdaptorFactory.create(project.getPmType())
                 .postDeleteMemberEvent(currentUserId, project, member);
-        deleteMemberEventTrigger.trigger(roleIdList, member, project.getId(), currentUserId);
+        deleteMemberEventTrigger.trigger(roleIdList, member, project, currentUserId);
         projectHandCacheService.handleProjectMemberCache(member, CacheTypeEnum.DELETE);
     }
 

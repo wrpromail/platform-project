@@ -276,14 +276,7 @@ public class ProjectService {
         if (Objects.isNull(project)) {
             throw CoreException.of(CoreException.ExceptionType.PROJECT_CREATION_ERROR);
         }
-        // 通知 企业所有者
-        if (!project.getInvisible()) {
-            projectServiceHelper.sendCreateProjectNotification(
-                    parameter.getTeamOwnerId(),
-                    parameter.getUserId(),
-                    project,
-                    createProject);
-        }
+
 
         // 初始化新项目的内置角色，这个必须在 addMember 之前
         advancedRoleServiceGrpcClient.initProjectPredefinedRoles(project.getId(), parameter.getTeamId());
@@ -293,7 +286,15 @@ public class ProjectService {
 
         // 创建项目默认的偏好设置 由于创建项目较慢这里 7 次 insert 把这个转移到异步
         projectPreferenceService.initProjectPreferences(project.getId());
-
+        // 通知
+        if (!project.getInvisible()) {
+            projectServiceHelper.sendCreateProjectNotification(
+                    parameter.getTeamId(),
+                    parameter.getTeamOwnerId(),
+                    parameter.getUserId(),
+                    project,
+                    createProject);
+        }
         return project;
     }
 
@@ -503,6 +504,7 @@ public class ProjectService {
         boolean postDisplayNameFlag = false;
         boolean postDescriptionFlag = false;
         boolean postDateFlag = false;
+        Project oldProject = project.clone();
         String oldDisplayName = project.getDisplayName();
         if (!project.getName().equals(form.getName())) {
             if (Objects.nonNull(getByNameAndTeamId(form.getName(), project.getTeamOwnerId()))) {
@@ -555,9 +557,10 @@ public class ProjectService {
 
         if (postDisplayNameFlag) {
             projectAdaptorFactory.create(project.getPmType())
-                    .postProjectDisplayNameChangeEvent(project);
+                    .postDisplayNameChangeEvent(userId, oldProject, project);
             projectAdaptorFactory.create(project.getPmType())
                     .postActivityEvent(userId, project, ACTION_UPDATE_DISPLAY_NAME);
+
         }
         if (postDescriptionFlag) {
             projectAdaptorFactory.create(project.getPmType())
