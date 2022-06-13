@@ -1,1 +1,1 @@
-package net.coding.lib.project.hook.trigger;import java.util.List;public interface MemberEventTrigger<T> {    void trigger(List<String> roleId, T o, int projectId, int currentUserId);}
+package net.coding.lib.project.hook.trigger;import java.util.List;import net.coding.lib.project.entity.Project;public interface MemberEventTrigger<T> {    void trigger(List<String> roleId, T o, Project project, int currentUserId);}

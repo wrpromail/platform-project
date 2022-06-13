@@ -2,6 +2,14 @@ package net.coding.lib.project.service.member;
 
 import com.google.common.eventbus.AsyncEventBus;
 
+import net.coding.common.eventbus.AsyncExternalEventBus;
+import net.coding.common.i18n.utils.LocaleMessageSource;
+import net.coding.events.all.platform.CommonProto.Operator;
+import net.coding.events.all.platform.CommonProto.Team;
+import net.coding.events.all.platform.ProgramMemberProto.ProgramMemberQuitEvent;
+import net.coding.events.all.platform.ProjectMemberProto.ProjectMemberCreatedEvent;
+import net.coding.events.all.platform.ProjectMemberProto.ProjectMemberDeletedEvent;
+import net.coding.events.all.platform.ProjectMemberProto.ProjectMemberQuitEvent;
 import net.coding.grpc.client.permission.AdvancedRoleServiceGrpcClient;
 import net.coding.lib.project.entity.Project;
 import net.coding.lib.project.entity.ProjectMember;
@@ -32,9 +40,18 @@ import proto.acl.AclProto;
 @Slf4j
 @Service
 public class ProjectMemberAdaptorService extends AbstractProjectMemberAdaptorService {
-
-    public ProjectMemberAdaptorService(AdvancedRoleServiceGrpcClient advancedRoleServiceGrpcClient, ProjectMemberInspectService projectMemberInspectService, UserGrpcClient userGrpcClient, TeamGrpcClient teamGrpcClient, NotificationGrpcClient notificationGrpcClient, CreateMemberEventTriggerTrigger createMemberEventTrigger, DeleteMemberEventTriggerTrigger deleteMemberEventTrigger, AsyncEventBus asyncEventBus) {
+    private final AsyncExternalEventBus asyncExternalEventBus;
+    private final LocaleMessageSource localeMessageSource;
+    public ProjectMemberAdaptorService(AdvancedRoleServiceGrpcClient advancedRoleServiceGrpcClient,
+            ProjectMemberInspectService projectMemberInspectService, UserGrpcClient userGrpcClient,
+            TeamGrpcClient teamGrpcClient, NotificationGrpcClient notificationGrpcClient,
+            CreateMemberEventTriggerTrigger createMemberEventTrigger,
+            DeleteMemberEventTriggerTrigger deleteMemberEventTrigger, AsyncEventBus asyncEventBus,
+            AsyncExternalEventBus asyncExternalEventBus,
+            LocaleMessageSource localeMessageSource) {
         super(advancedRoleServiceGrpcClient, projectMemberInspectService, userGrpcClient, teamGrpcClient, notificationGrpcClient, createMemberEventTrigger, deleteMemberEventTrigger, asyncEventBus);
+        this.asyncExternalEventBus = asyncExternalEventBus;
+        this.localeMessageSource = localeMessageSource;
     }
 
     @Override
@@ -42,25 +59,12 @@ public class ProjectMemberAdaptorService extends AbstractProjectMemberAdaptorSer
         return PmTypeEnums.PROJECT.getType();
     }
 
-    @Override
-    protected String notificationAddMember() {
-        return "notification_add_member";
-    }
 
     @Override
     protected String notificationInviteMember() {
         return "notification_invite_member";
     }
 
-    @Override
-    protected String notificationMemberQuit() {
-        return "notification_member_quit";
-    }
-
-    @Override
-    protected String notificationDeleteMember() {
-        return "notification_delete_member";
-    }
 
     @Override
     protected void postProjectMemberPrincipalCreateEvent(Project project, Integer operationUserId, List<ProjectMember> members) {
@@ -76,6 +80,26 @@ public class ProjectMemberAdaptorService extends AbstractProjectMemberAdaptorSer
                         .toList()
                 ).build()
         );
+        // 发送新事件: 添加成员
+        StreamEx.of(members).forEach(projectMember -> {
+            asyncExternalEventBus.post(ProjectMemberCreatedEvent.newBuilder()
+                    .setOperator(Operator.newBuilder()
+                            .setId(operationUserId)
+                            .setLocale(localeMessageSource.getLocale().toString())
+                            .build())
+                    .setTeam(Team.newBuilder()
+                            .setId(project.getTeamOwnerId())
+                            .build())
+                    .setProject(net.coding.events.all.platform.CommonProto.Project.newBuilder()
+                            .setId(project.getId())
+                            .setDisplayName(project.getDisplayName())
+                            .build())
+                    .setMember(net.coding.events.all.platform.CommonProto.ProjectMember.newBuilder()
+                            .setId(projectMember.getUserId())
+                            .build())
+                    .build());
+        });
+
     }
 
     @Override
@@ -93,6 +117,42 @@ public class ProjectMemberAdaptorService extends AbstractProjectMemberAdaptorSer
                         .toList()
                 ).build()
         );
+        members.forEach(member->{
+            if (!member.getUserId().equals(operationUserId)) {
+                asyncExternalEventBus.post(ProjectMemberDeletedEvent.newBuilder()
+                        .setOperator(Operator.newBuilder()
+                                .setId(operationUserId)
+                                .setLocale(localeMessageSource.getLocale().toString())
+                                .build())
+                        .setTeam(Team.newBuilder()
+                                .setId(project.getTeamOwnerId())
+                                .build())
+                        .setProject(net.coding.events.all.platform.CommonProto.Project.newBuilder()
+                                .setId(project.getId())
+                                .setDisplayName(project.getDisplayName())
+                                .build())
+                        .setMember(net.coding.events.all.platform.CommonProto.ProjectMember.newBuilder()
+                                .setId(member.getUserId())
+                                .build())
+                        .build());
+            } else {
+                asyncExternalEventBus.post(ProjectMemberQuitEvent.newBuilder()
+                        .setOperator(Operator.newBuilder()
+                                .setId(operationUserId)
+                                .setLocale(localeMessageSource.getLocale().toString())
+                                .build())
+                        .setTeam(Team.newBuilder()
+                                .setId(project.getTeamOwnerId())
+                                .build())
+                        .setProject(net.coding.events.all.platform.CommonProto.Project.newBuilder()
+                                .setId(project.getId())
+                                .setName(project.getName())
+                                .setDisplayName(project.getDisplayName())
+                                .build())
+                        .build());
+            }
+        });
+
     }
 
     @Override

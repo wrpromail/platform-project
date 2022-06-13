@@ -73,7 +73,8 @@ dependencies {
     compile "net.coding.proto:permission:20220227.1"
     compile "net.coding.proto:platform-open-api:70884397f953f1d02d9de27679e4924151f7ee6b"
     compile "net.coding.grpc.client:collaboration:20211123.1"
-    compile 'net.coding.event:all:2022.04.07-deab87fff4066f306137dd9c593ffc3547b6fe60'
+    compile 'net.coding.event:all:2022.06.10-cb46aee93af2d6fd7166fdbb16ed61ea4aae5ce8'
+    compile "net.coding.platform.framework:degradation:20210906.1"
     compile("tk.mybatis:mapper-spring-boot-starter:2.1.5")
     compile "io.github.lognet:grpc-spring-boot-starter:3.5.7"
     implementation "io.micrometer:micrometer-registry-prometheus:1.5.9"

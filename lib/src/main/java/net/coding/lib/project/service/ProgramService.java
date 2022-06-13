@@ -214,8 +214,12 @@ public class ProgramService {
             throw CoreException.of(PROJECT_CREATION_ERROR);
         }
         //发通知
-        projectServiceHelper.sendCreateProjectNotification(team.getOwner_id(), currentUserId,
-                program, ProgramProjectEventEnums.createProgram);
+        projectServiceHelper.sendCreateProjectNotification(
+                team.getId(),
+                team.getOwner_id(),
+                currentUserId,
+                program,
+                ProgramProjectEventEnums.createProgram);
         //初始化项目集权限
         advancedRoleServiceGrpcClient.initPredefinedRoles(team.getId(), CommonProto.TargetType.PROGRAM,
                 Stream.of(program.getId().longValue()).collect(Collectors.toSet()));

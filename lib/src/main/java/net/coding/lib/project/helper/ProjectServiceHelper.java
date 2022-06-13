@@ -3,13 +3,24 @@ package net.coding.lib.project.helper;
 
 import com.google.common.eventbus.AsyncEventBus;
 
+import java.util.stream.Collectors;
 import net.coding.common.base.event.ActivityEvent;
 import net.coding.common.base.event.CreateProjectUserEvent;
 import net.coding.common.base.event.ProjectCreateEvent;
 import net.coding.common.base.gson.JSON;
+import net.coding.common.eventbus.AsyncExternalEventBus;
 import net.coding.common.i18n.utils.LocaleMessageSource;
 import net.coding.common.util.TextUtils;
 import net.coding.e.proto.ActivitiesProto;
+import net.coding.events.all.platform.CommonProto;
+import net.coding.events.all.platform.CommonProto.AtUser;
+import net.coding.events.all.platform.CommonProto.Operator;
+import net.coding.events.all.platform.CommonProto.Program;
+import net.coding.events.all.platform.CommonProto.Team;
+import net.coding.events.all.platform.ProgramProto.ProgramCreatedEvent;
+import net.coding.events.all.platform.ProjectEventProto.ProjectCreatedEvent;
+import net.coding.events.all.platform.ProjectNoticeEventProto.ProjectNoticeCreatedEvent;
+import net.coding.events.all.platform.ProjectNoticeEventProto.ProjectNoticeUpdatedEvent;
 import net.coding.grpc.client.activity.ActivityGrpcClient;
 import net.coding.grpc.client.platform.LoggingGrpcClient;
 import net.coding.grpc.client.platform.UserServiceGrpcClient;
@@ -25,6 +36,7 @@ import net.coding.lib.project.grpc.client.TeamGrpcClient;
 import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.metrics.ProjectCreateMetrics;
 import net.coding.lib.project.parameter.ProjectCreateParameter;
+import net.coding.lib.project.service.ProjectMemberService;
 import net.coding.lib.project.service.ProjectPreferenceService;
 import net.coding.lib.project.setting.ProjectSetting;
 import net.coding.lib.project.utils.DateUtil;
@@ -53,6 +65,7 @@ import proto.platform.project.ProjectProto;
 import static net.coding.common.constants.ProjectConstants.ACTION_CREATE;
 import static net.coding.lib.project.entity.ProjectPreference.PREFERENCE_STATUS_TRUE;
 import static net.coding.lib.project.entity.ProjectPreference.PREFERENCE_TYPE_PROJECT_TWEET;
+import static net.coding.lib.project.enums.ProgramProjectEventEnums.createProgram;
 import static net.coding.lib.project.enums.ProgramProjectEventEnums.createProject;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
@@ -81,6 +94,8 @@ public class ProjectServiceHelper {
 
     private final UserServiceGrpcClient userServiceGrpcClient;
 
+    private final AsyncExternalEventBus asyncExternalEventBus;
+    private final ProjectMemberService projectMemberService;
     /**
      * 通知项目内所有人创建了一条冒泡，创建者自身及被 @ 的人除外
      */
@@ -220,6 +235,7 @@ public class ProjectServiceHelper {
     @Degradation
     public void postProjectTweetCreateActivity(Project project, ProjectTweet tweet, Integer userId, ActivityEnums activityEnums, Short action, String actionStr) {
         try {
+            Set<Integer> atUsers = projectMemberService.parseAtUser(userId, project, tweet.getContent(), tweet.getOwnerId());
             Map<String, String> mapInfo = new HashMap<>(1 << 2);
             mapInfo.put("raw", tweet.getRaw());
             mapInfo.put("content", tweet.getContent());
@@ -247,6 +263,50 @@ public class ProjectServiceHelper {
                     .setCreatedAt(DateUtil.getCurrentDate().getTime())
                     .build();
             activityGrpcClient.sendActivity(request);
+            if (activityEnums == ActivityEnums.ACTION_TWEET_CREATE) {
+                asyncExternalEventBus.post(ProjectNoticeCreatedEvent.newBuilder()
+                                .setOperator(Operator.newBuilder()
+                                        .setId(userId)
+                                        .setLocale(localeMessageSource.getLocale().toString())
+                                        .build())
+                                .setContent(tweet.getContent())
+                                .setProject(CommonProto.Project.newBuilder()
+                                        .setId(project.getId())
+                                        .setName(project.getName())
+                                        .setDisplayName(project.getDisplayName())
+                                        .build())
+                                .setTeam(Team.newBuilder()
+                                        .setId(project.getTeamOwnerId())
+                                        .build())
+                                .addAllAtUser(atUsers.stream()
+                                        .map(uid->AtUser.newBuilder()
+                                                .setId(uid)
+                                                .build())
+                                        .collect(Collectors.toSet()))
+                        .build());
+            }
+            if (activityEnums == ActivityEnums.ACTION_TWEET_UPDATE) {
+                asyncExternalEventBus.post(ProjectNoticeUpdatedEvent.newBuilder()
+                        .setOperator(Operator.newBuilder()
+                                .setId(userId)
+                                .setLocale(localeMessageSource.getLocale().toString())
+                                .build())
+                        .setContent(tweet.getContent())
+                        .setProject(CommonProto.Project.newBuilder()
+                                .setId(project.getId())
+                                .setName(project.getName())
+                                .setDisplayName(project.getDisplayName())
+                                .build())
+                        .setTeam(Team.newBuilder()
+                                .setId(project.getTeamOwnerId())
+                                .build())
+                        .addAllAtUser(atUsers.stream()
+                                .map(uid->AtUser.newBuilder()
+                                        .setId(uid)
+                                        .build())
+                                .collect(Collectors.toSet()))
+                        .build());
+            }
         } catch (Exception ex) {
             log.error("Send activity failed！ex={}", ex.getMessage());
         }
@@ -340,22 +400,37 @@ public class ProjectServiceHelper {
     }
 
     @Degradation
-    public void sendCreateProjectNotification(Integer ownerId, Integer userId, Project project,
+    public void sendCreateProjectNotification(Integer teamId, Integer ownerId, Integer userId, Project project,
                                               ProgramProjectEventEnums eventEnums) {
-        notificationGrpcClient.send(
-                NotificationProto
-                        .NotificationSendRequest
-                        .newBuilder()
-                        .addUserId(ownerId)
-                        .setContent(
-                                localeMessageSource.getMessage(eventEnums.getMessage(),
-                                        new Object[]{userGrpcClient.getUserHtmlLinkById(userId)
-                                                , htmlLink(project)}))
-                        .setTargetType(NotificationProto.TargetType.Project)
-                        .setTargetId(String.valueOf(project.getId()))
-                        .setSetting(NotificationProto.Setting.ProjectMemberSetting)
-                        .build()
-        );
+        if (eventEnums.equals(createProgram)) {
+            asyncExternalEventBus.post(ProgramCreatedEvent.newBuilder()
+                    .setTeam(Team.newBuilder()
+                            .setId(teamId)
+                            .build())
+                    .setOperator(Operator.newBuilder()
+                            .setId(userId)
+                            .setLocale(localeMessageSource.getLocale().toString())
+                            .build())
+                    .setProgram(Program.newBuilder()
+                            .setId(project.getId())
+                            .build())
+                    .build());
+        }
+        if (eventEnums.equals(createProject)) {
+            asyncExternalEventBus.post(ProjectCreatedEvent.newBuilder()
+                    .setTeam(Team.newBuilder()
+                            .setId(teamId)
+                            .build())
+                    .setOperator(Operator.newBuilder()
+                            .setId(userId)
+                            .setLocale(localeMessageSource.getLocale().toString())
+                            .build())
+                    .setProject(CommonProto.Project.newBuilder()
+                            .setId(project.getId())
+                            .build())
+                    .build());
+        }
+
     }
 
     public void insertOperationLog(Integer userId, Integer teamId, Project project,

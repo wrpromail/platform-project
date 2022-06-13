@@ -8,6 +8,15 @@ import net.coding.common.eventbus.Pubsub;
 import net.coding.common.i18n.utils.LocaleMessageSource;
 import net.coding.e.grpcClient.collaboration.MilestoneGrpcClient;
 import net.coding.e.grpcClient.collaboration.exception.MilestoneException;
+import net.coding.events.all.platform.CommonProto;
+import net.coding.events.all.platform.CommonProto.Operator;
+import net.coding.events.all.platform.CommonProto.Program;
+import net.coding.events.all.platform.CommonProto.Team;
+import net.coding.events.all.platform.ProgramProto.ProgramArchivedEvent;
+import net.coding.events.all.platform.ProgramProto.ProgramDeletedEvent;
+import net.coding.events.all.platform.ProgramProto.ProgramDisplayNameUpdatedEvent;
+import net.coding.events.all.platform.ProgramProto.ProgramUnArchivedEvent;
+import net.coding.events.all.platform.ProjectEventProto;
 import net.coding.grpc.client.permission.AclServiceGrpcClient;
 import net.coding.grpc.client.platform.LoggingGrpcClient;
 import net.coding.grpc.client.platform.SystemSettingGrpcClient;
@@ -93,16 +102,55 @@ public class ProgramAdaptorService extends AbstractProjectAdaptorService {
     @Override
     public void projectDeleteEvent(Integer userId, Project project) {
         postProgramEvent(userId, project, ProgramEvent.Function.DELETE);
+        asyncExternalEventBus.post(ProgramDeletedEvent.newBuilder()
+                .setTeam(Team.newBuilder()
+                        .setId(project.getTeamOwnerId())
+                        .build())
+                .setOperator(Operator.newBuilder()
+                        .setId(userId)
+                        .setLocale(localeMessageSource.getLocale().toString())
+                        .build())
+                .setProgram(Program.newBuilder()
+                        .setId(project.getId())
+                        .setDisplayName(project.getDisplayName())
+                        .build())
+                .build());
     }
 
     @Override
     public void projectArchiveEvent(Integer userId, Project project) {
         postProgramEvent(userId, project, ProgramEvent.Function.ARCHIVE);
+        asyncExternalEventBus.post(ProgramArchivedEvent.newBuilder()
+                .setTeam(Team.newBuilder()
+                        .setId(project.getTeamOwnerId())
+                        .build())
+                .setOperator(Operator.newBuilder()
+                        .setId(userId)
+                        .setLocale(localeMessageSource.getLocale().toString())
+                        .build())
+                .setProgram(Program.newBuilder()
+                        .setId(project.getId())
+                        .setDisplayName(project.getDisplayName())
+                        .build())
+                .build());
     }
 
     @Override
     public void projectUnArchiveEvent(Integer userId, Project project) {
         postProgramEvent(userId, project, ProgramEvent.Function.UNARCHIVE);
+        asyncExternalEventBus.post(ProgramUnArchivedEvent.newBuilder()
+                .setTeam(Team.newBuilder()
+                        .setId(project.getTeamOwnerId())
+                        .build())
+                .setOperator(Operator.newBuilder()
+                        .setId(userId)
+                        .setLocale(localeMessageSource.getLocale().toString())
+                        .build())
+                .setProgram(Program.newBuilder()
+                        .setId(project.getId())
+                        .setDisplayName(project.getDisplayName())
+                        .build())
+                .build());
     }
 
     @Override
@@ -178,6 +226,36 @@ public class ProgramAdaptorService extends AbstractProjectAdaptorService {
                 .userId(userId)
                 .projectId(project.getId())
                 .function(function)
+                .build());
+    }
+
+    @Override
+    public void postDisplayNameChangeEvent(int userId, Project oldProgram, Project newProgram) {
+        // 老的项目集的事件
+        ProjectEventProto.ProjectDisplayNameChangeEvent build =
+                ProjectEventProto.ProjectDisplayNameChangeEvent.newBuilder()
+                        .setTeamId(newProgram.getTeamOwnerId())
+                        .setProjectId(newProgram.getId())
+                        .setNewDisplayName(newProgram.getDisplayName())
+                        .build();
+        pubsub.publish(build);
+        // 新事件
+        asyncExternalEventBus.post(ProgramDisplayNameUpdatedEvent.newBuilder()
+                .setTeam(Team.newBuilder()
+                        .setId(newProgram.getTeamOwnerId())
+                        .build())
+                .setOperator(Operator.newBuilder()
+                        .setId(userId)
+                        .setLocale(localeMessageSource.getLocale().toString())
+                        .build())
+                .setPreProgram(CommonProto.Program.newBuilder()
+                        .setId(oldProgram.getId())
+                        .setDisplayName(oldProgram.getDisplayName())
+                        .build())
+                .setPostProgram(CommonProto.Program.newBuilder()
+                        .setId(newProgram.getId())
+                        .setDisplayName(newProgram.getDisplayName())
+                        .build())
                 .build());
     }
 }

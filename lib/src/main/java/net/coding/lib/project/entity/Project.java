@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @Table(name = "projects")
-public class Project implements Serializable {
+public class Project implements Serializable, Cloneable {
     private static final long serialVersionUID = 1000000000001L;
     /**
      * 编号
@@ -149,4 +149,13 @@ public class Project implements Serializable {
      */
     @Builder.Default
     private Integer pmType = PmTypeEnums.PROJECT.getType();
+
+
+    @Override
+    public Project clone()
+    {
+        Project project = new Project();
+        org.springframework.beans.BeanUtils.copyProperties(this, project);
+        return project;
+    }
 }
