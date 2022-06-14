@@ -22,7 +22,6 @@ import net.coding.lib.project.pager.ResultPageFactor;
 import net.coding.lib.project.service.project.ProjectsService;
 import net.coding.lib.project.utils.UserUtil;
 import net.coding.platform.ram.proto.grant.object.GrantObjectProto;
-import net.coding.platform.ram.service.UserGroupRemoteService;
 
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -149,8 +148,8 @@ public class ProjectMemberPrincipalService {
      */
     public List<ProjectJoinProjectMemberDTO> findJoinProjectMembers(Integer teamId, Integer userId, String keyword) {
         return StreamEx.of(
-                projectListService.getJoinedPrincipalProjects(teamId, userId, keyword)
-        )
+                        projectListService.getJoinedPrincipalProjects(teamId, userId, keyword)
+                )
                 .limit(100)
                 .map(project -> {
                     List<ProjectMember> members = projectMemberInspectService.getPrincipalUserMembers(project.getId());
