@@ -22,13 +22,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import proto.notification.NotificationProto;
 import proto.platform.logging.loggingProto;
 import proto.platform.permission.PermissionProto;
+import proto.platform.user.UserProto;
 
 import static net.coding.lib.project.exception.CoreException.ExceptionType.NETWORK_CONNECTION_ERROR;
 import static net.coding.lib.project.exception.CoreException.ExceptionType.PERMISSION_DENIED;
@@ -208,6 +207,27 @@ public abstract class AbstractProjectAdaptorService {
             }
         }
         return false;
+    }
+
+    public boolean hasPermissionInProject(
+            UserProto.User currentUser,
+            Integer projectId,
+            PermissionProto.Function function,
+            PermissionProto.Action action) throws CoreException {
+        try {
+            return aclServiceGrpcClient.hasPermissionInProject(
+                    PermissionProto.Permission.newBuilder()
+                            .setFunction(function)
+                            .setAction(action)
+                            .build(),
+                    projectId,
+                    currentUser.getGlobalKey(),
+                    currentUser.getId()
+            );
+        } catch (Exception e) {
+            log.warn("hasPermissionInProject {}", e.getMessage());
+            throw CoreException.of(NETWORK_CONNECTION_ERROR);
+        }
     }
 
 
