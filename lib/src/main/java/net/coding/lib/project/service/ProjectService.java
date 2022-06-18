@@ -35,6 +35,7 @@ import net.coding.lib.project.form.credential.CredentialForm;
 import net.coding.lib.project.group.ProjectGroupProject;
 import net.coding.lib.project.group.ProjectGroupProjectDao;
 import net.coding.lib.project.grpc.client.AgileTemplateGRpcClient;
+import net.coding.lib.project.grpc.client.UserGrpcClient;
 import net.coding.lib.project.helper.ProjectServiceHelper;
 import net.coding.lib.project.infra.PinyinService;
 import net.coding.lib.project.metrics.ProjectCreateMetrics;
@@ -73,6 +74,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import one.util.streamex.StreamEx;
+import proto.platform.permission.PermissionProto;
 import proto.platform.user.UserProto;
 
 import static net.coding.common.constants.ProjectConstants.ACTION_ARCHIVE;
@@ -123,6 +125,8 @@ public class ProjectService {
     private final ProjectTemplateService projectTemplateService;
     private final ProjectSettingFunctionService projectSettingFunctionService;
     private final ProjectMemberInspectService projectMemberInspectService;
+
+    private final UserGrpcClient userGrpcClient;
 
     public Project getById(Integer id) {
         return projectDao.getProjectById(id);
@@ -319,9 +323,8 @@ public class ProjectService {
         if (Objects.isNull(project)) {
             throw CoreException.of(RESOURCE_NO_FOUND);
         }
-
-        projectAdaptorFactory.create(project.getPmType())
-                .hasPermissionInEnterprise(teamId, userId, project.getPmType(), ACTION_DELETE);
+        //校验权限
+        hasPermission(teamId, userId, project, ACTION_DELETE);
 
         project.setDeletedAt(DateUtil.getCurrentDate());
         projectDao.updateByPrimaryKeySelective(project);
@@ -342,9 +345,8 @@ public class ProjectService {
         if (Objects.isNull(project)) {
             throw CoreException.of(RESOURCE_NO_FOUND);
         }
-
-        projectAdaptorFactory.create(project.getPmType())
-                .hasPermissionInEnterprise(teamId, userId, project.getPmType(), ACTION_UPDATE);
+        //校验权限
+        hasPermission(teamId, userId, project, ACTION_UPDATE);
 
         icon = projectValidateService.validateIcon(icon);
         project.setIcon(icon);
@@ -362,8 +364,8 @@ public class ProjectService {
         if (Objects.isNull(project)) {
             throw CoreException.of(RESOURCE_NO_FOUND);
         }
-        projectAdaptorFactory.create(project.getPmType())
-                .hasPermissionInEnterprise(teamId, userId, project.getPmType(), ACTION_UPDATE);
+        //校验权限
+        hasPermission(teamId, userId, project, ACTION_UPDATE);
 
         updateProject(form, project, userId);
         return projectDTOService.toDetailDTO(getByIdAndTeamId(project.getId(), teamId));
@@ -395,18 +397,17 @@ public class ProjectService {
         if (Objects.isNull(project)) {
             throw CoreException.of(RESOURCE_NO_FOUND);
         }
-
-        projectAdaptorFactory.create(project.getPmType())
-                .hasPermissionInEnterprise(teamId, userId, project.getPmType(), ACTION_ARCHIVE);
+        //校验权限
+        hasPermission(teamId, userId, project, ACTION_ARCHIVE);
 
         project.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
         project.setDeletedAt(DateUtil.strToDate(ARCHIVE_PROJECT_DELETED_AT));
         projectDao.updateByPrimaryKeySelective(project);
         Optional.ofNullable(
-                teamProjectDao.selectOne(TeamProject.builder()
-                        .projectId(projectId)
-                        .teamId(teamId)
-                        .build()))
+                        teamProjectDao.selectOne(TeamProject.builder()
+                                .projectId(projectId)
+                                .teamId(teamId)
+                                .build()))
                 .ifPresent(tp -> {
                     tp.setDeletedAt(DateUtil.strToDate(ARCHIVE_PROJECT_DELETED_AT));
                     teamProjectDao.updateByPrimaryKeySelective(tp);
@@ -437,10 +438,10 @@ public class ProjectService {
         project.setDeletedAt(DateUtil.strToDate(BeanUtils.NOT_DELETED_AT));
         projectDao.updateByPrimaryKeySelective(project);
         Optional.ofNullable(
-                teamProjectDao.selectOne(TeamProject.builder()
-                        .projectId(projectId)
-                        .teamId(teamId)
-                        .build()))
+                        teamProjectDao.selectOne(TeamProject.builder()
+                                .projectId(projectId)
+                                .teamId(teamId)
+                                .build()))
                 .ifPresent(tp -> {
                     tp.setDeletedAt(DateUtil.strToDate(BeanUtils.NOT_DELETED_AT));
                     teamProjectDao.updateByPrimaryKeySelective(tp);
@@ -464,12 +465,12 @@ public class ProjectService {
                 .checkProgramPay(teamId);
 
         Optional.ofNullable(
-                projectRecentViewDao.selectOne(ProjectRecentView.builder()
-                        .teamId(teamId)
-                        .userId(userId)
-                        .projectId(project.getId())
-                        .deletedAt(BeanUtils.getDefaultDeletedAt())
-                        .build()))
+                        projectRecentViewDao.selectOne(ProjectRecentView.builder()
+                                .teamId(teamId)
+                                .userId(userId)
+                                .projectId(project.getId())
+                                .deletedAt(BeanUtils.getDefaultDeletedAt())
+                                .build()))
                 .map(projectRecentView -> {
                     projectRecentView.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
                     return projectRecentViewDao.updateByPrimaryKeySelective(projectRecentView);
@@ -631,5 +632,23 @@ public class ProjectService {
                 filter.getPageSize(),
                 BeanUtils.getDefaultDeletedAt()
         );
+    }
+
+    public void hasPermission(Integer teamId, Integer userId, Project project, Short action) throws CoreException {
+        boolean hasEnterprisePermission = projectAdaptorFactory.create(project.getPmType())
+                .hasEnterprisePermission(teamId, userId, project.getPmType(), action);
+        if (!hasEnterprisePermission) {
+            UserProto.User currentUser = userGrpcClient.getUserById(userId);
+            boolean hasPermissionInProject = projectAdaptorFactory.create(project.getPmType())
+                    .hasPermissionInProject(
+                            currentUser,
+                            project.getId(),
+                            PermissionProto.Function.ProjectBasicSetting,
+                            PermissionProto.Action.Update
+                    );
+            if (!hasPermissionInProject) {
+                throw CoreException.of(PERMISSION_DENIED);
+            }
+        }
     }
 }
