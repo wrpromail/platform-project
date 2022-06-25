@@ -5,6 +5,7 @@ import net.coding.common.rpc.client.EndpointGrpcClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
@@ -105,6 +106,6 @@ public class UserGrpcClient extends EndpointGrpcClient<UserServiceGrpc.UserServi
         } catch (Exception ex) {
             log.error("UserGrpcClient->findUserByIds() userIds={}, ex={}", userIds, ex);
         }
-        return null;
+        return Collections.emptyList();
     }
 }

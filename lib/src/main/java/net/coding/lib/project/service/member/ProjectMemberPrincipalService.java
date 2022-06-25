@@ -177,22 +177,22 @@ public class ProjectMemberPrincipalService {
             throw CoreException.of(PROJECT_NOT_EXIST);
         }
         Set<Integer> memberUserIds = projectMemberFilterService.filterQueryParameterMembers(project, roleId, keyword);
-        List<ProjectMemberDTO> projectMemberDTOS = StreamEx.of(memberUserIds)
-                .sorted(Comparator.comparing(userId -> userId, Comparator.reverseOrder()))
-                .skip(pager.getOffset())
-                .limit(pager.getLimit())
-                .map(userId -> {
-                    UserProto.User user = userGrpcClient.getUserById(userId);
-                    List<AclProto.Role> roles =
-                            advancedRoleServiceGrpcClient.findUserRolesInProject(userId, teamId, projectId);
-                    return ProjectMemberDTO.builder()
-                            .project_id(project.getId())
-                            .user_id(userId)
-                            .user(UserUtil.toBuilderUser(user, false))
-                            .roles(UserUtil.toRoleDTO(roles))
-                            .build();
-                })
-                .toList();
+        List<ProjectMemberDTO> projectMemberDTOS =
+                StreamEx.of(userGrpcClient.findUserByIds(StreamEx.of(memberUserIds).toList()))
+                        .sorted(Comparator.comparing(UserProto.User::getId, Comparator.reverseOrder()))
+                        .skip(pager.getOffset())
+                        .limit(pager.getLimit())
+                        .map(user -> {
+                            List<AclProto.Role> roles =
+                                    advancedRoleServiceGrpcClient.findUserRolesInProject(user.getId(), teamId, projectId);
+                            return ProjectMemberDTO.builder()
+                                    .project_id(project.getId())
+                                    .user_id(user.getId())
+                                    .user(UserUtil.toBuilderUser(user, false))
+                                    .roles(UserUtil.toRoleDTO(roles))
+                                    .build();
+                        })
+                        .toList();
         pager.setTotal((long) memberUserIds.size());
         return new ResultPageFactor<ProjectMemberDTO>().def(pager, projectMemberDTOS);
     }
