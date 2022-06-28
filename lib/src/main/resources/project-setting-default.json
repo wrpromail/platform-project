@@ -67,13 +67,22 @@
       "order": 2
     },
     {
+      "code": "atp",
+      "scope": "function",
+      "name": "自动化测试",
+      "description": "企业级自动化测试服务，涵盖接口自动化测试、移动端 UI 自动化测试。",
+      "defaultValue": "0",
+      "featureCode": "platform_feature_menu_atp_enabled",
+      "order": 3
+    },
+    {
       "code": "code_management",
       "scope": "function",
       "name": "代码仓库",
       "description": "代码仓库、分支、合并请求、代码评审、发布，包括 设置 > 代码托管。",
       "defaultValue": "1",
       "featureCode": "platform_feature_menu_depot_root_git_enabled",
-      "order": 3
+      "order": 4
     },
     {
       "code": "code_analysis",
@@ -82,7 +91,7 @@
       "description": "代码检查、代码度量、重复代码、代码统计。",
       "featureCode": "platform_feature_menu_code_analysis_enabled",
       "defaultValue": "1",
-      "order": 4
+      "order": 5
     },
     {
       "code": "continue_integration",
@@ -91,7 +100,7 @@
       "description": "代码检查、代码度量、重复代码、代码统计。",
       "featureCode": "platform_feature_menu_ci_cd_root_enabled",
       "defaultValue": "1",
-      "order": 5
+      "order": 6
     },
     {
       "code": "deployment_management",
@@ -100,7 +109,7 @@
       "description": "基于 Spinnaker，支持 Kubernetes、云服务器等多种场景的部署。",
       "featureCode": "platform_feature_menu_cd_enabled",
       "defaultValue": "1",
-      "order": 6
+      "order": 7
     },
     {
       "code": "artifact",
@@ -109,7 +118,7 @@
       "description": "管理构建产物，支持 Docker、Maven、Npm、PyPi 等制品库类型。",
       "featureCode": "platform_feature_menu_artifacts_root_enabled",
       "defaultValue": "1",
-      "order": 7
+      "order": 8
     },
     {
       "code": "wiki",
@@ -118,7 +127,7 @@
       "description": "帮助团队进行知识沉淀，同时可维护公开文档。",
       "featureCode": "platform_feature_menu_wiki_enabled",
       "defaultValue": "1",
-      "order": 8
+      "order": 9
     },
     {
       "code": "api_docs",
@@ -127,7 +136,7 @@
       "description": "您可通过精美的 API 文档来推动整个 API 开发过程，并可配合持续集成实现自动化发布。",
       "featureCode": "platform_feature_menu_api_docs_enabled",
       "defaultValue": "1",
-      "order": 9
+      "order": 10
     },
     {
       "code": "knowledge",
@@ -136,7 +145,7 @@
       "description": "为团队提供信息整理、知识沉淀的协作空间，使团队通畅地进行信息共享。",
       "featureCode": "platform_feature_menu_knowledge_enabled",
       "defaultValue": "1",
-      "order": 10
+      "order": 11
     },
     {
       "code": "compass",
@@ -145,7 +154,7 @@
       "description": "企业 DevOps 全流程的管控，透视与价值流分析。",
       "featureCode": "platform_feature_menu_compass_enabled",
       "defaultValue": "0",
-      "order": 11
+      "order": 12
     },
     {
       "code": "file",
@@ -154,7 +163,7 @@
       "description": "存放和组织项目文件，支持对文件进行分享。",
       "featureCode": "platform_feature_menu_attachment_enabled",
       "defaultValue": "1",
-      "order": 12
+      "order": 13
     },
     {
       "code": "app_ops",
@@ -163,7 +172,7 @@
       "description": "应用管理支持版本化，原子化的发布组件，配置，数据变更。 提供应用监控日志，闭环应用研发运维一体化。",
       "featureCode": "platform_feature_menu_cd_appops_enabled",
       "defaultValue": "1",
-      "order": 13
+      "order": 14
     },
     {
       "code": "old_task",
@@ -171,7 +180,7 @@
       "name": "旧版任务",
       "description": "旧版任务。",
       "defaultValue": "0",
-      "order": 14
+      "order": 15
     },
     {
       "code": "qta",
@@ -179,7 +188,7 @@
       "name": "QTA",
       "description": "QTA。",
       "defaultValue": "0",
-      "order": 15
+      "order": 16
     },
     {
       "code": "agile_development_iteration",
