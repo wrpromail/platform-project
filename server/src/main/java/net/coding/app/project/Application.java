@@ -3,6 +3,7 @@ package net.coding.app.project;
 import net.coding.common.verification.VerificationAutoConfiguration;
 import net.coding.framework.autoconfigure.webapp.RestfulApiResponseSupportConfig;
 import net.coding.platform.degradation.ServiceDegradationAutoConfiguration;
+import net.coding.platform.redis.RedisLettuceAutoConfiguration;
 
 import org.lognet.springboot.grpc.autoconfigure.GRpcAutoConfiguration;
 import org.springframework.boot.SpringApplication;
@@ -45,7 +46,8 @@ import springfox.documentation.oas.annotations.EnableOpenApi;
                 VerificationAutoConfiguration.class,
                 GsonAutoConfiguration.class,
                 ServiceDegradationAutoConfiguration.class,
-                RestfulApiResponseSupportConfig.class
+                RestfulApiResponseSupportConfig.class,
+                RedisLettuceAutoConfiguration.class
         },
         exclude = {
                 HttpMessageConvertersAutoConfiguration.class

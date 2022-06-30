@@ -35,7 +35,7 @@ subprojects {
         codingCommonVersion = 'v2.20220402.1'
         codingGRpcVersion = 'v3.20220113.1'
         ramVersion = '20220227.1'
-        platformFrameworkVersion = "28d5bf98880eef35ed457ca4619f221c13d3ff01"
+        platformFrameworkVersion = "20220630.1"
     }
     apply plugin: "coding-plugin"
     apply plugin: "net.coding.translate"
