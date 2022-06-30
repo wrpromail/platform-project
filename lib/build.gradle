@@ -13,8 +13,9 @@ dependencies {
     api "io.springfox:springfox-boot-starter:3.0.0"
     compile 'com.squareup.okhttp3:okhttp:4.6.0'
     compile 'com.squareup.okhttp3:logging-interceptor:4.6.0'
-    compile "net.coding.common:rpc-client:${codingGRpcVersion}"
-    compile "net.coding.common:rpc-server:${codingGRpcVersion}"
+    compile "net.coding.common:rpc-client:${codingGRpcVersion}!!"
+    compile "net.coding.common:rpc-server:${codingGRpcVersion}!!"
+    compile "net.coding.common:tracing:${codingGRpcVersion}!!"
     compile "net.coding.common:util:${codingCommonVersion}"
     compile("net.coding.common:base:${codingCommonVersion}") {
         exclude(group: "org.apache.struts")
@@ -64,7 +65,6 @@ dependencies {
     compile "net.coding.proto:vcs-client:20211123.2"
     compile "net.coding.platform.charge:grpc-client:20210512.2"
     compile "net.coding.platform.charge:api:20210512.2"
-    compile "net.coding.platform.framework:degradation:${platformFrameworkVersion}"
     compile 'net.coding.proto:storage:20201027.1'
     compile "net.coding.proto:notification:20201030.2"
     compile 'net.coding.proto:file:20201109.2'
@@ -74,7 +74,9 @@ dependencies {
     compile "net.coding.proto:platform-open-api:70884397f953f1d02d9de27679e4924151f7ee6b"
     compile "net.coding.grpc.client:collaboration:20211123.1"
     compile 'net.coding.event:all:2022.06.10-cb46aee93af2d6fd7166fdbb16ed61ea4aae5ce8'
-    compile "net.coding.platform.framework:degradation:20210906.1"
+    compile "net.coding.platform.framework:degradation:${platformFrameworkVersion}"
+    compile "net.coding.platform.framework:redis:${platformFrameworkVersion}"
+    compile "org.springframework.boot:spring-boot-starter-data-redis"
     compile("tk.mybatis:mapper-spring-boot-starter:2.1.5")
     compile "io.github.lognet:grpc-spring-boot-starter:3.5.7"
     implementation "io.micrometer:micrometer-registry-prometheus:1.5.9"
