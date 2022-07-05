@@ -45,6 +45,7 @@ import static net.coding.lib.project.exception.CoreException.ExceptionType.PROGR
 import static net.coding.lib.project.exception.CoreException.ExceptionType.TEAM_CHARGE_NOT_ADVANCED_PAY;
 import static net.coding.lib.project.service.ProgramService.PLATFORM_FEATURE_PROGRAM_PAYMENT;
 import static net.coding.lib.project.service.ProgramService.TYPE_ADVANCED_PAY;
+import static net.coding.lib.project.service.ProgramService.TYPE_FLAGSHIP_PAY;
 
 @Slf4j
 @Service
@@ -209,7 +210,7 @@ public class ProgramAdaptorService extends AbstractProjectAdaptorService {
         try {
             isPay = Optional.ofNullable(enterpriseGrpcClient.getInfo(currentTeamId))
                     .map(EnterpriseInfoDTO::getType)
-                    .filter(type -> type == TYPE_ADVANCED_PAY)
+                    .filter(type -> (type == TYPE_ADVANCED_PAY || type == TYPE_FLAGSHIP_PAY))
                     .isPresent();
         } catch (Exception ex) {
             log.error("CheckProgramPay enterpriseGrpcClient getInfo Error {}", ex.getMessage());

@@ -98,6 +98,8 @@ public class ProgramService {
 
     public static final short TYPE_ADVANCED_PAY = 2; // 高级版服务
 
+    public static final short TYPE_FLAGSHIP_PAY = 3; // 旗舰版服务
+
     public static final String PLATFORM_FEATURE_PROGRAM_PAYMENT = "platform_feature_program_payment"; // 否开启项目集付费
 
     private final TeamServiceGrpcClient teamServiceGrpcClient;
