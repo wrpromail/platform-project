@@ -4,6 +4,8 @@ import net.coding.common.util.TextUtils;
 import net.coding.lib.project.dto.RoleDTO;
 import net.coding.lib.project.dto.UserDTO;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -13,7 +15,7 @@ import proto.platform.user.UserProto;
 
 public class UserUtil {
 
-    public static UserDTO toBuilderUser(UserProto.User user, boolean showSensitive) {
+    public static UserDTO toBuilderUser(UserProto.User user) {
         UserDTO.UserDTOBuilder builder = UserDTO.builder();
         builder.teamId(user.getTeamId());
         builder.location(TextUtils.htmlEscape(user.getLocation()));
@@ -30,10 +32,8 @@ public class UserUtil {
         builder.email_validation(user.getEmailValidation());
         builder.phone_validation(user.getPhoneValidation());
         builder.account_type(user.getAccountType());
-        if (showSensitive) {
-            builder.email(user.getEmail());
-            builder.phone(user.getPhone());
-        }
+        builder.email(StringUtils.defaultString(user.getEmail()));
+        builder.phone(StringUtils.defaultString(user.getPhone()));
         return builder.build();
     }
 

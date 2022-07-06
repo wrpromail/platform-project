@@ -188,7 +188,7 @@ public class ProjectMemberPrincipalService {
                             return ProjectMemberDTO.builder()
                                     .project_id(project.getId())
                                     .user_id(user.getId())
-                                    .user(UserUtil.toBuilderUser(user, false))
+                                    .user(UserUtil.toBuilderUser(user))
                                     .roles(UserUtil.toRoleDTO(roles))
                                     .build();
                         })
