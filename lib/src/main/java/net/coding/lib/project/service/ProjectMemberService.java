@@ -20,7 +20,6 @@ import net.coding.lib.project.AppProperties;
 import net.coding.lib.project.common.SystemContextHolder;
 import net.coding.lib.project.dao.ProjectDao;
 import net.coding.lib.project.dao.ProjectMemberDao;
-import net.coding.lib.project.dto.ProjectMemberDTO;
 import net.coding.lib.project.dto.ProjectTeamMemberDTO;
 import net.coding.lib.project.dto.RoleDTO;
 import net.coding.lib.project.entity.Project;
@@ -40,7 +39,6 @@ import net.coding.lib.project.hook.trigger.UpdateMemberRoleEventTriggerTrigger;
 import net.coding.lib.project.pager.ResultPageFactor;
 import net.coding.lib.project.service.member.ProjectMemberAdaptorFactory;
 import net.coding.lib.project.service.member.ProjectMemberInspectService;
-import net.coding.lib.project.utils.UserUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -65,14 +63,11 @@ import lombok.extern.slf4j.Slf4j;
 import one.util.streamex.StreamEx;
 import proto.acl.AclProto;
 import proto.advanced_role.AdvancedRoleProto;
-import proto.common.CodeProto;
-import proto.platform.team.TeamProto;
 import proto.platform.user.UserProto;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static net.coding.common.constants.ProjectConstants.PROJECT_PRIVATE;
-import static net.coding.lib.project.exception.CoreException.ExceptionType.TEAM_NOT_EXIST;
 
 @Service
 @AllArgsConstructor
@@ -135,45 +130,6 @@ public class ProjectMemberService {
      */
     public ProjectMember getByProjectIdAndUserId(Integer projectId, Integer userId) {
         return projectMemberInspectService.getPrincipalUserMember(projectId, userId);
-    }
-
-    public ResultPage<ProjectMemberDTO> getProjectMembers(Integer teamId, Integer projectId, String keyWord,
-                                                          Integer roleId, PageRowBounds pager) throws CoreException {
-        TeamProto.GetTeamResponse currentTeam = teamGrpcClient.getTeam(teamId);
-        if (Objects.isNull(currentTeam) || CodeProto.Code.SUCCESS != currentTeam.getCode()
-                || ObjectUtils.isEmpty(currentTeam.getData())) {
-            throw CoreException.of(TEAM_NOT_EXIST);
-        }
-        if (Objects.isNull(projectDao.getProjectByIdAndTeamId(projectId, currentTeam.getData().getId()))) {
-            throw CoreException.of(CoreException.ExceptionType.PROJECT_NOT_EXIST);
-        }
-
-        List<ProjectMember> projectMemberList = projectMemberDao.getProjectMembers(projectId, keyWord, roleId, pager);
-        List<ProjectMemberDTO> projectMembers = new ArrayList<>();
-        projectMemberList.forEach(projectMember ->
-                projectMembers.add(ProjectMemberDTO.builder()
-                        .id(projectMember.getId())
-                        .project_id(projectMember.getProjectId())
-                        .user_id(projectMember.getUserId())
-                        .created_at(projectMember.getCreatedAt().getTime())
-                        .last_visit_at(projectMember.getLastVisitAt().getTime()).build()));
-        if (!CollectionUtils.isEmpty(projectMembers)) {
-            projectMembers.forEach(projectMemberDTO -> {
-                        UserProto.User user = userGrpcClient.getUserById(projectMemberDTO.getUser_id());
-                        projectMemberDTO.setUser(UserUtil.toBuilderUser(user, false)
-                        );
-                    }
-            );
-            projectMembers.forEach(projectMemberDTO -> {
-                List<AclProto.Role> roles = advancedRoleServiceGrpcClient.findUserRolesInProject(
-                        projectMemberDTO.getUser().getId(),
-                        projectMemberDTO.getUser().getTeamId(), projectId
-                );
-                projectMemberDTO.setRoles(toRoleDTO(roles));
-            });
-        }
-        return new ResultPageFactor<ProjectMemberDTO>().def(pager, projectMembers);
-
     }
 
     public List<RoleDTO> findMemberCountByProjectId(Integer projectId) {

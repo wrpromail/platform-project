@@ -120,7 +120,7 @@ public class ProjectTweetService {
         if (flag <= 0) {
             return null;
         }
-       // 记录项目冒泡／公告创建动态
+        // 记录项目冒泡／公告创建动态
         projectServiceHelper.postProjectTweetCreateActivity(project, tweet, userId, ActivityEnums.ACTION_TWEET_UPDATE, ProjectTweet.ACTION_UPDATE, "update");
         return tweet;
     }
@@ -200,7 +200,7 @@ public class ProjectTweetService {
                 .slateRaw(tweet.getSlateRaw())
                 .editable(StringUtils.isNotBlank(tweet.getRaw()))
                 .path(Objects.isNull(user) ? StringUtils.EMPTY : projectServiceHelper.tweetPath(tweet, project, projectPath))
-                .owner(UserUtil.toBuilderUser(user, false))
+                .owner(UserUtil.toBuilderUser(user))
                 .build();
 
     }
